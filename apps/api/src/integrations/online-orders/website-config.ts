@@ -1,6 +1,6 @@
 import { isIP } from 'net';
 import * as crypto from 'crypto';
-import { NO_PRICE_RULE, PriceRule, readPriceRule } from './channel-price';
+import { DEFAULT_PRICE_GUARD, NO_PRICE_RULE, PriceGuard, PriceRule, readPriceGuard, readPriceRule } from './channel-price';
 import { readStockRule, StockMode, StockRule } from './stock-allocation';
 
 /** What a content push sends to the channel (title, description, images, sale price, SKU, weight). */
@@ -80,6 +80,8 @@ export interface WebsiteConfig {
   syncChosen: boolean;
   /** Channel price = Nafaa retail price with this rule (a link's own price wins). */
   priceRule: PriceRule;
+  /** Price safety guard: a push that moves the channel price too far waits for the merchant. On by default. */
+  priceGuard: PriceGuard;
   /** Units kept back: the channel is told stock minus this. */
   stockBuffer: number;
   /** How much of Nafaa stock the channel gets: all, a percent, or a fixed number per product */
@@ -137,6 +139,7 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   stockFromChannel: false,
   syncChosen: false,
   priceRule: NO_PRICE_RULE,
+  priceGuard: DEFAULT_PRICE_GUARD,
   stockBuffer: 0,
   stockMode: 'ALL',
   stockPercent: 100,
@@ -172,6 +175,7 @@ export function readWebsiteConfig(raw: unknown): WebsiteConfig {
     stockFromChannel: c.stockFromChannel === true,
     syncChosen: c.syncChosen === true,
     priceRule: readPriceRule(c.priceRule),
+    priceGuard: readPriceGuard(c.priceGuard),
     stockBuffer: Math.min(10_000, Math.max(0, Math.floor(Number(c.stockBuffer) || 0))),
     stockMode: readStockRule(c).mode,
     stockPercent: readStockRule(c).percent,

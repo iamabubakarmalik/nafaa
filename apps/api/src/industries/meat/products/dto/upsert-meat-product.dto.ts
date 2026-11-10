@@ -1,11 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MeatAnimalType, MeatCutCategory, MeatFreshnessType, MeatQualityGrade, MeatSaleUnit, MeatSlaughterMethod } from '@prisma/client';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { EnumOrDefault } from '../../../../common/helpers/enum-or-default.helper';
 
 export class UpsertMeatProductDto {
   @ApiProperty() @IsString() productId!: string;
-  @ApiProperty({ enum: MeatAnimalType }) @IsEnum(MeatAnimalType) animalType!: MeatAnimalType;
-  @ApiProperty({ enum: MeatCutCategory }) @IsEnum(MeatCutCategory) cutCategory!: MeatCutCategory;
+  @ApiPropertyOptional({ enum: MeatAnimalType }) @IsOptional() @EnumOrDefault(MeatAnimalType, MeatAnimalType.OTHER) @IsEnum(MeatAnimalType) animalType?: MeatAnimalType;
+  @ApiPropertyOptional({ enum: MeatCutCategory }) @IsOptional() @EnumOrDefault(MeatCutCategory, MeatCutCategory.OTHER) @IsEnum(MeatCutCategory) cutCategory?: MeatCutCategory;
   @ApiPropertyOptional({ enum: MeatFreshnessType }) @IsOptional() @IsEnum(MeatFreshnessType) freshnessType?: MeatFreshnessType;
   @ApiPropertyOptional({ enum: MeatSlaughterMethod }) @IsOptional() @IsEnum(MeatSlaughterMethod) slaughterMethod?: MeatSlaughterMethod;
   @ApiPropertyOptional({ enum: MeatQualityGrade }) @IsOptional() @IsEnum(MeatQualityGrade) qualityGrade?: MeatQualityGrade;

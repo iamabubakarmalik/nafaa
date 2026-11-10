@@ -14,13 +14,14 @@ import { formatDate } from '@/core/format';
 import { msg, t } from '@/core/i18n';
 import { ChipGroup, DatePicker, FormSection, Input, Switch, Text } from '@/design';
 import { NumberInput } from '@/modules/inventory/components/fields';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
 import type { Errors } from '@/modules/inventory/screens/editor/types';
 import { dateToKey, keyToDate } from '../_shared/deskKit';
 import { meatProductsApi, type AnimalType, type CutCategory, type FreshnessType, type MeatProductProfile, type SaleUnit } from './api';
-import { ANIMALS, CUTS, MEAT_KEYS, animalText, cutLabel, opt } from './meta';
+import { ANIMALS, MEAT_KEYS, animalText, cutLabel, opt } from './meta';
 
 export interface MeatExtra {
   animalType: AnimalType | ''; cutCategory: CutCategory | ''; freshnessType: FreshnessType; isBoneless: boolean; isFrozen: boolean; isMarinated: boolean; isHalalCertified: boolean;
@@ -34,26 +35,15 @@ const FRESH: Array<{ value: FreshnessType; label: string }> = [
   { value: 'LIVE', label: msg('Zinda') }, { value: 'FRESH_SLAUGHTERED', label: msg('Taaza zibah') }, { value: 'FRESH_CHILLED', label: msg('Thanda (chiller)') }, { value: 'FROZEN', label: msg('Frozen') },
   { value: 'MARINATED', label: msg('Masala laga') }, { value: 'PROCESSED', label: msg('Tayyar (kabab, nuggets)') },
 ];
-const COMMON_CUTS = ['WHOLE_ANIMAL', 'BONELESS', 'WITH_BONE', 'MINCE', 'CHOPS', 'LEG', 'BREAST', 'WING', 'LIVER', 'TROTTERS', 'BONES', 'OFFAL'];
 const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 const saleUnitOf = (unit: string): SaleUnit => (['gram', 'g'].includes(unit) ? 'GRAM' : ['pcs', 'piece'].includes(unit) ? 'PIECE' : unit === 'dozen' ? 'DOZEN' : 'KG');
 
 function Kind({ ctx }: { ctx: StepContext<MeatExtra> }) {
   const x = ctx.draft.extra;
-  return (
-    <>
-      <FormSection title={t('Janwar')}>
-        <ChipGroup wrap value={x.animalType} onChange={(v) => ctx.setExtra({ animalType: v as AnimalType })} options={ANIMALS.map((a) => ({ value: a.value, label: `${a.emoji} ${t(a.label)}` }))} />
-        {!!ctx.errors.animalType && <Text size="xs" tone="danger">{ctx.errors.animalType}</Text>}
-      </FormSection>
-      <FormSection title={t('Cut')} description={t('Zinda maal (mandi se aayi murgi / bakra) ke liye cut "Poora" rakhein aur halat "Zinda" — zibah aur cutting usi se stock banati hai.')}>
-        <ChipGroup wrap value={x.cutCategory} onChange={(v) => ctx.setExtra({ cutCategory: v as CutCategory, isBoneless: v === 'BONELESS' || v === 'MINCE' ? true : x.isBoneless })}
-          options={CUTS.filter((c) => COMMON_CUTS.includes(c.value) || c.value === x.cutCategory).map((c) => ({ value: c.value, label: t(c.label) }))} />
-        <ChipGroup wrap value={x.cutCategory} onChange={(v) => ctx.setExtra({ cutCategory: v as CutCategory })} options={CUTS.filter((c) => !COMMON_CUTS.includes(c.value)).map((c) => ({ value: c.value, label: t(c.label) }))} />
-        {!!ctx.errors.cutCategory && <Text size="xs" tone="danger">{ctx.errors.cutCategory}</Text>}
-      </FormSection>
-    </>
-  );
+  // The animal comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  // The cut is no longer asked here: an existing product keeps its stored cut.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.animalType, (animalType) => ctx.setExtra({ animalType: animalType as AnimalType }));
+  return null;
 }
 
 function Details({ ctx }: { ctx: StepContext<MeatExtra> }) {
@@ -91,8 +81,6 @@ const core: CoreOptions = {
 
 function meatErrors(x: MeatExtra): Errors {
   const e: Errors = {};
-  if (!x.animalType) e.animalType = t('Janwar chunein — murgi, mutton, beef…');
-  if (!x.cutCategory) e.cutCategory = t('Cut chunein — poora, boneless, qeema…');
   return e;
 }
 
@@ -149,6 +137,7 @@ function useProfiles() {
 registerInventoryIndustry({
   id: 'meat',
   label: msg('Meat'),
+  categoryKinds: ANIMALS.filter((a) => a.value !== 'OTHER').map((a) => ({ value: a.value, label: a.label })),
   list: {
     noun: 'cheez',
     filters: ['tags'],

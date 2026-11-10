@@ -10,6 +10,7 @@ import { Award, Gem, Plus, Scale, ShieldCheck, Trash2, TrendingUp } from 'lucide
 import { Link } from 'react-router-dom';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
 import { Chip, NumberField, Section, TextField, Toggle, inputClass } from '@modules/inventory/products/editor/fields';
@@ -18,7 +19,7 @@ import { jewelryProductsApi, type GemstoneType, type JewelryCategory, type Jewel
 import type { MetalType, Purity } from '../api/metal-rates.api';
 import { useMetalRates } from '../hooks/useJewelryFacts';
 import {
-  CATEGORY_LABEL, COMMON_PURITIES, KEYS, MAIN_CATEGORIES, PURITY_LABEL, TOLA, categoryLabel, grams, metalOf, piecePrice, purityLabel, r3, rateFor,
+  COMMON_PURITIES, KEYS, PURITY_LABEL, TOLA, categoryLabel, grams, metalOf, piecePrice, purityLabel, r3, rateFor,
 } from '../lib/meta';
 import { Trans, t } from '@core/i18n';
 
@@ -37,7 +38,7 @@ export interface JewelryExtra {
 }
 
 const initial: JewelryExtra = {
-  category: 'RING', style: 'TRADITIONAL', metalType: 'GOLD', purity: 'KARAT_22', itemCode: '', designNumber: '', size: '',
+  category: 'OTHER', style: 'TRADITIONAL', metalType: 'GOLD', purity: 'KARAT_22', itemCode: '', designNumber: '', size: '',
   grossWeight: 0, stoneWeight: 0, netWeight: 0, makingChargePerGram: 0, makingChargeFixed: 0, makingChargePct: 0,
   wastagePct: 0, wastageGrams: 0, polishCharge: 0, hallmarkCharge: 0, otherCharges: 0, stones: [],
   hallmarkNumber: '', certificateNumber: '', isCertified: false, isBuyBackEligible: true, buyBackPct: 90, isReturnable: true, returnDays: 7,
@@ -59,14 +60,10 @@ const stonesTotal = (x: JewelryExtra) => x.stones.reduce((s, g) => s + (Number(g
 /* ── Basic step additions: type, karat, style, codes ── */
 function Identity({ ctx }: { ctx: StepContext<JewelryExtra> }) {
   const x = ctx.draft.extra;
+  // The jewelry type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.category, (category) => ctx.setExtra({ category: category as JewelryCategory }));
   return (
     <div className="space-y-4">
-      <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Zewar ki type')}</span>
-        <div className="flex flex-wrap gap-1.5">
-          {MAIN_CATEGORIES.map((c) => <Chip key={c} on={x.category === c} onClick={() => ctx.setExtra({ category: c })}>{CATEGORY_LABEL[c]}</Chip>)}
-        </div>
-      </div>
       <div>
         <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Karat / metal')}</span>
         <div className="flex flex-wrap gap-1.5">

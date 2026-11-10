@@ -18,7 +18,7 @@ import { productVariantsApi } from '@modules/inventory/products/api/product-vari
 import { collectionsApi } from '../api/collections.api';
 import { garmentProductsApi, type GarmentCategoryType, type GarmentFabricType, type GarmentGender, type GarmentWorkType } from '../api/products.api';
 import { sizeChartsApi } from '../api/size-charts.api';
-import { COLLECTION_KEY, FABRICS, GARMENT_TYPES, GENDERS, META_KEY, SEASONS, SIZE_CHART_KEY, fabricLabel, garmentLabel, genderLabel, opt, seasonLabel } from '../components/meta';
+import { COLLECTION_KEY, FABRICS, GENDERS, META_KEY, SEASONS, SIZE_CHART_KEY, fabricLabel, garmentLabel, genderLabel, opt, seasonLabel } from '../components/meta';
 import { t } from '@core/i18n';
 
 type Kind = 'ready' | 'stitched' | 'fabric';
@@ -33,7 +33,7 @@ export interface GarmentExtra {
 }
 
 const initial: GarmentExtra = {
-  gender: 'MEN', categoryType: 'SHALWAR_KAMEEZ', season: 'ALL_SEASON', collectionId: '', sizeChartId: '', fabricType: '', workType: 'PLAIN',
+  gender: 'MEN', categoryType: 'OTHER', season: 'ALL_SEASON', collectionId: '', sizeChartId: '', fabricType: '', workType: 'PLAIN',
   styleCode: '', careInstructions: '', kind: 'ready', allowAlteration: true, allowReservation: true, allowLayaway: false,
   isNewArrival: true, isBestSeller: false, isOnSale: false, variantMeta: {},
 };
@@ -79,13 +79,6 @@ function Identity({ ctx }: { ctx: StepContext<GarmentExtra> }) {
         <div className="flex flex-wrap gap-1.5">{GENDERS.map((g) => <Chip key={g.value} on={x.gender === g.value} onClick={() => ctx.setExtra({ gender: g.value })}>{g.label}</Chip>)}</div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Kapre ki type')}</span>
-          <select value={x.categoryType} onChange={(e) => ctx.setExtra({ categoryType: e.target.value })} className={inputClass}>
-            {GARMENT_TYPES.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
-          </select>
-          <span className="mt-1 block text-[0.75rem] text-slate-500">{t('POS ke filter aur reports isi se')}</span>
-        </label>
         <label className="block">
           <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Season')}</span>
           <select value={x.season} onChange={(e) => ctx.setExtra({ season: e.target.value })} className={inputClass}>

@@ -7,7 +7,7 @@ import { useIndustryPresets } from '@industries/_shared/presets/useIndustryPrese
 import { TaxonomyPage, type Draft } from '../../taxonomy/TaxonomyPage';
 import { t } from '@core/i18n';
 
-const payload = (d: Draft) => ({ name: d.name, color: d.color, icon: d.icon || '', isActive: d.isActive ?? true, parentId: d.parentId ?? null });
+const payload = (d: Draft) => ({ name: d.name, color: d.color, icon: d.icon || '', isActive: d.isActive ?? true, parentId: d.parentId ?? null, kind: d.kind ?? null });
 
 export default function CategoriesPage() {
   const presets = useIndustryPresets();

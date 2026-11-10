@@ -222,3 +222,59 @@ export function recoveryCandidate(d: LinkPriceState | null | undefined): { chann
   if (old !== null && old > 0 && !samePrice(old, pushed)) return { channelPrice: old, nafaaPrice: pushed, at: typeof before?.at === 'string' ? before.at : null };
   return null;
 }
+
+/**
+ * Price safety guard: a push that moves the channel price too far is held for
+ * the merchant instead of sent ("Qeemat bahut badal rahi hai"). Catches a link
+ * made to the wrong Nafaa product, where Nafaa would otherwise overwrite the
+ * listing with an unrelated price.
+ */
+export interface PriceGuard {
+  on: boolean;
+  /** Hold when the new price is this percent or more below the channel price. */
+  dropPct: number;
+  /** Hold when the new price is this percent or more above the channel price. */
+  risePct: number;
+  /** First push of a link (no agreed price yet): hold when the prices differ by this percent or more either way. */
+  firstPct: number;
+}
+
+export const DEFAULT_PRICE_GUARD: PriceGuard = { on: true, dropPct: 40, risePct: 150, firstPct: 40 };
+
+export function readPriceGuard(raw: unknown): PriceGuard {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Partial<Record<keyof PriceGuard, unknown>>;
+  const pct = (v: unknown, fallback: number, max: number) => {
+    const n = Number(v);
+    return v === undefined || v === null || v === '' || !Number.isFinite(n) ? fallback : Math.min(max, Math.max(5, Math.round(n)));
+  };
+  return {
+    on: r.on !== false,
+    dropPct: pct(r.dropPct, DEFAULT_PRICE_GUARD.dropPct, 95),
+    risePct: pct(r.risePct, DEFAULT_PRICE_GUARD.risePct, 1000),
+    firstPct: pct(r.firstPct, DEFAULT_PRICE_GUARD.firstPct, 1000),
+  };
+}
+
+/**
+ * Whether sending `want` over the channel's current price is too big a jump.
+ * The current price is the last one read from the channel; with no read there
+ * is nothing to compare and the push goes ahead. Returns the change in percent
+ * (negative = cheaper) when it is too big, else null.
+ */
+export function priceJump(input: { want: number; data: LinkPriceState | null | undefined; guard: PriceGuard }): { pct: number; current: number; first: boolean } | null {
+  const { want, guard } = input;
+  if (!guard.on || !(want > 0)) return null;
+  const current = num(input.data?.channelPrice);
+  if (current === null || current <= 0 || samePrice(current, want)) return null;
+  const first = agreedPrice(input.data) === null;
+  const pct = Math.round(((want - current) / current) * 1000) / 10;
+  const tooBig = first ? Math.abs(pct) >= guard.firstPct : pct <= -guard.dropPct || pct >= guard.risePct;
+  return tooBig ? { pct, current, first } : null;
+}
+
+/** The merchant said "Nahi" to this exact jump: the same Nafaa price is not offered again. */
+export function jumpDeclined(d: { priceGuardDeclined?: unknown } | null | undefined, want: number): boolean {
+  const x = d?.priceGuardDeclined as { nafaaPrice?: unknown } | null | undefined;
+  const n = num(x?.nafaaPrice);
+  return n !== null && samePrice(n, want);
+}

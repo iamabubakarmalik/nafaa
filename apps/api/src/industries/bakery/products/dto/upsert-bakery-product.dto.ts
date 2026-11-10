@@ -1,10 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BakeryCategory, BakerySize, CakeShape, CakeFlavor, CreamType } from '@prisma/client';
 import { IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { EnumOrDefault } from '../../../../common/helpers/enum-or-default.helper';
 
 export class UpsertBakeryProductDto {
   @ApiProperty() @IsString() productId!: string;
-  @ApiProperty({ enum: BakeryCategory }) @IsEnum(BakeryCategory) category!: BakeryCategory;
+  @ApiPropertyOptional({ enum: BakeryCategory }) @IsOptional() @EnumOrDefault(BakeryCategory, BakeryCategory.OTHER) @IsEnum(BakeryCategory) category?: BakeryCategory;
   /** Made here or bought ready; kept on the product (the shared product form does not take it). */
   @ApiPropertyOptional({ enum: ['MADE', 'BOUGHT'] }) @IsOptional() @IsIn(['MADE', 'BOUGHT']) productType?: 'MADE' | 'BOUGHT';
   @ApiPropertyOptional({ enum: BakerySize }) @IsOptional() @IsEnum(BakerySize) defaultSize?: BakerySize;

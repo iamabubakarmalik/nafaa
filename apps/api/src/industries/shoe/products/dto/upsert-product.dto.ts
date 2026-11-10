@@ -2,11 +2,12 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { ShoeCategoryType, ShoeGender, ShoeSizeSystem, ShoeWidth } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { EnumOrDefault } from '../../../../common/helpers/enum-or-default.helper';
 
 export class UpsertShoeProductDto {
   @ApiProperty() @IsString() productId!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() brandId?: string;
-  @ApiPropertyOptional({ enum: ShoeCategoryType }) @IsOptional() @IsEnum(ShoeCategoryType) categoryType?: ShoeCategoryType;
+  @ApiPropertyOptional({ enum: ShoeCategoryType }) @IsOptional() @EnumOrDefault(ShoeCategoryType, ShoeCategoryType.OTHER) @IsEnum(ShoeCategoryType) categoryType?: ShoeCategoryType;
   @ApiPropertyOptional({ enum: ShoeGender }) @IsOptional() @IsEnum(ShoeGender) gender?: ShoeGender;
   @ApiPropertyOptional() @IsOptional() @IsString() ageGroup?: string;
 

@@ -8,7 +8,7 @@ import type { WebsiteConfig } from './website-config';
  * channel-price.ts (`priceDecision`).
  */
 
-export type PriceLogKind = 'PULL' | 'PUSH' | 'HOLD' | 'KEEP_NAFAA' | 'KEEP_CHANNEL' | 'RECOVER_CHANNEL' | 'RECOVER_NAFAA';
+export type PriceLogKind = 'PULL' | 'PUSH' | 'HOLD' | 'KEEP_NAFAA' | 'KEEP_CHANNEL' | 'RECOVER_CHANNEL' | 'RECOVER_NAFAA' | 'KEEP_CHANNEL_PRICE';
 export type PullTarget = 'PRODUCT' | 'VARIANT' | 'SHOP' | 'CHANNEL';
 
 export interface PriceLink {
@@ -106,7 +106,7 @@ export async function logPrice(prisma: PrismaService, rows: Array<{
   const inbound: PriceLogKind[] = ['PULL', 'KEEP_CHANNEL', 'RECOVER_CHANNEL'];
   await logSync(prisma, rows.map((r) => ({
     tenantId: r.tenantId, integrationId: r.integrationId, mappingId: r.mappingId, productId: r.productId, variantId: r.variantId,
-    field: 'price', direction: inbound.includes(r.kind) ? 'IN' : r.kind === 'HOLD' ? 'NONE' : 'OUT', kind: r.kind, target: r.target,
+    field: 'price', direction: inbound.includes(r.kind) ? 'IN' : r.kind === 'HOLD' || r.kind === 'KEEP_CHANNEL_PRICE' ? 'NONE' : 'OUT', kind: r.kind, target: r.target,
     oldValue: r.oldPrice ?? null, newValue: r.newPrice ?? null, note: r.note, userId: r.userId,
   })));
 }

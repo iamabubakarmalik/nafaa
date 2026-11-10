@@ -15,6 +15,7 @@ import { formatMoney } from '@/core/format';
 import { msg, t } from '@/core/i18n';
 import { ChipGroup, FormSection, Switch } from '@/design';
 import { NumberInput } from '@/modules/inventory/components/fields';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
@@ -37,11 +38,9 @@ const life = (h?: number | null) => (!h ? null : h >= 48 ? t('{{count}} din', { 
 
 function Kind({ ctx }: { ctx: StepContext<DairyExtra> }) {
   const x = ctx.draft.extra;
-  return (
-    <FormSection title={t('Ye kya hai')} description={t('Doodh wali cheez gawale ki entry aur ghar delivery me kaam aati hai; dahi, makhan production me.')}>
-      <ChipGroup wrap value={x.productType} onChange={(productType) => ctx.setExtra({ productType: productType as DairyProductType })} options={PRODUCT_TYPES.map((o) => ({ value: o.value, label: t(o.label) }))} />
-    </FormSection>
-  );
+  // The dairy type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.productType, (productType) => ctx.setExtra({ productType: productType as DairyProductType }));
+  return null;
 }
 
 function Milkish({ ctx }: { ctx: StepContext<DairyExtra> }) {
@@ -166,6 +165,7 @@ function useProfiles() {
 registerInventoryIndustry({
   id: 'dairy',
   label: msg('Dairy'),
+  categoryKinds: PRODUCT_TYPES.filter((o) => o.value !== 'OTHER').map((o) => ({ value: o.value, label: o.label })),
   list: {
     noun: 'cheez',
     filters: ['tags'],

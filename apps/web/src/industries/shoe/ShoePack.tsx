@@ -11,6 +11,7 @@ import ShoeSizeChartsPage from './pages/ShoeSizeChartsPage';
 import ShoeTryOnPage from './pages/ShoeTryOnPage';
 import ShoeExchangesPage from './pages/ShoeExchangesPage';
 import { t } from '@core/i18n';
+import { SHOE_KINDS } from './components/meta';
 
 /**
  * Shoe store: articles by brand and season with size x colour pairs (each
@@ -26,6 +27,8 @@ export const ShoePack: IndustryPack = {
   priority: 76,
   description:
     t('Size aur rang ke pair (har pair ka barcode), brand / season, size-wise reorder, exchange, size farmaish, size chart.'),
+
+  categoryKinds: SHOE_KINDS,
 
   matches: (tenant) => {
     if (!tenant) return false;

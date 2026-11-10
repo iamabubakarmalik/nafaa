@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertPetProductDto } from './dto/upsert-pet-product.dto';
 import { addDaysTz, cleanInput, dayEnd, parseDay } from '../petshop-common';
+import { CATEGORY_KIND_VALUES, nearestKind } from '../../../modules/inventory/categories/category-kind';
 
 @Injectable()
 export class PetProductsService {
@@ -12,14 +13,18 @@ export class PetProductsService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Product not found');
 
+    const existing = await this.prisma.petProductProfile.findUnique({ where: { productId: dto.productId } });
+    // One category system: the stored type follows the shop category's kind (nearest parent); without one the product keeps its own type.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const categoryType = nearestKind(cats, product.categoryId, CATEGORY_KIND_VALUES.PETSHOP) ?? existing?.categoryType ?? dto.categoryType;
     const data = {
       ...cleanInput(dto),
+      categoryType,
       tenantId: user.tenantId,
       // A `yyyy-mm-dd` expiry is the end of that shop day.
       expiryDate: dto.expiryDate ? (parseDay(dto.expiryDate) ? dayEnd(dto.expiryDate) : undefined) : dto.expiryDate === '' ? null : undefined,
     };
 
-    const existing = await this.prisma.petProductProfile.findUnique({ where: { productId: dto.productId } });
     if (existing) return this.prisma.petProductProfile.update({ where: { productId: dto.productId }, data });
     return this.prisma.petProductProfile.create({ data });
   }

@@ -20,13 +20,14 @@ import { msg, t } from '@/core/i18n';
 import { onlineNeededText, useCachedNotice } from '@/core/offline';
 import {
   Amount, Badge, Button, Card, Checkbox, Chip, ChipGroup, EmptyState, IconButton, Input, ListRow, ListTemplate, PressableScale, Row, SearchBar, Segmented,
-  Sheet, StatTile, SwipeRow, Switch, Text, TextArea, confirm, toast, useTheme,
+  Select, Sheet, StatTile, SwipeRow, Switch, Text, TextArea, confirm, toast, useTheme,
 } from '@/design';
 import { useIndustry } from '@/modules/shell/hooks/useIndustry';
 import { taxonomyApi, uploadsApiFor, type TaxonomyItem, type TaxonomyKind } from '../api';
 import { ActionSheet } from '../components/ActionSheet';
 import { getIndustryPresets } from '../lib/industryPresets';
 import { PRESETS, presetRange, useDayStart, type Preset } from '../lib/range';
+import { useCategoryKinds } from '../../industry/registry';
 import { INV, useCostMask, useOnline, useRefreshInventory } from '../../lib/shared';
 
 type Draft = Record<string, unknown>;
@@ -307,6 +308,7 @@ export function TaxonomyScreen({ config }: { config: TaxonomyConfig }) {
 
 function EditorSheet({ config, item, busy, onClose, onSave }: { config: TaxonomyConfig; item: TaxonomyItem | null; busy: boolean; onClose: () => void; onSave: (d: Draft) => void }) {
   const th = useTheme();
+  const kinds = useCategoryKinds();
   const [d, setD] = useState<Draft>(() => (item ? { ...item } : { name: '', color: COLORS[0], icon: '', isActive: true }));
   const [more, setMore] = useState(() => !!(d.dealerCode || d.supportPhone || d.warrantyPolicy || d.serviceCenter || d.authorizedDealer));
   const [uploading, setUploading] = useState(false);
@@ -337,6 +339,11 @@ function EditorSheet({ config, item, busy, onClose, onSave }: { config: Taxonomy
           <Input containerStyle={{ flex: 1 }} label={t('Naam')} value={String(d.name ?? '')} onChangeText={(v) => set('name', v)} maxLength={80} autoFocus={!item}
             placeholder={t('{{one}} ka naam', { one: cap(t(config.one)) })} />
         </Row>
+        {config.kind === 'category' && kinds && (
+          <Select label={t('Kis qisam ka maal (marzi)')} value={(d.kind as string | null | undefined) || null} onChange={(v) => set('kind', v || null)}
+            options={[{ value: '', label: t('Kuch aur / chunna nahi') }, ...kinds.map((k) => ({ value: k.value, label: t(k.label) }))]}
+            hint={t('Is category ke products isi qisam ke maane jate hain (sub-category bhi)')} />
+        )}
         {config.color && (
           <View style={{ gap: th.space(2) }}>
             <Text size="sm" weight="semibold">{t('Rang')}</Text>
@@ -425,7 +432,7 @@ function MergeSheet({ config, from, items, onClose, onDone }: { config: Taxonomy
 
 /* ───────────── the three pages ───────────── */
 
-const categoryPayload = (d: Draft) => ({ name: d.name, color: d.color, icon: d.icon || '', isActive: d.isActive ?? true });
+const categoryPayload = (d: Draft) => ({ name: d.name, color: d.color, icon: d.icon || '', isActive: d.isActive ?? true, kind: d.kind ?? null });
 const TEXT = ['description', 'logoUrl', 'website', 'countryOfOrigin', 'dealerCode', 'supportPhone', 'supportEmail', 'warrantyPolicy', 'serviceCenter'] as const;
 const FLAGS = ['isActive', 'isFeatured', 'authorizedDealer', 'installationIncluded', 'demoIncluded'] as const;
 const brandPayload = (d: Draft) => ({

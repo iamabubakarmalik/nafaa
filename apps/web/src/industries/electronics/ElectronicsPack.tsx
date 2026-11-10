@@ -11,6 +11,7 @@ import WarrantyClaimsPage from './pages/WarrantyClaimsPage';
 import SerialTrackingPage from './pages/SerialTrackingPage';
 import ElectronicsBundlesPage from './pages/ElectronicsBundlesPage';
 import BundleFormPage from './pages/BundleFormPage';
+import { CATEGORY_GROUPS, CATEGORY_META } from './constants';
 import { t } from '@core/i18n';
 
 /**
@@ -25,6 +26,7 @@ export const ElectronicsPack: IndustryPack = {
   shortName: t('Electronics'),
   emoji: '🔌',
   priority: 62,
+  categoryKinds: CATEGORY_GROUPS.flatMap((g) => g.items).filter((c) => c !== 'OTHER').map((c) => ({ value: c, label: CATEGORY_META[c].label })),
   description:
     t('Serial/IMEI tracking, warranty claims, brand management, tech specs, bundles, condition grading.'),
 

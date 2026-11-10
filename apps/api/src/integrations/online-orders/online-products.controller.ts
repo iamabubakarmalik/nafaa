@@ -103,7 +103,7 @@ export class OnlineProductsController {
 
   @Post('channels/:id/link-into')
   @ApiOperation({ summary: 'Link a channel product per SKU into an existing Nafaa product; missing sizes are made' })
-  linkInto(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { externalProductId?: string; productId?: string; variants?: Array<{ externalVariantId: string | null; variantId: string | null }> }) {
+  linkInto(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { externalProductId?: string; productId?: string; variants?: Array<{ externalVariantId: string | null; variantId: string | null }>; confirm?: boolean }) {
     return this.svc.linkInto(user, id, body ?? {});
   }
 
@@ -139,13 +139,13 @@ export class OnlineProductsController {
 
   @Get('channels/:id/price-holds')
   @ApiOperation({ summary: 'Links whose price changed on the channel after Nafaa\'s last push, waiting for a decision' })
-  priceHolds(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('page') page?: string, @Query('limit') limit?: string) {
-    return this.prices.holds(user, id, { page: Number(page) || 1, limit: Number(limit) || 50 });
+  priceHolds(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Query('page') page?: string, @Query('limit') limit?: string, @Query('reason') reason?: string) {
+    return this.prices.holds(user, id, { page: Number(page) || 1, limit: Number(limit) || 50, reason });
   }
 
   @Post('channels/:id/price-holds/resolve')
-  @ApiOperation({ summary: 'Send Nafaa\'s price ("nafaa") or take the channel price into Nafaa ("website") for held links (owner/manager)' })
-  resolvePriceHolds(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { action?: string; mappingIds?: string[]; all?: boolean }) {
+  @ApiOperation({ summary: 'Send Nafaa\'s price ("nafaa"), take the channel price into Nafaa ("website") or leave the channel price as it is ("keep", big price jumps) for held links (owner/manager)' })
+  resolvePriceHolds(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { action?: string; mappingIds?: string[]; all?: boolean; reason?: string }) {
     return this.prices.resolve(user, id, body ?? {});
   }
 
@@ -279,6 +279,18 @@ export class OnlineProductsController {
   @ApiOperation({ summary: 'Own price for one link (null = channel rule)' })
   setPrice(@GetUser() user: AuthenticatedUser, @Param('mappingId') mappingId: string, @Body() body: { priceOverride?: number | null }) {
     return this.svc.setPrice(user, mappingId, body?.priceOverride ?? null);
+  }
+
+  @Get('suspect-links')
+  @ApiOperation({ summary: 'Links that look like two different items (no shared name word and no code match, or prices more than 3x apart)' })
+  suspectLinks(@GetUser() user: AuthenticatedUser, @Query('channelId') channelId?: string) {
+    return this.svc.suspectLinks(user, channelId || undefined);
+  }
+
+  @Post('suspect-links/ok')
+  @ApiOperation({ summary: 'Mark flagged links as checked ("Theek hai")' })
+  markLinksOk(@GetUser() user: AuthenticatedUser, @Body() body: { mappingIds?: string[] }) {
+    return this.svc.markLinksOk(user, body?.mappingIds ?? []);
   }
 
   @Delete('links/:mappingId')

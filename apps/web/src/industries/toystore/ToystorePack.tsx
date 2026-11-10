@@ -15,6 +15,7 @@ import BirthdayDetailPage from './pages/BirthdayDetailPage';
 import ToySafetyReviewPage from './pages/ToySafetyReviewPage';
 import GiftFinderPage from './pages/GiftFinderPage';
 import { t } from '@core/i18n';
+import { CATEGORIES as TOY_CATEGORIES } from './lib/meta';
 
 export const ToystorePack: IndustryPack = {
   id: 'toystore',
@@ -22,6 +23,7 @@ export const ToystorePack: IndustryPack = {
   shortName: t('Toys'),
   emoji: '🧸',
   priority: 76,
+  categoryKinds: TOY_CATEGORIES.filter(([v]) => v !== 'OTHER').map(([value, label]) => ({ value, label })),
   description:
     t('Age-appropriate filtering, safety certifications, gift packs, birthday reminders, RC toys, educational focus.'),
 

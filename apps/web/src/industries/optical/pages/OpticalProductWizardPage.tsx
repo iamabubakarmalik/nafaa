@@ -15,6 +15,7 @@ import { opticalProductsApi, type OpticalCategoryType, type OpticalFrameMaterial
 import { FACTS_KEY, KINDS, kindOf, typeLabel, type OpticalKind } from '../hooks/useOpticalFacts';
 import { COATINGS, LENS_INDEX, LENS_MATERIAL } from '../lib/meta';
 import { t as tr } from '@core/i18n';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 
 export interface OpticalExtra {
   categoryType: OpticalCategoryType | '';
@@ -47,23 +48,9 @@ const opt = (v: string) => v.trim() || undefined;
 const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 
 function Kind({ ctx }: { ctx: StepContext<OpticalExtra> }) {
-  const x = ctx.draft.extra;
-  const kind = kindOf(x.categoryType || null);
-  return (
-    <div className="space-y-2">
-      <span className="block text-[0.8125rem] font-medium text-slate-700">{tr('Ye kya hai')}</span>
-      <div className="flex flex-wrap gap-1.5">
-        {KINDS.map((k) => <Chip key={k.value} on={kind === k.value} onClick={() => ctx.setExtra({ categoryType: k.types[0] })}>{k.label}</Chip>)}
-      </div>
-      {kind && kind !== 'other' && (
-        <div className="flex flex-wrap gap-1.5">
-          {KINDS.find((k) => k.value === kind)!.types.map((t) => <Chip key={t} on={x.categoryType === t} onClick={() => ctx.setExtra({ categoryType: t })}>{typeLabel(t)}</Chip>)}
-        </div>
-      )}
-      {ctx.errors.kind && <p className="text-[0.8125rem] font-medium text-rose-600">{ctx.errors.kind}</p>}
-      <p className="text-[0.75rem] text-slate-500">{tr('Isi se agla step frame ka size, lens ki coating ya contact lens ka fit poochta hai.')}</p>
-    </div>
-  );
+  // The item type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (kind) => ctx.setExtra({ categoryType: kind as OpticalCategoryType }));
+  return null;
 }
 
 function Specs({ ctx }: { ctx: StepContext<OpticalExtra> }) {

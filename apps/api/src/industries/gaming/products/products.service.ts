@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertGamingProductDto } from './dto/upsert-gaming-product.dto';
+import { CATEGORY_KIND_VALUES, nearestKind } from '../../../modules/inventory/categories/category-kind';
 
 @Injectable()
 export class GamingProductsService {
@@ -12,8 +13,12 @@ export class GamingProductsService {
     if (!product) throw new NotFoundException('Product not found');
 
     const existing = await this.prisma.gamingProductProfile.findUnique({ where: { productId: dto.productId } });
+    // One category system: the stored type follows the shop category's kind (nearest parent); without one the product keeps its own type.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const categoryType = nearestKind(cats, product.categoryId, CATEGORY_KIND_VALUES.GAMING) ?? existing?.categoryType ?? dto.categoryType;
     const data: any = {
       ...dto,
+      categoryType,
       tenantId: user.tenantId,
       releaseDate: dto.releaseDate ? new Date(dto.releaseDate) : undefined,
       preOrderReleaseDate: dto.preOrderReleaseDate ? new Date(dto.preOrderReleaseDate) : undefined,

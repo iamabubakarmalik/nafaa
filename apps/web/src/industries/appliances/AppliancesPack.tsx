@@ -19,6 +19,7 @@ import LowStockPage from '@modules/inventory/low-stock/pages/LowStockPage';
 // Qist plans run on the shared /emi-plans API; the list lives with the mobile pack for now.
 // QistPlanPage is the shared plan page with the guarantor and the qist agreement print.
 import EmiPlansPage from '@industries/mobile/pages/EmiPlansPage';
+import { CATEGORY_META, CATEGORY_TYPES } from './components/meta';
 import { t } from '@core/i18n';
 
 const JOBS_VIEW = 'service.jobs.view';
@@ -37,6 +38,7 @@ export const AppliancesPack: IndustryPack = {
   shortName: t('Appliances'),
   emoji: '🏠',
   priority: 82,
+  categoryKinds: CATEGORY_TYPES.filter((c) => c !== 'OTHER').map((c) => ({ value: c, label: CATEGORY_META[c].label })),
   description:
     t('Serial and warranty by branch, installations, repairs, technicians, AMC contracts, heavy delivery, qist plans with guarantor, old appliance trade-ins and brand warranty claims.'),
 

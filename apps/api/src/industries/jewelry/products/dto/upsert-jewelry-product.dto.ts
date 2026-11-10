@@ -2,13 +2,14 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { GemstoneType, JewelryCategory, JewelryMetalType, JewelryPurity, JewelryStyle } from '@prisma/client';
 import { Type } from 'class-transformer';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { EnumOrDefault } from '../../../../common/helpers/enum-or-default.helper';
 
 export class UpsertJewelryProductDto {
   @ApiProperty() @IsString() productId!: string;
   @ApiPropertyOptional() @IsOptional() @IsString() itemCode?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() designNumber?: string;
 
-  @ApiProperty({ enum: JewelryCategory }) @IsEnum(JewelryCategory) category!: JewelryCategory;
+  @ApiPropertyOptional({ enum: JewelryCategory }) @IsOptional() @EnumOrDefault(JewelryCategory, JewelryCategory.OTHER) @IsEnum(JewelryCategory) category?: JewelryCategory;
   @ApiPropertyOptional() @IsOptional() @IsString() subCategory?: string;
   @ApiPropertyOptional({ enum: JewelryStyle }) @IsOptional() @IsEnum(JewelryStyle) style?: JewelryStyle;
 

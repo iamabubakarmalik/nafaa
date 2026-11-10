@@ -18,8 +18,9 @@ import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/edi
 import type { Errors } from '@/modules/inventory/screens/editor/types';
 import { opticalProductsApi, type OpticalFacts, type OpticalFrameMaterial, type OpticalFrameShape, type OpticalGender, type OpticalProfile } from './api';
 import { useOpticalFacts } from './hooks';
-import { COATINGS, KIND_LABEL, LENS_INDEX, LENS_MATERIAL, OPTICAL_KEYS, factLine, typeLabel } from './meta';
+import { COATINGS, KIND_LABEL, LENS_INDEX, LENS_MATERIAL, OPTICAL_KEYS, factLine, typeLabel, typeLabelKey } from './meta';
 import { Choices, MultiChoices, SignedNumber } from './components/parts';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 
 export interface OpticalExtra {
   categoryType: OpticalCategoryType | '';
@@ -60,18 +61,9 @@ function Pick<V extends string>({ list, value, onChange }: { list: Array<[V, str
 }
 
 function Kind({ ctx }: { ctx: StepContext<OpticalExtra> }) {
-  const x = ctx.draft.extra;
-  const kind = kindOf(x.categoryType || null);
-  return (
-    <>
-      <Label>{t('Ye kya hai')}</Label>
-      <ChipGroup wrap value={kind ?? ('' as OpticalKind)} onChange={(k) => ctx.setExtra({ categoryType: KIND_TYPES[k][0] })} options={KIND_ORDER.map((k) => ({ value: k, label: t(KIND_LABEL[k]) }))} />
-      {kind && kind !== 'other' && (
-        <ChipGroup wrap value={x.categoryType as OpticalCategoryType} onChange={(v) => ctx.setExtra({ categoryType: v })} options={KIND_TYPES[kind].map((v) => ({ value: v, label: typeLabel(v) }))} />
-      )}
-      {ctx.errors.kind ? <Text size="xs" weight="medium" tone="danger">{ctx.errors.kind}</Text> : <Text size="xs" tone="muted">{t('Isi se agla step frame ka size, lens ki coating ya contact lens ka fit poochta hai.')}</Text>}
-    </>
-  );
+  // The item type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (kind) => ctx.setExtra({ categoryType: kind as OpticalCategoryType }));
+  return null;
 }
 
 function Specs({ ctx }: { ctx: StepContext<OpticalExtra> }) {
@@ -229,6 +221,7 @@ const pretty = (v?: string | null) => (v ? v.replace(/_/g, ' ').toLowerCase() : 
 registerInventoryIndustry({
   id: 'optical',
   label: msg('Optical'),
+  categoryKinds: KIND_ORDER.flatMap((k) => KIND_TYPES[k].filter((v) => v !== 'OTHER').map((value) => ({ value, label: typeLabelKey(value) }))),
   list: {
     noun: 'item',
     filters: ['tags'],

@@ -13,6 +13,7 @@ import AgriProductWizardPage from './pages/AgriProductWizardPage';
 import AgriProductDetailPage from './pages/AgriProductDetailPage';
 import FarmerDetailPage from './pages/FarmerDetailPage';
 import FarmerFormPage from './pages/FarmerFormPage';
+import { AGRI_CATEGORY_KINDS } from './lib/agriCategory';
 import { t } from '@core/i18n';
 
 /**
@@ -26,6 +27,7 @@ export const AgriPack: IndustryPack = {
   shortName: t('Agri'),
   emoji: '🌾',
   priority: 42,
+  categoryKinds: AGRI_CATEGORY_KINDS,
   description:
     t('Seeds, fertilizer, pesticides, animal feed. Farmer credit, bulk orders, crop advisory, seasonal plans, subsidy claims.'),
 

@@ -13,6 +13,7 @@ import CustomOrderDetailPage from './pages/CustomOrderDetailPage';
 import CustomOrderFormPage from './pages/CustomOrderFormPage';
 import CarpentersPage from './pages/CarpentersPage';
 import DeliveriesPage from './pages/DeliveriesPage';
+import { CATEGORY_GROUPS } from './lib/meta';
 import { t } from '@core/i18n';
 
 export const FurniturePack: IndustryPack = {
@@ -21,6 +22,7 @@ export const FurniturePack: IndustryPack = {
   shortName: t('Furniture'),
   emoji: '🪑',
   priority: 76,
+  categoryKinds: CATEGORY_GROUPS.flatMap((g) => g.items).filter(([v]) => v !== 'OTHER').map(([value, label]) => ({ value, label })),
   description:
     t('Custom furniture, showroom + workshop, deposit-based custom orders, carpenter workload, large-vehicle deliveries with assembly.'),
 

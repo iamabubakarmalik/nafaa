@@ -13,6 +13,7 @@ import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.s
 import { cleanName, mergeInto, nameTaken, periodRange, sameName, taxonomyInsights } from '../taxonomy/taxonomy.helper';
 import { CreateCategoryDto, ReorderCategoriesDto, UpdateCategoryDto } from './dto/create-category.dto';
 import { wouldLoop } from './category-tree';
+import { checkKind, kindValuesFor } from './category-kind';
 import { apiMessage } from '../../../common/i18n/api-message';
 
 @Injectable()
@@ -46,15 +47,25 @@ export class CategoriesService {
     return parentId;
   }
 
+  /** Kind for this shop's industry: null when the industry has none; a value outside its list is refused. */
+  private async kindFor(user: AuthenticatedUser, raw: unknown): Promise<string | null> {
+    if (raw === undefined || raw === null || raw === '') return null;
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: user.tenantId }, select: { businessType: true } });
+    const { kind, invalid } = checkKind(kindValuesFor(tenant?.businessType), raw);
+    if (invalid) throw new BadRequestException(apiMessage('Category ki qisam sahi nahi'));
+    return kind;
+  }
+
   async create(user: AuthenticatedUser, dto: CreateCategoryDto) {
     const name = cleanName(dto.name);
+    const kind = await this.kindFor(user, dto.kind);
     await this.assertFree(user, name);
     const parentId = await this.checkParent(user, dto.parentId, null);
     const last = await this.prisma.category.aggregate({ where: { tenantId: user.tenantId, parentId }, _max: { sortOrder: true } });
     return this.prisma.category.create({
       data: {
         tenantId: user.tenantId, name, color: dto.color ?? '#2c9466', icon: dto.icon || null, isActive: dto.isActive ?? true,
-        parentId, sortOrder: (last._max.sortOrder ?? -1) + 1,
+        parentId, kind, sortOrder: (last._max.sortOrder ?? -1) + 1,
       },
     });
   }
@@ -117,6 +128,7 @@ export class CategoriesService {
     await this.own(user, id);
     const name = dto.name !== undefined ? cleanName(dto.name) : undefined;
     if (name) await this.assertFree(user, name, id);
+    const kind = dto.kind !== undefined ? await this.kindFor(user, dto.kind) : undefined;
     const parentId = dto.parentId !== undefined ? await this.checkParent(user, dto.parentId, id) : undefined;
     // Moved under another parent: goes to the end of its new siblings.
     const last = parentId !== undefined
@@ -129,6 +141,7 @@ export class CategoriesService {
         ...(dto.color !== undefined && { color: dto.color }),
         ...(dto.icon !== undefined && { icon: dto.icon || null }),
         ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        ...(kind !== undefined && { kind }),
         ...(parentId !== undefined && { parentId, sortOrder: (last?._max.sortOrder ?? -1) + 1 }),
       },
     });

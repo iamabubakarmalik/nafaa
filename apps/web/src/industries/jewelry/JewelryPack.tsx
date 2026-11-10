@@ -18,6 +18,7 @@ import MetalStockPage from './pages/MetalStockPage';
 import JewelryItemWizardPage from './pages/JewelryItemWizardPage';
 import JewelryItemDetailPage from './pages/JewelryItemDetailPage';
 import { t } from '@core/i18n';
+import { CATEGORY_LABEL, MAIN_CATEGORIES } from './lib/meta';
 
 /**
  * Jewelry / sonar pack: pieces by weight and karat on the shared product
@@ -33,6 +34,8 @@ export const JewelryPack: IndustryPack = {
   priority: 65,
   description:
     t('Gold/silver/platinum, live metal rates, hallmark, gemstones, karigar tracking, custom orders, exchanges.'),
+
+  categoryKinds: MAIN_CATEGORIES.filter((c) => c !== 'OTHER').map((c) => ({ value: c, label: CATEGORY_LABEL[c] })),
 
   matches: (tenant) => {
     if (!tenant) return false;

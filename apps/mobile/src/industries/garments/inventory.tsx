@@ -21,7 +21,7 @@ import { registerInventoryIndustry } from '@/modules/inventory/industry/registry
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
 import { collectionsApi, garmentProductsApi, sizeChartsApi, type GarmentMeta, type SizeGrid } from './api';
-import { COLLECTION_KEY, FABRICS, GARMENT_TYPES, GENDERS, META_KEY, SEASONS, SIZE_CHART_KEY, WORK_TYPES, fabricLabel, garmentLabel, genderLabel, opt, seasonLabel } from './meta';
+import { COLLECTION_KEY, FABRICS, GENDERS, META_KEY, SEASONS, SIZE_CHART_KEY, WORK_TYPES, fabricLabel, garmentLabel, genderLabel, opt, seasonLabel } from './meta';
 
 type Kind = 'ready' | 'stitched' | 'fabric';
 
@@ -33,7 +33,7 @@ export interface GarmentExtra {
 }
 
 const initial: GarmentExtra = {
-  gender: 'MEN', categoryType: 'SHALWAR_KAMEEZ', season: 'ALL_SEASON', collectionId: '', sizeChartId: '', fabricType: '', workType: 'PLAIN', styleCode: '', careInstructions: '',
+  gender: 'MEN', categoryType: 'OTHER', season: 'ALL_SEASON', collectionId: '', sizeChartId: '', fabricType: '', workType: 'PLAIN', styleCode: '', careInstructions: '',
   kind: 'ready', allowAlteration: true, allowReservation: true, allowLayaway: false, isNewArrival: true, isBestSeller: false, isOnSale: false, variantMeta: {},
 };
 
@@ -58,7 +58,6 @@ function Identity({ ctx }: { ctx: StepContext<GarmentExtra> }) {
       <Text size="sm" weight="semibold" tone="secondary">{t('Kis ke liye')}</Text>
       <ChipGroup wrap value={x.gender} onChange={(gender) => ctx.setExtra({ gender })} options={GENDERS.map((g) => ({ value: g.value, label: t(g.label) }))} />
       <View style={{ gap: th.space(3) }}>
-        <Select label={t('Kapre ki type')} value={x.categoryType} searchable onChange={(categoryType) => ctx.setExtra({ categoryType })} options={GARMENT_TYPES.map((g) => ({ value: g.value, label: t(g.label) }))} />
         <Select label={t('Season')} value={x.season} onChange={(season) => ctx.setExtra({ season })} options={SEASONS.map((s) => ({ value: s.value, label: t(s.label) }))} />
         <Select label={t('Collection')} value={x.collectionId} onChange={(collectionId) => ctx.setExtra({ collectionId })} placeholder={t('— Koi nahi —')}
           options={[{ value: '', label: t('— Koi nahi —') }, ...(collections.data ?? []).filter((c) => c.isActive || c.id === x.collectionId).map((c) => ({ value: c.id, label: c.name }))]} />

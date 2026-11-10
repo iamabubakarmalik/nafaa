@@ -4,6 +4,7 @@
  * and serial/IMEI entry (scan, paste or type) with the opening stock.
  */
 
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Barcode, ClipboardPaste, Cpu, Package, Plus, ScanLine, ShieldCheck, Trash2 } from 'lucide-react';
@@ -105,9 +106,10 @@ function Identity({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
   const x = ctx.draft.extra;
   const { data: cats = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000 });
   const catName = cats.find((c) => c.id === ctx.draft.core.categoryId)?.name;
-  // Picking a shop category suggests the product type, unless the owner already chose one.
+  // The product type follows the shop category's kind; the name hint only fills in when the category has no kind.
+  const kind = useCategoryKindSync(ctx.draft.core.categoryId, x.categoryType, (k) => ctx.setExtra({ categoryType: k as CategoryType }));
   useEffect(() => {
-    if (!catName || x.categoryType !== 'OTHER') return;
+    if (kind || !catName || x.categoryType !== 'OTHER') return;
     const t = categoryTypeFromName(catName);
     if (t !== 'OTHER') ctx.setExtra({ categoryType: t });
   }, [catName]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -117,18 +119,7 @@ function Identity({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
         <TextField label={tr('Model number')} value={x.model} onChange={(model) => ctx.setExtra({ model })} placeholder={tr('SM-A155F')} />
         <TextField label={tr('Part number')} value={x.partNumber} onChange={(partNumber) => ctx.setExtra({ partNumber })} />
       </div>
-      <label className="block">
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Product type')}</span>
-        <select value={x.categoryType} onChange={(e) => ctx.setExtra({ categoryType: e.target.value as CategoryType })} className={inputClass}>
-          {CATEGORY_GROUPS.map((g) => (
-            <optgroup key={g.label} label={`${g.emoji} ${g.label}`}>
-              {g.items.map((t) => <option key={t} value={t}>{CATEGORY_META[t].emoji} {typeName(t)}</option>)}
-            </optgroup>
-          ))}
-        </select>
-        <span className="mt-1 block text-[0.75rem] text-slate-500">{tr('POS ke filter, specs aur reports isi type se bante hain.')}</span>
-        {SERIAL_SUGGESTED.includes(x.categoryType) && !x.tracked && <span className="mt-1 block text-[0.75rem] text-violet-700">{tr('Is type ke har piece ka serial/IMEI aam tor par rakha jata hai — Stock step mein chalu karein.')}</span>}
-      </label>
+      {SERIAL_SUGGESTED.includes(x.categoryType) && !x.tracked && <span className="block text-[0.75rem] text-violet-700">{tr('Is type ke har piece ka serial/IMEI aam tor par rakha jata hai — Stock step mein chalu karein.')}</span>}
       <div>
         <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Halat')}</span>
         <Tiles value={x.condition} onChange={(condition) => ctx.setExtra({ condition })} columns="grid-cols-2 sm:grid-cols-3"

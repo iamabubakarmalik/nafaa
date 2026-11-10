@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertAgriProductDto } from './dto/upsert-agri-product.dto';
 import { addDaysTz, parseDay } from '../agri-common';
+import { CATEGORY_KIND_VALUES, deriveProductKind } from '../../../modules/inventory/categories/category-kind';
 
 @Injectable()
 export class AgriProductsService {
@@ -14,12 +15,17 @@ export class AgriProductsService {
 
     if (dto.bulkDiscountPct != null && (dto.bulkDiscountPct < 0 || dto.bulkDiscountPct > 90)) throw new BadRequestException('Bulk discount 0 se 90% tak');
     if (dto.bulkDiscountThreshold != null && dto.bulkDiscountThreshold < 0) throw new BadRequestException('Bulk quantity manfi nahi ho sakti');
+    const existing = await this.prisma.agriProductProfile.findUnique({ where: { productId: dto.productId } });
+    // One category system: the item type comes from the shop category's kind (or the nearest parent with one).
+    // Without a kind in the chain the product keeps its own type; a brand-new product falls back to what the form sent, then OTHER.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const category = deriveProductKind(cats, product.categoryId, existing?.category ?? dto.category, 'OTHER', CATEGORY_KIND_VALUES.AGRI);
     const payload: any = {
       ...dto,
+      category,
       govtRegExpiry: parseDay(dto.govtRegExpiry),
     };
 
-    const existing = await this.prisma.agriProductProfile.findUnique({ where: { productId: dto.productId } });
     if (existing) {
       return this.prisma.agriProductProfile.update({
         where: { productId: dto.productId },

@@ -15,6 +15,7 @@ import { msg, t } from '@/core/i18n';
 import { queryClient } from '@/core/query/client';
 import { Button, Card, Chip, ChipGroup, FormSection, IconButton, Input, ListRow, MoneyInput, Row, Switch, Text, toast } from '@/design';
 import { NumberInput } from '@/modules/inventory/components/fields';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
@@ -42,12 +43,9 @@ const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefin
 const toggle = (cur: string, v: string) => (cur === v ? '' : v);
 
 function Kind({ ctx }: { ctx: StepContext<HardwareExtra> }) {
-  const x = ctx.draft.extra;
-  return (
-    <FormSection title={t('Maal ka type')} description={t('Isi se agla step size, grade ya shade poochta hai aur POS par paint ka shade likhne ka option aata hai.')}>
-      <ChipGroup wrap value={x.categoryType} onChange={(v) => ctx.setExtra({ categoryType: toggle(x.categoryType, v) })} options={CATEGORY.map((c) => ({ value: c.value, label: t(c.label) }))} />
-    </FormSection>
-  );
+  // The item type follows the shop category's kind; there is no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (kind) => ctx.setExtra({ categoryType: kind }));
+  return null;
 }
 
 function Specs({ ctx }: { ctx: StepContext<HardwareExtra> }) {
@@ -238,6 +236,7 @@ interface ListSource { facts: Map<string, HardwareFacts>; tiers: Map<string, Tie
 registerInventoryIndustry({
   id: 'hardware',
   label: msg('Hardware'),
+  categoryKinds: CATEGORY.filter((c) => c.value !== 'OTHER').map((c) => ({ value: c.value, label: c.label })),
   list: {
     noun: 'item',
     filters: ['tags'],

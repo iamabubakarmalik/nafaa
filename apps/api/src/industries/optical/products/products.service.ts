@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { UpsertOpticalProductDto } from './dto/upsert-optical-product.dto';
+import { CATEGORY_KIND_VALUES, nearestKind } from '../../../modules/inventory/categories/category-kind';
 
 @Injectable()
 export class OpticalProductsService {
@@ -12,7 +13,10 @@ export class OpticalProductsService {
     if (!product) throw new NotFoundException('Product nahi mila');
 
     const existing = await this.prisma.opticalProductProfile.findUnique({ where: { productId: dto.productId } });
-    const data: any = { ...dto, tenantId: user.tenantId };
+    // One category system: the stored type follows the shop category's kind (nearest parent); without one the product keeps its own type.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const categoryType = nearestKind(cats, product.categoryId, CATEGORY_KIND_VALUES.OPTICAL) ?? existing?.categoryType ?? dto.categoryType;
+    const data: any = { ...dto, categoryType, tenantId: user.tenantId };
     if (existing) return this.prisma.opticalProductProfile.update({ where: { productId: dto.productId }, data });
     return this.prisma.opticalProductProfile.create({ data });
   }

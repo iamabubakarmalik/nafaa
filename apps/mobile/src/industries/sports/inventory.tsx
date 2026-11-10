@@ -13,6 +13,7 @@ import { formatMoney } from '@/core/format';
 import { msg, t } from '@/core/i18n';
 import { ChipGroup, FormSection, Input, MoneyInput, Select, Switch, Text, useTheme } from '@/design';
 import { NumberInput } from '@/modules/inventory/components/fields';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
@@ -31,7 +32,7 @@ export interface SportsExtra {
   isNewArrival: boolean; isBestSeller: boolean; isProfessional: boolean;
 }
 const initial: SportsExtra = {
-  sport: 'Cricket', categoryType: 'CRICKET_BAT', ageGroup: 'ADULT', batWood: '', batGrade: '', batSize: '', batWeightGrams: '', handleType: '',
+  sport: 'Other', categoryType: 'OTHER', ageGroup: 'ADULT', batWood: '', batGrade: '', batSize: '', batWeightGrams: '', handleType: '',
   ballType: '', ballWeight: '', size: '', material: '', fit: '', weight: '', mrp: null, teamPrice: null, minTeamOrder: '', bulkDiscountPct: '',
   isTeamOrderable: false, hasCustomization: false, warrantyMonths: 0, warrantyType: '', careInstructions: '', isNewArrival: true, isBestSeller: false, isProfessional: false,
 };
@@ -46,13 +47,13 @@ function TextField({ ctx, k, title, ph, max = 60, ltr }: { ctx: StepContext<Spor
 function Identity({ ctx }: { ctx: StepContext<SportsExtra> }) {
   const th = useTheme();
   const x = ctx.draft.extra;
-  const types = SPORT_TYPES.filter((v) => v.sport === x.sport || v.sport === 'Other');
+  // Sport and item type follow the shop category's kind; there are no separate pickers.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.categoryType, (categoryType) => {
+    const sport = SPORT_TYPES.find((tp) => tp.value === categoryType)?.sport;
+    ctx.setExtra({ categoryType, ...(sport && sport !== 'Other' && { sport }) });
+  });
   return (
     <View style={{ gap: th.space(3) }}>
-      <Text size="sm" weight="medium" tone="secondary">{t('Sport')}</Text>
-      <ChipGroup wrap value={x.sport} onChange={(v) => ctx.setExtra({ sport: v, categoryType: SPORT_TYPES.find((tp) => tp.sport === v)?.value ?? 'OTHER' })} options={SPORTS.map((v) => ({ value: v, label: t(v) }))} />
-      <Select label={t('Item ki type')} value={x.categoryType} onChange={(v) => ctx.setExtra({ categoryType: v })} options={types.map((tp) => ({ value: tp.value, label: t(tp.label) }))} />
-      <Text size="xs" tone="muted">{t('Bat, ball ya kit ki tafseel isi se khulti hai')}</Text>
       <Text size="sm" weight="medium" tone="secondary">{t('Kis ke liye')}</Text>
       <ChipGroup wrap value={x.ageGroup} onChange={(v) => ctx.setExtra({ ageGroup: v })} options={AGE_GROUPS.map((a) => ({ value: a.value, label: t(a.label) }))} />
     </View>
@@ -183,6 +184,7 @@ const editor: EditorConfig<SportsExtra> = {
 registerInventoryIndustry({
   id: 'sports',
   label: msg('Sports'),
+  categoryKinds: SPORT_TYPES.filter((c) => c.value !== 'OTHER').map((c) => ({ value: c.value, label: c.label })),
   list: {
     noun: 'item',
     filters: ['tags'],

@@ -5,6 +5,7 @@
  * Colours and fabrics are variants, each with its own stock.
  */
 
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { Hammer, Palette, Ruler, Sofa, Star, Truck } from 'lucide-react';
 import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
@@ -38,21 +39,9 @@ const opt = (v: string) => v.trim() || undefined;
 const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 
 function Kind({ ctx }: { ctx: StepContext<FurnitureExtra> }) {
-  const x = ctx.draft.extra;
-  return (
-    <div className="space-y-2">
-      <span className="block text-[0.8125rem] font-medium text-slate-700">{t('Ye kya hai')}</span>
-      {CATEGORY_GROUPS.map((g) => (
-        <div key={g.id}>
-          <p className="mb-1 text-[0.75rem] font-semibold text-slate-500">{g.label}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {g.items.map(([v, l]) => <Chip key={v} on={x.categoryType === v} onClick={() => ctx.setExtra({ categoryType: x.categoryType === v ? '' : v })}>{l}</Chip>)}
-          </div>
-        </div>
-      ))}
-      <p className="text-[0.75rem] text-slate-500">{t('Isi se counter ke filter (Sofa, Bed room, Dining) chalte hain. Order par banne wali cheez Custom orders me daalein.')}</p>
-    </div>
-  );
+  // The furniture type follows the shop category's kind; there is no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (categoryType) => ctx.setExtra({ categoryType }));
+  return null;
 }
 
 function Build({ ctx }: { ctx: StepContext<FurnitureExtra> }) {

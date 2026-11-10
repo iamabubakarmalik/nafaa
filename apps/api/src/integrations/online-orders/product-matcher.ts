@@ -130,10 +130,12 @@ export class MatchIndex {
   /** "product name + size" → size */
   private readonly byNameSize = new Map<string, { p: MatchProduct; v: MatchVariant }[]>();
   private readonly byToken = new Map<string, MatchProduct[]>();
+  private readonly byId = new Map<string, MatchProduct>();
 
   constructor(products: MatchProduct[]) {
     const push = <T>(m: Map<string, T[]>, k: string, x: T) => { if (k) m.set(k, [...(m.get(k) ?? []), x]); };
     for (const p of products) {
+      this.byId.set(p.id, p);
       for (const c of new Set([code(p.sku), code(p.barcode)])) push(this.byProductCode, c, p);
       const name = normalizeName(p.name);
       push(this.byName, name, p);
@@ -167,12 +169,12 @@ export class MatchIndex {
       }
     }
 
-    // 2. Same name (and same size).
-    const exact = this.nameMatch(r, option, free);
-    if (exact) return exact;
-
-    // 3. Similar name.
-    return this.fuzzy(r, option, free);
+    // 2. Same name (and same size). 3. Similar name.
+    // Without a code match the names must share a real word: a size or option
+    // alone ("1000", "500") never links two different items.
+    const hit = this.nameMatch(r, option, free) ?? this.fuzzy(r, option, free);
+    if (hit && !titlesRelated(r.title, this.byId.get(hit.productId)?.name)) return null;
+    return hit;
   }
 
   private nameMatch(r: RemoteItem, option: string | null | undefined, free: (p: string, v: string | null) => boolean): MatchResult | null {
@@ -236,4 +238,86 @@ export function suggestAll<T extends RemoteItem>(items: T[], index: MatchIndex, 
     item,
     match: match && bestFor.get(mappingKey(match.productId, match.variantId)) === i ? match : null,
   }));
+}
+
+// ─── Link sanity ───────────────────────────────────────────────────────────
+// A link joins a channel listing to a Nafaa product. When neither the codes
+// (SKU/barcode) match exactly nor the names share a real word, the two are
+// very likely different things (a sprayer linked to a fertilizer), and an
+// automatic link must not be made.
+
+/** Words that say nothing about what the item is (English, Roman Urdu, Urdu). */
+const NOISE = new Set([
+  'the', 'and', 'for', 'with', 'new', 'pack', 'packet', 'pcs', 'pc', 'piece', 'pieces', 'set', 'of', 'in', 'on', 'by', 'to', 'from',
+  'best', 'quality', 'original', 'high', 'premium', 'sale', 'free', 'top', 'super', 'pure', 'genuine', 'imported', 'local', 'item',
+  'product', 'brand', 'size', 'color', 'colour', 'type', 'model', 'pair', 'dozen', 'bag', 'bottle', 'box', 'can', 'jar', 'tin', 'pouch', 'sachet',
+  'small', 'medium', 'large', 'xl', 'xxl', 'xxxl', 'mini', 'big', 'extra', 'default', 'title',
+  'red', 'blue', 'green', 'black', 'white', 'brown', 'yellow', 'pink', 'grey', 'gray', 'orange', 'purple', 'golden', 'silver', 'multi', 'multicolor',
+  'ka', 'ki', 'ke', 'aur', 'wala', 'wali', 'wale', 'se', 'mein', 'me', 'ko', 'hai', 'ek', 'do',
+  'کا', 'کی', 'کے', 'اور', 'میں', 'سے', 'کو', 'والا', 'والی', 'نیا', 'نئی',
+]);
+
+/** Units and sizes: "500", "1kg", "250ml", "16l", "2x", "18-46-0" parts. */
+const UNIT = /^(\d+(\.\d+)?)?(kg|kgs|g|gm|gms|gram|grams|mg|ml|l|lt|ltr|ltrs|litre|litres|liter|liters|cc|oz|lb|lbs|cm|mm|m|mtr|inch|inches|in|ft|feet|x|pcs|pc|pk|w|v|mah|gb|tb)$/;
+
+/** The words of a name that say what the item is: lower case, without sizes, units, colours or filler words. */
+export function meaningfulWords(s: string | null | undefined): string[] {
+  const out: string[] = [];
+  for (const w of normalizeName(s).split(' ')) {
+    if (!w || /^\d+(\.\d+)?$/.test(w) || UNIT.test(w) || NOISE.has(w)) continue;
+    // Latin words need three letters ("dap" counts, "ab" does not); Urdu words two.
+    if (/^[a-z0-9]+$/.test(w) ? w.length < 3 : w.length < 2) continue;
+    out.push(w);
+  }
+  return [...new Set(out)];
+}
+
+/** Same word, or one a plural/longer form of the other ("sprayer" / "sprayers", "fertilizer" / "fertilizers"). */
+const sameWord = (a: string, b: string) => a === b || (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a)));
+
+/**
+ * The two names plausibly name the same item: they share a meaningful word,
+ * or read nearly the same as a whole. Names with no meaningful words at all
+ * are judged on the whole-name similarity only.
+ */
+export function titlesRelated(a: string | null | undefined, b: string | null | undefined): boolean {
+  const x = meaningfulWords(a);
+  const y = meaningfulWords(b);
+  if (x.some((w) => y.some((v) => sameWord(w, v)))) return true;
+  return similarity(String(a ?? ''), String(b ?? '')) >= 0.75;
+}
+
+/** Any code on one side equals a code on the other (SKU or barcode, case and spaces ignored). */
+export function codesMatch(a: Array<string | null | undefined>, b: Array<string | null | undefined>): boolean {
+  const x = new Set(a.map(code).filter(Boolean));
+  return b.map(code).some((c) => !!c && x.has(c));
+}
+
+/** An automatic link is allowed only when the codes match exactly or the names share a real word. */
+export function linkSane(input: { remoteTitle: string | null | undefined; remoteCodes: Array<string | null | undefined>; nafaaName: string | null | undefined; nafaaCodes: Array<string | null | undefined> }): boolean {
+  return codesMatch(input.remoteCodes, input.nafaaCodes) || titlesRelated(input.remoteTitle, input.nafaaName);
+}
+
+export type SuspectReason = 'title' | 'price';
+
+/** Price ratio above which an existing link is flagged ("Shayad ghalat jura hai"). */
+export const SUSPECT_PRICE_RATIO = 3;
+
+/**
+ * "Ghalat link?" check for an existing link: the names share no meaningful
+ * word and the codes do not match, or the Nafaa and channel prices are more
+ * than 3x apart. Returns the reasons, empty when the link looks fine.
+ */
+export function suspectLink(input: {
+  remoteTitle: string | null | undefined; remoteCodes: Array<string | null | undefined>;
+  nafaaName: string | null | undefined; nafaaCodes: Array<string | null | undefined>;
+  nafaaPrice: number | null | undefined; channelPrice: number | null | undefined;
+}): SuspectReason[] {
+  const out: SuspectReason[] = [];
+  const titled = !!normalizeName(input.remoteTitle) && !!normalizeName(input.nafaaName);
+  if (titled && !linkSane(input)) out.push('title');
+  const a = Number(input.nafaaPrice);
+  const b = Number(input.channelPrice);
+  if (a > 0 && b > 0 && Math.max(a, b) / Math.min(a, b) > SUSPECT_PRICE_RATIO) out.push('price');
+  return out;
 }

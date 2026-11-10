@@ -29,7 +29,7 @@ import { Dot, Thumb, UntrackedTag, dotOf, notCounted } from './ProductsGrid';
 import { causeInfo, isNafaaText, syncCause } from './syncErrors';
 import { BackorderSettings } from './BackorderSettings';
 import { HoldActions, holdNumbers, holdReasonText } from './StockHold';
-import { PriceHoldActions, priceHoldNumbers } from './PriceHold';
+import { isJumpHold, PriceHoldActions, priceHoldNumbers } from './PriceHold';
 import { SyncHistory } from './SyncHistory';
 
 const CONTENT_KEYS: Array<{ key: keyof PushContent; label: () => string }> = [
@@ -387,12 +387,14 @@ function LinkedRow({ c, cell, canManage, item, row, onLink, onDone, sized }: {
       {cell.priceHold && (
         <span className="order-last flex basis-full flex-wrap items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
           <span className="min-w-0 flex-1">
-            <span className="block font-semibold">{t('Website par qeemat badli — kaunsi rakhein?')} · <span className="tabular-nums">{priceHoldNumbers(cell.priceHold)}</span></span>
-            <span className="block text-[0.75rem] opacity-90">{t('Jab tak aap na chunein, Nafaa is ki qeemat nahi bhejta.')} {timeAgo(cell.priceHold.channelPriceAt ?? cell.priceHold.since)}</span>
+            <span className="block font-semibold">{isJumpHold(cell.priceHold) ? t('Qeemat bahut badal rahi hai — check karein') : t('Website par qeemat badli — kaunsi rakhein?')} · <span className="tabular-nums">{priceHoldNumbers(cell.priceHold)}</span></span>
+            <span className="block text-[0.75rem] opacity-90">{isJumpHold(cell.priceHold)
+              ? t('Nafaa ki qeemat website wali se bahut alag hai. Pehle dekhein ke ye link sahi product se jura hai.')
+              : <>{t('Jab tak aap na chunein, Nafaa is ki qeemat nahi bhejta.')} {timeAgo(cell.priceHold.channelPriceAt ?? cell.priceHold.since)}</>}</span>
           </span>
           {canManage && (
             <span className="flex flex-wrap items-center gap-1.5">
-              <PriceHoldActions channelId={c.id} mappingIds={[cell.mappingId]} />
+              <PriceHoldActions channelId={c.id} mappingIds={[cell.mappingId]} jump={isJumpHold(cell.priceHold)} />
             </span>
           )}
         </span>

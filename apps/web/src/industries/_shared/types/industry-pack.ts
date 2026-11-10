@@ -251,6 +251,13 @@ export interface IndustryPack {
   // ── Routes ──────────────────────────────────────────────────
   routes: IndustryRoute[];
 
+  /**
+   * Kinds a shop category may carry for this industry (the product type is derived from the
+   * category's kind, or its nearest parent's). Absent = this industry uses no kinds.
+   * Values must match the API list in category-kind.ts.
+   */
+  categoryKinds?: Array<{ value: string; label: string }>;
+
   // ── Dashboard ───────────────────────────────────────────────
   dashboardComponent?: ComponentType;
 

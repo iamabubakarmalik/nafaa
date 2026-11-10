@@ -15,6 +15,7 @@ import GamingStationsPage from './pages/GamingStationsPage';
 import GamingCafeLivePage from './pages/GamingCafeLivePage';
 import GamingTournamentsPage from './pages/GamingTournamentsPage';
 import { t } from '@core/i18n';
+import { CATEGORY_GROUPS as GAMING_CATEGORY_GROUPS } from './lib/meta';
 
 export const GamingPack: IndustryPack = {
   id: 'gaming',
@@ -22,6 +23,7 @@ export const GamingPack: IndustryPack = {
   shortName: t('Gaming'),
   emoji: '🎮',
   priority: 78,
+  categoryKinds: GAMING_CATEGORY_GROUPS.flatMap((g) => g.items).filter(([v]) => v !== 'OTHER').map(([value, label]) => ({ value, label })),
   description:
     t('Consoles, games, PC parts, console rentals, PSN/Xbox/PUBG top-ups, LAN cafe live billing, tournaments.'),
 

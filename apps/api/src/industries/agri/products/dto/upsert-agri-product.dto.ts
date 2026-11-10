@@ -1,10 +1,12 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AgriCategory, FeedType, FertilizerType, SeasonType, SeedType } from '@prisma/client';
 import { IsArray, IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { EnumOrDefault } from '../../../../common/helpers/enum-or-default.helper';
 
 export class UpsertAgriProductDto {
   @ApiProperty() @IsString() productId!: string;
-  @ApiProperty({ enum: AgriCategory }) @IsEnum(AgriCategory) category!: AgriCategory;
+  /** Item type only (not the shop's own category); empty or unknown becomes OTHER. */
+  @ApiPropertyOptional({ enum: AgriCategory }) @IsOptional() @EnumOrDefault(AgriCategory, AgriCategory.OTHER) @IsEnum(AgriCategory) category?: AgriCategory;
   @ApiPropertyOptional() @IsOptional() @IsString() subCategory?: string;
 
   @ApiPropertyOptional({ enum: SeedType }) @IsOptional() @IsEnum(SeedType) seedType?: SeedType;

@@ -1,5 +1,5 @@
 /**
- * Game or gear profile (web GamingProductWizardPage): which product it is, its
+ * Game or gear profile (web GamingProductWizardPage): its
  * platform and condition, publisher and genre, what is in the box, rental rates,
  * used price and trade-in value, and the flags that show on the counter.
  */
@@ -16,7 +16,7 @@ import { ProductPickerSheet } from '../../_shared/payKit';
 import { errorText, numIn } from '../../_shared/deskKit';
 import { clean } from '../../_shared/serviceKit';
 import { gamingApi } from '../api';
-import { GAMING_KEYS, categoryOptions, conditionOptions, platformOptions, refreshGaming } from '../meta';
+import { GAMING_KEYS, conditionOptions, platformOptions, refreshGaming } from '../meta';
 
 const list = (s: string) => s.split(',').map((x) => x.trim()).filter(Boolean);
 
@@ -60,7 +60,6 @@ export function ProductFormScreen() {
       <FormSection title={t('Product')}>
         {product ? <Row justify="between"><Text weight="semibold" style={{ flex: 1 }}>{product.name}</Text>{!editing && <Button size="sm" variant="ghost" onPress={() => setPick(true)}>{t('Badlein')}</Button>}</Row>
           : <Button variant="soft" icon={Gamepad2} onPress={() => setPick(true)}>{t('Product chunein')}</Button>}
-        <Select label={t('Category')} value={f.categoryType} onChange={(v) => set('categoryType', v)} options={categoryOptions()} />
         <Select label={t('Platform')} value={f.platform} onChange={(v) => set('platform', v)} options={platformOptions()} />
         <Select label={t('Halat')} value={f.conditionType} onChange={(v) => set('conditionType', v)} options={conditionOptions()} />
       </FormSection>

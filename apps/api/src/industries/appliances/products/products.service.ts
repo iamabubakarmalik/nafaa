@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { ApplianceCategoryType } from '@prisma/client';
+import { CATEGORY_KIND_VALUES, nearestKind } from '../../../modules/inventory/categories/category-kind';
 import { UpsertApplianceProductDto } from './dto/upsert-product.dto';
 
 @Injectable()
@@ -15,10 +17,13 @@ export class ApplianceProductsService {
     }
 
     const existing = await this.prisma.applianceProductProfile.findUnique({ where: { productId: dto.productId } });
+    // One category system: the type comes from the shop category's kind (nearest parent); without one the product keeps its own type.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const categoryType = (nearestKind(cats, product.categoryId, CATEGORY_KIND_VALUES.APPLIANCES) ?? existing?.categoryType ?? dto.categoryType) as ApplianceCategoryType | undefined;
     if (existing) {
-      return this.prisma.applianceProductProfile.update({ where: { productId: dto.productId }, data: { ...dto, tenantId: user.tenantId } });
+      return this.prisma.applianceProductProfile.update({ where: { productId: dto.productId }, data: { ...dto, categoryType, tenantId: user.tenantId } });
     }
-    return this.prisma.applianceProductProfile.create({ data: { ...dto, tenantId: user.tenantId } });
+    return this.prisma.applianceProductProfile.create({ data: { ...dto, categoryType, tenantId: user.tenantId } });
   }
 
   async list(user: AuthenticatedUser, params: {

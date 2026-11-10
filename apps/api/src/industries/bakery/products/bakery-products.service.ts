@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { BakeryCategory } from '@prisma/client';
+import { CATEGORY_KIND_VALUES, deriveProductKind } from '../../../modules/inventory/categories/category-kind';
 import { UpsertBakeryProductDto } from './dto/upsert-bakery-product.dto';
 
 @Injectable()
@@ -11,12 +13,17 @@ export class BakeryProductsService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Product not found');
 
-    const { productType, ...profile } = dto;
+    const { productType, ...rest } = dto;
     if (productType && product.productType !== productType) {
       await this.prisma.product.update({ where: { id: product.id }, data: { productType } });
     }
 
     const existing = await this.prisma.bakeryProductProfile.findUnique({ where: { productId: dto.productId } });
+    // One category system: a kind on the shop category decides the bakery type; otherwise the form's own guess
+    // (from the category name) is used, then the stored value.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const category = deriveProductKind(cats, product.categoryId, rest.category ?? existing?.category, 'OTHER', CATEGORY_KIND_VALUES.BAKERY) as BakeryCategory;
+    const profile = { ...rest, category };
     if (existing) {
       return this.prisma.bakeryProductProfile.update({ where: { productId: dto.productId }, data: profile });
     }

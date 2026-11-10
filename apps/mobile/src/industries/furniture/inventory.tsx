@@ -13,6 +13,7 @@ import { formatMoney } from '@/core/format';
 import { msg, t } from '@/core/i18n';
 import { ChipGroup, FormSection, Input, MoneyInput, Switch, Text } from '@/design';
 import { NumberInput, Tiles } from '@/modules/inventory/components/fields';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
@@ -41,17 +42,9 @@ const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefin
 const pick = (cur: string, v: string) => (cur === v ? '' : v);
 
 function Kind({ ctx }: { ctx: StepContext<FurnitureExtra> }) {
-  const x = ctx.draft.extra;
-  return (
-    <FormSection title={t('Ye kya hai')} description={t('Isi se counter ke filter (Sofa, Bed room, Dining) chalte hain. Order par banne wali cheez Custom orders me daalein.')}>
-      {CATEGORY_GROUPS.map((g) => (
-        <View key={g.id} style={{ gap: 6 }}>
-          <Text size="xs" weight="semibold" tone="muted">{t(g.label)}</Text>
-          <ChipGroup wrap value={x.categoryType} onChange={(v) => ctx.setExtra({ categoryType: pick(x.categoryType, v) })} options={g.items.map(([value, label]) => ({ value, label: t(label) }))} />
-        </View>
-      ))}
-    </FormSection>
-  );
+  // The furniture type follows the shop category's kind; there is no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (categoryType) => ctx.setExtra({ categoryType }));
+  return null;
 }
 
 function Build({ ctx }: { ctx: StepContext<FurnitureExtra> }) {
@@ -183,6 +176,7 @@ const line = (p?: FurnitureProductProfile) => (p ? [p.categoryType ? categoryLab
 registerInventoryIndustry({
   id: 'furniture',
   label: msg('Furniture'),
+  categoryKinds: CATEGORY_GROUPS.flatMap((g) => g.items).filter(([v]) => v !== 'OTHER').map(([value, label]) => ({ value, label })),
   list: {
     noun: 'item',
     filters: ['tags'],

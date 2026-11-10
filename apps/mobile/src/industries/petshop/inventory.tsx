@@ -21,6 +21,7 @@ import type { Errors } from '@/modules/inventory/screens/editor/types';
 import { todayKey } from '../_shared/deskKit';
 import { petProductsApi, type PetLifeStage, type PetProfile, type PetSpecies } from './api';
 import { BRANDS, CATEGORY_GROUPS, DOSAGE_FORMS, LIFE_STAGE, PET_KEYS, PET_SIZES, SPECIES, categoryLabel, speciesLabel } from './meta';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 
 interface PetExtra {
   categoryType: string; species: PetSpecies | ''; lifeStage: PetLifeStage | ''; brand: string; packSize: string; flavor: string; weightKg: number | null;
@@ -36,17 +37,9 @@ const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefin
 const pick = (cur: string, v: string) => (cur === v ? '' : v);
 
 function Kind({ ctx }: { ctx: StepContext<PetExtra> }) {
-  const x = ctx.draft.extra;
-  return (
-    <FormSection title={t('Ye kya hai')} description={t('Isi se counter ke filter (khana, dawai, aquarium) chalte hain.')}>
-      {CATEGORY_GROUPS.map((g) => (
-        <View key={g.id} style={{ gap: 6 }}>
-          <Text size="xs" weight="semibold" tone="muted">{t(g.label)}</Text>
-          <ChipGroup wrap value={x.categoryType} onChange={(v) => ctx.setExtra({ categoryType: pick(x.categoryType, v) })} options={g.items.map(([value, label]) => ({ value, label: t(label) }))} />
-        </View>
-      ))}
-    </FormSection>
-  );
+  // The item type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (kind) => ctx.setExtra({ categoryType: kind }));
+  return null;
 }
 
 function Details({ ctx }: { ctx: StepContext<PetExtra> }) {
@@ -149,6 +142,7 @@ const lineOf = (p?: PetProfile) => (p ? [p.brand, p.species ? speciesLabel(p.spe
 registerInventoryIndustry({
   id: 'petshop',
   label: msg('Pet shop'),
+  categoryKinds: CATEGORY_GROUPS.flatMap((g) => g.items).filter(([v]) => v !== 'OTHER').map(([value, label]) => ({ value, label })),
   list: {
     noun: 'cheez',
     filters: ['tags'],

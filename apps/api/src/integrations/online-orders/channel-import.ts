@@ -146,10 +146,13 @@ const labels = (v: PlanNafaa) => [v.name, v.size, v.color, [v.color, v.size].fil
 
 /**
  * Which Nafaa size each channel SKU belongs to: by SKU/barcode, then by its
- * options (size and colour), then by name. A Nafaa size is used once.
+ * options (size and colour), then by name. A Nafaa size is used once. With
+ * `related: false` (the channel and Nafaa products look like different items)
+ * only exact SKU/barcode matches are made.
  */
-export function planVariants(remote: PlanRemote[], nafaa: PlanNafaa[]): Map<string, { variantId: string; by: PlanBy }> {
+export function planVariants(remote: PlanRemote[], nafaa: PlanNafaa[], opts: { related?: boolean } = {}): Map<string, { variantId: string; by: PlanBy }> {
   const out = new Map<string, { variantId: string; by: PlanBy }>();
+  const related = opts.related !== false;
   const used = new Set<string>();
   const take = (key: string, v: PlanNafaa | undefined, by: PlanBy) => {
     if (!v || used.has(v.id) || out.has(key)) return;
@@ -163,6 +166,9 @@ export function planVariants(remote: PlanRemote[], nafaa: PlanNafaa[]): Map<stri
     const hits = nafaa.filter((v) => !used.has(v.id) && (codes.includes(code(v.sku)) || codes.includes(code(v.barcode))));
     if (hits.length === 1) take(r.key, hits[0], 'sku');
   }
+  // Different items (no shared name word, no code match): only exact codes link.
+  // Options or size names alone ("1000", "500", "250") never join two different products.
+  if (!related) return out;
   // 2. Options: size and colour must both agree where both sides have them
   for (const r of remote) {
     if (out.has(r.key)) continue;

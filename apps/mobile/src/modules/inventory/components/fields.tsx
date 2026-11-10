@@ -1,6 +1,6 @@
 /** Small form parts used across the inventory forms: a number field, unit tiles and a margin card. */
 
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState, type ReactNode } from 'react';
 import type { TextInput } from 'react-native';
 import { View } from 'react-native';
 import { marginLevel } from '@nafaa/core/inventory';
@@ -34,6 +34,26 @@ export const NumberInput = forwardRef<TextInput, Omit<InputProps, 'value' | 'onC
 });
 
 /** Grid of choice tiles (units, kinds). Labels are translated by the caller. */
+/**
+ * Collapsed "Aur details" block for optional, rarely used fields. It opens by itself when
+ * `startOpen` is true (a value is already filled), so saved data is never hidden.
+ */
+export function MoreDetails({ children, startOpen, title }: { children: ReactNode; startOpen?: boolean; title?: string }) {
+  const th = useTheme();
+  const [open, setOpen] = useState(!!startOpen);
+  return (
+    <Card>
+      <PressableScale onPress={() => setOpen((o) => !o)} haptic="tap" accessibilityRole="button" accessibilityState={{ expanded: open }}>
+        <Row gap={2} align="center" style={{ minHeight: th.control('md') }}>
+          <Text size="sm" weight="semibold" style={{ flex: 1 }}>{title ?? t('Aur details')}</Text>
+          <Text size="sm" tone="muted">{open ? '−' : '+'}</Text>
+        </Row>
+      </PressableScale>
+      {open && <View style={{ gap: th.space(3), marginTop: th.space(2) }}>{children}</View>}
+    </Card>
+  );
+}
+
 export function Tiles<V extends string>({ value, onChange, options, columns = 3 }: {
   value: V; onChange: (v: V) => void; options: Array<{ value: V; label: string }>; columns?: number;
 }) {

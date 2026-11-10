@@ -5,6 +5,7 @@ import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.
 import { UpsertFloristProductDto } from './dto/upsert-product.dto';
 import { addDaysTz, parseDay } from '../florist-common';
 import { endOfDayTz } from '../../../common/helpers/business-time.helper';
+import { CATEGORY_KIND_VALUES, nearestKind } from '../../../modules/inventory/categories/category-kind';
 
 @Injectable()
 export class FloristProductsService {
@@ -20,7 +21,10 @@ export class FloristProductsService {
       where: { productId: dto.productId },
     });
 
-    const data: any = { ...dto, tenantId: user.tenantId };
+    // One category system: the stored type follows the shop category's kind (nearest parent); without one the product keeps its own type.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const categoryType = nearestKind(cats, product.categoryId, CATEGORY_KIND_VALUES.FLORIST) ?? existing?.categoryType ?? dto.categoryType;
+    const data: any = { ...dto, categoryType, tenantId: user.tenantId };
     if (dto.arrivalDate) data.arrivalDate = parseDay(dto.arrivalDate);
     if (dto.freshUntil) data.freshUntil = parseDay(dto.freshUntil);
     // Fresh-until follows the arrival day and shelf life when not given.

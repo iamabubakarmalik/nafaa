@@ -7,6 +7,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { DairyMilkQuality, DairyProductType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CATEGORY_KIND_VALUES, deriveProductKind } from '../../../modules/inventory/categories/category-kind';
 import { UpsertDairyProductDto } from './dto/upsert-dairy-product.dto';
 import { cleanInput, parseDay } from '../dairy-common';
 
@@ -17,15 +18,20 @@ export class DairyProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async upsert(user: AuthenticatedUser, dto: UpsertDairyProductDto) {
-    const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId }, select: { id: true } });
+    const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId }, select: { id: true, categoryId: true } });
     if (!product) throw new NotFoundException('Product nahi mila');
     for (const k of RATES) {
       const v = dto[k];
       if (v !== undefined && v !== null && !(Number(v) >= 0)) throw new BadRequestException('Rate manfi nahi ho sakta');
     }
 
+    const existingType = await this.prisma.dairyProduct.findFirst({ where: { productId: dto.productId, tenantId: user.tenantId }, select: { productType: true } });
+    // One category system: the dairy type comes from the shop category's kind; without one the product keeps its own type.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const productType = deriveProductKind(cats, product.categoryId, existingType?.productType ?? dto.productType, 'OTHER', CATEGORY_KIND_VALUES.DAIRY) as DairyProductType;
     const data = {
       ...(cleanInput(dto) as Omit<UpsertDairyProductDto, 'productionDate'>),
+      productType,
       productionDate: dto.productionDate ? parseDay(dto.productionDate) : undefined,
     };
     const existing = await this.prisma.dairyProduct.findFirst({ where: { productId: dto.productId }, select: { tenantId: true, minBulkQty: true } });

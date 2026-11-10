@@ -13,6 +13,7 @@ import { numericId } from './shopify.client';
 import { decrypt, encrypt } from '../../core/lib/crypto';
 import { fetchIndoljMenu, IndoljCreds } from './indolj.client';
 import { convertWeight, htmlToText, RemoteOption, sizeColor, variantName, weightUnit, planVariants } from './channel-import';
+import { linkSane } from './product-matcher';
 import { holdOnLink, HoldReason, StockHold } from './stock-handover';
 
 /**
@@ -877,9 +878,15 @@ export class ChannelCatalogService {
    * the channel, the link waits ("Stock milana baqi").
    */
   private async intoExistingTx(tx: any, ctx: ImportCtx, productId: string, p: RemoteProduct, detail: RemoteDetail | null,
-    plan: Array<{ externalVariantId: string | null; variantId: string | null }> | null) {
-    const product = await tx.product.findFirst({ where: { id: productId, tenantId: ctx.tenantId }, select: { id: true, name: true, hasVariants: true } });
+    plan: Array<{ externalVariantId: string | null; variantId: string | null }> | null, confirmed = false) {
+    const product = await tx.product.findFirst({
+      where: { id: productId, tenantId: ctx.tenantId },
+      select: { id: true, name: true, hasVariants: true, sku: true, barcode: true, variants: { where: { isActive: true }, select: { sku: true, barcode: true } } },
+    });
     if (!product) throw new BadRequestException('Nafaa product nahi mila');
+    // Different items (no shared name word, no exact code): never joined unless the merchant confirmed it.
+    const related = sameItem(p, product);
+    if (!related && !confirmed) throw new BadRequestException(mismatchText(p.title, product.name));
     const stock = await this.branchStock(tx, ctx.shopId, [productId]);
     let held = 0;
     let createdVariants = 0;
@@ -912,7 +919,7 @@ export class ChannelCatalogService {
       const ids = wanted.map((w) => w.variantId).filter(Boolean);
       if (new Set(ids).size !== ids.length) throw new BadRequestException('Do SKU ek hi variant se nahi jur sakte');
     } else {
-      const found = planVariants(p.variants.map((v) => ({ key: keyOf(v), title: v.title, sku: v.sku, barcode: v.barcode, options: v.options })), existing);
+      const found = planVariants(p.variants.map((v) => ({ key: keyOf(v), title: v.title, sku: v.sku, barcode: v.barcode, options: v.options })), existing, { related });
       wanted = p.variants.map((v) => ({ v, variantId: found.get(keyOf(v))?.variantId ?? null }));
     }
 
@@ -973,8 +980,9 @@ export class ChannelCatalogService {
     return this.importIntoFor(integration, user.tenantId, externalProductId, productId, plan ?? null);
   }
 
+  /** `confirmed`: the merchant saw "alag cheezen lagti hain" and still chose this product. */
   async importIntoFor(integration: Integration, tenantId: string, externalProductId: string, productId: string,
-    plan: Array<{ externalVariantId: string | null; variantId: string | null }> | null) {
+    plan: Array<{ externalVariantId: string | null; variantId: string | null }> | null, confirmed = false) {
     const shopId = await this.importShop(integration);
     const p = (await this.remoteProducts(integration)).find((x) => x.externalProductId === externalProductId);
     if (!p) throw new BadRequestException('Channel ka product nahi mila — "Channel se taaza" dabayein');
@@ -983,7 +991,7 @@ export class ChannelCatalogService {
     if (plan && !plan.length) throw new BadRequestException('Koi SKU nahi chuna');
     const details = await this.remoteDetails(integration, [externalProductId]);
     const ctx: ImportCtx = { tenantId, shopId, integration, categories: new Map(), brands: new Map(), tags: new Map() };
-    const r = await this.prisma.$transaction((tx) => this.intoExistingTx(tx, ctx, product.id, p, details.get(externalProductId) ?? null, plan), { timeout: 60_000 });
+    const r = await this.prisma.$transaction((tx) => this.intoExistingTx(tx, ctx, product.id, p, details.get(externalProductId) ?? null, plan, confirmed), { timeout: 60_000 });
     this.cache.delete(integration.id);
     return { ok: true, product: product.name, variantsCreated: r.createdVariants, linked: r.linked, held: r.held };
   }
@@ -997,9 +1005,10 @@ export class ChannelCatalogService {
     if (!p) throw new BadRequestException('Channel ka product nahi mila — "Channel se taaza" dabayein');
     const product = await this.prisma.product.findFirst({
       where: { id: productId, tenantId },
-      select: { id: true, name: true, hasVariants: true, variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, sku: true, barcode: true, size: true, color: true } } },
+      select: { id: true, name: true, hasVariants: true, sku: true, barcode: true, variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, sku: true, barcode: true, size: true, color: true } } },
     });
     if (!product) throw new BadRequestException('Nafaa product nahi mila');
+    const related = sameItem(p, product);
     const shopId = await this.stockShop(integration);
     const [stock, maps, block] = await Promise.all([
       this.branchStock(this.prisma, shopId, [product.id]),
@@ -1007,8 +1016,10 @@ export class ChannelCatalogService {
       product.hasVariants ? Promise.resolve(null) : this.convertBlock(this.prisma, integration.id, product.id),
     ]);
     const keyOf = (v: RemoteVariant) => v.externalVariantId ?? '-';
-    const found = planVariants(p.variants.map((v) => ({ key: keyOf(v), title: v.title, sku: v.sku, barcode: v.barcode, options: v.options })), product.variants);
+    const found = planVariants(p.variants.map((v) => ({ key: keyOf(v), title: v.title, sku: v.sku, barcode: v.barcode, options: v.options })), product.variants, { related });
     return {
+      /** The two look like different items: the screen warns and asks before linking. */
+      mismatch: related ? null : mismatchText(p.title, product.name),
       product: { id: product.id, name: product.name, hasVariants: product.hasVariants },
       remote: { externalProductId: p.externalProductId, title: p.title, hasVariants: p.hasVariants, optionNames: p.optionNames ?? [] },
       rows: p.variants.map((v) => {
@@ -1147,3 +1158,16 @@ export function linkData(prev: unknown, channelStock: number | null | undefined,
   if (v && v.price > 0 && d.channelPrice === undefined) { d.channelPrice = v.price; d.channelPriceAt = at; }
   return d as Prisma.InputJsonValue;
 }
+
+/** Channel product and Nafaa product name the same item: an exact SKU/barcode on either side, or a shared name word. */
+export function sameItem(p: Pick<RemoteProduct, 'title' | 'variants'>, product: { name: string; sku?: string | null; barcode?: string | null; variants?: Array<{ sku?: string | null; barcode?: string | null }> }) {
+  return linkSane({
+    remoteTitle: p.title,
+    remoteCodes: p.variants.flatMap((v) => [v.sku, v.barcode]),
+    nafaaName: product.name,
+    nafaaCodes: [product.sku, product.barcode, ...(product.variants ?? []).flatMap((v) => [v.sku, v.barcode])],
+  });
+}
+
+const mismatchText = (channelTitle: string, name: string) =>
+  `"${channelTitle.slice(0, 80)}" aur "${name.slice(0, 80)}" alag cheezen lagti hain — naam me koi lafz nahi milta aur SKU bhi nahi. Theek product chunein, ya pakka ho to "Haan, yehi hai" chun kar jorein.`;

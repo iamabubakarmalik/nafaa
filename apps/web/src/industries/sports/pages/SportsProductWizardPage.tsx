@@ -6,6 +6,7 @@
  * marks.
  */
 
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { Award, BadgePercent, Shirt, Trophy, Users } from 'lucide-react';
 import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
@@ -26,7 +27,7 @@ export interface SportsExtra {
 }
 
 const initial: SportsExtra = {
-  sport: 'Cricket', categoryType: 'CRICKET_BAT', ageGroup: 'ADULT', batWood: '', batGrade: '', batSize: '', batWeightGrams: '', handleType: '',
+  sport: 'Other', categoryType: 'OTHER', ageGroup: 'ADULT', batWood: '', batGrade: '', batSize: '', batWeightGrams: '', handleType: '',
   ballType: '', ballWeight: '', size: '', material: '', fit: '', weight: '', mrp: null, teamPrice: null, minTeamOrder: '', bulkDiscountPct: '',
   isTeamOrderable: false, hasCustomization: false, warrantyMonths: 0, warrantyType: '', careInstructions: '',
   isNewArrival: true, isBestSeller: false, isProfessional: false,
@@ -45,31 +46,17 @@ function Field({ ctx, k, title, ph, max = 60, hint }: { ctx: StepContext<SportsE
   );
 }
 
-/* ── Basic step additions: sport, type, age group ── */
+/* ── Basic step additions: age group. Sport and item type follow the shop category's kind. ── */
 function Identity({ ctx }: { ctx: StepContext<SportsExtra> }) {
   const x = ctx.draft.extra;
-  const types = SPORT_TYPES.filter((t) => t.sport === x.sport || t.sport === 'Other');
+  useCategoryKindSync(ctx.draft.core.categoryId, x.categoryType, (categoryType) => {
+    const sport = SPORT_TYPES.find((t) => t.value === categoryType)?.sport;
+    ctx.setExtra({ categoryType, ...(sport && sport !== 'Other' && { sport }) });
+  });
   return (
-    <div className="space-y-4">
-      <div>
-        {label(tr('Sport'))}
-        <div className="flex flex-wrap gap-1.5">
-          {SPORTS.map((s) => <Chip key={s} on={x.sport === s} onClick={() => ctx.setExtra({ sport: s, categoryType: SPORT_TYPES.find((t) => t.sport === s)?.value ?? 'OTHER' })}>{tr(s)}</Chip>)}
-        </div>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block">
-          {label(tr('Item ki type'))}
-          <select value={x.categoryType} onChange={(e) => ctx.setExtra({ categoryType: e.target.value })} className={inputClass}>
-            {types.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </select>
-          <span className="mt-1 block text-[0.75rem] text-slate-500">{tr('Bat, ball ya kit ki tafseel isi se khulti hai')}</span>
-        </label>
-        <div>
-          {label(tr('Kis ke liye'))}
-          <div className="flex flex-wrap gap-1.5">{AGE_GROUPS.map((a) => <Chip key={a.value} on={x.ageGroup === a.value} onClick={() => ctx.setExtra({ ageGroup: a.value })}>{a.label}</Chip>)}</div>
-        </div>
-      </div>
+    <div>
+      {label(tr('Kis ke liye'))}
+      <div className="flex flex-wrap gap-1.5">{AGE_GROUPS.map((a) => <Chip key={a.value} on={x.ageGroup === a.value} onClick={() => ctx.setExtra({ ageGroup: a.value })}>{a.label}</Chip>)}</div>
     </div>
   );
 }

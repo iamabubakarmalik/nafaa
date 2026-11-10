@@ -1702,5 +1702,10 @@
   "Zyada ruki sale pehle": "Most lost sales first",
   "Zyada se zyada kitne bechne hain": "Most to sell",
   "Zyada stock": "Overstock",
-  "Zyada stock pehle": "Most stock first"
+  "Zyada stock pehle": "Most stock first",
+  "Kis qisam ka maal (marzi)": "What kind of goods (optional)",
+  "Kuch aur / chunna nahi": "Other / not chosen",
+  "Is category ke products isi qisam ke maane jate hain (sub-category bhi)": "Products in this category (and its sub-categories) count as this kind",
+  "Aur details": "More details",
+  "+ Nai category banayein": "+ Create a new category"
 }

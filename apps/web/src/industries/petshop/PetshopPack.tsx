@@ -13,6 +13,7 @@ import GroomingPage from './pages/GroomingPage';
 import GroomingFormPage from './pages/GroomingFormPage';
 import GroomersPage from './pages/GroomersPage';
 import { t } from '@core/i18n';
+import { CATEGORY_GROUPS as PET_CATEGORY_GROUPS } from './lib/meta';
 
 export const PetshopPack: IndustryPack = {
   id: 'petshop',
@@ -20,6 +21,7 @@ export const PetshopPack: IndustryPack = {
   shortName: t('Pet Shop'),
   emoji: '🐾',
   priority: 76,
+  categoryKinds: PET_CATEGORY_GROUPS.flatMap((g) => g.items).filter(([v]) => v !== 'OTHER').map(([value, label]) => ({ value, label })),
   description:
     t('Pet food, accessories, aquarium, vet medicine, live animals with health tracking, grooming appointments.'),
 

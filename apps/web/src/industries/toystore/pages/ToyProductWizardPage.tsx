@@ -13,6 +13,7 @@ import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@m
 import { toyProductsApi, type ToyProductProfile, type ToyAgeGroup, type ToyCategoryType, type ToyGenderTarget, type ToySafetyCertification } from '../api/products.api';
 import { AGE_GROUPS, BATTERIES, CATEGORIES, CATEGORY_GROUPS, CERTIFICATIONS, GENDERS, KEYS, ageText, labelOf } from '../lib/meta';
 import { t } from '@core/i18n';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 
 export interface ToyExtra {
   categoryType: string; ageGroup: string; ageGroups: string[]; ageMinYears: number | null; ageMaxYears: number | null; genderTarget: string;
@@ -37,19 +38,10 @@ const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x
 /* ── Basic step addition: type and brand ── */
 function Kind({ ctx }: { ctx: StepContext<ToyExtra> }) {
   const x = ctx.draft.extra;
+  // The toy type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.categoryType, (kind) => ctx.setExtra({ categoryType: kind }));
   return (
     <div className="space-y-3">
-      <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Khilone ka type')}</span>
-        <div className="space-y-2">
-          {CATEGORY_GROUPS.map((g) => (
-            <div key={g.group} className="flex flex-wrap items-center gap-1.5">
-              <span className="w-full text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400 sm:w-32">{g.group}</span>
-              {g.items.map(([v, l]) => <Chip key={v} on={x.categoryType === v} onClick={() => ctx.setExtra({ categoryType: x.categoryType === v ? '' : v })}>{l}</Chip>)}
-            </div>
-          ))}
-        </div>
-      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <TextField label={t('Brand')} value={x.brand} onChange={(brand) => ctx.setExtra({ brand })} placeholder={t('Hot Wheels, Barbie, Lego, local')} />
         <TextField label={t('Character')} value={x.characterFranchise} onChange={(characterFranchise) => ctx.setExtra({ characterFranchise })} placeholder={t('Spider-Man, Frozen, Doraemon')} hint={t('Bachay isi naam se maangte hain — POS search me aata hai')} />

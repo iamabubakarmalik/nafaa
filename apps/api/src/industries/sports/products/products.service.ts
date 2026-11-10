@@ -9,6 +9,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { addVariantOpeningStock, OpeningStockDto, splitLegacyVariantStock } from '../common/opening-stock.helper';
 import { freeBrandSlug } from '../../shoe/common/shoe-common';
+import { CATEGORY_KIND_VALUES, deriveProductKind } from '../../../modules/inventory/categories/category-kind';
 import { UpsertSportsProductDto } from './dto/upsert-sports-product.dto';
 
 @Injectable()
@@ -40,7 +41,10 @@ export class SportsProductsService {
       where: { productId: dto.productId },
     });
 
-    const data: any = { ...dto, tenantId: user.tenantId };
+    // One category system: the item type comes from the shop category's kind (nearest parent); without one the product keeps its own type.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const categoryType = deriveProductKind(cats, product.categoryId, existing?.categoryType ?? dto.categoryType, 'OTHER', CATEGORY_KIND_VALUES.SPORTS);
+    const data: any = { ...dto, categoryType, tenantId: user.tenantId };
 
     if (existing) {
       return this.prisma.sportsProductProfile.update({

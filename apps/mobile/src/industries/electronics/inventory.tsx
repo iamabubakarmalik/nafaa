@@ -18,6 +18,7 @@ import { categoriesApi } from '@/modules/inventory/api/taxonomy';
 import { Tiles, NumberInput } from '@/modules/inventory/components/fields';
 import { adjustmentsApi } from '@/modules/inventory/stock/api';
 import { registerDeviceSource } from '@/modules/inventory/industry/devices';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
@@ -47,9 +48,10 @@ function Identity({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
   const x = ctx.draft.extra;
   const cats = useQuery({ queryKey: ['categories'], queryFn: () => categoriesApi.list(), staleTime: 5 * 60_000 });
   const catName = (cats.data ?? []).find((c) => c.id === ctx.draft.core.categoryId)?.name;
-  // Picking a shop category suggests the product type, unless the owner already chose one.
+  // The product type follows the shop category's kind; the name hint only fills in when the category has no kind.
+  const kind = useCategoryKindSync(ctx.draft.core.categoryId, x.categoryType, (k) => ctx.setExtra({ categoryType: k as CategoryType }));
   useEffect(() => {
-    if (!catName || x.categoryType !== 'OTHER') return;
+    if (kind || !catName || x.categoryType !== 'OTHER') return;
     const ty = categoryTypeFromName(catName);
     if (ty !== 'OTHER') ctx.setExtra({ categoryType: ty });
   }, [catName]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -59,9 +61,6 @@ function Identity({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
         <Input containerStyle={{ flex: 1 }} label={t('Model number')} value={x.model} onChangeText={(model) => ctx.setExtra({ model })} placeholder="SM-A155F" ltr />
         <Input containerStyle={{ flex: 1 }} label={t('Part number')} value={x.partNumber} onChangeText={(partNumber) => ctx.setExtra({ partNumber })} ltr />
       </Row>
-      <Select label={t('Product type')} searchable value={x.categoryType} onChange={(categoryType) => ctx.setExtra({ categoryType: categoryType as CategoryType })}
-        options={CATEGORY_GROUPS.flatMap((g) => g.items.map((c) => ({ value: c, label: `${categoryEmoji(c)} ${categoryLabel(c)}`, description: groupLabel(g.label) })))}
-        hint={t('POS ke filter, specs aur reports isi type se bante hain.')} />
       {SERIAL_SUGGESTED.includes(x.categoryType) && !x.tracked && <Text size="xs" tone="info">{t('Is type ke har piece ka serial/IMEI aam tor par rakha jata hai — Stock step me serial chalu karein.')}</Text>}
       <Text size="sm" weight="semibold" tone="secondary">{t('Halat')}</Text>
       <Tiles value={x.condition} onChange={(condition) => ctx.setExtra({ condition })} columns={2} options={CONDITION_TYPES.map((c) => ({ value: c, label: conditionLabel(c) }))} />
@@ -220,6 +219,7 @@ interface DetailExtra { units: Array<ElectronicsSerial & { status: string }> }
 registerInventoryIndustry({
   id: 'electronics',
   label: msg('Electronics'),
+  categoryKinds: CATEGORY_GROUPS.flatMap((g) => g.items).filter((c) => c !== 'OTHER').map((c) => ({ value: c, label: CATEGORY_LABEL[c] })),
   list: {
     noun: 'cheez',
     filters: ['tags', 'etype', 'condition', 'serial'],

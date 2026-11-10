@@ -12,6 +12,8 @@ export interface Category {
   id: string; name: string; color: string; icon?: string | null; isActive: boolean;
   /** Null for a top-level category. */
   parentId?: string | null; sortOrder?: number;
+  /** Optional industry kind (agri: SEEDS ...); empty means none. */
+  kind?: string | null;
   _count?: { products: number; children?: number };
 }
 export interface Brand { id: string; name: string; logoUrl?: string | null; isActive: boolean; _count?: { products: number } }

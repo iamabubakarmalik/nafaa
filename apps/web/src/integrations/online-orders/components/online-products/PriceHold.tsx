@@ -6,17 +6,22 @@
  * me lein" saves the channel price in Nafaa (where depends on the channel's
  * settings). Holds the tag for a held link, the two actions, and the
  * per-channel list used by the Masle drawer.
+ *
+ * Big jumps ("Qeemat bahut badal rahi hai — check karein"): the price safety
+ * guard held a push that would move the channel price too far (often a link
+ * to the wrong product). "Phir bhi bhejein" sends Nafaa's price; "Nahi"
+ * leaves the channel price as it is and changes nothing in Nafaa.
  */
 
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ChevronDown, ChevronLeft, ChevronRight, CloudDownload, CloudUpload } from 'lucide-react';
+import { Ban, ChevronDown, ChevronLeft, ChevronRight, CloudDownload, CloudUpload, Send } from 'lucide-react';
 import { Button, EmptyState, Skeleton, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 import { apiErrorMessage } from '../../api/online-orders.api';
-import { ONLINE_PRODUCTS_KEY, onlineProductsApi, type OnlineChannel, type PriceHoldAction, type PriceHoldInfo, type PriceTarget } from '../../api/online-products.api';
+import { ONLINE_PRODUCTS_KEY, onlineProductsApi, type OnlineChannel, type PriceHoldAction, type PriceHoldInfo, type PriceHoldReason, type PriceTarget } from '../../api/online-products.api';
 import { timeAgo } from '../../lib/labels';
 import { ChannelMark, channelName, refreshOnlineProducts, rs } from './meta';
 
@@ -34,19 +39,26 @@ export const priceTargetText = (target: PriceTarget | null | undefined) => (targ
 export const priceHoldNumbers = (h: Pick<PriceHoldInfo, 'nafaaPrice' | 'channelPrice'>) =>
   t('Nafaa {{n}} · Website {{c}}', { n: price(h.nafaaPrice), c: price(h.channelPrice) });
 
-type ResolveVars = { channelId: string; action: PriceHoldAction; mappingIds?: string[] };
+type ResolveVars = { channelId: string; action: PriceHoldAction; mappingIds?: string[]; reason?: PriceHoldReason };
+
+/** Held by the price safety guard. */
+export const isJumpHold = (h: Pick<PriceHoldInfo, 'reason'> | null | undefined) => h?.reason === 'big-jump';
+
+/** "-40%" / "+160%" */
+const pctText = (n: number | null | undefined) => (n === null || n === undefined ? '' : `${n > 0 ? '+' : ''}${Math.round(n)}%`);
 
 /** Settle held prices (some or every one on a channel), with the result in a toast. */
 export function useResolvePriceHolds(onDone?: () => void) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ channelId, action, mappingIds }: ResolveVars) =>
-      onlineProductsApi.resolvePriceHolds(channelId, mappingIds ? { action, mappingIds } : { action, all: true }),
+    mutationFn: ({ channelId, action, mappingIds, reason }: ResolveVars) =>
+      onlineProductsApi.resolvePriceHolds(channelId, mappingIds ? { action, mappingIds } : { action, all: true, reason }),
     onSuccess: (r) => {
       refreshOnlineProducts(qc);
       const parts = [t('{{resolved}} links ka faisla ho gaya', { resolved: r.resolved })];
       if (r.sent) parts.push(t('{{sent}} par Nafaa ki qeemat bheji', { sent: r.sent }));
       if (r.taken) parts.push(t('{{taken}} ki website wali qeemat Nafaa me', { taken: r.taken }));
+      if (!r.sent && !r.taken && r.resolved) parts.push(t('Website par qeemat wahi rahi'));
       if (r.skipped) parts.push(t('{{skipped}} chhor diye', { skipped: r.skipped }));
       if (r.resolved) toast.success(parts.join(' · ')); else toast.info(parts.join(' · '));
       if (r.errors?.[0]) toast.error(r.errors[0]);
@@ -57,8 +69,23 @@ export function useResolvePriceHolds(onDone?: () => void) {
 }
 
 /** Asks before either action; `count` null means every held price on the channel. */
-export async function confirmPriceResolve(action: PriceHoldAction, count: number | null, channel?: string) {
+export async function confirmPriceResolve(action: PriceHoldAction, count: number | null, channel?: string, jump = false) {
   const many = count === null ? t('{{channel}} ki sab ruki hui qeematein', { channel: channel ?? t('Is channel') }) : t('{{count}} links', { count });
+  if (action === 'keep') {
+    return confirmDialog({
+      title: t('Qeemat na bhejein?'),
+      text: t('{{many}}: website par purani qeemat hi rahegi aur Nafaa me bhi kuch nahi badlega. Nafaa ki qeemat dobara badli to phir poochenge.', { many }),
+      yes: t('Nahi bhejni'),
+    });
+  }
+  if (jump) {
+    return confirmDialog({
+      title: t('Phir bhi bhejein?'),
+      text: t('{{many}}: qeemat bahut badal rahi hai. Pehle check karein ke link sahi product se jura hai — ghalat link par customer ghalat qeemat par khareed lega.', { many }),
+      yes: t('Phir bhi bhejein'),
+      danger: true,
+    });
+  }
   return action === 'website'
     ? confirmDialog({
       title: t('Website ki qeemat Nafaa me lein?'),
@@ -74,18 +101,21 @@ export async function confirmPriceResolve(action: PriceHoldAction, count: number
 }
 
 /** The two actions for a fixed set of links (one product cell, or rows picked in a list). */
-export function PriceHoldActions({ channelId, mappingIds, size = 'xs', iconOnly, onDone }: {
+export function PriceHoldActions({ channelId, mappingIds, size = 'xs', iconOnly, jump, onDone }: {
   channelId: string; mappingIds: string[]; size?: 'xs' | 'sm';
   /** Icons only, with the words as a tooltip (one row of a list). */
   iconOnly?: boolean;
+  /** Held by the price safety guard: "Phir bhi bhejein" / "Nahi". */
+  jump?: boolean;
   onDone?: () => void;
 }) {
   const m = useResolvePriceHolds(onDone);
   const run = async (action: PriceHoldAction) => {
-    if (!mappingIds.length || !(await confirmPriceResolve(action, mappingIds.length))) return;
+    if (!mappingIds.length || !(await confirmPriceResolve(action, mappingIds.length, undefined, jump))) return;
     m.mutate({ channelId, action, mappingIds });
   };
   const busy = (a: PriceHoldAction) => m.isPending && m.variables?.action === a;
+  if (jump) return <JumpButtons size={size} iconOnly={iconOnly} disabled={!mappingIds.length || m.isPending} busy={busy} run={run} />;
   return (
     <>
       <Button size={size} variant="secondary" disabled={!mappingIds.length || m.isPending} loading={busy('nafaa')}
@@ -102,13 +132,37 @@ export function PriceHoldActions({ channelId, mappingIds, size = 'xs', iconOnly,
   );
 }
 
-/** One channel in the price-hold group: count, bulk actions, and the list of held links. */
-export function PriceHoldChannelRow({ channel, count, canManage, onSee }: { channel: OnlineChannel; count: number; canManage: boolean; onSee: () => void }) {
+/** "Phir bhi bhejein" (send Nafaa's price) and "Nahi" (leave the channel price) for big-jump holds. */
+function JumpButtons({ size, iconOnly, disabled, busy, run }: {
+  size: 'xs' | 'sm'; iconOnly?: boolean; disabled: boolean; busy: (a: PriceHoldAction) => boolean; run: (a: PriceHoldAction) => void;
+}) {
+  const label = (s: string) => (iconOnly ? { title: s, 'aria-label': s } : {});
+  return (
+    <>
+      <Button size={size} variant="secondary" disabled={disabled} loading={busy('nafaa')} {...label(t('Phir bhi bhejein'))}
+        onClick={() => void run('nafaa')} leftIcon={<Send className="h-3.5 w-3.5" />}>
+        {iconOnly ? null : t('Phir bhi bhejein')}
+      </Button>
+      <Button size={size} variant="secondary" disabled={disabled} loading={busy('keep')} {...label(t('Nahi'))}
+        onClick={() => void run('keep')} leftIcon={<Ban className="h-3.5 w-3.5" />}>
+        {iconOnly ? null : t('Nahi')}
+      </Button>
+    </>
+  );
+}
+
+/**
+ * One channel in the price-hold group: count, bulk actions, and the list of
+ * held links. `jump` = the "Qeemat bahut badal rahi hai" group (safety-guard holds only).
+ */
+export function PriceHoldChannelRow({ channel, count, canManage, onSee, jump }: { channel: OnlineChannel; count: number; canManage: boolean; onSee: () => void; jump?: boolean }) {
   const [open, setOpen] = useState(false);
   const all = useResolvePriceHolds();
+  const reason: PriceHoldReason | undefined = jump ? 'big-jump' : undefined;
   const runAll = async (action: PriceHoldAction) => {
-    if (await confirmPriceResolve(action, null, channelName(channel))) all.mutate({ channelId: channel.id, action });
+    if (await confirmPriceResolve(action, null, channelName(channel), jump)) all.mutate({ channelId: channel.id, action, reason });
   };
+  const allBusy = (a: PriceHoldAction) => all.isPending && all.variables?.action === a;
   return (
     <li className="px-4 py-2">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -123,7 +177,8 @@ export function PriceHoldChannelRow({ channel, count, canManage, onSee }: { chan
         <span className="text-[0.75rem] font-semibold tabular-nums text-slate-600">{count.toLocaleString('en-PK')}</span>
         <span className="flex shrink-0 flex-wrap items-center gap-1.5">
           <Button size="xs" variant="ghost" onClick={onSee}>{t('Dekhein')}</Button>
-          {canManage && (
+          {canManage && jump && <JumpButtons size="xs" disabled={all.isPending} busy={allBusy} run={(a) => void runAll(a)} />}
+          {canManage && !jump && (
             <>
               <Button size="xs" variant="secondary" loading={all.isPending && all.variables?.action === 'nafaa'} disabled={all.isPending}
                 onClick={() => void runAll('nafaa')}>{t('Nafaa ki bhejein')}</Button>
@@ -133,7 +188,7 @@ export function PriceHoldChannelRow({ channel, count, canManage, onSee }: { chan
           )}
         </span>
       </div>
-      {open && <PriceHoldList channelId={channel.id} canManage={canManage} />}
+      {open && <PriceHoldList channelId={channel.id} canManage={canManage} reason={reason} />}
     </li>
   );
 }
@@ -141,16 +196,18 @@ export function PriceHoldChannelRow({ channel, count, canManage, onSee }: { chan
 const LIST_LIMIT = 50;
 
 /** Held prices of one channel, page by page, with checkboxes and the two actions for the picked rows. */
-function PriceHoldList({ channelId, canManage }: { channelId: string; canManage: boolean }) {
+function PriceHoldList({ channelId, canManage, reason }: { channelId: string; canManage: boolean; reason?: PriceHoldReason }) {
   const [page, setPage] = useState(1);
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const q = useQuery({
-    queryKey: [ONLINE_PRODUCTS_KEY, 'price-holds', channelId, page],
-    queryFn: () => onlineProductsApi.priceHolds(channelId, page, LIST_LIMIT),
+    queryKey: [ONLINE_PRODUCTS_KEY, 'price-holds', channelId, page, reason ?? 'all'],
+    queryFn: () => onlineProductsApi.priceHolds(channelId, page, LIST_LIMIT, reason),
     placeholderData: (p) => p,
   });
   const items = q.data?.items ?? [];
   const pickedIds = items.filter((r) => picked.has(r.mappingId)).map((r) => r.mappingId);
+  // Picked rows of both kinds get the ordinary actions; a list of only big jumps gets "Phir bhi bhejein" / "Nahi".
+  const pickedJump = pickedIds.length > 0 && items.filter((r) => picked.has(r.mappingId)).every((r) => isJumpHold(r));
   const allPicked = items.length > 0 && items.every((r) => picked.has(r.mappingId));
   const toggle = (id: string) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
@@ -180,13 +237,15 @@ function PriceHoldList({ channelId, canManage }: { channelId: string; canManage:
                 {r.name}{r.variantName ? <span className="text-slate-500"> — {r.variantName}</span> : null}
               </span>
               <span className="block truncate text-[0.6875rem] text-slate-500" title={r.externalTitle ?? undefined}>
-                {r.externalTitle || t('Channel ka item')}{r.externalSku ? <span className="font-mono"> · {r.externalSku}</span> : null} · {t('Website par badli {{when}}', { when: timeAgo(r.channelPriceAt ?? r.since) })}
+                {r.externalTitle || t('Channel ka item')}{r.externalSku ? <span className="font-mono"> · {r.externalSku}</span> : null} · {isJumpHold(r)
+                  ? <span className="font-semibold text-rose-700">{t('Qeemat bahut badal rahi hai — check karein')} {pctText(r.jumpPct)}</span>
+                  : t('Website par badli {{when}}', { when: timeAgo(r.channelPriceAt ?? r.since) })}
               </span>
             </span>
             <span className="text-end text-[0.8125rem] font-semibold tabular-nums text-slate-800">{price(r.nafaaPrice)}</span>
             <span className="text-end text-[0.8125rem] font-semibold tabular-nums text-amber-800">{price(r.channelPrice)}</span>
             <span className="flex items-center gap-1">
-              {canManage && <PriceHoldActions channelId={channelId} mappingIds={[r.mappingId]} iconOnly />}
+              {canManage && <PriceHoldActions channelId={channelId} mappingIds={[r.mappingId]} iconOnly jump={isJumpHold(r)} />}
             </span>
           </li>
         ))}
@@ -200,7 +259,7 @@ function PriceHoldList({ channelId, canManage }: { channelId: string; canManage:
           </span>
         )}
         <span className="me-auto text-[0.75rem] text-slate-500">{picked.size ? t('{{count}} chune', { count: pickedIds.length }) : t('Kuch chunein, phir faisla karein')}</span>
-        {canManage && <PriceHoldActions channelId={channelId} mappingIds={pickedIds} onDone={() => setPicked(new Set())} />}
+        {canManage && <PriceHoldActions channelId={channelId} mappingIds={pickedIds} jump={pickedJump} onDone={() => setPicked(new Set())} />}
       </div>
     </div>
   );

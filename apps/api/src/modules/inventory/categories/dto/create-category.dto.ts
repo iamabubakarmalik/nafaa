@@ -26,6 +26,14 @@ export class CreateCategoryDto {
   @IsBoolean()
   isActive?: boolean;
 
+  /** Optional industry kind; checked against the shop's industry list in the service. Empty clears it. */
+  @ApiPropertyOptional({ nullable: true, example: 'SEEDS' })
+  @IsOptional()
+  @ValidateIf((_o, v) => v !== null)
+  @IsString()
+  @MaxLength(40)
+  kind?: string | null;
+
   /** Parent category; null or empty = top level. */
   @ApiPropertyOptional({ nullable: true })
   @IsOptional()

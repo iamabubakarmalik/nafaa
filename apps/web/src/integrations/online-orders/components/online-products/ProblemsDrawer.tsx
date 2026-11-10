@@ -10,7 +10,7 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, ArrowLeftRight, BadgeDollarSign, CheckCircle2, CircleDollarSign, Link2, PackagePlus, PlugZap, Ruler, SearchX, Sparkles, Timer, TriangleAlert, WifiOff, X, type LucideIcon } from 'lucide-react';
+import { AlertTriangle, ArrowLeftRight, Link2Off, TrendingDown, BadgeDollarSign, CheckCircle2, CircleDollarSign, Link2, PackagePlus, PlugZap, Ruler, SearchX, Sparkles, Timer, TriangleAlert, WifiOff, X, type LucideIcon } from 'lucide-react';
 import { Button, Drawer, EmptyState, Skeleton, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
@@ -21,11 +21,12 @@ import { ChannelMark, channelName, refreshOnlineProducts } from './meta';
 import { causeInfo, syncCause, type SyncCause } from './syncErrors';
 import { HoldChannelRow } from './StockHold';
 import { PriceHoldChannelRow } from './PriceHold';
+import { SuspectLinkChannelRow } from './SuspectLinks';
 
 export const ISSUES_KEY = [ONLINE_PRODUCTS_KEY, 'issues'] as const;
 export const useIssues = () => useQuery({ queryKey: ISSUES_KEY, queryFn: onlineProductsApi.issues, staleTime: 60_000 });
 
-type GroupId = 'reconnect' | SyncCause | 'hold' | 'price-hold' | 'price' | 'link-sure' | 'link' | 'new-products';
+type GroupId = 'reconnect' | SyncCause | 'hold' | 'price-hold' | 'price-jump' | 'suspect-link' | 'price' | 'link-sure' | 'link' | 'new-products';
 interface Row { channel: OnlineChannel; count: number; kind: Issue['kind'] | 'price'; detail?: string | null }
 interface Group { id: GroupId; tone: 'danger' | 'warning' | 'info'; icon: LucideIcon; title: string; text: string; rows: Row[]; total: number }
 
@@ -61,6 +62,10 @@ function buildGroups(issues: Issue[], channels: OnlineChannel[], priceCount: num
       add('hold', { tone: 'warning', icon: ArrowLeftRight, title: t('Stock milana baqi'), text: t('In links par Nafaa aur channel ka Stock alag hai. Jab tak aap faisla na karein, Nafaa kuch nahi bhejta.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
     } else if (i.kind === 'price-hold') {
       add('price-hold', { tone: 'warning', icon: CircleDollarSign, title: t('Website par qeemat badli — kaunsi rakhein?'), text: t('In links ki qeemat website par badli aur Nafaa se alag hai. Jab tak aap na chunein, Nafaa koi qeemat nahi bhejta.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
+    } else if (i.kind === 'price-jump') {
+      add('price-jump', { tone: 'warning', icon: TrendingDown, title: t('Qeemat bahut badal rahi hai — check karein'), text: t('Nafaa ki qeemat website wali se bahut alag hai, is liye nahi bheji. Aksar is ka matlab hai link ghalat product se jura hai. Dekh kar "Phir bhi bhejein" ya "Nahi" chunein.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
+    } else if (i.kind === 'suspect-link') {
+      add('suspect-link', { tone: 'warning', icon: Link2Off, title: t('Shayad ghalat jura hai'), text: t('In links me channel ka item aur Nafaa ka product alag cheezen lagti hain — naam nahi milte ya qeemat bahut alag hai. Ghalat ho to Unlink karein, sahi ho to "Theek hai".') }, { channel: c, count: i.count ?? 0, kind: i.kind });
     } else if (i.kind === 'new-products') {
       add('new-products', { tone: 'info', icon: PackagePlus, title: t('Naye products website par'), text: t('Website par naye products bane hain jo Nafaa me nahi. Sab ek saath Nafaa me laayein ya dekh kar jorein.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
     } else if (i.kind === 'link-sure') {
@@ -69,7 +74,7 @@ function buildGroups(issues: Issue[], channels: OnlineChannel[], priceCount: num
       add('link', { tone: 'info', icon: Link2, title: t('Channel ke naye products jure nahi'), text: t('Channel par naye products hain jo Nafaa se jure nahi. Jorein ya Nafaa me le aayein.') }, { channel: c, count: i.count ?? 0, kind: i.kind });
     }
   }
-  const order: GroupId[] = ['reconnect', 'auth', 'offline', 'disabled', 'size', 'hold', 'price-hold', 'location', 'sku', 'timeout', 'other', 'price', 'new-products', 'link-sure', 'link'];
+  const order: GroupId[] = ['reconnect', 'auth', 'offline', 'disabled', 'suspect-link', 'price-jump', 'size', 'hold', 'price-hold', 'location', 'sku', 'timeout', 'other', 'price', 'new-products', 'link-sure', 'link'];
   const list = order.map((id) => groups.get(id)).filter(Boolean) as Group[];
   if (priceCount > 0) {
     list.splice(list.findIndex((g) => g.tone === 'info') < 0 ? list.length : list.findIndex((g) => g.tone === 'info'), 0, {
@@ -200,6 +205,11 @@ export function ProblemsDrawer({ open, onClose, channels, priceCount, canManage,
                   {g.rows.map((r) => g.id === 'hold' ? (
                     <HoldChannelRow key={`${r.channel.id}:${r.kind}`} channel={r.channel} count={r.count} canManage={canManage}
                       onSee={() => { onFilter(r.channel.id, 'hold'); onClose(); }} />
+                  ) : g.id === 'price-jump' ? (
+                    <PriceHoldChannelRow key={`${r.channel.id}:${r.kind}`} channel={r.channel} count={r.count} canManage={canManage} jump
+                      onSee={() => { onFilter(r.channel.id, 'price-hold'); onClose(); }} />
+                  ) : g.id === 'suspect-link' ? (
+                    <SuspectLinkChannelRow key={`${r.channel.id}:${r.kind}`} channel={r.channel} count={r.count} canManage={canManage} />
                   ) : g.id === 'price-hold' ? (
                     <PriceHoldChannelRow key={`${r.channel.id}:${r.kind}`} channel={r.channel} count={r.count} canManage={canManage}
                       onSee={() => { onFilter(r.channel.id, 'price-hold'); onClose(); }} />

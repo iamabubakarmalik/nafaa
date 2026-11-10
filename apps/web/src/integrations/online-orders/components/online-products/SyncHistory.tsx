@@ -47,7 +47,8 @@ export function historyText(r: SyncHistoryRow): string {
   const from = valueText(r, r.oldValue);
   const to = valueText(r, r.newValue);
   switch (r.kind) {
-    case 'HOLD': return t('Website par qeemat badli — faisla baqi');
+    case 'HOLD': return String(r.note ?? '').includes('big-jump') ? t('Qeemat bahut badal rahi thi — nahi bheji, faisla baqi') : t('Website par qeemat badli — faisla baqi');
+    case 'KEEP_CHANNEL_PRICE': return t('Faisla: website par purani qeemat hi rahi');
     case 'KEEP_NAFAA': return t('Faisla: Nafaa ki qeemat rakhi');
     case 'KEEP_CHANNEL': return t('Faisla: website ki qeemat Nafaa me li ({{to}})', { to });
     case 'RECOVER_CHANNEL': return t('Website ki purani qeemat wapas lagi ({{to}})', { to });

@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { Barcode, BadgePercent, Footprints, Grid3x3, ShieldCheck, Sparkles } from 'lucide-react';
 import { cn } from '@core/lib/cn';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
 import { Chip, Section, Toggle, inputClass } from '@modules/inventory/products/editor/fields';
@@ -17,7 +18,7 @@ import type { CoreOptions, EditorConfig, StepContext, StepDef, VariantDraft } fr
 import { productVariantsApi } from '@modules/inventory/products/api/product-variants.api';
 import { shoeProductsApi } from '../api/products.api';
 import {
-  COLORS, GENDERS, META_KEY, SEASONS, SHOE_TYPES, SIZE_SYSTEMS, code, genderLabel, isAccessory, opt, systemLabel, typeLabel, type SizeSystem,
+  COLORS, GENDERS, META_KEY, SEASONS, SIZE_SYSTEMS, code, genderLabel, isAccessory, opt, systemLabel, typeLabel, type SizeSystem,
 } from '../components/meta';
 import { t as tr } from '@core/i18n';
 
@@ -34,7 +35,7 @@ export interface ShoeExtra {
 }
 
 const initial: ShoeExtra = {
-  gender: 'MEN', categoryType: 'MENS_FORMAL', modelCode: '', modelName: '', season: '', colorName: '', sizeSystem: 'UK', mrp: null,
+  gender: 'MEN', categoryType: 'OTHER', modelCode: '', modelName: '', season: '', colorName: '', sizeSystem: 'UK', mrp: null,
   upperMaterial: '', soleMaterial: '', closureType: '', heelHeight: '', runsLarge: false, runsSmall: false, sizingNotes: '',
   isWaterproof: false, isOrthopedic: false, isHandmade: false, includesBox: true, warrantyMonths: 0, careInstructions: '',
   isNewArrival: true, isBestSeller: false, isBridal: false, isEidSpecial: false, variantMeta: {},
@@ -46,11 +47,11 @@ const hint = (text: string) => <span className="mt-1 block text-[0.75rem] text-s
 /* ── Basic step additions: who, type, article, season ── */
 function Identity({ ctx }: { ctx: StepContext<ShoeExtra> }) {
   const x = ctx.draft.extra;
-  const groups = [...new Set(SHOE_TYPES.map((t) => t.group))];
-  const setType = (categoryType: string) => {
+  // The shoe type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.categoryType, (categoryType) => {
     ctx.setExtra({ categoryType, ...(categoryType === 'BRIDAL_SHOES' ? { isBridal: true } : {}) });
     if (isAccessory(categoryType) && ctx.draft.core.unit === 'pair') ctx.setCore({ unit: 'pcs' });
-  };
+  });
   return (
     <div className="space-y-4">
       <div>
@@ -58,13 +59,6 @@ function Identity({ ctx }: { ctx: StepContext<ShoeExtra> }) {
         <div className="flex flex-wrap gap-1.5">{GENDERS.map((g) => <Chip key={g.value} on={x.gender === g.value} onClick={() => ctx.setExtra({ gender: g.value })}>{g.label}</Chip>)}</div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block">
-          {label(tr('Joote ki type'))}
-          <select value={x.categoryType} onChange={(e) => setType(e.target.value)} className={inputClass}>
-            {groups.map((g) => <optgroup key={g} label={g}>{SHOE_TYPES.filter((t) => t.group === g).map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}</optgroup>)}
-          </select>
-          {hint(tr('POS ke filter aur reports isi se'))}
-        </label>
         <label className="block">
           {label(tr('Article number'))}
           <input value={x.modelCode} onChange={(e) => ctx.setExtra({ modelCode: e.target.value })} placeholder={tr('Jaise 821-4567')} className={inputClass} maxLength={40} />

@@ -17,6 +17,7 @@ import HardwareReorderRulesPage from './pages/ReorderRulesPage';
 import HardwareProducts from './products/HardwareProducts';
 import HardwareProductEditor from './products/HardwareProductEditor';
 import HardwareProductDetail from './products/HardwareProductDetail';
+import { CATEGORY } from './lib/meta';
 import { t } from '@core/i18n';
 
 /**
@@ -31,6 +32,7 @@ export const HardwarePack: IndustryPack = {
   shortName: t('Hardware'),
   emoji: '🔨',
   priority: 48,
+  categoryKinds: CATEGORY.filter((c) => c.value !== 'OTHER').map((c) => ({ value: c.value, label: c.label })),
   description:
     t('Sizes and shades, retail, contractor and bulk rates, quotations to bills, delivery challans, contractor sites and khata, reorder alerts.'),
 

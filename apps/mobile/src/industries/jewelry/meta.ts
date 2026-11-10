@@ -53,6 +53,8 @@ export const CATEGORY_LABEL: Record<JewelryCategory, string> = {
 };
 export const categoryLabel = (c?: string | null) => (c ? t(CATEGORY_LABEL[c as JewelryCategory] ?? c) : '—');
 export const MAIN_CATEGORIES: JewelryCategory[] = ['RING', 'EARRINGS', 'BANGLE', 'NECKLACE', 'CHAIN', 'PENDANT', 'BRACELET', 'HAAR', 'BRIDAL_SET', 'KUNDAN_SET', 'JHUMKA', 'NOSE_PIN', 'MAANG_TIKKA', 'KADA', 'PAYAL', 'COIN', 'BAR', 'OTHER'];
+/** Kinds offered on a shop category: the jewelry type behind the counter filter and sale lines. */
+export const JEWELRY_KINDS: Array<{ value: string; label: string }> = MAIN_CATEGORIES.filter((c) => c !== 'OTHER').map((c) => ({ value: c, label: CATEGORY_LABEL[c] }));
 
 export const STYLES: Array<[string, string]> = [
   ['TRADITIONAL', msg('Desi / traditional')], ['MODERN', msg('Modern')], ['BRIDAL', msg('Bridal')], ['DAILY_WEAR', msg('Roz pehnne wala')], ['PARTY_WEAR', msg('Party')],

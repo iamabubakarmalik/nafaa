@@ -15,6 +15,7 @@ import { Input } from '@/design-system/components';
 import { gamingProductsApi, type GamingConditionType, type GamingConsolePlatform, type GamingProductProfile } from '../api/products.api';
 import { CATEGORY_GROUPS, CONDITIONS, GAMING_KEYS, PLATFORMS, categoryGroup, categoryLabel } from '../lib/meta';
 import { t } from '@core/i18n';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 
 interface GamingExtra {
   categoryType: string;
@@ -44,21 +45,9 @@ const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefin
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
 function Kind({ ctx }: { ctx: StepContext<GamingExtra> }) {
-  const x = ctx.draft.extra;
-  return (
-    <div className="space-y-2">
-      <span className="block text-[0.8125rem] font-medium text-slate-700">{t('Ye kya hai')}</span>
-      {CATEGORY_GROUPS.map((g) => (
-        <div key={g.id}>
-          <p className="mb-1 text-[0.75rem] font-semibold text-slate-500">{g.label}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {g.items.map(([v, l]) => <Chip key={v} on={x.categoryType === v} onClick={() => ctx.setExtra({ categoryType: x.categoryType === v ? '' : v })}>{l}</Chip>)}
-          </div>
-        </div>
-      ))}
-      <p className="text-[0.75rem] text-slate-500">{t('Isi se counter ke filter (Games, Consoles, Accessories) chalte hain. Top-up card yahan nahi — Top-ups page par daalein.')}</p>
-    </div>
-  );
+  // The item type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (kind) => ctx.setExtra({ categoryType: kind }));
+  return null;
 }
 
 function Details({ ctx }: { ctx: StepContext<GamingExtra> }) {

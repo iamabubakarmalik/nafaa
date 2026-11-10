@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { KindSelect } from '@modules/inventory/categories/components/KindSelect';
 import { ArrowLeft, ArrowRight, Check, Plus, ScanLine, Search, Sparkles, Star, Wand2, X, type LucideIcon } from 'lucide-react';
 import { Field } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
@@ -15,6 +16,24 @@ import { tagsApi } from '@modules/inventory/tags/api/tags.api';
 import { autoSku } from './draft';
 import type { ImageDraft } from './types';
 import { t as tr } from '@core/i18n';
+
+/**
+ * Collapsed "Aur details" block for optional, rarely used fields. It opens by itself when
+ * `startOpen` is true (a value is already filled), so saved data is never hidden.
+ */
+export function MoreDetails({ children, startOpen, title }: { children: ReactNode; startOpen?: boolean; title?: string }) {
+  const [open, setOpen] = useState(!!startOpen);
+  return (
+    <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80">
+      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-start text-[0.875rem] font-semibold text-slate-700 sm:px-5">
+        <span>{title ?? tr('Aur details')}</span>
+        <ArrowRight className={cn('h-4 w-4 transition-transform', open && 'rotate-90')} />
+      </button>
+      {open && <div className="space-y-4 px-4 pb-4 sm:px-5 sm:pb-5">{children}</div>}
+    </div>
+  );
+}
 
 export function Section({ icon: Icon, title, hint, children, actions, className }: {
   icon?: LucideIcon; title: ReactNode; hint?: ReactNode; children: ReactNode; actions?: ReactNode; className?: string;
@@ -144,16 +163,22 @@ export function CategoryField({ value, onChange, suggestions, error, hint }: {
   value: string | null; onChange: (id: string | null, name?: string) => void; suggestions?: string[]; error?: string; hint?: ReactNode;
 }) {
   const qc = useQueryClient();
-  const { data = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000 });
+  const { data = [], isSuccess } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000 });
+  // A shop without any category gets the create form right here.
+  const empty = isSuccess && data.length === 0;
+  const [firstName, setFirstName] = useState('');
   const [q, setQ] = useState('');
   const [subFor, setSubFor] = useState<string | null>(null);
   const [subName, setSubName] = useState('');
+  // Optional kind for a category created here (only industries that use kinds show the select).
+  const [newKind, setNewKind] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const create = useMutation({
     mutationFn: (v: { name: string; parentId?: string | null }) =>
-      categoriesApi.create({ name: v.name, parentId: v.parentId ?? null, color: CATEGORY_COLORS[data.length % CATEGORY_COLORS.length] }),
+      categoriesApi.create({ name: v.name, parentId: v.parentId ?? null, color: CATEGORY_COLORS[data.length % CATEGORY_COLORS.length], ...(newKind && { kind: newKind }) }),
     onSuccess: (c) => {
       qc.invalidateQueries({ queryKey: ['categories'] });
-      onChange(c.id, c.name); setQ(''); setSubFor(null); setSubName('');
+      onChange(c.id, c.name); setQ(''); setSubFor(null); setSubName(''); setNewKind(null); setAdding(false); setFirstName('');
       toast.success(c.parentId ? tr('Sub-category "{{name}}" ban gayi', { name: c.name }) : tr('Category "{{name}}" ban gayi', { name: c.name }));
     },
     onError: (e: Error) => toast.error(e.message || tr('Category nahi bani')),
@@ -174,12 +199,32 @@ export function CategoryField({ value, onChange, suggestions, error, hint }: {
     <Field label={tr('Category')} error={error} hint={hint}>
       {() => (
         <div className="space-y-2">
-          <div className="relative">
+          {!empty && <div className="relative">
             <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tr('Search ya nayi likhein…')}
               onKeyDown={(e) => { if (e.key === 'Enter' && term && !exact) { e.preventDefault(); create.mutate({ name: q.trim() }); } }}
               className={cn(inputCls, 'h-10 ps-9 text-[0.875rem]')} />
-          </div>
+          </div>}
+          {empty && (
+            adding ? (
+              <div className="space-y-2 rounded-xl bg-slate-50 p-2 ring-1 ring-slate-100">
+                <input autoFocus value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder={tr('Category ka naam')}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); if (firstName.trim()) create.mutate({ name: firstName.trim() }); } }}
+                  className={cn(inputCls, 'h-10 text-[0.875rem]')} />
+                <KindSelect value={newKind} onChange={setNewKind} />
+                <div className="flex gap-1.5">
+                  <button type="button" disabled={!firstName.trim() || create.isPending} onClick={() => create.mutate({ name: firstName.trim() })}
+                    className="h-9 rounded-xl bg-brand-600 px-3 text-[0.8125rem] font-semibold text-brand-fg disabled:opacity-50">{tr('Banayein')}</button>
+                  <button type="button" onClick={() => { setAdding(false); setFirstName(''); }} className="h-9 rounded-xl px-3 text-[0.8125rem] text-slate-600 hover:bg-slate-100">{tr('Rehne dein')}</button>
+                </div>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setAdding(true)}
+                className="inline-flex h-9 items-center gap-1 rounded-full border border-dashed border-brand-400 px-3.5 text-[0.8125rem] font-semibold text-brand-700 hover:bg-brand-50">
+                <Plus className="h-3.5 w-3.5" />{tr('+ Nai category banayein')}
+              </button>
+            )
+          )}
           {term ? (
             <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
               {hits.map((c) => <Chip key={c.id} on={value === c.id} color={c.color} onClick={() => { onChange(c.id, c.name); setQ(''); }}>{pathOf(data, c.id)}</Chip>)}
@@ -190,7 +235,7 @@ export function CategoryField({ value, onChange, suggestions, error, hint }: {
                 </button>
               )}
             </div>
-          ) : levels.map((lv, depth) => {
+          ) : empty ? null : levels.map((lv, depth) => {
             const list = kids.get(lv.parentId ?? '') ?? [];
             const parent = lv.parentId ? data.find((c) => c.id === lv.parentId) : null;
             return (
@@ -213,7 +258,8 @@ export function CategoryField({ value, onChange, suggestions, error, hint }: {
                   )}
                 </div>
                 {depth > 0 && subFor === lv.parentId && (
-                  <div className="mt-2 flex gap-1.5">
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    <KindSelect value={newKind} onChange={setNewKind} className="w-full" />
                     <input autoFocus value={subName} onChange={(e) => setSubName(e.target.value)} placeholder={tr('Sub-category ka naam')}
                       onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addSub(lv.parentId!); } if (e.key === 'Escape') setSubFor(null); }}
                       className={cn(inputCls, 'h-9 text-[0.875rem]')} />
@@ -225,6 +271,7 @@ export function CategoryField({ value, onChange, suggestions, error, hint }: {
               </div>
             );
           })}
+          {term && !exact && data.length > 0 && <KindSelect value={newKind} onChange={setNewKind} />}
           {!term && chain.length > 0 && !(kids.get(chain[chain.length - 1]) ?? []).length && subFor !== chain[chain.length - 1] && (
             <button type="button" onClick={() => { setSubFor(chain[chain.length - 1]); setSubName(''); }}
               className="text-[0.75rem] font-semibold text-brand-700 hover:underline">{tr('+ "{{name}}" me sub-category banayein', { name: data.find((c) => c.id === chain[chain.length - 1])?.name ?? '' })}</button>

@@ -6,13 +6,14 @@
  */
 
 import { Clock, Droplets, Milk, Snowflake, Star, Sunrise, Tags, Truck } from 'lucide-react';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
 import { Chip, NumberField, Section, Toggle } from '@modules/inventory/products/editor/fields';
 import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
 import { dairyProductsApi, type DairyProductType } from '../api/products.api';
 import { DAIRY_KEYS } from '../lib/meta';
-import { PRODUCT_TYPES, isMilkType, profileUnit, typeLabel } from '../lib/productTypes';
+import { isMilkType, profileUnit, typeLabel } from '../lib/productTypes';
 import { t as tr } from '@core/i18n';
 
 export interface DairyExtra {
@@ -44,15 +45,9 @@ const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefin
 
 function Kind({ ctx }: { ctx: StepContext<DairyExtra> }) {
   const x = ctx.draft.extra;
-  return (
-    <div>
-      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Ye kya hai')}</span>
-      <div className="flex flex-wrap gap-1.5">
-        {PRODUCT_TYPES.map((t) => <Chip key={t.value} on={x.productType === t.value} onClick={() => ctx.setExtra({ productType: t.value })}>{t.label}</Chip>)}
-      </div>
-      <p className="mt-1.5 text-[0.75rem] text-slate-500">{tr('Doodh wali cheez gawale ki entry aur ghar delivery me kaam aati hai; dahi, makhan production me.')}</p>
-    </div>
-  );
+  // The dairy type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.productType, (productType) => ctx.setExtra({ productType: productType as DairyProductType }));
+  return null;
 }
 
 function Milkish({ ctx }: { ctx: StepContext<DairyExtra> }) {

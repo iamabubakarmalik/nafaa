@@ -3,7 +3,9 @@
  * one Nafaa product, SKU by SKU. Each channel SKU gets a Nafaa variant:
  * prefilled from the API's match (SKU, options or name), a new variant, or
  * left out. A Nafaa product without variants gets them made when the API
- * allows it; otherwise the reason is shown and saving is off.
+ * allows it; otherwise the reason is shown and saving is off. When the two
+ * products look like different items (no shared name word, no SKU match),
+ * the screen warns and saving needs a "Haan, yehi hai" tick.
  */
 
 import { useEffect, useMemo, useState } from 'react';
@@ -55,6 +57,8 @@ export function VariantMapModal({ channelId, externalProductId, productId, onClo
   const needsConvert = !!plan && !plan.product.hasVariants && plan.rows.length > 1;
   const blocked = needsConvert && !plan!.canConvert;
   const [choice, setChoice] = useState<Record<string, string>>({});
+  const [sure, setSure] = useState(false);
+  const mismatch = plan?.mismatch ?? null;
   useEffect(() => { if (plan) setChoice(initialChoices(plan, needsConvert && plan.canConvert)); }, [plan]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const picks = useMemo(() => (plan?.rows ?? [])
@@ -69,7 +73,7 @@ export function VariantMapModal({ channelId, externalProductId, productId, onClo
   }, [picks]);
 
   const save = useMutation({
-    mutationFn: () => onlineProductsApi.linkInto(channelId, { externalProductId, productId, variants: picks }),
+    mutationFn: () => onlineProductsApi.linkInto(channelId, { externalProductId, productId, variants: picks, ...(mismatch && sure && { confirm: true }) }),
     onSuccess: (r) => {
       refreshOnlineProducts(qc);
       toast.success(t('{{linked}} jure, {{variantsCreated}} naye variant', { linked: r.linked, variantsCreated: r.variantsCreated }),
@@ -92,7 +96,7 @@ export function VariantMapModal({ channelId, externalProductId, productId, onClo
       footer={<>
         <span className="me-auto text-[0.75rem] text-slate-500">{plan ? t('{{count}} / {{total}} SKU jurenge', { count: picks.length, total: plan.rows.length }) : null}</span>
         <Button variant="ghost" onClick={onClose}>{t('Band karein')}</Button>
-        <Button loading={save.isPending} disabled={!plan || blocked || !picks.length || doubled.size > 0} onClick={() => save.mutate()} leftIcon={<Link2 className="h-4 w-4" />}>
+        <Button loading={save.isPending} disabled={!plan || blocked || !picks.length || doubled.size > 0 || (!!mismatch && !sure)} onClick={() => save.mutate()} leftIcon={<Link2 className="h-4 w-4" />}>
           {t('Jorein')}
         </Button>
       </>}>
@@ -103,6 +107,18 @@ export function VariantMapModal({ channelId, externalProductId, productId, onClo
           action={<Button size="sm" variant="secondary" onClick={() => q.refetch()}>{t('Dobara koshish')}</Button>} />
       ) : (
         <div className="space-y-3">
+          {mismatch && (
+            <div className="rounded-xl bg-rose-50 px-3 py-2 text-[0.8125rem] text-rose-900 ring-1 ring-rose-200">
+              <p className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                <span><span className="block font-semibold">{t('Ye do alag cheezen lagti hain')}</span>{t('Channel ke item aur Nafaa ke product ke naam me koi lafz nahi milta aur SKU bhi nahi. Ghalat jor diya to Nafaa is ki qeemat aur Stock channel par bhej dega.')}</span>
+              </p>
+              <label className="mt-2 flex items-center gap-2 font-semibold">
+                <input type="checkbox" checked={sure} onChange={(e) => setSure(e.target.checked)} className="h-4 w-4 rounded border-rose-300" />
+                {t('Haan, yehi hai — phir bhi jorein')}
+              </label>
+            </div>
+          )}
           {needsConvert && (plan.canConvert ? (
             <p className="flex items-start gap-2 rounded-xl bg-brand-50 px-3 py-2 text-[0.8125rem] text-brand-900 ring-1 ring-brand-100">
               <Info className="mt-0.5 h-4 w-4 shrink-0" />

@@ -13,12 +13,13 @@ import { formatMoney } from '@/core/format';
 import { msg, t } from '@/core/i18n';
 import { Card, Chip, ChipGroup, FormSection, Input, ListRow, Row, Switch, Text, TextArea } from '@/design';
 import { NumberInput } from '@/modules/inventory/components/fields';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
 import { queryClient } from '@/core/query/client';
 import { applianceProductsApi, applianceSerialApi, type ApplianceProfile, type ApplianceSerial } from './api';
-import { CATEGORY_TYPES, ENERGY, GROUPS, KEYS, catLabel, dayOnly, energyLabel, groupLabel, groupOf, serialStatus } from './meta';
+import { CATEGORY_LABEL, CATEGORY_TYPES, ENERGY, GROUPS, KEYS, catLabel, dayOnly, energyLabel, groupLabel, groupOf, serialStatus } from './meta';
 import { opt } from '../_shared/trade/desk';
 import { useApplianceProfiles } from './components/kit';
 import { router } from 'expo-router';
@@ -50,22 +51,12 @@ export function sizeLine(p?: Partial<ApplianceProfile> | null) {
 
 function Kind({ ctx }: { ctx: StepContext<ApplianceExtra> }) {
   const x = ctx.draft.extra;
-  const guess = !x.categoryType ? categoryFromName(ctx.draft.core.name) : null;
-  const pick = (type: string) => {
+  // The appliance type follows the shop category's kind; there is no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.categoryType, (type) => {
     const r = categoryRule(type);
-    ctx.setExtra({ categoryType: x.categoryType === type ? '' : type, ...(x.categoryType !== type && { install: r.needsInstall, bigVehicle: r.heavy, compressorMonths: isAc(type) || isFridge(type) ? x.compressorMonths ?? 60 : x.compressorMonths, motorMonths: isWasher(type) ? x.motorMonths ?? 24 : x.motorMonths }) });
-  };
-  return (
-    <FormSection title={t('Kya cheez hai')} description={t('Isi se fitting, delivery aur warranty ke sawal khud lagte hain, aur POS par filter.')}>
-      {guess && <Chip label={t('Lagta hai {{guess}} hai — chunein', { guess: catLabel(guess) })} selected={false} onPress={() => pick(guess)} />}
-      {GROUPS.concat('other').map((g) => (
-        <View key={g} style={{ gap: 6 }}>
-          <Text size="xs" tone="muted">{groupLabel(g)}</Text>
-          <ChipGroup wrap value={x.categoryType} onChange={pick} options={CATEGORY_TYPES.filter((c) => groupOf(c) === g).map((c) => ({ value: c, label: catLabel(c) }))} />
-        </View>
-      ))}
-    </FormSection>
-  );
+    ctx.setExtra({ categoryType: type, install: r.needsInstall, bigVehicle: r.heavy, compressorMonths: isAc(type) || isFridge(type) ? x.compressorMonths ?? 60 : x.compressorMonths, motorMonths: isWasher(type) ? x.motorMonths ?? 24 : x.motorMonths });
+  });
+  return null;
 }
 
 function Specs({ ctx }: { ctx: StepContext<ApplianceExtra> }) {
@@ -232,6 +223,7 @@ interface DetailExtra { profile: ApplianceProfile | null; units: ApplianceSerial
 registerInventoryIndustry({
   id: 'appliances',
   label: msg('Appliances'),
+  categoryKinds: CATEGORY_TYPES.filter((c) => c !== 'OTHER').map((c) => ({ value: c, label: CATEGORY_LABEL[c] })),
   list: {
     noun: 'product',
     filters: ['tags'],

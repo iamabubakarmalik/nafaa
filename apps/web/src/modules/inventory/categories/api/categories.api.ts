@@ -9,6 +9,8 @@ export interface Category {
   /** Parent category; null = top level. */
   parentId?: string | null;
   sortOrder?: number;
+  /** Optional industry kind (agri: SEEDS, FERTILIZER ...); empty means none. */
+  kind?: string | null;
   createdAt: string;
   _count?: { products: number; children?: number };
 }
@@ -18,6 +20,7 @@ export interface CreateCategoryPayload {
   color?: string;
   icon?: string;
   parentId?: string | null;
+  kind?: string | null;
 }
 
 export type UpdateCategoryPayload = Partial<CreateCategoryPayload>;

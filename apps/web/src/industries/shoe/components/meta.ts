@@ -57,6 +57,11 @@ export const SHOE_TYPES: Array<{ value: string; label: string; group: string }> 
   { value: 'SHOE_INSOLE', label: tr('Insole'), group: tr('Saman') },
   { value: 'OTHER', label: tr('Doosra'), group: tr('Saman') },
 ];
+/** Kinds offered on a shop category. Labels that repeat across groups carry the group so the choices stay distinct. */
+const KIND_LABEL: Record<string, string> = {
+  MENS_KHUSSA: tr('Gents khussa'), WOMENS_KHUSSA: tr('Ladies khussa'), WOMENS_SNEAKERS: tr('Ladies joggers'), KIDS_SNEAKERS: tr('Bachon ke joggers'),
+};
+export const SHOE_KINDS: Array<{ value: string; label: string }> = SHOE_TYPES.map((s) => ({ value: s.value, label: KIND_LABEL[s.value] ?? s.label }));
 export const typeLabel = (t?: string | null) => SHOE_TYPES.find((x) => x.value === t)?.label ?? (t ? t.replace(/_/g, ' ').toLowerCase() : '—');
 /** Accessories are sold by piece and have no size. */
 export const isAccessory = (t?: string | null) => !!t && ['SOCK', 'SHOE_POLISH', 'SHOE_LACE', 'SHOE_INSOLE', 'SHOE_HORN', 'SHOE_CLEANER', 'SHOE_CARE_KIT'].includes(t);

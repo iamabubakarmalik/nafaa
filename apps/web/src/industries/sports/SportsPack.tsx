@@ -10,6 +10,7 @@ import SportsBrandsPage from './pages/SportsBrandsPage';
 import TeamOrdersPage from './pages/TeamOrdersPage';
 import TeamOrderFormPage from './pages/TeamOrderFormPage';
 import RepairServicesPage from './pages/RepairServicesPage';
+import { SPORT_TYPES } from './components/meta';
 import { t } from '@core/i18n';
 
 /**
@@ -24,6 +25,7 @@ export const SportsPack: IndustryPack = {
   shortName: t('Sports'),
   emoji: '🏏',
   priority: 76,
+  categoryKinds: SPORT_TYPES.filter((c) => c.value !== 'OTHER').map((c) => ({ value: c.value, label: c.label })),
   description: t('Cricket, football, gym saman; team orders with printing and advance; bat / racket repairs.'),
 
   matches: (tenant) => {

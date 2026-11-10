@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';
+import { MeatAnimalType } from '@prisma/client';
+import { CATEGORY_KIND_VALUES, deriveProductKind } from '../../../modules/inventory/categories/category-kind';
 import { UpsertMeatProductDto } from './dto/upsert-meat-product.dto';
 import { dayEnd, dayKey, dayStart, parseDay } from '../meat-common';
 import { r2, r3 } from '../meat-money';
@@ -26,12 +28,16 @@ export class MeatProductsService {
     const product = await this.prisma.product.findFirst({ where: { id: dto.productId, tenantId: user.tenantId } });
     if (!product) throw new NotFoundException('Item nahi mila');
 
+    const existing = await this.prisma.meatProductProfile.findUnique({ where: { productId: dto.productId } });
+    // One category system: the animal comes from the shop category's kind; without one the product keeps its own animal.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const animalType = deriveProductKind(cats, product.categoryId, existing?.animalType ?? dto.animalType, 'OTHER', CATEGORY_KIND_VALUES.MEAT) as MeatAnimalType;
     const payload = {
       ...dto,
+      animalType,
       halalCertExpiry: dto.halalCertExpiry ? parseDay(dto.halalCertExpiry) : null,
     };
 
-    const existing = await this.prisma.meatProductProfile.findUnique({ where: { productId: dto.productId } });
     if (existing) {
       return this.prisma.meatProductProfile.update({
         where: { productId: dto.productId },
@@ -39,7 +45,7 @@ export class MeatProductsService {
       });
     }
     return this.prisma.meatProductProfile.create({
-      data: { ...payload, tenantId: user.tenantId },
+      data: { ...payload, cutCategory: payload.cutCategory ?? 'OTHER', tenantId: user.tenantId },
     });
   }
 

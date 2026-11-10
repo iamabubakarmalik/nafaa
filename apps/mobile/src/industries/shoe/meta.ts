@@ -39,6 +39,11 @@ export const SHOE_TYPES: Array<{ value: string; label: string; group: string }> 
   { value: 'SOCK', label: msg('Jurabain'), group: msg('Saman') }, { value: 'SHOE_POLISH', label: msg('Polish / cream'), group: msg('Saman') },
   { value: 'SHOE_LACE', label: msg('Tasme'), group: msg('Saman') }, { value: 'SHOE_INSOLE', label: msg('Insole'), group: msg('Saman') }, { value: 'OTHER', label: msg('Doosra'), group: msg('Saman') },
 ];
+/** Kinds offered on a shop category. Labels that repeat across groups carry the group so the choices stay distinct. */
+const KIND_LABEL: Record<string, string> = {
+  MENS_KHUSSA: msg('Gents khussa'), WOMENS_KHUSSA: msg('Ladies khussa'), WOMENS_SNEAKERS: msg('Ladies joggers'), KIDS_SNEAKERS: msg('Bachon ke joggers'),
+};
+export const SHOE_KINDS: Array<{ value: string; label: string }> = SHOE_TYPES.map((s) => ({ value: s.value, label: KIND_LABEL[s.value] ?? s.label }));
 export const typeLabel = (v?: string | null) => { const x = SHOE_TYPES.find((s) => s.value === v); return x ? t(x.label) : v ? v.replace(/_/g, ' ').toLowerCase() : '—'; };
 export const SEASONS = ['Summer', 'Winter', 'Eid', 'Shaadi', 'School', 'All season'];
 export const SYSTEM_LABEL: Record<string, string> = { UK: msg('PK / UK'), EU: msg('EU'), KIDS: msg('Bachay'), US: msg('US') };

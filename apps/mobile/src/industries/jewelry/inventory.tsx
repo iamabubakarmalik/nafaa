@@ -15,13 +15,14 @@ import { formatMoney } from '@/core/format';
 import { msg, t } from '@/core/i18n';
 import { Amount, Badge, Button, Card, ChipGroup, FormSection, IconButton, Input, ListRow, MoneyInput, Row, Select, Switch, Text, useTheme } from '@/design';
 import { NumberInput } from '@/modules/inventory/components/fields';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
 import type { EditorDraft, Errors } from '@/modules/inventory/screens/editor/types';
 import { jewelryProductsApi, type GemstoneType, type JewelryCategory, type JewelryProductProfile, type JewelryStyle } from './api';
 import { KaratBadge, PurityPicker } from './components/ui';
-import { CATEGORY_LABEL, KEYS, MAIN_CATEGORIES, STONES, STYLES, categoryLabel, grams, purityLabel, tola, useMetalRates } from './meta';
+import { JEWELRY_KINDS, KEYS, STONES, STYLES, categoryLabel, grams, purityLabel, tola, useMetalRates } from './meta';
 
 interface Stone { type: GemstoneType; count: number; caret: number; totalValue: number }
 
@@ -38,7 +39,7 @@ export interface JewelryExtra {
 }
 
 const initial: JewelryExtra = {
-  category: 'RING', style: 'TRADITIONAL', metalType: 'GOLD', purity: 'KARAT_22', itemCode: '', designNumber: '', size: '',
+  category: 'OTHER', style: 'TRADITIONAL', metalType: 'GOLD', purity: 'KARAT_22', itemCode: '', designNumber: '', size: '',
   grossWeight: 0, stoneWeight: 0, netWeight: 0, makingChargePerGram: 0, makingChargeFixed: 0, makingChargePct: 0,
   wastagePct: 0, wastageGrams: 0, polishCharge: 0, hallmarkCharge: 0, otherCharges: 0, stones: [],
   hallmarkNumber: '', certificateNumber: '', isCertified: false, isBuyBackEligible: true, buyBackPct: 90, isReturnable: true, returnDays: 7,
@@ -51,10 +52,10 @@ const stonesTotal = (x: JewelryExtra) => x.stones.reduce((s, g) => s + (Number(g
 function Identity({ ctx }: { ctx: StepContext<JewelryExtra> }) {
   const th = useTheme();
   const x = ctx.draft.extra;
+  // The jewelry type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.category, (category) => ctx.setExtra({ category: category as JewelryCategory }));
   return (
     <View style={{ gap: th.space(3) }}>
-      <Text size="sm" weight="medium" tone="secondary">{t('Zewar ki type')}</Text>
-      <ChipGroup wrap value={x.category} onChange={(c) => ctx.setExtra({ category: c as JewelryCategory })} options={MAIN_CATEGORIES.map((c) => ({ value: c, label: t(CATEGORY_LABEL[c]) }))} />
       <PurityPicker label={t('Karat / metal')} value={x.purity} onChange={(p) => ctx.setExtra({ purity: p, metalType: metalOf(p) })} />
       <Text size="xs" tone="muted">{t('Qeemat isi karat ke aaj ke rate se lagti hai')}</Text>
       <Select label={t('Design')} value={x.style} onChange={(v) => ctx.setExtra({ style: v as JewelryStyle })} options={STYLES.map(([v, l]) => ({ value: v, label: t(l) }))} />
@@ -257,6 +258,7 @@ function TodayPrice({ j, saved }: { j: JewelryProductProfile; saved: number }) {
 registerInventoryIndustry({
   id: 'jewelry',
   label: msg('Jewelry'),
+  categoryKinds: JEWELRY_KINDS,
   list: {
     noun: 'zewar',
     filters: ['tags'],

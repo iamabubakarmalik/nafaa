@@ -12,6 +12,7 @@ import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEdi
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
 import { Chip, NumberField, Section, TextField, Toggle, inputClass } from '@modules/inventory/products/editor/fields';
 import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { hardwareProductsApi, type CategoryType } from '../api/products.api';
 import { bulkPricingApi } from '../api/bulk-pricing.api';
 import { reorderRulesApi } from '../api/reorder-rules.api';
@@ -47,18 +48,10 @@ const CANS = [0.9, 3.64, 18.2];
 const opt = (v: string) => v.trim() || undefined;
 const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 
-/* ── Basic step addition: kind of item ── */
+/* ── Basic step addition: the item type follows the shop category's kind (no separate picker) ── */
 function Kind({ ctx }: { ctx: StepContext<HardwareExtra> }) {
-  const x = ctx.draft.extra;
-  return (
-    <div>
-      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{tr('Maal ka type')}</span>
-      <div className="flex flex-wrap gap-1.5">
-        {CATEGORY.map((c) => <Chip key={c.value} on={x.categoryType === c.value} onClick={() => ctx.setExtra({ categoryType: x.categoryType === c.value ? '' : c.value })}>{c.label}</Chip>)}
-      </div>
-      <p className="mt-1.5 text-[0.75rem] text-slate-500">{tr('Isi se agla step size, grade ya shade poochta hai aur POS par paint ka shade likhne ka option aata hai.')}</p>
-    </div>
-  );
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (kind) => ctx.setExtra({ categoryType: kind as CategoryType }));
+  return null;
 }
 
 /* ── Specs step: size, grade, shade, pack ── */

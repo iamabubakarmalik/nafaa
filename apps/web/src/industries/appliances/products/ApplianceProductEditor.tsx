@@ -11,6 +11,7 @@ import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEdi
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
 import { Chip, NumberField, Section, TextField, Toggle } from '@modules/inventory/products/editor/fields';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { applianceProductsApi, type ApplianceCategoryType, type ApplianceEnergyRating } from '../api/products.api';
 import { applianceSerialApi } from '../api/serial-tracking.api';
 import { CATEGORY_GROUPS, CATEGORY_META, CATEGORY_TYPES, ENERGY, PROFILE_KEY, SERIAL_KEY, catLabel, catMeta, categoryFromName, isAc, isFridge, isTv, isWasher } from '../components/meta';
@@ -41,27 +42,15 @@ const warrantyType = (company: number, shop: number) => (company > 0 && shop > 0
 const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 const serialList = (text: string) => [...new Set(text.split(/[\s,;]+/).map((x) => x.trim()).filter(Boolean))];
 
-/* ── Basic step: type ── */
+/* ── Basic step: the appliance type follows the shop category's kind (no separate picker) ── */
 function Kind({ ctx }: { ctx: StepContext<ApplianceExtra> }) {
   const x = ctx.draft.extra;
-  const guess = !x.categoryType ? categoryFromName(ctx.draft.core.name) : null;
-  const pick = (t: ApplianceCategoryType) => {
+  useCategoryKindSync(ctx.draft.core.categoryId, x.categoryType, (kind) => {
+    const t = kind as ApplianceCategoryType;
     const m = CATEGORY_META[t];
-    ctx.setExtra({ categoryType: x.categoryType === t ? '' : t, ...(x.categoryType !== t && { install: m.needsInstall, bigVehicle: m.heavy, compressorMonths: isAc(t) || isFridge(t) ? x.compressorMonths ?? 60 : x.compressorMonths, motorMonths: isWasher(t) ? x.motorMonths ?? 60 : x.motorMonths }) });
-  };
-  return (
-    <div className="space-y-2">
-      <span className="block text-[0.8125rem] font-medium text-slate-700">{tr('Kya cheez hai')}</span>
-      {guess && <button type="button" onClick={() => pick(guess)} className="rounded-lg bg-brand-50 px-2.5 py-1 text-[0.8125rem] font-medium text-brand-700 ring-1 ring-brand-200">{tr('Lagta hai {{guess}} hai — chunein', { guess: catLabel(guess) })}</button>}
-      {CATEGORY_GROUPS.map((g) => (
-        <div key={g} className="flex flex-wrap items-center gap-1.5">
-          <span className="w-28 shrink-0 text-[0.75rem] text-slate-500">{tr(g)}</span>
-          {CATEGORY_TYPES.filter((t) => CATEGORY_META[t].group === g).map((t) => <Chip key={t} on={x.categoryType === t} onClick={() => pick(t)}>{CATEGORY_META[t].label}</Chip>)}
-        </div>
-      ))}
-      <p className="text-[0.75rem] text-slate-500">{tr('Isi se fitting, delivery aur warranty ke sawal khud lagte hain, aur POS par filter.')}</p>
-    </div>
-  );
+    ctx.setExtra({ categoryType: t, ...(m && { install: m.needsInstall, bigVehicle: m.heavy, compressorMonths: isAc(t) || isFridge(t) ? x.compressorMonths ?? 60 : x.compressorMonths, motorMonths: isWasher(t) ? x.motorMonths ?? 60 : x.motorMonths }) });
+  });
+  return null;
 }
 
 /* ── Specs step ── */

@@ -14,8 +14,8 @@ import { allocate, channelShare, Claim, readStockRule, StockMode } from './stock
 import { CatalogJobsService, ChunkResult } from './catalog-jobs.service';
 import { ChannelContentService, DARAZ_CONTENT_NOTE } from './channel-content.service';
 import type { CatalogJob } from '@prisma/client';
-import { channelPrice, PriceRule, readPriceRule, samePrice } from './channel-price';
-import { MatchIndex, MatchProduct, suggestAll } from './product-matcher';
+import { channelPrice, PriceGuard, PriceRule, readPriceGuard, readPriceRule, samePrice } from './channel-price';
+import { MatchIndex, MatchProduct, suggestAll, suspectLink, SuspectReason } from './product-matcher';
 import { friendlySyncError, markLinks } from './link-sync';
 import { mappingKey } from './mapping-key';
 import { pausedMessage, pushPaused } from './commerce-controls';
@@ -37,6 +37,11 @@ const PUSH_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ'] as const;
  */
 export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
 
+export interface SuspectRow {
+  mappingId: string; channelId: string; productId: string; variantId: string | null; name: string; variantName: string | null;
+  externalTitle: string | null; externalSku: string | null; nafaaPrice: number; channelPrice: number | null; reasons: SuspectReason[];
+}
+
 export type GridFilter = 'all' | 'linked' | 'unlinked' | 'errors' | 'price' | 'out' | 'unlisted' | 'backorder' | 'hold' | 'untracked' | 'price-hold';
 const GRID_FILTERS: GridFilter[] = ['all', 'linked', 'unlinked', 'errors', 'price', 'out', 'unlisted', 'backorder', 'hold', 'untracked', 'price-hold'];
 
@@ -57,7 +62,7 @@ export interface GridScope { categoryId?: string; brandId?: string; productId?: 
 export type BulkAction = 'listed' | 'alloc' | 'price' | 'pricePercent' | 'compareAt' | 'push' | 'publish';
 
 export interface SettingsBody {
-  priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean;
+  priceRule?: Partial<PriceRule>; pushPrice?: boolean; stockBuffer?: number; pushStock?: boolean; autoLink?: boolean; priceGuard?: Partial<PriceGuard>;
   stockMode?: StockMode; stockPercent?: number; stockFixed?: number; pushContent?: Partial<PushContent>;
   priceFrom?: PriceFrom; websitePriceTo?: 'PRODUCT' | 'CHANNEL'; autoImport?: boolean;
   contentFrom?: PriceFrom; autoPublish?: 'OFF' | 'MARKED' | 'ALL'; stockFromChannel?: boolean;
@@ -204,6 +209,8 @@ export class OnlineProductsService implements OnModuleInit {
       /** All of "Sab kuch khud sync" is on. */
       autoSync: isPush(c.mode) && isAutoSync(c.cfg),
       priceRule: isPush(c.mode) ? c.cfg.priceRule : readPriceRule(undefined),
+      /** Price safety guard (big jumps wait for the merchant). */
+      priceGuard: c.cfg.priceGuard,
       stockBuffer: c.cfg.stockBuffer,
       stockMode: c.cfg.stockMode,
       stockPercent: c.cfg.stockPercent,
@@ -255,6 +262,7 @@ export class OnlineProductsService implements OnModuleInit {
     if (c.mode === 'indolj') throw new BadRequestException('Indolj par Price Indolj panel se badlein; Stock wahan track nahi hota');
     // Price rule and price push only where Nafaa sends prices; a custom website only takes the stock buffer.
     if (isPush(c.mode) && body.priceRule !== undefined) next.priceRule = readPriceRule(body.priceRule);
+    if (isPush(c.mode) && body.priceGuard !== undefined) next.priceGuard = readPriceGuard({ ...c.cfg.priceGuard, ...(body.priceGuard ?? {}) });
     // "Sab kuch khud sync": the preset first, then any field sent with it.
     if (isPush(c.mode) && body.preset === 'AUTO') {
       Object.assign(next, AUTO_SYNC_PRESET);
@@ -780,19 +788,21 @@ export class OnlineProductsService implements OnModuleInit {
     const cols = await this.cols(user.tenantId);
     if (!cols.length) return { issues: [] };
     const ids = cols.map((c) => c.integration.id);
-    const [sizeLess, failed, why, held, priceHeld] = await Promise.all([
+    const [sizeLess, failed, why, held, priceHeld, jumpHeld, suspects] = await Promise.all([
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, variantId: null, product: { hasVariants: true } }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, syncStatus: 'FAILED' }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId', 'syncError'], where: { integrationId: { in: ids }, syncStatus: 'FAILED' }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, NOT: { stockHold: { equals: Prisma.DbNull } } }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, NOT: { priceHold: { equals: Prisma.DbNull } } }, _count: { _all: true } }),
+      this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: ids }, priceHold: { path: ['reason'], equals: 'big-jump' } }, _count: { _all: true } }),
+      this.scanSuspects(user.tenantId).catch(() => [] as SuspectRow[]),
     ]);
     // Failed links per stored error text, so the screen can group them by cause.
     const reasonsOf = (id: string) => why.filter((r) => r.integrationId === id).map((r) => ({ error: r.syncError ?? null, count: r._count._all })).sort((a, b) => b.count - a.count);
     const n = (rows: Array<{ integrationId: string; _count: { _all: number } }>, id: string) => rows.find((r) => r.integrationId === id)?._count._all ?? 0;
     const issues: Array<{
       id: string; channelId: string; tone: 'danger' | 'warning' | 'info';
-      kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link' | 'stock-hold' | 'price-hold' | 'new-products'; text: string; detail?: string | null; count?: number;
+      kind: 'reconnect' | 'fix-size-less' | 'errors' | 'link-sure' | 'link' | 'stock-hold' | 'price-hold' | 'price-jump' | 'suspect-link' | 'new-products'; text: string; detail?: string | null; count?: number;
       reasons?: Array<{ error: string | null; count: number }>;
     }> = [];
     for (const c of cols) {
@@ -809,7 +819,11 @@ export class OnlineProductsService implements OnModuleInit {
       if (f) issues.push({ id: `${i.id}:errors`, channelId: i.id, tone: 'warning', kind: 'errors', count: f, reasons: reasonsOf(i.id), text: `${name}: ${f} ${f === 1 ? 'product' : 'products'} ka Stock/Price nahi ja raha` });
       const h = isPush(c.mode) ? n(held, i.id) : 0;
       if (h) issues.push({ id: `${i.id}:hold`, channelId: i.id, tone: 'warning', kind: 'stock-hold', count: h, text: `${name}: ${h} links par Stock milana baqi — Nafaa ya channel ka Stock chunein` });
-      const ph = isPush(c.mode) ? n(priceHeld, i.id) : 0;
+      const pj = isPush(c.mode) ? n(jumpHeld, i.id) : 0;
+      if (pj) issues.push({ id: `${i.id}:price-jump`, channelId: i.id, tone: 'warning', kind: 'price-jump', count: pj, text: `${name}: ${pj} links par qeemat bahut badal rahi hai — check karein` });
+      const sus = suspects.filter((r) => r.channelId === i.id).length;
+      if (sus) issues.push({ id: `${i.id}:suspect`, channelId: i.id, tone: 'warning', kind: 'suspect-link', count: sus, text: `${name}: ${sus} links shayad ghalat jure hain` });
+      const ph = isPush(c.mode) ? Math.max(0, n(priceHeld, i.id) - pj) : 0;
       if (ph) issues.push({ id: `${i.id}:price-hold`, channelId: i.id, tone: 'warning', kind: 'price-hold', count: ph, text: `${name}: ${ph} links par website par qeemat badli — kaunsi rakhein?` });
       const sure = Number(watch.scan?.sure ?? 0);
       if (sure && c.mode !== 'website') issues.push({ id: `${i.id}:sure`, channelId: i.id, tone: 'info', kind: 'link-sure', count: sure, text: `${name}: ${sure} products jorna baqi — sab pakke jod dein` });
@@ -863,14 +877,14 @@ export class OnlineProductsService implements OnModuleInit {
   }
 
   /** A channel product (every SKU, or the picked ones) into an existing Nafaa product; missing sizes are made. */
-  async linkInto(user: AuthenticatedUser, channelId: string, body: { externalProductId?: string; productId?: string; variants?: Array<{ externalVariantId: string | null; variantId: string | null }> }) {
+  async linkInto(user: AuthenticatedUser, channelId: string, body: { externalProductId?: string; productId?: string; variants?: Array<{ externalVariantId: string | null; variantId: string | null }>; confirm?: boolean }) {
     const c = await this.requireCol(user.tenantId, channelId);
     if (c.mode === 'website') throw new BadRequestException(WEBSITE_LINKS_NOTE);
     if (!body?.externalProductId || !body?.productId) throw new BadRequestException('Product chunein');
     const plan = Array.isArray(body.variants)
       ? body.variants.map((v) => ({ externalVariantId: v?.externalVariantId ? String(v.externalVariantId) : null, variantId: v?.variantId ? String(v.variantId) : null }))
       : null;
-    const res = await this.catalog.importIntoFor(c.integration, user.tenantId, String(body.externalProductId), String(body.productId), plan);
+    const res = await this.catalog.importIntoFor(c.integration, user.tenantId, String(body.externalProductId), String(body.productId), plan, body.confirm === true);
     this.background(() => this.syncProducts(c.integration, [String(body.productId)]), `link into ${c.integration.displayName}`);
     return res;
   }
@@ -888,7 +902,90 @@ export class OnlineProductsService implements OnModuleInit {
     const m = await this.mapping(user.tenantId, mappingId);
     await this.prisma.productChannelMapping.delete({ where: { id: m.id } });
     this.catalog.forget(m.integrationId);
+    this.suspectCache.delete(user.tenantId);
     return { success: true };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // "GHALAT LINK?" — links that look like two different items
+  // ═══════════════════════════════════════════════════════════
+
+  private readonly suspectCache = new Map<string, { at: number; rows: SuspectRow[] }>();
+
+  /**
+   * Existing links whose names share no meaningful word (and no SKU/barcode
+   * match), or whose Nafaa and channel prices are more than 3x apart. A link
+   * the merchant marked "Theek hai" is left out until its channel title
+   * changes. Read only; cached for five minutes per business.
+   */
+  private async scanSuspects(tenantId: string): Promise<SuspectRow[]> {
+    const hit = this.suspectCache.get(tenantId);
+    if (hit && Date.now() - hit.at < 5 * 60_000) return hit.rows;
+    const rows: SuspectRow[] = [];
+    for (const c of (await this.cols(tenantId)).filter((x) => x.mode !== 'website' && x.integration.isActive)) {
+      let cursor: string | undefined;
+      for (;;) {
+        const maps = await this.prisma.productChannelMapping.findMany({
+          where: { integrationId: c.integration.id, externalProductId: { not: null } },
+          select: {
+            id: true, productId: true, variantId: true, externalTitle: true, externalSku: true, externalData: true, priceOverride: true,
+            product: { select: { name: true, sku: true, barcode: true, price: true } }, variant: { select: { name: true, sku: true, barcode: true, price: true } },
+          },
+          orderBy: { id: 'asc' }, take: 2000, ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+        });
+        if (!maps.length) break;
+        cursor = maps[maps.length - 1].id;
+        for (const m of maps) {
+          const d = ((m.externalData as any) ?? {}) as Record<string, any>;
+          if (d.linkOk && d.linkOk.title === (m.externalTitle ?? null)) continue;
+          // The channel's own price from before Nafaa first overwrote it, when known.
+          const before = Number(d.channelPriceBefore?.price);
+          const channel = before > 0 ? before : Number(d.channelPrice) || null;
+          const nafaaPrice = this.wantPrice(c, Number(m.variant?.price ?? m.product.price), m.priceOverride);
+          const reasons = suspectLink({
+            remoteTitle: m.externalTitle, remoteCodes: [m.externalSku],
+            nafaaName: [m.product.name, m.variant?.name].filter(Boolean).join(' '),
+            nafaaCodes: [m.product.sku, m.product.barcode, m.variant?.sku, m.variant?.barcode],
+            nafaaPrice, channelPrice: channel,
+          });
+          if (!reasons.length) continue;
+          rows.push({
+            mappingId: m.id, channelId: c.integration.id, productId: m.productId, variantId: m.variantId,
+            name: m.product.name, variantName: m.variant?.name ?? null, externalTitle: m.externalTitle, externalSku: m.externalSku,
+            nafaaPrice, channelPrice: channel, reasons,
+          });
+        }
+        if (maps.length < 2000) break;
+      }
+    }
+    this.suspectCache.set(tenantId, { at: Date.now(), rows });
+    return rows;
+  }
+
+  async suspectLinks(user: AuthenticatedUser, channelId?: string) {
+    const all = await this.scanSuspects(user.tenantId);
+    const items = channelId ? all.filter((r) => r.channelId === channelId) : all;
+    return { total: items.length, items: items.slice(0, 500) };
+  }
+
+  /** "Theek hai": the merchant checked these links; they are not flagged again until the channel title changes. */
+  async markLinksOk(user: AuthenticatedUser, mappingIds: string[]) {
+    this.setup.assertCanManage(user);
+    const ids = [...new Set((mappingIds ?? []).map(String))].slice(0, 1000);
+    if (!ids.length) throw new BadRequestException('Koi link nahi chuna');
+    const maps = await this.prisma.productChannelMapping.findMany({
+      where: { id: { in: ids }, integration: { tenantId: user.tenantId } },
+      select: { id: true, externalTitle: true, externalData: true },
+    });
+    const at = new Date().toISOString();
+    for (const m of maps) {
+      await this.prisma.productChannelMapping.update({
+        where: { id: m.id },
+        data: { externalData: { ...((m.externalData as any) ?? {}), linkOk: { at, by: user.id, title: m.externalTitle ?? null } } as any },
+      });
+    }
+    this.suspectCache.delete(user.tenantId);
+    return { saved: maps.length };
   }
 
   async setPrice(user: AuthenticatedUser, mappingId: string, priceOverride: number | null) {

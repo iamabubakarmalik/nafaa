@@ -13,6 +13,8 @@ import { ShopScope } from '../../../common/shop-scope';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
 import { splitLegacyVariantStock } from '../../sports/common/opening-stock.helper';
 import { DAY_MS, SOLD, freeBrandSlug, r2, sizeSort, variantParts } from '../common/shoe-common';
+import { ShoeCategoryType } from '@prisma/client';
+import { CATEGORY_KIND_VALUES, deriveProductKind } from '../../../modules/inventory/categories/category-kind';
 import { UpsertShoeProductDto, VariantSizesDto } from './dto/upsert-product.dto';
 
 @Injectable()
@@ -32,7 +34,10 @@ export class ShoeProductsService {
     }
 
     const existing = await this.prisma.shoeProductProfile.findUnique({ where: { productId: dto.productId } });
-    const data: any = { ...dto, tenantId: user.tenantId };
+    // One category system: the shoe type comes from the shop category's kind; without one the product keeps its own type.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const categoryType = deriveProductKind(cats, product.categoryId, existing?.categoryType ?? dto.categoryType, 'OTHER', CATEGORY_KIND_VALUES.SHOE) as ShoeCategoryType;
+    const data: any = { ...dto, categoryType, tenantId: user.tenantId };
 
     if (existing) return this.prisma.shoeProductProfile.update({ where: { productId: dto.productId }, data });
     return this.prisma.shoeProductProfile.create({ data });

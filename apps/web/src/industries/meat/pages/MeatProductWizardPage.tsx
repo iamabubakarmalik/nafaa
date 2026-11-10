@@ -6,12 +6,13 @@
  */
 
 import { Beef, Leaf, ShieldCheck, Snowflake } from 'lucide-react';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
 import { Chip, NumberField, Section, TextField, Toggle } from '@modules/inventory/products/editor/fields';
 import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
 import { meatProductsApi, type AnimalType, type CutCategory, type FreshnessType, type SaleUnit } from '../api/products.api';
-import { ANIMALS, CUTS, KEYS, animalOf, cutLabel } from '../lib/meta';
+import { KEYS, animalOf, cutLabel } from '../lib/meta';
 import { t } from '@core/i18n';
 
 export interface MeatExtra {
@@ -41,39 +42,16 @@ const FRESH: Array<{ value: FreshnessType; label: string }> = [
   { value: 'LIVE', label: t('Zinda') }, { value: 'FRESH_SLAUGHTERED', label: t('Taaza zibah') }, { value: 'FRESH_CHILLED', label: t('Thanda (chiller)') },
   { value: 'FROZEN', label: t('Frozen') }, { value: 'MARINATED', label: t('Masala laga') }, { value: 'PROCESSED', label: t('Tayyar (kabab, nuggets)') },
 ];
-const COMMON_CUTS: CutCategory[] = ['WHOLE_ANIMAL', 'BONELESS', 'WITH_BONE', 'MINCE', 'CHOPS', 'LEG', 'BREAST', 'WING', 'LIVER', 'TROTTERS', 'BONES', 'OFFAL'];
 const opt = (v: string) => v.trim() || undefined;
 const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 const saleUnitOf = (unit: string): SaleUnit => (['gram', 'g'].includes(unit) ? 'GRAM' : ['pcs', 'piece'].includes(unit) ? 'PIECE' : unit === 'dozen' ? 'DOZEN' : 'KG');
 
 function Kind({ ctx }: { ctx: StepContext<MeatExtra> }) {
   const x = ctx.draft.extra;
-  return (
-    <div className="space-y-3">
-      <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Janwar')}{' '} <span className="text-rose-500">*</span></span>
-        <div className="flex flex-wrap gap-1.5">
-          {ANIMALS.map((a) => <Chip key={a.value} on={x.animalType === a.value} onClick={() => ctx.setExtra({ animalType: a.value as AnimalType })}>{a.emoji} {a.label}</Chip>)}
-        </div>
-        {ctx.errors.animalType && <p className="mt-1 text-[0.75rem] font-medium text-rose-600">{ctx.errors.animalType}</p>}
-      </div>
-      <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Cut')}{' '} <span className="text-rose-500">*</span></span>
-        <div className="flex flex-wrap gap-1.5">
-          {CUTS.filter((c) => COMMON_CUTS.includes(c.value as CutCategory) || c.value === x.cutCategory).map((c) => (
-            <Chip key={c.value} on={x.cutCategory === c.value} onClick={() => ctx.setExtra({ cutCategory: c.value as CutCategory, isBoneless: c.value === 'BONELESS' || c.value === 'MINCE' ? true : x.isBoneless })}>{c.label}</Chip>
-          ))}
-        </div>
-        <select value={x.cutCategory} onChange={(e) => ctx.setExtra({ cutCategory: e.target.value as CutCategory })} aria-label={t('Baqi cuts')}
-          className="mt-2 h-10 rounded-xl bg-slate-100 px-3 text-[0.875rem] outline-none focus:bg-white focus:ring-2 focus:ring-brand-500">
-          <option value="">{t('Baqi cuts…')}</option>
-          {CUTS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-        </select>
-        {ctx.errors.cutCategory && <p className="mt-1 text-[0.75rem] font-medium text-rose-600">{ctx.errors.cutCategory}</p>}
-        <p className="mt-1.5 text-[0.75rem] text-slate-500">{t('Zinda maal (mandi se aayi murgi / bakra) ke liye cut "Poora" rakhein aur halat "Zinda" — zibah aur cutting usi se stock banati hai.')}</p>
-      </div>
-    </div>
-  );
+  // The animal comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  // The cut is no longer asked here: an existing product keeps its stored cut.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.animalType, (animalType) => ctx.setExtra({ animalType: animalType as AnimalType }));
+  return null;
 }
 
 function Details({ ctx }: { ctx: StepContext<MeatExtra> }) {
@@ -132,8 +110,6 @@ const core: CoreOptions = {
 
 function meatErrors(x: MeatExtra): Errors {
   const e: Errors = {};
-  if (!x.animalType) e.animalType = t('Janwar chunein — murgi, mutton, beef…');
-  if (!x.cutCategory) e.cutCategory = t('Cut chunein — poora, boneless, qeema…');
   if (x.isHalalCertified && x.halalCertExpiry && !/^\d{4}-\d{2}-\d{2}$/.test(x.halalCertExpiry)) e.halalCertExpiry = t('Tareekh theek likhein');
   return e;
 }

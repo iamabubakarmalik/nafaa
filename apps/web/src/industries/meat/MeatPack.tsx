@@ -17,6 +17,7 @@ import SubscriptionsPage from './pages/SubscriptionsPage';
 import WholesalePage from './pages/WholesalePage';
 import MeatDashboard from './dashboard/MeatDashboard';
 import { t } from '@core/i18n';
+import { ANIMALS } from './lib/meta';
 
 /**
  * Meat shop, butcher and chicken shop: mandi purchase, slaughter and
@@ -31,6 +32,8 @@ export const MeatPack: IndustryPack = {
   priority: 65,
   description:
     t('Halal certification, livestock tracking, slaughter logs, cutting jobs, weight-based orders, wholesale accounts.'),
+
+  categoryKinds: ANIMALS.filter((a) => a.value !== 'OTHER').map((a) => ({ value: a.value, label: a.label })),
 
   matches: (tenant) => {
     if (!tenant) return false;

@@ -17,6 +17,7 @@ import LensOrdersPage from './pages/LensOrdersPage';
 import LensOrderFormPage from './pages/LensOrderFormPage';
 import LensOrderDetailPage from './pages/LensOrderDetailPage';
 import { t } from '@core/i18n';
+import { KINDS as OPTICAL_KINDS, typeLabel as opticalTypeLabel } from './hooks/useOpticalFacts';
 
 /* Orders have no edit form: price and power are fixed once booked. */
 function ToOrder() {
@@ -30,6 +31,7 @@ export const OpticalPack: IndustryPack = {
   shortName: t('Optical'),
   emoji: '👓',
   priority: 76,
+  categoryKinds: OPTICAL_KINDS.flatMap((k) => k.types.filter((v) => v !== 'OTHER').map((value) => ({ value, label: `${k.label} · ${opticalTypeLabel(value)}` }))),
   description:
     t('Eye tests, nuskhe (SPH/CYL/AXIS/ADD/PD), chashma orders with advance, lab tracking and pickup, repairs, frames and contact lenses.'),
 

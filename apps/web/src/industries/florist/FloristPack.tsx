@@ -13,6 +13,7 @@ import FloristWeddingsPage from './pages/FloristWeddingsPage';
 import FloristSubscriptionsPage from './pages/FloristSubscriptionsPage';
 import FloristFreshnessPage from './pages/FloristFreshnessPage';
 import { t } from '@core/i18n';
+import { CATEGORY_GROUPS as FLORIST_CATEGORY_GROUPS } from './lib/meta';
 
 export const FloristPack: IndustryPack = {
   id: 'florist',
@@ -20,6 +21,7 @@ export const FloristPack: IndustryPack = {
   shortName: t('Florist'),
   emoji: '🌸',
   priority: 75,
+  categoryKinds: FLORIST_CATEGORY_GROUPS.flatMap((g) => g.items).filter(([v]) => v !== 'OTHER').map(([value, label]) => ({ value, label })),
   description:
     t('Bouquets, wedding contracts, delivery scheduling, freshness tracking, subscriptions, occasion-based orders.'),
 

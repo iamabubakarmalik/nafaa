@@ -21,14 +21,15 @@ import { useOfflineList } from '@/core/offline';
 import { PERMISSIONS as P, usePermission } from '@/core/permissions';
 import { Amount, Badge, Button, Card, Chip, EmptyState, FormSection, IconButton, Input, ListRow, Row, Select, Switch, Text, TextArea, useTheme } from '@/design';
 import { NumberInput } from '@/modules/inventory/components/fields';
+import { nearestKind, useCategoryTree, type CategoryNode } from '@/modules/inventory/components/Pickers';
 import { categoriesApi } from '@/modules/inventory/api/taxonomy';
 import { GENERAL_CORE } from '@/modules/inventory/industry/general';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
 import type { EditorDraft, Errors } from '@/modules/inventory/screens/editor/types';
-import { bakeryProductsApi, freshnessApi, ingredientsApi, type BakeryProfile, type FreshnessLog, type Ingredient } from './api';
-import { CREAMS, FLAVORS, RAW_KEY, SHAPES, rawCategoryOf } from './meta';
+import { bakeryProductsApi, freshnessApi, ingredientsApi, type BakeryCategory, type BakeryProfile, type FreshnessLog, type Ingredient } from './api';
+import { BAKERY_KINDS, CREAMS, FLAVORS, RAW_KEY, SHAPES, rawCategoryOf } from './meta';
 
 type Kind = 'MADE' | 'BOUGHT';
 type RateKey = 'pcs' | 'dozen' | 'slice' | 'kg' | 'pound' | 'box' | 'tray';
@@ -75,8 +76,10 @@ const kindOf = (d: EditorDraft<BakeryExtra>): Kind => (d.core.productType === 'M
 
 function useBakeryCategory(d: EditorDraft<BakeryExtra>) {
   const cats = useOfflineList<{ id: string; name: string }>('category');
+  const { nodes } = useCategoryTree();
   const name = (cats.data ?? []).find((c) => c.id === d.core.categoryId)?.name;
-  return deriveBakeryCategory(name, d.core.name);
+  // A kind set on the shop category (or its nearest parent) wins over the guess from the names.
+  return (nearestKind(nodes, d.core.categoryId) as BakeryCategory | null) ?? deriveBakeryCategory(name, d.core.name);
 }
 
 /* ───────────────────────── editor steps ───────────────────────── */
@@ -324,13 +327,13 @@ const editor: EditorConfig<BakeryExtra> = {
       const x = d.extra;
       const c = d.core;
       const made = kindOf(d) === 'MADE';
-      const cats = await categoriesApi.list<{ id: string; name: string }>().catch(() => []);
+      const cats = await categoriesApi.list<CategoryNode>().catch(() => [] as CategoryNode[]);
       const rates: Record<string, number | undefined> = {};
       for (const [k, field] of Object.entries(PRICE_FIELD)) rates[field] = x.rates[k as RateKey] ?? undefined;
       if (PRICE_FIELD[c.unit]) rates[PRICE_FIELD[c.unit]] = c.price;
       await bakeryProductsApi.upsert({
         productId, productType: kindOf(d),
-        category: deriveBakeryCategory(cats.find((k) => k.id === c.categoryId)?.name, c.name),
+        category: (nearestKind(cats, c.categoryId) as BakeryCategory | null) ?? deriveBakeryCategory(cats.find((k) => k.id === c.categoryId)?.name, c.name),
         defaultSize: deriveSize(c.unit, x.weightGrams),
         defaultFlavor: made ? x.flavor : undefined, defaultShape: made ? x.shape : undefined, defaultCreamType: made ? x.cream : undefined,
         ...rates,
@@ -416,6 +419,7 @@ const recipeOf = (x?: DetailExtra) => recipeCost(x?.profile?.ingredients?.lines 
 
 registerInventoryIndustry({
   id: 'bakery',
+  categoryKinds: BAKERY_KINDS,
   label: msg('Bakery'),
   list: {
     noun: 'cheezein',

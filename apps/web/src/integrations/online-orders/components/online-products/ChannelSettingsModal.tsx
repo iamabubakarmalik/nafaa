@@ -2,7 +2,8 @@
  * Channel sync settings, price rule and stock buffer: where price, content,
  * new products and hand-edited stock come from (the shared sync card), percent
  * or fixed rupees up or down on the Nafaa price, rounding, and how many units
- * to keep back from the channel. Shows a live example.
+ * to keep back from the channel. Shows a live example. The price safety
+ * guard (on by default) holds a push that moves the channel price too far.
  */
 
 import { useState } from 'react';
@@ -32,6 +33,10 @@ export function ChannelSettingsModal({ channel, onClose, section }: { channel: O
   const [stockPercent, setStockPercent] = useState(String(channel.stockPercent ?? 100));
   const [stockFixed, setStockFixed] = useState(channel.stockFixed ? String(channel.stockFixed) : '');
   const [content, setContent] = useState<PushContent>(channel.pushContent);
+  const g = channel.priceGuard ?? { on: true, dropPct: 40, risePct: 150, firstPct: 40 };
+  const [guardOn, setGuardOn] = useState(g.on);
+  const [guardDrop, setGuardDrop] = useState(String(g.dropPct));
+  const [guardRise, setGuardRise] = useState(String(g.risePct));
 
   const value = mode === 'NONE' ? 0 : (Number(amount) || 0) * (dir === 'down' ? -1 : 1);
   const rule = { mode, value, rounding };
@@ -45,6 +50,7 @@ export function ChannelSettingsModal({ channel, onClose, section }: { channel: O
         stockPercent: Math.min(100, Math.max(1, Math.floor(Number(stockPercent) || 100))),
         stockFixed: Math.max(0, Math.floor(Number(stockFixed) || 0)),
         ...(channel.canContent ? { pushContent: content } : {}),
+        priceGuard: { on: guardOn, dropPct: Number(guardDrop) || g.dropPct, risePct: Number(guardRise) || g.risePct },
       } : {}),
       stockBuffer: Math.max(0, Math.floor(Number(buffer) || 0)),
     }),
@@ -115,6 +121,20 @@ export function ChannelSettingsModal({ channel, onClose, section }: { channel: O
               ))}
             </ul>
             <p className="mt-2 text-[0.75rem] text-slate-500">{t('Kisi ek product ki apni Price grid me us ke khane se lag sakti hai — wo is rule se upar hai.')}</p>
+          </div>
+
+          <div className="space-y-2">
+            <Switch checked={guardOn} onChange={(e) => setGuardOn(e.target.checked)} label={t('Qeemat bahut badle to pehle poochein')} />
+            {guardOn && (
+              <div className="flex flex-wrap items-center gap-2 text-[0.8125rem] text-slate-600">
+                <span>{t('Rokein agar qeemat itni kam ho:')}</span>
+                <Input inputMode="numeric" value={guardDrop} onChange={(e) => setGuardDrop(e.target.value.replace(/\D/g, ''))} aria-label={t('Kitne percent kam')}
+                  wrapperClassName="w-24" rightIcon={<span className="text-[0.75rem] text-slate-500">%</span>} />
+                <span>{t('ya itni zyada:')}</span>
+                <Input inputMode="numeric" value={guardRise} onChange={(e) => setGuardRise(e.target.value.replace(/\D/g, ''))} aria-label={t('Kitne percent zyada')}
+                  wrapperClassName="w-24" rightIcon={<span className="text-[0.75rem] text-slate-500">%</span>} />
+              </div>
+            )}
           </div>
         </section>}
 

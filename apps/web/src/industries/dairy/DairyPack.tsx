@@ -18,6 +18,7 @@ import MonthlyBillsPage from './pages/MonthlyBillsPage';
 import QualityTestsPage from './pages/QualityTestsPage';
 import ProductionPage from './pages/ProductionPage';
 import { t } from '@core/i18n';
+import { PRODUCT_TYPES } from './lib/productTypes';
 
 /**
  * Dairy / milk shop: loose milk, dahi and makhan on the shared counter,
@@ -33,6 +34,8 @@ export const DairyPack: IndustryPack = {
   priority: 65,
   description:
     t('Gawalon se doodh, ghar delivery aur mahine ka bill, dahi / makhan banana, khula doodh counter par.'),
+
+  categoryKinds: PRODUCT_TYPES.filter((p) => p.value !== 'OTHER').map((p) => ({ value: p.value, label: p.label })),
 
   matches: (tenant) => {
     if (!tenant) return false;

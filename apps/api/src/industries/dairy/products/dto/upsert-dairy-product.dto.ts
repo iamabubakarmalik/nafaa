@@ -1,10 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DairyMilkQuality, DairyProductType, DairyUnit } from '@prisma/client';
 import { IsBoolean, IsEnum, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { EnumOrDefault } from '../../../../common/helpers/enum-or-default.helper';
 
 export class UpsertDairyProductDto {
   @ApiProperty() @IsString() productId!: string;
-  @ApiPropertyOptional({ enum: DairyProductType }) @IsOptional() @IsEnum(DairyProductType) productType?: DairyProductType;
+  @ApiPropertyOptional({ enum: DairyProductType }) @IsOptional() @EnumOrDefault(DairyProductType, DairyProductType.OTHER) @IsEnum(DairyProductType) productType?: DairyProductType;
   @ApiPropertyOptional({ enum: DairyUnit }) @IsOptional() @IsEnum(DairyUnit) unit?: DairyUnit;
   @ApiPropertyOptional() @IsOptional() @IsNumber() fatContent?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() snfContent?: number;

@@ -37,6 +37,8 @@ export interface OnlineChannel {
   shopName: string | null;
   pushPrice: boolean;
   priceRule: PriceRule;
+  /** Price safety guard: a push that moves the channel price too far waits ("Qeemat bahut badal rahi hai"). Older API builds leave it out. */
+  priceGuard?: PriceGuard;
   stockBuffer: number;
   /** How much of Nafaa stock the channel gets */
   stockMode: StockMode;
@@ -116,7 +118,13 @@ export interface LinkedCell {
   /** The price changed on the channel and differs from Nafaa: nothing is sent until the user picks one. Older API builds leave it out. */
   priceHold?: PriceHoldInfo | null;
 }
-export interface PriceHoldInfo { since: string; nafaaPrice: number | null; channelPrice: number | null; agreedPrice: number | null; channelPriceAt: string | null }
+export interface PriceHoldInfo {
+  since: string; nafaaPrice: number | null; channelPrice: number | null; agreedPrice: number | null; channelPriceAt: string | null;
+  /** big-jump = held by the price safety guard (Nafaa's price is far from the channel's). Older holds leave it out. */
+  reason?: PriceHoldReason; jumpPct?: number | null;
+}
+export type PriceHoldReason = 'channel-changed' | 'big-jump';
+export interface PriceGuard { on: boolean; dropPct: number; risePct: number; firstPct: number }
 export type HoldReason = 'link' | 'import' | 'guard';
 export interface StockHoldInfo { since: string; channelStock: number | null; nafaaStock: number; reason: HoldReason }
 export interface LastPush { at: string; what: Array<'stock' | 'price' | 'content' | 'status' | 'publish'>; ok: boolean; error: string | null }
@@ -177,7 +185,7 @@ export interface Issue {
   id: string;
   channelId: string;
   tone: 'danger' | 'warning' | 'info';
-  kind: 'reconnect' | 'fix-size-less' | 'errors' | 'stock-hold' | 'price-hold' | 'link-sure' | 'link' | 'new-products';
+  kind: 'reconnect' | 'fix-size-less' | 'errors' | 'stock-hold' | 'price-hold' | 'price-jump' | 'suspect-link' | 'link-sure' | 'link' | 'new-products';
   text: string;
   detail?: string | null;
   count?: number;
@@ -250,8 +258,10 @@ export interface LinkPlan {
   variants: Array<{ id: string; name: string; sku: string | null; size: string | null; color: string | null; stock: number }>;
   canConvert: boolean;
   convertBlock: string | null;
+  /** The channel and Nafaa products look like different items; linking needs the user's confirmation. Older API builds leave it out. */
+  mismatch?: string | null;
 }
-export interface LinkIntoBody { externalProductId: string; productId: string; variants?: Array<{ externalVariantId: string | null; variantId: string | null }> }
+export interface LinkIntoBody { externalProductId: string; productId: string; variants?: Array<{ externalVariantId: string | null; variantId: string | null }>; confirm?: boolean }
 export interface LinkIntoResult { ok: boolean; product: string; variantsCreated: number; linked: number; held: number }
 
 /* ─── Import fix: undo what an import and Nafaa's first push did to channel stock ─── */
@@ -287,12 +297,23 @@ export interface RecoveryApplyResult { untracked: number; adjusted: number; skip
 
 /* ─── Price holds: the channel price changed and the user picks Nafaa's or the channel's ─── */
 
-export type PriceHoldAction = 'nafaa' | 'website';
+/** keep = "Nahi" on a big price jump: the channel keeps its price, nothing changes in Nafaa. */
+export type PriceHoldAction = 'nafaa' | 'website' | 'keep';
 export interface PriceHoldRow {
   mappingId: string; productId: string; variantId: string | null; name: string; variantName: string | null;
   externalTitle: string | null; externalSku: string | null;
   nafaaPrice: number | null; channelPrice: number | null; agreedPrice: number | null;
   since: string; channelPriceAt: string | null; target: PriceTarget | null;
+  reason?: PriceHoldReason; jumpPct?: number | null;
+}
+
+/* ─── "Ghalat link?": links that look like two different items ─── */
+
+export interface SuspectLinkRow {
+  mappingId: string; channelId: string; productId: string; variantId: string | null; name: string; variantName: string | null;
+  externalTitle: string | null; externalSku: string | null; nafaaPrice: number; channelPrice: number | null;
+  /** title = the names share no word and no SKU matches; price = more than 3x apart */
+  reasons: Array<'title' | 'price'>;
 }
 export interface PriceHoldPage { total: number; page: number; pages: number; priceFrom: SyncFrom; items: PriceHoldRow[] }
 export interface PriceHoldResult { resolved: number; sent: number; taken: number; skipped: number; errors: string[] }
@@ -318,7 +339,7 @@ export interface PriceRecoveryResult { restored: number; kept: number; sent: num
 /* ─── Sync history: what came in from or went out to a channel, per product ─── */
 
 export type SyncField = 'price' | 'title' | 'description' | 'images' | 'stock' | 'product';
-export type SyncKind = 'PULL' | 'PUSH' | 'HOLD' | 'KEEP_NAFAA' | 'KEEP_CHANNEL' | 'RECOVER_CHANNEL' | 'RECOVER_NAFAA' | 'HAND_EDIT' | 'IMPORT' | 'PUBLISH';
+export type SyncKind = 'PULL' | 'PUSH' | 'HOLD' | 'KEEP_NAFAA' | 'KEEP_CHANNEL' | 'KEEP_CHANNEL_PRICE' | 'RECOVER_CHANNEL' | 'RECOVER_NAFAA' | 'HAND_EDIT' | 'IMPORT' | 'PUBLISH';
 export interface SyncHistoryRow {
   id: string; integrationId: string; productId: string | null; variantId: string | null;
   field: SyncField; direction: 'IN' | 'OUT' | 'NONE'; kind: SyncKind; target: PriceTarget | null;
@@ -358,7 +379,7 @@ export const onlineProductsApi = {
     apiClient.post(`/online-products/channels/${channelId}/import`, { externalProductIds }, { timeout: 180_000 })
       .then((r) => unwrap<{ created: number; linkedExisting: number; held?: number; untracked?: number; failed: number; errors: string[] } | JobStart>(r)),
   settings: (channelId: string, body: ChannelSyncSettings & {
-    priceRule?: PriceRule; pushPrice?: boolean; stockBuffer?: number;
+    priceRule?: PriceRule; pushPrice?: boolean; stockBuffer?: number; priceGuard?: Partial<PriceGuard>;
     stockMode?: StockMode; stockPercent?: number; stockFixed?: number; pushContent?: Partial<PushContent>;
   }) =>
     apiClient.put(`/online-products/channels/${channelId}/settings`, body).then((r) => unwrap<OnlineChannel>(r)),
@@ -403,9 +424,13 @@ export const onlineProductsApi = {
     apiClient.get(`/online-products/channels/${channelId}/stock-recovery`, { timeout: 120_000 }).then((r) => unwrap<RecoveryPreview>(r)),
   applyRecovery: (channelId: string, mappingIds: string[]) =>
     apiClient.post(`/online-products/channels/${channelId}/stock-recovery/apply`, { mappingIds }, { timeout: 180_000 }).then((r) => unwrap<RecoveryApplyResult>(r)),
-  priceHolds: (channelId: string, page = 1, limit = 50) =>
-    apiClient.get(`/online-products/channels/${channelId}/price-holds`, { params: { page, limit } }).then((r) => unwrap<PriceHoldPage>(r)),
-  resolvePriceHolds: (channelId: string, body: { action: PriceHoldAction; all: true } | { action: PriceHoldAction; mappingIds: string[] }) =>
+  priceHolds: (channelId: string, page = 1, limit = 50, reason?: PriceHoldReason) =>
+    apiClient.get(`/online-products/channels/${channelId}/price-holds`, { params: { page, limit, ...(reason && { reason }) } }).then((r) => unwrap<PriceHoldPage>(r)),
+  suspectLinks: (channelId?: string) =>
+    apiClient.get('/online-products/suspect-links', { params: channelId ? { channelId } : {}, timeout: 120_000 }).then((r) => unwrap<{ total: number; items: SuspectLinkRow[] }>(r)),
+  markLinksOk: (mappingIds: string[]) =>
+    apiClient.post('/online-products/suspect-links/ok', { mappingIds }).then((r) => unwrap<{ saved: number }>(r)),
+  resolvePriceHolds: (channelId: string, body: { action: PriceHoldAction; all: true; reason?: PriceHoldReason } | { action: PriceHoldAction; mappingIds: string[] }) =>
     apiClient.post(`/online-products/channels/${channelId}/price-holds/resolve`, body, { timeout: 180_000 }).then((r) => unwrap<PriceHoldResult>(r)),
   priceRecovery: (channelId: string) =>
     apiClient.get(`/online-products/channels/${channelId}/price-recovery`, { timeout: 120_000 }).then((r) => unwrap<PriceRecoveryPreview>(r)),

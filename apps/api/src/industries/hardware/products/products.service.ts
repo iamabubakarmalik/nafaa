@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { HardwareCategoryType } from '@prisma/client';
+import { CATEGORY_KIND_VALUES, deriveProductKind } from '../../../modules/inventory/categories/category-kind';
 import { UpsertHardwareProductDto } from './dto/upsert-hardware-product.dto';
 
 @Injectable()
@@ -15,14 +17,17 @@ export class HardwareProductsService {
       throw new NotFoundException('Brand nahi mila');
     }
     const existing = await this.prisma.hardwareProductProfile.findUnique({ where: { productId: dto.productId } });
+    // One category system: the item type comes from the shop category's kind (nearest parent); without one the product keeps its own type.
+    const cats = await this.prisma.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+    const categoryType = deriveProductKind(cats, product.categoryId, existing?.categoryType ?? dto.categoryType, 'OTHER', CATEGORY_KIND_VALUES.HARDWARE) as HardwareCategoryType;
     if (existing) {
       return this.prisma.hardwareProductProfile.update({
         where: { productId: dto.productId },
-        data: { ...dto, tenantId: user.tenantId },
+        data: { ...dto, categoryType, tenantId: user.tenantId },
       });
     }
     return this.prisma.hardwareProductProfile.create({
-      data: { ...dto, tenantId: user.tenantId },
+      data: { ...dto, categoryType, tenantId: user.tenantId },
     });
   }
 

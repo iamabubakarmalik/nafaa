@@ -7,7 +7,7 @@ import { pushesPrice, readWebsiteConfig } from './website-config';
 import { WooCommerceService } from './woocommerce.service';
 import { ShopifyService } from './shopify.service';
 import { DarazService } from './daraz.service';
-import { agreedPrice, channelMoved, channelPrice, priceDecision, PriceStep, samePrice } from './channel-price';
+import { agreedPrice, channelMoved, channelPrice, jumpDeclined, priceDecision, priceJump, PriceStep, samePrice } from './channel-price';
 import { canPull, logPrice, logPriceBatch, pullPrice } from './price-sync';
 import { PAGE_DELAY_MS, trackLinks } from './link-sync';
 import { commerceControls, pushPaused } from './commerce-controls';
@@ -212,9 +212,16 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
       const compareAt = m.compareAtPrice && m.compareAtPrice > price ? m.compareAtPrice : d.pushedCompareAt ? null : undefined;
       const compareChanged = compareAt !== undefined && Number(d.pushedCompareAt ?? 0) !== Number(compareAt ?? 0);
       if (step === 'skip' && compareChanged && price > 0 && pushesPrice(cfg.priceFrom) && !held && !channelMoved(d)) { step = 'push'; why = 'sale-price'; }
+      // Safety guard: a push that moves the channel price too far waits for the merchant
+      // (a wrong link would otherwise put an unrelated price on the listing). A merchant's
+      // own decision (explicit) goes through; a jump the merchant declined is not sent.
+      const jump = step === 'push' && !explicit ? priceJump({ want: price, data: d, guard: cfg.priceGuard }) : null;
+      if (jump) {
+        if (jumpDeclined(d, price)) { step = 'skip'; why = 'jump-declined'; } else { step = 'hold'; why = 'big-jump'; }
+      }
       if (step === 'push' && paused) step = 'skip';
       if (step === 'pull' && !canPull(m)) step = 'skip';
-      return { m, d, price, compareAt, step, why, held, branch };
+      return { m, d, price, compareAt, step, why, held, branch, jump };
     });
 
     const nafaaRecord = (d: Record<string, any>, price: number) => {
@@ -277,15 +284,24 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
 
     // 3) Waiting for the merchant
     let held = 0;
-    for (const { m, d, price, held: was } of plan.filter((x) => x.step === 'hold')) {
+    let jumps = 0;
+    for (const { m, d, price, held: was, why, jump } of plan.filter((x) => x.step === 'hold')) {
       const seen = Number(d.channelPrice);
-      const hold = { since: was ? (m.priceHold as any)?.since ?? at : at, nafaaPrice: price, channelPrice: seen, agreedPrice: agreedPrice(d), channelPriceAt: d.channelPriceAt ?? null };
-      const same = was && samePrice(Number((m.priceHold as any)?.channelPrice), seen) && samePrice(Number((m.priceHold as any)?.nafaaPrice), price);
+      const reason = why === 'big-jump' ? 'big-jump' : 'channel-changed';
+      const hold = {
+        since: was ? (m.priceHold as any)?.since ?? at : at, nafaaPrice: price, channelPrice: seen, agreedPrice: agreedPrice(d), channelPriceAt: d.channelPriceAt ?? null,
+        reason, ...(jump && { jumpPct: jump.pct, firstPush: jump.first }),
+      };
+      const same = was && samePrice(Number((m.priceHold as any)?.channelPrice), seen) && samePrice(Number((m.priceHold as any)?.nafaaPrice), price)
+        && ((m.priceHold as any)?.reason ?? 'channel-changed') === reason;
       if (same && !Object.keys(nafaaRecord(d, price)).length) continue;
       await this.prisma.productChannelMapping.update({ where: { id: m.id }, data: { priceHold: hold as any, externalData: { ...d, ...nafaaRecord(d, price) } } }).catch(() => null);
-      if (!was) {
+      if (!was || ((m.priceHold as any)?.reason ?? 'channel-changed') !== reason) {
         held++;
-        logs.push({ ...base(m), kind: 'HOLD', oldPrice: agreedPrice(d), newPrice: seen, channelPrice: seen, note: `${cfg.priceFrom}:website-changed` });
+        if (reason === 'big-jump') jumps++;
+        logs.push(reason === 'big-jump'
+          ? { ...base(m), kind: 'HOLD', oldPrice: seen, newPrice: price, channelPrice: seen, note: `${cfg.priceFrom}:big-jump:${jump?.pct ?? ''}%` }
+          : { ...base(m), kind: 'HOLD', oldPrice: agreedPrice(d), newPrice: seen, channelPrice: seen, note: `${cfg.priceFrom}:website-changed` });
       }
     }
 
@@ -303,7 +319,7 @@ export class StockPushService implements OnModuleInit, OnModuleDestroy {
 
     await logPrice(this.prisma, logs);
     if (pulledNames.length) await logPriceBatch(this.prisma, ch, 'PRICE_PULL', pulledNames.length, { from: cfg.priceFrom, items: pulledNames });
-    if (held) await logPriceBatch(this.prisma, ch, 'PRICE_HOLD', held, { from: cfg.priceFrom });
+    if (held) await logPriceBatch(this.prisma, ch, 'PRICE_HOLD', held, { from: cfg.priceFrom, ...(jumps && { bigJumps: jumps }) });
     return { sent: pushes.length, pulled: pulledNames.length, held };
   }
 

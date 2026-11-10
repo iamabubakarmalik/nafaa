@@ -9,6 +9,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { nearestKind } from '@modules/inventory/categories/lib/kinds';
 import { CakeSlice, ChefHat, Clock, Leaf, Search, ShoppingBag, Snowflake, Trash2, Wheat } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
@@ -17,7 +18,7 @@ import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEdi
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
 import { Chip, NumberField, Section, TextField, Tiles, Toggle, inputClass } from '@modules/inventory/products/editor/fields';
 import type { CoreOptions, EditorConfig, EditorDraft, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
-import { bakeryProductsApi, type CakeFlavor, type CakeShape, type CreamType } from '../api/products.api';
+import { bakeryProductsApi, type BakeryCategory, type CakeFlavor, type CakeShape, type CreamType } from '../api/products.api';
 import { ingredientsApi } from '../api/ingredients.api';
 import { CREAMS, FLAVORS, SHAPES } from '../api/constants';
 import { CATEGORY_SUGGESTIONS, defaultShelfLifeDays, deriveBakeryCategory, isCakeLike, needsFridge } from '../lib/bakeryCategory';
@@ -65,7 +66,8 @@ const num = (v: unknown) => (v === null || v === undefined || v === '' ? null : 
 function useBakeryCategory(d: EditorDraft<BakeryExtra>) {
   const { data: cats = [] } = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000 });
   const catName = cats.find((c) => c.id === d.core.categoryId)?.name;
-  return deriveBakeryCategory(catName, d.core.name);
+  // A kind set on the shop category (or its nearest parent) wins over the guess from the names.
+  return (nearestKind(cats, d.core.categoryId) as BakeryCategory | null) ?? deriveBakeryCategory(catName, d.core.name);
 }
 
 /* ── Basic step additions ── */
@@ -388,7 +390,7 @@ const config: EditorConfig<BakeryExtra> = {
       await bakeryProductsApi.upsert({
         productId,
         productType: kindOf(d),
-        category: deriveBakeryCategory(cats.find((k) => k.id === c.categoryId)?.name, c.name),
+        category: (nearestKind(cats, c.categoryId) as BakeryCategory | null) ?? deriveBakeryCategory(cats.find((k) => k.id === c.categoryId)?.name, c.name),
         defaultSize: deriveSize(c.unit, x.weightGrams ?? ''),
         defaultFlavor: made ? x.flavor : undefined, defaultShape: made ? x.shape : undefined, defaultCreamType: made ? x.cream : undefined,
         ...rates,

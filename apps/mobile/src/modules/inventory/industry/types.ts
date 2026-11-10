@@ -152,6 +152,11 @@ export interface InventoryIndustryConfig {
   id: string;
   /** Business type shown in headings, raw text, e.g. "Retail". */
   label: string;
+  /**
+   * Kinds a shop category may carry in this industry; the product type is derived from the
+   * category's kind (or its nearest parent's). Absent = this industry uses no kinds.
+   */
+  categoryKinds?: Array<{ value: string; label: string }>;
   list?: ProductsListConfig;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   editor?: EditorConfig<any>;

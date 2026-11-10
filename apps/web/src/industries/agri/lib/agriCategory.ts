@@ -146,3 +146,8 @@ export const AGRI_CATEGORY_SUGGESTIONS: Array<{ name: string; emoji: string }> =
   { name: 'Machine ka purza', emoji: '⚙️' },
   { name: 'Organic',         emoji: '♻️' },
 ];
+
+/** Kinds a category can carry in an agri shop (see categoryKinds on the pack). */
+export const AGRI_CATEGORY_KINDS: Array<{ value: string; label: string }> = (Object.keys(AGRI_KIND_LABEL) as AgriKind[])
+  .filter((k) => k !== 'OTHER')
+  .map((k) => ({ value: k, label: AGRI_KIND_LABEL[k] }));

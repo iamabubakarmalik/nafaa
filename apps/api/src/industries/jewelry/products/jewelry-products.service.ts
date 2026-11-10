@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../../modules/auth/interfaces/jwt-payload.interface';
+import { CATEGORY_KIND_VALUES, deriveProductKind } from '../../../modules/inventory/categories/category-kind';
 import { UpsertJewelryProductDto } from './dto/upsert-jewelry-product.dto';
 
 @Injectable()
@@ -21,6 +22,9 @@ export class JewelryProductsService {
 
     return this.prisma.$transaction(async (tx) => {
       const existing = await tx.jewelryProductProfile.findUnique({ where: { productId: dto.productId } });
+      // One category system: the jewelry type comes from the shop category's kind; without one the product keeps its own type.
+      const cats = await tx.category.findMany({ where: { tenantId: user.tenantId }, select: { id: true, parentId: true, kind: true } });
+      payload.category = deriveProductKind(cats, product.categoryId, existing?.category ?? dto.category, 'OTHER', CATEGORY_KIND_VALUES.JEWELRY);
 
       const profile = existing
         ? await tx.jewelryProductProfile.update({

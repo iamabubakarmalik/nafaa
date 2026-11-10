@@ -89,12 +89,16 @@ export class PriceSourceService {
   // HELD PRICES
   // ═══════════════════════════════════════════════════════════
 
-  async holds(user: AuthenticatedUser, channelId: string, q: { page?: number; limit?: number }) {
+  async holds(user: AuthenticatedUser, channelId: string, q: { page?: number; limit?: number; reason?: string }) {
     const i = await this.channel(user.tenantId, channelId);
     const cfg = readWebsiteConfig(i.config);
     const page = Math.max(1, Number(q.page) || 1);
     const limit = Math.min(200, Math.max(5, Number(q.limit) || 50));
-    const where: Prisma.ProductChannelMappingWhereInput = { integrationId: i.id, NOT: { priceHold: { equals: Prisma.DbNull } } };
+    const where: Prisma.ProductChannelMappingWhereInput = {
+      integrationId: i.id, NOT: { priceHold: { equals: Prisma.DbNull } },
+      // "big-jump" lists only the safety-guard holds; without a reason every hold is listed.
+      ...(q.reason === 'big-jump' && { priceHold: { path: ['reason'], equals: 'big-jump' } }),
+    };
     const [total, rows] = await Promise.all([
       this.prisma.productChannelMapping.count({ where }),
       this.prisma.productChannelMapping.findMany({ where, orderBy: { id: 'asc' }, skip: (page - 1) * limit, take: limit, select: LINK_SELECT }),
@@ -112,6 +116,8 @@ export class PriceSourceService {
           channelPrice: Number(d.channelPrice ?? h.channelPrice) || null,
           agreedPrice: agreedPrice(d),
           since: h.since ?? null, channelPriceAt: d.channelPriceAt ?? h.channelPriceAt ?? null,
+          reason: h.reason === 'big-jump' ? 'big-jump' : 'channel-changed',
+          jumpPct: Number.isFinite(Number(h.jumpPct)) ? Number(h.jumpPct) : null,
           target: canPull(r) ? pullTarget(cfg, r, (want.get(r.id)?.branch ?? null) !== null) : null,
         };
       }),
@@ -123,21 +129,30 @@ export class PriceSourceService {
    * me lein": the channel price is set in Nafaa (link price with a price rule,
    * else product/branch price, or as the channel setting says). The hold ends.
    */
-  async resolve(user: AuthenticatedUser, channelId: string, body: { action?: string; mappingIds?: string[]; all?: boolean }) {
+  async resolve(user: AuthenticatedUser, channelId: string, body: { action?: string; mappingIds?: string[]; all?: boolean; reason?: string }) {
     this.assertManager(user);
     const i = await this.channel(user.tenantId, channelId);
     const action = body?.action;
-    if (action !== 'nafaa' && action !== 'website') throw new BadRequestException('Kaam chunein');
+    if (action !== 'nafaa' && action !== 'website' && action !== 'keep') throw new BadRequestException('Kaam chunein');
     const ids = (body.mappingIds ?? []).map(String);
     if (!body.all && !ids.length) throw new BadRequestException('Koi link nahi chuna');
-    const rows = await this.prisma.productChannelMapping.findMany({
+    const found = await this.prisma.productChannelMapping.findMany({
       where: { integrationId: i.id, NOT: { priceHold: { equals: Prisma.DbNull } }, ...(body.all ? {} : { id: { in: ids.slice(0, 5000) } }) },
       select: LINK_SELECT,
       take: 5000,
     });
+    // "All" acts on one kind of hold: the safety-guard holds ("big-jump") are never settled
+    // together with the ordinary "website par badli" holds, and the other way round.
+    const isJump = (r: LinkRow) => (r.priceHold as any)?.reason === 'big-jump';
+    const rows = body.all ? found.filter((r) => (body.reason === 'big-jump') === isJump(r)) : found;
     if (!rows.length) return { resolved: 0, sent: 0, taken: 0, skipped: 0, errors: [] as string[] };
     const cfg = readWebsiteConfig(i.config);
     const errors: string[] = [];
+    if (action === 'keep') {
+      const kept = await this.keepChannel(i, cfg, rows, user.id);
+      await logPriceBatch(this.prisma, i, 'PRICE_RESOLVE', kept, { action, by: user.id });
+      return { resolved: kept, sent: 0, taken: 0, skipped: rows.length - kept, errors };
+    }
     if (action === 'nafaa') {
       const res = await this.sendNafaa(i, rows.map((r) => r.id), errors);
       await this.logDecision(i, cfg, rows, 'KEEP_NAFAA', user.id, 'held');
@@ -147,6 +162,29 @@ export class PriceSourceService {
     const taken = await this.takeChannel(i, cfg, rows, user.id, 'KEEP_CHANNEL', errors);
     await logPriceBatch(this.prisma, i, 'PRICE_RESOLVE', taken, { action, by: user.id });
     return { resolved: taken, sent: 0, taken, skipped: rows.length - taken, errors };
+  }
+
+  /**
+   * "Nahi" on a big price jump: nothing is sent and nothing changes in Nafaa.
+   * The declined Nafaa price is remembered on the link, so the sync does not
+   * ask again until Nafaa's price for the link changes.
+   */
+  private async keepChannel(i: Integration, cfg: WebsiteConfig, rows: LinkRow[], userId: string | null) {
+    const want = await this.wantPrices(i, cfg, rows);
+    const at = new Date().toISOString();
+    let kept = 0;
+    for (const r of rows) {
+      const d = ((r.externalData as any) ?? {}) as Record<string, any>;
+      const h = ((r.priceHold as any) ?? {}) as Record<string, any>;
+      const nafaaPrice = want.get(r.id)?.want ?? Number(h.nafaaPrice);
+      const res = await this.prisma.productChannelMapping.update({
+        where: { id: r.id },
+        data: { priceHold: Prisma.DbNull, externalData: { ...d, priceGuardDeclined: { nafaaPrice, channelPrice: Number(d.channelPrice ?? h.channelPrice) || null, at, by: userId } } as any },
+      }).catch(() => null);
+      if (res) kept++;
+    }
+    await this.logDecision(i, cfg, rows, 'KEEP_CHANNEL_PRICE', userId, 'big-jump-declined');
+    return kept;
   }
 
   /** Explicit push of Nafaa's price for these links (any price source). */
@@ -194,7 +232,7 @@ export class PriceSourceService {
     return taken;
   }
 
-  private async logDecision(i: Integration, cfg: WebsiteConfig, rows: LinkRow[], kind: 'KEEP_NAFAA' | 'RECOVER_NAFAA', userId: string | null, note: string) {
+  private async logDecision(i: Integration, cfg: WebsiteConfig, rows: LinkRow[], kind: 'KEEP_NAFAA' | 'RECOVER_NAFAA' | 'KEEP_CHANNEL_PRICE', userId: string | null, note: string) {
     const want = await this.wantPrices(i, cfg, rows);
     await logPrice(this.prisma, rows.map((r) => ({
       tenantId: i.tenantId, integrationId: i.id, mappingId: r.id, productId: r.productId, variantId: r.variantId, kind,

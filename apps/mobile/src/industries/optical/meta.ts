@@ -146,6 +146,8 @@ const TYPE_LABEL: Record<string, string> = {
   CONTACT_LENS_MONTHLY: msg('Monthly'), CONTACT_LENS_DAILY: msg('Daily'), CONTACT_LENS_YEARLY: msg('Yearly'), CONTACT_LENS_COLORED: msg('Rangeen'), CONTACT_LENS_TORIC: msg('Toric'), CONTACT_LENS_MULTIFOCAL: msg('Multifocal'),
   CLEANING_SOLUTION: msg('Solution'), LENS_CASE: msg('Lens case'), ACCESSORY: msg('Accessory'), OTHER: msg('Doosra'),
 };
+/** Untranslated label (a msg key), for lists that translate at render time. */
+export const typeLabelKey = (c: string) => TYPE_LABEL[c] ?? c;
 export const typeLabel = (c?: string | null) => (c ? t(TYPE_LABEL[c] ?? c) : '');
 export { kindOf };
 

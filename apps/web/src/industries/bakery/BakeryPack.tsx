@@ -15,6 +15,7 @@ import BakeryProducts from './products/BakeryProducts';
 import BakeryDashboard from './dashboard/BakeryDashboard';
 import BakeryBulkOrderFormPage from './pages/BakeryBulkOrderFormPage';
 import { t } from '@core/i18n';
+import { CATEGORIES } from './api/constants';
 
 /**
  * Bakery / Cake Shop / Sweet Shop industry pack.
@@ -29,6 +30,8 @@ export const BakeryPack: IndustryPack = {
   priority: 72,
   description:
     t('Cake customizer, production batches, freshness / expiry, ingredient inventory, wedding & event bulk orders.'),
+
+  categoryKinds: CATEGORIES.filter((c) => c.value !== 'OTHER').map((c) => ({ value: c.value, label: c.label })),
 
   matches: (tenant) => {
     if (!tenant) return false;

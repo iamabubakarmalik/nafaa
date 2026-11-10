@@ -14,6 +14,7 @@ import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@m
 import { petProductsApi, type PetCategoryType, type PetLifeStage, type PetSpeciesType } from '../api/products.api';
 import { CATEGORY_GROUPS, LIFE_STAGE, PET_KEYS, SPECIES, categoryGroup, categoryLabel, speciesLabel } from '../lib/meta';
 import { t } from '@core/i18n';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 
 interface PetExtra {
   categoryType: PetCategoryType | '';
@@ -38,21 +39,9 @@ const opt = (v: string) => v.trim() || undefined;
 const num = (v: number | null) => (v != null && Number.isFinite(v) ? v : undefined);
 
 function Kind({ ctx }: { ctx: StepContext<PetExtra> }) {
-  const x = ctx.draft.extra;
-  return (
-    <div className="space-y-2">
-      <span className="block text-[0.8125rem] font-medium text-slate-700">{t('Ye kya hai')}</span>
-      {CATEGORY_GROUPS.map((g) => (
-        <div key={g.id}>
-          <p className="mb-1 text-[0.75rem] font-semibold text-slate-500">{g.label}</p>
-          <div className="flex flex-wrap gap-1.5">
-            {g.items.map(([v, l]) => <Chip key={v} on={x.categoryType === v} onClick={() => ctx.setExtra({ categoryType: x.categoryType === v ? '' : v })}>{l}</Chip>)}
-          </div>
-        </div>
-      ))}
-      <p className="text-[0.75rem] text-slate-500">{t('Isi se counter ke filter (khana, dawai, aquarium) chalte hain.')}</p>
-    </div>
-  );
+  // The item type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (kind) => ctx.setExtra({ categoryType: kind as PetCategoryType }));
+  return null;
 }
 
 function Details({ ctx }: { ctx: StepContext<PetExtra> }) {

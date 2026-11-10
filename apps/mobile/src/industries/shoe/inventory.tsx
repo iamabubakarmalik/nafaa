@@ -16,11 +16,12 @@ import { msg, t } from '@/core/i18n';
 import { queryClient } from '@/core/query/client';
 import { Badge, Button, Card, Chip, ChipGroup, FormSection, Input, ListRow, MoneyInput, Row, Select, Switch, Text, useTheme } from '@/design';
 import { variantsApi } from '@/modules/inventory/api/products';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
 import { shoeProductsApi, type ShoeMeta, type SizeGrid } from './api';
-import { GENDERS, META_KEY, SEASONS, SHOE_TYPES, SYSTEM_LABEL, genderLabel, opt, typeLabel } from './meta';
+import { GENDERS, META_KEY, SEASONS, SHOE_KINDS, SYSTEM_LABEL, genderLabel, opt, typeLabel } from './meta';
 
 export interface ShoeExtra {
   gender: string; categoryType: string; modelCode: string; modelName: string; season: string; colorName: string; sizeSystem: SizeSystem; mrp: number | null;
@@ -32,7 +33,7 @@ export interface ShoeExtra {
 }
 
 const initial: ShoeExtra = {
-  gender: 'MEN', categoryType: 'MENS_FORMAL', modelCode: '', modelName: '', season: '', colorName: '', sizeSystem: 'UK', mrp: null,
+  gender: 'MEN', categoryType: 'OTHER', modelCode: '', modelName: '', season: '', colorName: '', sizeSystem: 'UK', mrp: null,
   upperMaterial: '', soleMaterial: '', closureType: '', heelHeight: '', runsLarge: false, runsSmall: false, sizingNotes: '',
   isWaterproof: false, isOrthopedic: false, isHandmade: false, includesBox: true, warrantyMonths: 0, careInstructions: '',
   isNewArrival: true, isBestSeller: false, isBridal: false, isEidSpecial: false, variantMeta: {},
@@ -40,15 +41,15 @@ const initial: ShoeExtra = {
 
 function Identity({ ctx }: { ctx: StepContext<ShoeExtra> }) {
   const x = ctx.draft.extra;
-  const setType = (categoryType: string) => {
+  // The shoe type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.categoryType, (categoryType) => {
     ctx.setExtra({ categoryType, ...(categoryType === 'BRIDAL_SHOES' ? { isBridal: true } : {}) });
     if (isAccessory(categoryType) && ctx.draft.core.unit === 'pair') ctx.setCore({ unit: 'pcs' });
-  };
+  });
   return (
     <FormSection title={t('Joota')}>
       <Text size="sm" weight="semibold" tone="secondary">{t('Kis ke liye')}</Text>
       <ChipGroup wrap value={x.gender} onChange={(gender) => ctx.setExtra({ gender })} options={GENDERS.map((g) => ({ value: g.value, label: t(g.label) }))} />
-      <Select label={t('Joote ki type')} value={x.categoryType} searchable onChange={setType} options={SHOE_TYPES.map((s) => ({ value: s.value, label: `${t(s.group)} · ${t(s.label)}` }))} hint={t('POS ke filter aur reports isi se')} />
       <Input label={t('Article number')} value={x.modelCode} onChangeText={(modelCode) => ctx.setExtra({ modelCode })} placeholder={t('Jaise 821-4567')} maxLength={40} ltr hint={t('Dabbe par company ka article — search aur barcode me kaam aata hai')} />
       <Input label={t('Season / collection')} value={x.season} onChangeText={(season) => ctx.setExtra({ season })} placeholder={t('Summer, Winter, Eid…')} maxLength={40} hint={t('Season khatam ho to MRP se kam rate rakh kar Sale lagayein')} />
       <ChipGroup wrap value={x.season} onChange={(season) => ctx.setExtra({ season })} options={SEASONS.map((s) => ({ value: s, label: s }))} />
@@ -249,6 +250,7 @@ function SizeTable({ grid }: { grid: SizeGrid }) {
 registerInventoryIndustry({
   id: 'shoe',
   label: msg('Shoes'),
+  categoryKinds: SHOE_KINDS,
   list: {
     noun: 'joota',
     filters: ['tags'],

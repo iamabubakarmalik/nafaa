@@ -25,6 +25,7 @@ import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { useMasked } from '@modules/dashboard/engine/useMasked';
 import { taxonomyApi, type TaxonomyItem, type TaxonomyKind } from './api';
 import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
+import { KindSelect } from '@modules/inventory/categories/components/KindSelect';
 import { childrenMap, descendants, treeOrder } from '@modules/inventory/categories/lib/tree';
 import { t } from '@core/i18n';
 
@@ -491,6 +492,7 @@ function EditorModal({ config, items, item, parentId, busy, onClose, onSave }: {
             <span className="mt-1 block text-[0.75rem] text-slate-500">{t('Sub-category banane ke liye upar wali category chunein — jaise Mashroobat › Cold drinks')}</span>
           </label>
         )}
+        {config.kind === 'category' && <KindSelect value={d.kind as string | null | undefined} onChange={(k) => set('kind', k)} />}
         {config.color && (
           <div>
             <p className="mb-1.5 text-[0.8125rem] font-semibold text-slate-800">{t('Rang')}</p>

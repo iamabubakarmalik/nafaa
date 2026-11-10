@@ -976,6 +976,8 @@ model Category {
   parentId  String?
   /// Order among siblings (drag to reorder on the categories page).
   sortOrder Int      @default(0)
+  /// Optional industry kind (for example an agri item type); products inherit it from the nearest category that has one.
+  kind      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

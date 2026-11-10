@@ -1,15 +1,15 @@
 /**
- * Agri product editor on the shared product editor: what kind of input it
- * is (seed, fertilizer, spray, feed, tool), the pack weight and formula,
+ * Agri product editor on the shared product editor: the pack weight and formula,
  * the crops and season it is for, spray safety, the government
  * registration, and a bulk rate. Stock opens by batch with expiry (sprays).
  */
 
-import { Bug, FlaskConical, Leaf, PawPrint, ShieldAlert, Sprout, Tags, Wrench } from 'lucide-react';
+import { Bug, Leaf, ShieldAlert, Sprout, Tags } from 'lucide-react';
 import { cn } from '@core/lib/cn';
+import { useCategoryKindSync } from '@modules/inventory/categories/lib/kinds';
 import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
-import { Chip, NumberField, Section, TextField, Tiles, Toggle, inputClass } from '@modules/inventory/products/editor/fields';
+import { Chip, NumberField, Section, TextField, Toggle, inputClass } from '@modules/inventory/products/editor/fields';
 import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
 import { agriProductsApi, type AgriCategory, type AgriProductProfile, type FeedType, type FertilizerType, type SeedType, type SeasonType } from '../api/products.api';
 import { AGRI_FACTS_KEY } from '../hooks/useAgriFacts';
@@ -32,7 +32,7 @@ export interface AgriExtra {
 }
 
 const initial: AgriExtra = {
-  category: 'FERTILIZER', seedType: '', fertilizerType: '', feedType: '', brand: '', manufacturer: '',
+  category: 'OTHER', seedType: '', fertilizerType: '', feedType: '', brand: '', manufacturer: '',
   packSize: '50', packUnit: 'kg', npkRatio: '', activeIngredient: '', concentration: '',
   targetCrops: [], targetPests: '', season: '', applicationRate: '', applicationMethod: '',
   toxicityLevel: '', reEntryPeriod: null, ppePeriod: null, warningLabel: '',
@@ -40,21 +40,6 @@ const initial: AgriExtra = {
   bulkDiscountThreshold: null, bulkDiscountPct: null, storageInstructions: '',
 };
 
-const KINDS: Array<{ value: AgriCategory; label: string; icon: typeof Sprout }> = [
-  { value: 'SEEDS', label: tr('Beej'), icon: Sprout },
-  { value: 'FERTILIZER', label: tr('Khaad'), icon: FlaskConical },
-  { value: 'INSECTICIDE', label: tr('Keeray ki dawa'), icon: Bug },
-  { value: 'HERBICIDE', label: tr('Ghaas ki dawa'), icon: Bug },
-  { value: 'FUNGICIDE', label: tr('Fungus ki dawa'), icon: Bug },
-  { value: 'PLANT_NUTRIENT', label: tr('Ghiza / zinc'), icon: Leaf },
-  { value: 'ANIMAL_FEED', label: tr('Feed'), icon: PawPrint },
-  { value: 'VETERINARY_MEDICINE', label: tr('Jaanwar ki dawa'), icon: PawPrint },
-  { value: 'FARM_TOOLS', label: tr('Auzaar / sprayer'), icon: Wrench },
-  { value: 'OTHER', label: tr('Kuch aur'), icon: Leaf },
-];
-const SEED_TYPES: Array<[SeedType, string]> = [['WHEAT', tr('Gandum')], ['COTTON', tr('Kapas')], ['RICE', tr('Chawal')], ['MAIZE', tr('Makai')], ['SUGARCANE', tr('Ganna')], ['POTATO', tr('Aloo')], ['VEGETABLES', tr('Sabzi')], ['FODDER', tr('Chara')], ['OILSEEDS', tr('Tel wale')], ['OTHER', tr('Aur')]];
-const FERT_TYPES: Array<[FertilizerType, string]> = [['UREA', tr('Urea')], ['DAP', 'DAP'], ['NPK', 'NPK'], ['POTASH', tr('Potash (SOP/MOP)')], ['ZINC', tr('Zinc')], ['BORON', tr('Boron')], ['ORGANIC', tr('Organic')], ['LIQUID', tr('Liquid')], ['OTHER', tr('Aur')]];
-const FEED_TYPES: Array<[FeedType, string]> = [['CONCENTRATE', tr('Wanda')], ['STARTER', tr('Starter')], ['GROWER', tr('Grower')], ['FINISHER', tr('Finisher')], ['LAYER', tr('Layer')], ['MINERAL_MIX', tr('Mineral mix')], ['OIL_CAKE', tr('Khal')], ['BRAN', tr('Chokar')], ['OTHER', tr('Aur')]];
 const PACK_UNITS = ['kg', 'gram', 'litre', 'ml'];
 const TOXICITY = [{ v: 'I', l: tr('Laal (bohat zehreeli)') }, { v: 'II', l: tr('Peeli') }, { v: 'III', l: tr('Neeli') }, { v: 'IV', l: tr('Hari (kam)') }];
 
@@ -64,21 +49,13 @@ const isSpray = (k: AgriCategory) => isSprayKind(k as AgriKind);
 /* ── Basic step addition: what it is and the company ── */
 function Kind({ ctx }: { ctx: StepContext<AgriExtra> }) {
   const x = ctx.draft.extra;
-  const k = x.category as AgriKind;
-  const sub: Array<[string, string]> | null = isSeedKind(k) ? SEED_TYPES : isFertKind(k) ? FERT_TYPES : isFeedKind(k) ? FEED_TYPES : null;
-  const subValue = isSeedKind(k) ? x.seedType : isFertKind(k) ? x.fertilizerType : x.feedType;
-  const setSub = (v: string) => ctx.setExtra(isSeedKind(k) ? { seedType: v as SeedType } : isFertKind(k) ? { fertilizerType: v as FertilizerType } : { feedType: v as FeedType });
+  // The item type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, x.category, (kind) => {
+    const category = kind as AgriCategory;
+    ctx.setExtra({ category, ...(isSpray(category) && !['litre', 'ml'].includes(x.packUnit) && { packUnit: 'ml', packSize: '' }) });
+  });
   return (
     <div className="space-y-4">
-      <Section title={tr('Kya cheez hai')} hint={tr('Isi se POS ka filter, registration ki shart aur spray ki hifazat ka sawal tay hota hai')}>
-        <Tiles value={x.category} onChange={(category) => ctx.setExtra({ category, ...(isSpray(category) && !['litre', 'ml'].includes(x.packUnit) && { packUnit: 'ml', packSize: '' }) })}
-          columns="grid-cols-2 sm:grid-cols-5" options={KINDS.map((o) => ({ value: o.value, label: o.label, icon: o.icon }))} />
-        {sub && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {sub.map(([v, l]) => <Chip key={v} on={subValue === v} onClick={() => setSub(subValue === v ? '' : v)}>{l}</Chip>)}
-          </div>
-        )}
-      </Section>
       <div className="grid gap-3 sm:grid-cols-2">
         <TextField label={tr('Company')} value={x.manufacturer} onChange={(manufacturer) => ctx.setExtra({ manufacturer })} placeholder={tr('Fauji, Engro, Syngenta, ICI…')} hint={tr('Card par dikhti hai — company ka maal isi se dhoondte hain')} />
         <TextField label={tr('Brand')} value={x.brand} onChange={(brand) => ctx.setExtra({ brand })} placeholder={tr('Sona Urea, Confidor…')} hint={tr('Marzi hai')} />
@@ -210,7 +187,7 @@ const rulesStep: StepDef<AgriExtra> = {
 };
 
 const toProfile = (productId: string, x: AgriExtra): Partial<AgriProductProfile> => ({
-  productId, category: x.category,
+  productId, category: x.category || 'OTHER',
   seedType: isSeedKind(x.category as AgriKind) && x.seedType ? x.seedType : undefined,
   fertilizerType: isFertKind(x.category as AgriKind) && x.fertilizerType ? x.fertilizerType : undefined,
   feedType: isFeedKind(x.category as AgriKind) && x.feedType ? x.feedType : undefined,
@@ -233,9 +210,9 @@ const config: EditorConfig<AgriExtra> = {
     initial,
     load: async (productId) => {
       const p = await agriProductsApi.byProduct(productId).catch(() => null);
-      if (!p) return {};
+      if (!p) return { category: 'OTHER' };
       return {
-        category: p.category, seedType: p.seedType ?? '', fertilizerType: p.fertilizerType ?? '', feedType: p.feedType ?? '',
+        category: p.category ?? 'OTHER', seedType: p.seedType ?? '', fertilizerType: p.fertilizerType ?? '', feedType: p.feedType ?? '',
         brand: p.brand ?? '', manufacturer: p.manufacturer ?? '', packSize: p.packSize ?? '', packUnit: p.packUnit ?? 'kg',
         npkRatio: p.npkRatio ?? '', activeIngredient: p.activeIngredient ?? '', concentration: p.concentration ?? '',
         targetCrops: p.targetCrops ?? [], targetPests: (p.targetPests ?? []).join(', '), season: p.season ?? '',

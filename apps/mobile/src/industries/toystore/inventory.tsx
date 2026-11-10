@@ -22,6 +22,7 @@ import { Input } from '@/design';
 import { toyProductsApi, type ToyFact, type ToyProductProfile } from './api';
 import { useToyFacts } from './hooks';
 import { AGE_GROUPS, BATTERIES, CATEGORIES, CATEGORY_GROUPS, CERTIFICATIONS, GENDERS, KEYS, ageText, factLine, labelOf } from './meta';
+import { useCategoryKindSync } from '@/modules/inventory/components/Pickers';
 
 export interface ToyExtra {
   categoryType: string; ageGroup: string; ageGroups: string[]; ageMinYears: number | null; ageMaxYears: number | null; genderTarget: string;
@@ -51,15 +52,10 @@ const pairs = (list: Array<[string, string]>) => list.map(([value, label]) => ({
 
 function Kind({ ctx }: { ctx: StepContext<ToyExtra> }) {
   const x = ctx.draft.extra;
+  // The item type comes from the shop category's kind (nearest parent); the editor shows no separate picker.
+  useCategoryKindSync(ctx.draft.core.categoryId, ctx.draft.extra.categoryType, (kind) => ctx.setExtra({ categoryType: kind }));
   return (
     <>
-      <Label>{t('Khilone ka type')}</Label>
-      {CATEGORY_GROUPS.map((g) => (
-        <Row key={g.group} gap={2} wrap align="center">
-          <Text size="2xs" weight="semibold" tone="muted" style={{ width: '100%' }}>{t(g.group)}</Text>
-          <ChipGroup wrap value={x.categoryType} onChange={(v) => ctx.setExtra({ categoryType: x.categoryType === v ? '' : v })} options={pairs(g.items)} />
-        </Row>
-      ))}
       <Input label={t('Brand')} value={x.brand} onChangeText={(brand) => ctx.setExtra({ brand })} placeholder={t('Hot Wheels, Barbie, Lego, local')} />
       <Input label={t('Character')} value={x.characterFranchise} onChangeText={(characterFranchise) => ctx.setExtra({ characterFranchise })} placeholder={t('Spider-Man, Frozen, Doraemon')} hint={t('Bachay isi naam se maangte hain — POS search me aata hai')} />
     </>
@@ -226,6 +222,7 @@ type Facts = Map<string, ToyFact>;
 registerInventoryIndustry({
   id: 'toystore',
   label: msg('Toy shop'),
+  categoryKinds: CATEGORIES.filter(([v]) => v !== 'OTHER').map(([value, label]) => ({ value, label })),
   list: {
     noun: 'khilona',
     filters: ['tags'],
