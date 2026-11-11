@@ -534,6 +534,7 @@ model Tenant {
   distCollections      DistCollection[]
   distVisits           DistVisit[]
   distDeliveryReports  DistDeliveryReport[]
+
   @@index([lastActiveAt])
 }
 
@@ -25883,4 +25884,31 @@ model AdminAuditLog {
   @@index([createdAt])
   @@index([actorId, createdAt])
   @@index([targetType, targetId])
+}
+
+/// Server errors grouped by fingerprint (admin System → Errors). One row per
+/// distinct error; repeats raise `count` and `lastSeenAt`. A resolved error
+/// that happens again is reopened.
+model ServerError {
+  id           String    @id @default(uuid())
+  fingerprint  String    @unique
+  /// "http" or "job"
+  source       String
+  method       String?
+  /// Route pattern for requests, job key for jobs.
+  route        String
+  status       Int?
+  message      String    @db.Text
+  stack        String?   @db.Text
+  count        Int       @default(1)
+  firstSeenAt  DateTime  @default(now())
+  lastSeenAt   DateTime  @default(now())
+  lastPath     String?
+  lastUserId   String?
+  lastTenantId String?
+  resolvedAt   DateTime?
+  resolvedById String?
+
+  @@index([lastSeenAt])
+  @@index([resolvedAt, lastSeenAt])
 }

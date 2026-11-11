@@ -10,7 +10,7 @@
  * Cloudinary asset and the row 30 days later.
  */
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression } from '../../../core/system-control/cron.decorator';
 import { CmsMediaKind, Prisma, type CmsMedia } from '@prisma/client';
 import { createHash } from 'crypto';
 import { v2 as cloudinary, type UploadApiResponse } from 'cloudinary';

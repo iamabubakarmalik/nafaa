@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression } from '../../../core/system-control/cron.decorator';
 import { DailySummaryService } from './daily-summary.service';
 
 /** How late a summary may still go out, e.g. after a restart. */

@@ -9,7 +9,7 @@
  */
 
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../../core/system-control/cron.decorator';
 import { MetaAdAction, Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { apiText } from '../../../common/i18n/api-message';

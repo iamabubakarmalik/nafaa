@@ -109,6 +109,7 @@ import PosGate from '@modules/pos/pages/PosGate';
 import SalesGate from '@modules/sales/sales/pages/SalesGate';
 import ReceiptPage from '@modules/sales/sales/pages/ReceiptPage';
 import { OfflineBanner, SyncCenterPage } from '@core/lib/offline/ui';
+import { MaintenanceBanner } from '@core/components/MaintenanceBanner';
 import ReturnsPage from '@modules/sales/returns/pages/ReturnsPage';
 import DiscountsPage from '@modules/sales/discounts/pages/DiscountsPage';
 import LoyaltyPage from '@modules/customers/loyalty/pages/LoyaltyPage';
@@ -288,6 +289,7 @@ export default function App() {
         <IndustryProvider>
           <AppearanceBridge />
           <OfflineBanner />
+          <MaintenanceBanner />
           <Routes>
             {/* ═══ BILKUL PUBLIC — login ho ya na ho (customer ka order form, developer link) ═══ */}
             <Route path="/order/:key" element={<PublicOrderPage />} />

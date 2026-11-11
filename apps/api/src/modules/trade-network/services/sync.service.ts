@@ -20,7 +20,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../../core/system-control/cron.decorator';
 import { Prisma, TradeLink, TradeOrder } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ShopScope } from '../../../common/shop-scope';

@@ -9,7 +9,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression } from '../../core/system-control/cron.decorator';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PushService, type ExpoPushMessage, type ExpoReceipt } from './push.service';
 

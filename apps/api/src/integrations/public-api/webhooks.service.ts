@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../core/system-control/cron.decorator';
 import * as crypto from 'crypto';
 import { promises as dns } from 'dns';
 import { isIP } from 'net';

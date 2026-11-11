@@ -15,7 +15,7 @@
  */
 
 import { Injectable, Logger, type OnModuleInit } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../../core/system-control/cron.decorator';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { applyStockDelta } from '../../../common/shop-scope';
 import { OPEN_KOT } from '../kot/kot.service';

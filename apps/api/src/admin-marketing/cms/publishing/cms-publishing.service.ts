@@ -18,7 +18,7 @@
  * "scheduled" means `publishAt` is set.
  */
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression } from '../../../core/system-control/cron.decorator';
 import { CmsStatus, Prisma, type CmsEntry } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {

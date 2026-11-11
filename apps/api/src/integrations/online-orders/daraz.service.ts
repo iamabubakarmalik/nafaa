@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from 'crypto';
 import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit, UnauthorizedException } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../core/system-control/cron.decorator';
 import * as crypto from 'crypto';
 import { Integration, IntegrationStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';

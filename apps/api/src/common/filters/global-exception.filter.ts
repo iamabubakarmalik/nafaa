@@ -5,10 +5,12 @@ import {
   HttpException,
   HttpStatus,
   Logger,
+  Optional,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Request, Response } from 'express';
 import { STATUS_CODES } from 'http';
+import { ErrorLogService, routeFromPath } from '../../core/system-control/error-log.service';
 
 /** Plain answers for database errors the client can act on. */
 const PRISMA_KNOWN: Record<string, { status: number; message: string }> = {
@@ -32,6 +34,8 @@ const SERVER_ERROR_MESSAGE = 'Server me masla aa gaya. Thori der baad dobara try
 export class GlobalExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionFilter.name);
 
+  constructor(@Optional() private readonly errorLog?: ErrorLogService) {}
+
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -42,6 +46,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let error = 'InternalServerError';
     // Set by apiMessage() so the web app can translate messages that carry values.
     let translation: { messageKey?: string; params?: unknown } = {};
+    // Maintenance answers carry the expected end time for the merchant apps.
+    let extra: { until?: unknown } = {};
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -52,6 +58,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         const r = res as Record<string, unknown>;
         message = (r.message as string | string[]) ?? message;
         error = (r.error as string) ?? exception.name;
+        if (r.error === 'Maintenance') extra = { until: r.until ?? null };
         if (typeof r.messageKey === 'string') {
           translation = { messageKey: r.messageKey, params: r.params };
           // Same `error` text Nest gives a plain-string exception ("Bad Request").
@@ -78,6 +85,23 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     }
 
+    // Real server faults go to the admin error log. 503 is used on purpose
+    // (maintenance, paused features) and is not a fault.
+    if (status >= 500 && status !== HttpStatus.SERVICE_UNAVAILABLE) {
+      const user = (request as Request & { user?: { id?: string; tenantId?: string } }).user;
+      const url = request.originalUrl ?? request.url;
+      this.errorLog?.capture({
+        source: 'http',
+        method: request.method,
+        route: (request.route?.path as string | undefined) ?? routeFromPath(url),
+        status,
+        path: url,
+        userId: user?.id,
+        tenantId: user?.tenantId,
+        error: exception,
+      });
+    }
+
     if (response.headersSent) return;
     response.status(status).json({
       success: false,
@@ -85,6 +109,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       error,
       message,
       ...translation,
+      ...extra,
       path: request.url,
       timestamp: new Date().toISOString(),
     });

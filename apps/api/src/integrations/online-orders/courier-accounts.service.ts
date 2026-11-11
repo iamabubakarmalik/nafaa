@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, Logger, NotFoundException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { patchOrderMetadata } from './order-metadata';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../core/system-control/cron.decorator';
 import { CourierConfig, CourierProvider, CourierShipmentStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';

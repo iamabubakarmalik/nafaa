@@ -9,12 +9,12 @@
 
 import type { ComponentType, CSSProperties } from 'react';
 import {
-  Activity, BarChart3, Beaker, Bell, BellRing, Bot, Building2, Calendar, CircleHelp, CreditCard, Download,
+  Activity, BarChart3, Beaker, Bell, BellRing, Bot, Bug, Building2, Calendar, CircleHelp, CreditCard, Download,
   FileText, Gift, Globe, Handshake, HeartPulse, Images, Layers, LayoutDashboard, ListChecks, Mail, MailCheck,
   Megaphone, Menu as MenuIcon, MessageSquare, MessageSquareText, MousePointer2, Package, PackageCheck,
   PackageSearch, Paintbrush, Palette, Plug, Power, Receipt, Rocket, Search, Send, Settings, Settings2,
   KeyRound, Radio, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
-  ToggleRight, TrendingUp, Truck, UserX, Users, Wallet,
+  Timer, ToggleRight, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
 
@@ -310,11 +310,11 @@ export const WORKSPACES: AdminWorkspace[] = [
     id: 'system',
     label: 'System & security',
     shortLabel: 'System',
-    description: 'Health, activity log, exports and platform settings',
+    description: 'Health, errors, background jobs, switches and settings',
     icon: ShieldCheck,
     tone: 'bg-slate-700 text-white',
     root: '/health',
-    prefixes: ['/health', '/activity', '/ai-usage', '/exports', '/settings', '/appearance'],
+    prefixes: ['/health', '/system', '/activity', '/ai-usage', '/exports', '/settings', '/appearance'],
     groups: [
       {
         id: 'monitor',
@@ -322,6 +322,8 @@ export const WORKSPACES: AdminWorkspace[] = [
         icon: HeartPulse,
         items: [
           { to: '/health', label: 'System health', icon: HeartPulse, keywords: 'uptime database redis' },
+          { to: '/system/errors', label: 'Errors', icon: Bug, keywords: 'exceptions crashes failures 500 log' },
+          { to: '/system/jobs', label: 'Background jobs', icon: Timer, keywords: 'cron schedule sync pause run' },
           { to: '/activity', label: 'Activity log', icon: Activity, keywords: 'audit history' },
           { to: '/ai-usage', label: 'Nafaa AI usage', icon: Bot, keywords: 'ai cost tokens assistant' },
         ],
@@ -339,6 +341,7 @@ export const WORKSPACES: AdminWorkspace[] = [
         label: 'Configuration',
         icon: Settings,
         items: [
+          { to: '/system/controls', label: 'Platform switches', icon: ToggleRight, keywords: 'maintenance mode signups ai kill switch' },
           { to: '/settings', label: 'Platform settings', icon: Settings },
           { to: '/appearance', label: 'Platform design', icon: Palette, keywords: 'theme colors merchant default' },
         ],
@@ -387,7 +390,7 @@ const AREA_BY_PREFIX: Array<[string, string]> = [
   ['/commerce', 'online_store'], ['/marketing', 'marketing'],
   ['/broadcast', 'communications'], ['/bulk-communications', 'communications'], ['/email-templates', 'communications'],
   ['/email-logs', 'communications'], ['/sms-templates', 'communications'], ['/sms-logs', 'communications'],
-  ['/mobile', 'mobile'], ['/health', 'system'], ['/activity', 'system'], ['/ai-usage', 'system'], ['/exports', 'exports'],
+  ['/mobile', 'mobile'], ['/health', 'system'], ['/system', 'system'], ['/activity', 'system'], ['/ai-usage', 'system'], ['/exports', 'exports'],
   ['/settings', 'settings'], ['/appearance', 'settings'], ['/staff', 'staff'],
 ];
 

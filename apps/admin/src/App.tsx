@@ -24,6 +24,9 @@ const EmailTemplatesPage = lazy(() => import('@/features/email-templates/pages/E
 const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
 const PlatformAppearancePage = lazy(() => import('@/features/appearance/pages/PlatformAppearancePage'));
 const HealthPage = lazy(() => import('@/features/health/pages/HealthPage'));
+const SystemControlsPage = lazy(() => import('@/features/system/pages/ControlsPage'));
+const SystemJobsPage = lazy(() => import('@/features/system/pages/JobsPage'));
+const SystemErrorsPage = lazy(() => import('@/features/system/pages/ErrorsPage'));
 const BulkActionsPage = lazy(() => import('@/features/bulk-actions/pages/BulkActionsPage'));
 const AdminExportsPage = lazy(() => import('@/features/admin-exports/pages/AdminExportsPage'));
 const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage'));
@@ -104,6 +107,9 @@ export default function App() {
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
               <Route path="/health" element={<HealthPage />} />
+              <Route path="/system/controls" element={<SystemControlsPage />} />
+              <Route path="/system/jobs" element={<SystemJobsPage />} />
+              <Route path="/system/errors" element={<SystemErrorsPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
 
               <Route path="/tenants" element={<TenantsListPage />} />

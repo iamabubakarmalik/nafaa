@@ -10,7 +10,7 @@
  */
 
 import { BadRequestException, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../core/system-control/cron.decorator';
 import { Prisma } from '@prisma/client';
 import { apiText } from '../../common/i18n/api-message';
 import { PrismaService } from '../../prisma/prisma.service';

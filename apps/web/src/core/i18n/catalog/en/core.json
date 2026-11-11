@@ -1051,5 +1051,7 @@
   "Yeh pending sale delete kar dein?": "Delete this pending sale?",
   "Zabaan": "Language",
   "اردو / Urdu": "اردو / Urdu",
-  "نفع — آپ کا کاروبار": "Nafaa — your business"
+  "نفع — آپ کا کاروبار": "Nafaa — your business",
+  "Nafaa par maintenance chal rahi hai": "Nafaa is under maintenance",
+  "Andaazan {{time}} tak": "Until about {{time}}"
 }

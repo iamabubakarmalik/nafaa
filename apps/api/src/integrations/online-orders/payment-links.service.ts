@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { shopDue } from './shop-due';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../core/system-control/cron.decorator';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';

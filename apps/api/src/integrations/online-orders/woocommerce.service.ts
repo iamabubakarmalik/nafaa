@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../core/system-control/cron.decorator';
 import { Integration, IntegrationStatus } from '@prisma/client';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';

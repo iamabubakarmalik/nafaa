@@ -18,7 +18,7 @@
 
 import { BadRequestException, ForbiddenException, Injectable, Logger, NotFoundException, OnApplicationBootstrap, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../core/system-control/cron.decorator';
 import { Prisma, WhatsappConfig } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { apiText } from '../../common/i18n/api-message';

@@ -26,6 +26,7 @@ import { AdminDashboardModule } from './dashboard/admin-dashboard.module';
 import { AdminStaffModule } from './staff/admin-staff.module';
 import { AdminAiUsageModule } from './ai-usage/admin-ai-usage.module';
 import { AdminPresenceModule } from './presence/admin-presence.module';
+import { AdminSystemControlModule } from './system-control/admin-system-control.module';
 import { AdminAuditInterceptor } from './access/admin-audit.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AdminTenantsModule } from './tenants/admin-tenants.module';
@@ -41,6 +42,7 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminStaffModule,
     AdminAiUsageModule,
     AdminPresenceModule,
+    AdminSystemControlModule,
     AdminBillingModule,
     AdminSubscriptionsModule,
     AdminPlansModule,

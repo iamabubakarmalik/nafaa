@@ -7,7 +7,7 @@
  */
 
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron } from '../../../core/system-control/cron.decorator';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ShopScope } from '../../../common/shop-scope';

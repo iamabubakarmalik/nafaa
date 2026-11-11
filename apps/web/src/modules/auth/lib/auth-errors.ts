@@ -6,7 +6,7 @@
 
 import { t } from '@core/i18n';
 interface ApiError {
-  response?: { status?: number; data?: { message?: unknown }; headers?: Record<string, unknown> };
+  response?: { status?: number; data?: { message?: unknown; error?: unknown }; headers?: Record<string, unknown> };
   message?: string;
 }
 
@@ -60,6 +60,8 @@ export function authErrorMessage(err: unknown, fallback = t('Kuch ghalat ho gaya
     const known = KNOWN.find(([re]) => re.test(raw));
     if (known) return known[1];
   }
+  // Maintenance answers carry the admin's own message.
+  if (status === 503 && e.response.data?.error === 'Maintenance' && raw) return raw;
   if (status && status >= 500) return t('Server me masla aa gaya. Thori der baad dobara try karein.');
   return raw || fallback;
 }
