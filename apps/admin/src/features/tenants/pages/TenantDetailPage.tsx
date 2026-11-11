@@ -1,288 +1,349 @@
+/**
+ * Shop 360: one shop's full picture — health score, sales trend, team and
+ * devices, plan and invoices, online store, notes and a timeline of shop and
+ * admin activity — with the admin actions (sign in as the shop, suspend or
+ * reactivate, delete), each shown only to admins allowed to use it.
+ */
+
 import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import {
-  Building2, ArrowLeft, Trash2, Pause, Play, AlertCircle,
-  Users, Package, ShoppingCart, Wallet, TrendingUp, Receipt, Phone,
-  CreditCard, Gift, Eye,
+  Activity, Building2, CheckCircle2, CircleAlert, CreditCard, Gift, Globe, LogIn, MessageSquare, Package, Phone, Receipt,
+  ShieldCheck, ShoppingCart, Smartphone, Store, Trash2, Truck, UserCog, Users, XCircle,
 } from 'lucide-react';
+import {
+  Alert, Badge, Button, Card, EmptyState, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, Textarea, ViewTabs, confirmDialog,
+  heroButton, heroPrimaryButton,
+} from '@/design-system/components';
 import { adminTenantsApi, type TenantStatus } from '@/api/admin-tenants.api';
 import { adminImpersonateApi } from '@/api/admin-impersonate.api';
-import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@/lib/format';
-import { toast } from 'sonner';
 import TenantNotesPanel from '@/features/notes/pages/TenantNotesPanel';
 import TenantCommercePanel from '@/features/commerce/components/TenantCommercePanel';
+import { useCan } from '@/lib/access';
+import { cn } from '@/lib/cn';
+import { formatDate, formatPKR, formatPKRFull, formatRelative } from '@/lib/format';
+import { industryForType } from '@/lib/industries';
+import { DetailList, StatusBadge, statusLabel } from '@/ui';
 import { BusinessModelChips } from '../components/BusinessModelChips';
 
-const statusColors: Record<string, string> = {
-  ACTIVE: 'bg-emerald-100 text-emerald-700',
-  TRIAL: 'bg-blue-100 text-blue-700',
-  SUSPENDED: 'bg-rose-100 text-rose-700',
-  EXPIRED: 'bg-slate-100 text-slate-700',
-};
+type Tab = 'overview' | 'team' | 'billing' | 'online' | 'notes' | 'timeline';
+const num = (n: number) => n.toLocaleString('en-PK');
+const apiError = (e: unknown) => (e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Something went wrong. Try again.';
+
+function HealthRing({ score }: { score: number }) {
+  const color = score >= 80 ? '#059669' : score >= 40 ? '#d97706' : '#e11d48';
+  const r = 30;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg width="76" height="76" viewBox="0 0 76 76" className="shrink-0" aria-label={`Health ${score} of 100`}>
+      <circle cx="38" cy="38" r={r} fill="none" strokeWidth="8" className="stroke-slate-100" />
+      <circle cx="38" cy="38" r={r} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round" strokeDasharray={`${(score / 100) * c} ${c}`} transform="rotate(-90 38 38)" />
+      <text x="38" y="43" textAnchor="middle" className="fill-slate-900 text-[1rem] font-bold">{score}</text>
+    </svg>
+  );
+}
+
+function SuspendModal({ open, onClose, onConfirm, busy }: { open: boolean; onClose: () => void; onConfirm: (reason: string) => void; busy: boolean }) {
+  const [reason, setReason] = useState('');
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Suspend this shop?"
+      description="Its staff cannot sign in until you reactivate it. The owner gets a notification with your reason."
+      footer={<div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="danger" loading={busy} onClick={() => onConfirm(reason.trim())}>Suspend</Button></div>}
+    >
+      <Textarea label="Reason (shown to the owner)" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Payment overdue for 2 months" />
+    </Modal>
+  );
+}
 
 export default function TenantDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const qc = useQueryClient();
+  const can = useCan();
+  const [tab, setTab] = useState<Tab>('overview');
+  const [suspending, setSuspending] = useState(false);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin-tenant', id],
-    queryFn: () => adminTenantsApi.getOne(id!),
-    enabled: !!id,
+  const detail = useQuery({ queryKey: ['admin', 'tenant', id], queryFn: () => adminTenantsApi.getOne(id!), enabled: !!id });
+  const insights = useQuery({ queryKey: ['admin', 'tenant', id, 'insights'], queryFn: () => adminTenantsApi.insights(id!), enabled: !!id });
+
+  const refresh = () => { qc.invalidateQueries({ queryKey: ['admin', 'tenant', id] }); qc.invalidateQueries({ queryKey: ['admin', 'tenants'] }); };
+  const status = useMutation({
+    mutationFn: ({ s, reason }: { s: TenantStatus; reason?: string }) => adminTenantsApi.updateStatus(id!, s, reason),
+    onSuccess: (_, v) => { toast.success(v.s === 'SUSPENDED' ? 'Shop suspended' : 'Shop reactivated'); setSuspending(false); refresh(); },
+    onError: (e) => toast.error(apiError(e)),
   });
-
-  const statusMutation = useMutation({
-    mutationFn: ({ status, reason }: { status: TenantStatus; reason?: string }) =>
-      adminTenantsApi.updateStatus(id!, status, reason),
-    onSuccess: () => {
-      toast.success('Status updated');
-      queryClient.invalidateQueries({ queryKey: ['admin-tenant', id] });
-    },
-  });
-
-  const deleteMutation = useMutation({
+  const remove = useMutation({
     mutationFn: () => adminTenantsApi.remove(id!),
-    onSuccess: () => {
-      toast.success('Tenant deleted');
-      navigate('/tenants');
-    },
+    onSuccess: () => { toast.success('Shop deleted'); navigate('/tenants'); },
+    onError: (e) => toast.error(apiError(e)),
   });
-
-  const impersonateMutation = useMutation({
+  const impersonate = useMutation({
     mutationFn: () => adminImpersonateApi.impersonate(id!),
     onSuccess: (data) => {
       const tenantUrl = (import.meta.env.VITE_TENANT_URL as string) || 'http://localhost:5173';
-      const url = `${tenantUrl}/login?impersonate=1&access=${encodeURIComponent(data.accessToken)}&refresh=${encodeURIComponent(data.refreshToken)}`;
-      window.open(url, '_blank');
-      toast.success('Tenant ki side new tab mein open ho rahi hai');
+      window.open(`${tenantUrl}/login?impersonate=1&access=${encodeURIComponent(data.accessToken)}&refresh=${encodeURIComponent(data.refreshToken)}`, '_blank');
+      toast.success('Opening the shop in a new tab. This is logged.');
     },
+    onError: (e) => toast.error(apiError(e)),
   });
 
-  if (isLoading || !data) return <div className="p-6 text-slate-500">Loading...</div>;
+  if (detail.isError) {
+    return <PageShell><EmptyState icon={<CircleAlert className="h-6 w-6" />} title="Shop not found" description="It may have been deleted." action={<Link to="/tenants" className="font-semibold text-brand-700 hover:underline">Back to shops</Link>} /></PageShell>;
+  }
+  if (!detail.data) {
+    return <PageShell><PageHero title="Shop" back="/tenants" loading /><Skeleton className="h-96 rounded-3xl" /></PageShell>;
+  }
 
-  const { tenant, stats } = data;
+  const { tenant, stats } = detail.data;
+  const ins = insights.data;
+  const industry = industryForType(tenant.businessType ?? 'NONE');
+  const activeSub = tenant.subscriptions.find((s: { status: string }) => ['ACTIVE', 'TRIAL', 'PENDING_PAYMENT', 'PAST_DUE'].includes(s.status));
+  const profit = stats.totalRevenue - stats.totalCogs - stats.totalExpenses;
 
-  const summaryCards = [
-    { label: 'Users', value: tenant._count.users, icon: Users, color: 'bg-admin-100 text-admin-700' },
-    { label: 'Products', value: tenant._count.products, icon: Package, color: 'bg-violet-100 text-violet-700' },
-    { label: 'Customers', value: tenant._count.customers, icon: Users, color: 'bg-blue-100 text-blue-700' },
-    { label: 'Sales', value: tenant._count.sales, icon: ShoppingCart, color: 'bg-emerald-100 text-emerald-700' },
-    { label: 'Suppliers', value: tenant._count.suppliers, icon: Building2, color: 'bg-orange-100 text-orange-700' },
-    { label: 'Shops', value: tenant._count.shops, icon: Building2, color: 'bg-pink-100 text-pink-700' },
+  const tabs = [
+    { id: 'overview' as const, label: 'Overview', icon: Activity },
+    { id: 'team' as const, label: 'Team & devices', icon: Users, count: tenant._count.users },
+    { id: 'billing' as const, label: 'Billing', icon: CreditCard },
+    { id: 'online' as const, label: 'Online store', icon: Globe },
+    { id: 'notes' as const, label: 'Notes', icon: MessageSquare },
+    { id: 'timeline' as const, label: 'Timeline', icon: Receipt },
   ];
 
   return (
-    <div className="space-y-6">
-      <Link to="/tenants" className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900">
-        <ArrowLeft className="h-4 w-4" /> Back to Tenants
-      </Link>
-
-      <section className="rounded-3xl bg-gradient-to-br from-admin-950 via-admin-900 to-admin-700 text-white p-6 shadow-soft">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-              <Building2 className="h-3.5 w-3.5" /> Tenant Profile
-            </div>
-            <h2 className="mt-3 text-3xl font-bold">{tenant.name}</h2>
-            <div className="mt-2 flex items-center gap-3 flex-wrap text-sm text-white/80">
-              <span className="font-mono">{tenant.slug}</span>
-              <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColors[tenant.status]}`}>
-                {tenant.status}
-              </span>
-              {tenant.phone && (
-                <span className="inline-flex items-center gap-1">
-                  <Phone className="h-3 w-3" /> {tenant.phone}
-                </span>
-              )}
-            </div>
-            <div className="mt-2 flex items-center gap-2 flex-wrap text-xs text-white/80">
-              <span>Sells:</span>
-              <BusinessModelChips models={tenant.businessModels} onDark />
-              {tenant.businessType && <span className="font-mono text-white/70">· {tenant.businessType}</span>}
-            </div>
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            <Button onClick={() => impersonateMutation.mutate()} loading={impersonateMutation.isPending}
-              className="bg-white text-slate-900 hover:bg-slate-100">
-              <Eye className="h-4 w-4" /> Login as Tenant
-            </Button>
-
-            {tenant.status === 'SUSPENDED' ? (
-              <Button onClick={() => statusMutation.mutate({ status: 'ACTIVE' })}
-                loading={statusMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700">
-                <Play className="h-4 w-4" /> Activate
-              </Button>
-            ) : (
-              <Button onClick={() => {
-                const r = prompt('Suspend reason?') || 'Suspended by admin';
-                statusMutation.mutate({ status: 'SUSPENDED', reason: r });
-              }} loading={statusMutation.isPending} variant="secondary">
-                <Pause className="h-4 w-4" /> Suspend
-              </Button>
+    <PageShell>
+      <PageHero
+        title={tenant.name}
+        back="/tenants"
+        backLabel="Shops"
+        chip={statusLabel(tenant.status)}
+        busy={detail.isFetching || insights.isFetching}
+        meta={<span className="inline-flex flex-wrap items-center gap-x-2">@{tenant.slug}{tenant.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{tenant.phone}</span>}<span>· {industry.label}</span><span>· joined {formatDate(tenant.createdAt)}</span></span>}
+        actions={
+          <>
+            {can('tenants.impersonate') && (
+              <button type="button" className={heroPrimaryButton} disabled={impersonate.isPending} onClick={async () => {
+                if (await confirmDialog({ title: `Sign in as ${tenant.name}?`, text: 'Opens their merchant app in a new tab with owner access. Anything you do there is real and is logged under your name.', yes: 'Sign in as shop' })) impersonate.mutate();
+              }}><LogIn className="h-4 w-4" /> Sign in as shop</button>
             )}
-
-            <Button variant="danger" onClick={() => setConfirmDelete(true)}>
-              <Trash2 className="h-4 w-4" /> Delete
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-slate-500">Total Revenue</div>
-              <div className="mt-2 text-2xl font-bold text-emerald-700">{formatPKR(stats.totalRevenue)}</div>
-            </div>
-            <TrendingUp className="h-5 w-5 text-emerald-600" />
-          </div>
-        </div>
-        <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
-          <div className="text-sm text-slate-500">Cost of Goods</div>
-          <div className="mt-2 text-2xl font-bold">{formatPKR(stats.totalCogs)}</div>
-        </div>
-        <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
-          <div className="text-sm text-slate-500">Total Expenses</div>
-          <div className="mt-2 text-2xl font-bold text-rose-700">{formatPKR(stats.totalExpenses)}</div>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {summaryCards.map((c) => {
-          const Icon = c.icon;
-          return (
-            <div key={c.label} className="rounded-2xl bg-white border border-slate-200 p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-xs text-slate-500">{c.label}</div>
-                  <div className="mt-1 text-lg font-bold">{c.value}</div>
-                </div>
-                <div className={`h-9 w-9 rounded-xl ${c.color} flex items-center justify-center`}>
-                  <Icon className="h-4 w-4" />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </section>
-
-      <TenantNotesPanel tenantId={tenant.id} />
-
-      <TenantCommercePanel tenantId={tenant.id} />
-
-      <section className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <h3 className="font-bold">Team Members</h3>
-          </div>
-          <div className="divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
-            {tenant.users.map((u: any) => (
-              <div key={u.id} className="px-6 py-3 flex items-center justify-between">
-                <div className="min-w-0">
-                  <div className="font-medium text-sm">{u.fullName}</div>
-                  <div className="text-xs text-slate-500 truncate">{u.email}</div>
-                </div>
-                <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100">{u.role}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            <h3 className="font-bold">Subscriptions</h3>
-          </div>
-          <div className="divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
-            {tenant.subscriptions.length === 0 && (
-              <div className="px-6 py-6 text-sm text-slate-500 text-center">No subscriptions</div>
+            {can('tenants.manage') && (tenant.status === 'SUSPENDED'
+              ? <button type="button" className={heroButton} onClick={() => status.mutate({ s: 'ACTIVE' })}><CheckCircle2 className="h-4 w-4" /> Reactivate</button>
+              : <button type="button" className={heroButton} onClick={() => setSuspending(true)}><XCircle className="h-4 w-4" /> Suspend</button>)}
+            {can('tenants.delete') && (
+              <button type="button" className={heroButton} aria-label="Delete shop" onClick={async () => {
+                if (await confirmDialog({ title: `Delete ${tenant.name} for ever?`, text: `This removes the shop with its ${num(tenant._count.products)} products, ${num(tenant._count.sales)} sales and ${num(tenant._count.customers)} customers. It cannot be undone.`, yes: 'Delete for ever', danger: true })) remove.mutate();
+              }}><Trash2 className="h-4 w-4" /></button>
             )}
-            {tenant.subscriptions.map((s: any) => (
-              <div key={s.id} className="px-6 py-3">
-                <div className="flex items-center justify-between">
-                  <div className="font-semibold">{s.plan.name}</div>
-                  <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100">{s.status}</span>
+          </>
+        }
+        stats={[
+          { label: 'Health', value: ins ? `${ins.health.score}/100` : '—', hint: ins?.health.label },
+          { label: 'Sales (7 days)', value: ins ? formatPKR(ins.sales.last7Total) : '—', hint: ins ? `${num(ins.sales.last7Bills)} bills` : undefined },
+          { label: 'Plan', value: activeSub ? activeSub.plan.name : 'No plan', hint: activeSub ? `${statusLabel(activeSub.status)} · ends ${formatDate(activeSub.currentPeriodEnd)}` : undefined },
+          { label: 'Last sale', value: ins?.sales.lastSaleAt ? formatRelative(ins.sales.lastSaleAt) : 'Never' },
+        ]}
+      />
+
+      {tenant.status === 'SUSPENDED' && <Alert tone="danger" title="This shop is suspended">Its staff cannot sign in. Reactivate it to restore access.</Alert>}
+
+      <ViewTabs tabs={tabs} value={tab} onChange={setTab} />
+
+      {tab === 'overview' && (
+        <div className="space-y-4">
+          <KpiRow cols={5}>
+            <KpiCard icon={ShoppingCart} color="#0891b2" label="All-time sales" value={formatPKR(stats.totalRevenue)} hint={`${num(tenant._count.sales)} bills`} />
+            <KpiCard icon={Receipt} color="#059669" label="Profit (approx.)" value={formatPKR(profit)} hint="Sales − cost − expenses" />
+            <KpiCard icon={Package} color="#7c3aed" label="Products" value={num(tenant._count.products)} />
+            <KpiCard icon={Users} color="#4f46e5" label="Customers" value={num(tenant._count.customers)} />
+            <KpiCard icon={Store} color="#d97706" label="Branches" value={num(tenant._count.shops)} hint={`${num(tenant._count.suppliers)} suppliers`} />
+          </KpiRow>
+          <div className="grid gap-4 xl:grid-cols-3">
+            <Card title="Sales, last 30 days" description="Completed bills per Pakistan day." className="xl:col-span-2">
+              {ins ? (
+                <div className="h-56">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={ins.sales.daily} margin={{ top: 6, right: 4, left: 4, bottom: 0 }}>
+                      <XAxis dataKey="date" tickFormatter={(d: string) => new Date(`${d}T00:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} minTickGap={28} tickLine={false} axisLine={false} fontSize={11} stroke="#94a3b8" />
+                      <Tooltip formatter={(v) => [formatPKRFull(Number(v)), 'Sales']} labelFormatter={(l) => String(l)} contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                      <Area type="monotone" dataKey="total" stroke="#4f46e5" fill="#4f46e5" fillOpacity={0.12} strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
-                  {formatPKR(s.amount)} / {s.interval}
+              ) : <Skeleton className="h-56 rounded-2xl" />}
+            </Card>
+            <Card title="Health" description="Five checks, 20 points each.">
+              {ins ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3"><HealthRing score={ins.health.score} /><div><div className="text-[1rem] font-bold text-slate-900">{ins.health.label}</div><div className="text-[0.75rem] text-slate-500">{ins.activeUsers7} people active this week</div></div></div>
+                  <ul className="space-y-1.5">
+                    {ins.health.factors.map((f) => (
+                      <li key={f.key} className="flex items-start gap-2 text-[0.8125rem]">
+                        {f.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /> : <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />}
+                        <span><span className="font-medium text-slate-900">{f.label}</span><span className="block text-[0.75rem] text-slate-500">{f.detail}</span></span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-            ))}
+              ) : <Skeleton className="h-56 rounded-2xl" />}
+            </Card>
           </div>
+          <Card title="Profile">
+            <DetailList cols={3} items={[
+              { label: 'Industry', value: <span className="inline-flex items-center gap-1.5"><industry.icon className="h-4 w-4" style={{ color: industry.color }} />{industry.label}</span> },
+              { label: 'Sells', value: <BusinessModelChips models={tenant.businessModels} /> },
+              { label: 'Status', value: <StatusBadge value={tenant.status} /> },
+              { label: 'Setup', value: ins?.onboarding ? (ins.onboarding.isCompleted ? 'Finished' : ins.onboarding.isSkipped ? 'Skipped' : `Step ${ins.onboarding.currentStep}`) : 'Not started' },
+              { label: 'Referral code', value: tenant.referralCode ? <code>{tenant.referralCode}</code> : null },
+              { label: 'Referred by', value: tenant.referredBy ? <Link to={`/tenants/${tenant.referredBy.id}`} className="text-brand-700 hover:underline">{tenant.referredBy.name}</Link> : null },
+              { label: 'Shops they referred', value: num(tenant._count.referredTenants) },
+              { label: 'Account credit', value: formatPKRFull(tenant.accountCredit) },
+              { label: 'Shop id', value: <code className="break-all text-[0.75rem]">{tenant.id}</code> },
+            ]} />
+          </Card>
         </div>
-      </section>
+      )}
 
-      <section className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h3 className="font-bold">Recent Invoices</h3>
-          </div>
-          <div className="divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
-            {tenant.invoices.length === 0 && (
-              <div className="p-6 text-sm text-slate-500 text-center">No invoices</div>
-            )}
-            {tenant.invoices.map((i: any) => (
-              <div key={i.id} className="px-6 py-3 flex items-center justify-between text-sm">
-                <div className="font-mono text-xs">{i.invoiceNumber}</div>
-                <div className="font-bold">{formatPKR(i.total)}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-            <Gift className="h-4 w-4 text-pink-600" />
-            <h3 className="font-bold">Referral Info</h3>
-          </div>
-          <div className="p-6 space-y-3 text-sm">
-            <div>
-              <div className="text-xs text-slate-500">Referral Code</div>
-              <div className="font-mono font-bold">{tenant.referralCode || '—'}</div>
-            </div>
-            <div>
-              <div className="text-xs text-slate-500">Account Credit</div>
-              <div className="font-bold text-emerald-700">{formatPKR(tenant.accountCredit)}</div>
-            </div>
-            <div>
-              <div className="text-xs text-slate-500">Referred Tenants</div>
-              <div className="font-bold">{tenant._count.referredTenants}</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {confirmDelete && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-12 w-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center">
-                <AlertCircle className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="font-bold">Delete Tenant?</h3>
-                <p className="text-sm text-slate-500">Cannot be undone</p>
-              </div>
-            </div>
-            <p className="text-sm">
-              <strong>{tenant.name}</strong> ka data permanently delete ho jayega.
-            </p>
-            <div className="flex gap-2 mt-5">
-              <Button variant="secondary" onClick={() => setConfirmDelete(false)} className="flex-1">Cancel</Button>
-              <Button variant="danger" onClick={() => deleteMutation.mutate()}
-                loading={deleteMutation.isPending} className="flex-1">
-                Delete Forever
-              </Button>
-            </div>
+      {tab === 'team' && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card title="Team" description={`${tenant.users.length} people can sign in`} flush>
+            <ul className="divide-y divide-slate-100">
+              {tenant.users.map((u: { id: string; fullName: string; email: string; role: string; isActive: boolean; lastLoginAt: string | null }) => (
+                <li key={u.id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[0.8125rem] font-semibold text-slate-600">{u.fullName.charAt(0).toUpperCase()}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[0.875rem] font-medium text-slate-900">{u.fullName}{!u.isActive && <span className="ms-2 text-[0.75rem] text-rose-600">disabled</span>}</span>
+                    <span className="block truncate text-[0.75rem] text-slate-500">{u.email} · {u.lastLoginAt ? `seen ${formatRelative(u.lastLoginAt)}` : 'never signed in'}</span>
+                  </span>
+                  <Badge variant={u.role === 'OWNER' ? 'brand' : 'default'}>{statusLabel(u.role)}</Badge>
+                </li>
+              ))}
+            </ul>
+          </Card>
+          <div className="space-y-4">
+            <Card title="Branches" flush>
+              <ul className="divide-y divide-slate-100">
+                {(ins?.shops ?? []).map((s) => (
+                  <li key={s.id} className="flex items-center gap-3 px-4 py-2.5 text-[0.875rem] sm:px-5">
+                    <Building2 className="h-4 w-4 text-slate-400" /><span className="flex-1 text-slate-900">{s.name}</span>
+                    {s.isMain && <Badge variant="brand">Main</Badge>}{!s.isActive && <Badge>Closed</Badge>}
+                  </li>
+                ))}
+                {ins && !ins.shops.length && <li className="px-5 py-4 text-[0.8125rem] text-slate-500">No branches.</li>}
+              </ul>
+            </Card>
+            <Card title="Phones and tablets" description="Devices using the Nafaa mobile app." flush>
+              <ul className="divide-y divide-slate-100">
+                {(ins?.devices ?? []).map((d) => (
+                  <li key={d.id} className="flex items-center gap-3 px-4 py-2.5 text-[0.8125rem] sm:px-5">
+                    <Smartphone className="h-4 w-4 text-slate-400" />
+                    <span className="min-w-0 flex-1"><span className="block text-slate-900">{d.platform} · app {d.appVersion}</span><span className="block text-[0.75rem] text-slate-500">{d.user ?? 'Unknown user'}{d.osVersion ? ` · OS ${d.osVersion}` : ''}</span></span>
+                    <span className="text-[0.75rem] text-slate-500">{formatRelative(d.lastSeenAt)}</span>
+                  </li>
+                ))}
+                {ins && !ins.devices.length && <li className="px-5 py-4 text-[0.8125rem] text-slate-500">Not using the mobile app.</li>}
+              </ul>
+            </Card>
           </div>
         </div>
       )}
-    </div>
+
+      {tab === 'billing' && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card title="Subscriptions" actions={can('plans.view') ? <Link to={`/subscriptions?q=${encodeURIComponent(tenant.slug)}`} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Manage plan</Link> : undefined} flush>
+            <ul className="divide-y divide-slate-100">
+              {tenant.subscriptions.map((s: { id: string; status: string; amount: number; interval: string; currentPeriodEnd: string; plan: { name: string } }) => (
+                <li key={s.id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
+                  <CreditCard className="h-4 w-4 text-slate-400" />
+                  <span className="min-w-0 flex-1"><span className="block text-[0.875rem] font-medium text-slate-900">{s.plan.name}</span><span className="block text-[0.75rem] text-slate-500">{formatPKRFull(s.amount)} / {statusLabel(s.interval)} · until {formatDate(s.currentPeriodEnd)}</span></span>
+                  <StatusBadge value={s.status} />
+                </li>
+              ))}
+              {!tenant.subscriptions.length && <li className="px-5 py-4 text-[0.8125rem] text-slate-500">No subscriptions.</li>}
+            </ul>
+          </Card>
+          <div className="space-y-4">
+            <Card title="Payments" flush>
+              <ul className="divide-y divide-slate-100">
+                {tenant.payments.map((p: { id: string; amount: number; status: string; method?: string; createdAt: string }) => (
+                  <li key={p.id} className="flex items-center gap-3 px-4 py-2.5 text-[0.8125rem] sm:px-5">
+                    <span className="flex-1 text-slate-900">{formatPKRFull(p.amount)}<span className="ms-2 text-slate-500">{p.method ? statusLabel(p.method) : ''} · {formatDate(p.createdAt)}</span></span>
+                    <StatusBadge value={p.status} />
+                  </li>
+                ))}
+                {!tenant.payments.length && <li className="px-5 py-4 text-[0.8125rem] text-slate-500">No payments.</li>}
+              </ul>
+            </Card>
+            <Card title="Invoices" flush>
+              <ul className="divide-y divide-slate-100">
+                {tenant.invoices.map((i: { id: string; invoiceNumber: string; total: number; status: string; createdAt: string }) => (
+                  <li key={i.id} className="flex items-center gap-3 px-4 py-2.5 text-[0.8125rem] sm:px-5">
+                    <code className="flex-1 text-[0.75rem]">{i.invoiceNumber}</code>
+                    <span className="text-slate-500">{formatDate(i.createdAt)}</span>
+                    <span className="w-24 text-end font-semibold tabular-nums text-slate-900">{formatPKRFull(i.total)}</span>
+                  </li>
+                ))}
+                {!tenant.invoices.length && <li className="px-5 py-4 text-[0.8125rem] text-slate-500">No invoices.</li>}
+              </ul>
+            </Card>
+            <Card title="Referral reward" description="Credit earned by referring other shops.">
+              <div className="flex items-center gap-3 text-[0.875rem]"><Gift className="h-5 w-5 text-pink-600" /><span className="flex-1">{num(tenant._count.referredTenants)} shops referred</span><b>{formatPKRFull(tenant.accountCredit)}</b></div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {tab === 'online' && (
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            <KpiCard icon={Globe} color="#0891b2" label="Connected channels" value={ins ? num(ins.integrations.filter((i) => i.isActive).length) : '—'} />
+            <KpiCard icon={ShoppingCart} color="#4f46e5" label="Online orders (30 days)" value={ins ? num(ins.onlineOrders30) : '—'} />
+            <KpiCard icon={Truck} color="#d97706" label="Couriers" value={ins ? num(ins.couriers.filter((c) => c.isActive).length) : '—'} hint={ins?.couriers.map((c) => statusLabel(c.provider)).join(', ') || undefined} />
+          </div>
+          {ins && !!ins.integrations.length && (
+            <Card title="Channels" flush>
+              <ul className="divide-y divide-slate-100">
+                {ins.integrations.map((i) => (
+                  <li key={i.id} className="flex items-center gap-3 px-4 py-2.5 text-[0.8125rem] sm:px-5">
+                    <Globe className="h-4 w-4 text-slate-400" /><span className="flex-1 font-medium text-slate-900">{statusLabel(i.type)}</span>
+                    <span className="text-slate-500">{i.lastSyncAt ? `synced ${formatRelative(i.lastSyncAt)}` : 'never synced'}</span>
+                    <StatusBadge value={i.isActive ? i.status : 'DISABLED'} />
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+          <TenantCommercePanel tenantId={tenant.id} />
+        </div>
+      )}
+
+      {tab === 'notes' && <TenantNotesPanel tenantId={tenant.id} />}
+
+      {tab === 'timeline' && (
+        <Card title="Timeline" description="What the shop did, and what admins did to it, newest first." flush>
+          {!ins ? <div className="p-4"><Skeleton className="h-48 rounded-2xl" /></div> : !ins.timeline.length ? <p className="px-5 py-6 text-[0.8125rem] text-slate-500">Nothing recorded yet.</p> : (
+            <ol className="relative space-y-0 py-2">
+              {ins.timeline.map((t) => (
+                <li key={t.id} className="flex gap-3 px-4 py-2.5 sm:px-5">
+                  <span className={cn('mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full', t.kind === 'admin' ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-500')}>
+                    {t.kind === 'admin' ? <ShieldCheck className="h-3.5 w-3.5" /> : <UserCog className="h-3.5 w-3.5" />}
+                  </span>
+                  <span className="min-w-0 flex-1 text-[0.8125rem]">
+                    <span className="block text-slate-900">{t.title}{t.failed && <span className="ms-2 text-rose-600">failed</span>}</span>
+                    <span className="block text-[0.75rem] text-slate-500">{t.kind === 'admin' ? 'Admin' : 'Shop'}{t.who ? ` · ${t.who}` : ''} · {formatRelative(t.at)}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </Card>
+      )}
+
+      <SuspendModal open={suspending} onClose={() => setSuspending(false)} busy={status.isPending} onConfirm={(reason) => status.mutate({ s: 'SUSPENDED', reason: reason || undefined })} />
+    </PageShell>
   );
 }

@@ -19,12 +19,13 @@ export interface DistributionUsageRow {
 
 export interface DistributionUsage {
   tenants: DistributionUsageRow[];
-  totals: { tenants: number; bookerLogins: number };
+  totals: { tenants: number; bookerLogins: number; switchedOn?: number; orders30d?: number; orderValue30d?: number };
+  meta?: { page: number; limit: number; total: number; totalPages: number };
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const adminDistributionApi = {
-  usage: (tenantId?: string) =>
-    apiClient.get<{ data: DistributionUsage }>('/admin/distribution/usage', { params: tenantId ? { tenantId } : {} }).then(unwrap),
+  usage: (params: { tenantId?: string; search?: string; onlyOn?: boolean; page?: number; limit?: number } = {}) =>
+    apiClient.get<{ data: DistributionUsage }>('/admin/distribution/usage', { params }).then(unwrap),
 };

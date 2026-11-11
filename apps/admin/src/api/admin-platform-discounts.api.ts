@@ -40,7 +40,14 @@ export interface UpsertPlatformDiscountPayload {
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
+export interface DiscountStats { total: number; active: number; expired: number; totalUses: number }
+
 export const adminPlatformDiscountsApi = {
+  listPaged: (params?: { search?: string; status?: string; page?: number; limit?: number }) =>
+    apiClient
+      .get<{ data: { items: PlatformDiscount[]; meta: { page: number; limit: number; total: number; totalPages: number } } }>('/admin/platform-discounts/paged', { params })
+      .then(unwrap),
+  stats: () => apiClient.get<{ data: DiscountStats }>('/admin/platform-discounts/stats').then(unwrap),
   list: () => apiClient.get<{ data: PlatformDiscount[] }>('/admin/platform-discounts').then(unwrap),
   create: (payload: UpsertPlatformDiscountPayload) =>
     apiClient.post<{ data: PlatformDiscount }>('/admin/platform-discounts', payload).then(unwrap),

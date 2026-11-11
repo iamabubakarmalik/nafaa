@@ -29,8 +29,18 @@ export interface CreateInvoicePayload {
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
+export interface InvoiceStats {
+  openCount: number;
+  openAmount: number;
+  overdueCount: number;
+  overdueAmount: number;
+  paidThisMonth: number;
+  paidCount: number;
+}
+
 export const adminInvoicesApi = {
-  list: (params?: { status?: string; tenantId?: string; page?: number; limit?: number }) =>
+  stats: () => apiClient.get<{ data: InvoiceStats }>('/admin/invoices/stats').then(unwrap),
+  list: (params?: { status?: string; tenantId?: string; search?: string; overdue?: boolean; from?: string; to?: string; page?: number; limit?: number }) =>
     apiClient
       .get<{ data: { items: AdminInvoice[]; meta: any } }>('/admin/invoices', { params })
       .then(unwrap),

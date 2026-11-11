@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -13,17 +14,25 @@ import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminEmailTemplatesService } from './admin-email-templates.service';
 import { UpsertEmailTemplateDto } from './dto/upsert-template.dto';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Email Templates')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('communications')
 @Controller('admin/email-templates')
 export class AdminEmailTemplatesController {
   constructor(private readonly service: AdminEmailTemplatesService) {}
 
   @Get()
-  list() {
-    return this.service.list();
+  list(
+    @Query('paged') paged?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('active') active?: string,
+  ) {
+    return this.service.list({ paged: paged === '1' || paged === 'true', page: Number(page) || 1, limit: Number(limit) || 25, search, active });
   }
 
   @Get(':id')

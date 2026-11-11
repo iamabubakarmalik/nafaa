@@ -3,10 +3,12 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminProductsService } from './admin-products.service';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Products')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('merchant_data')
 @Controller('admin/products')
 export class AdminProductsController {
   constructor(private readonly service: AdminProductsService) {}
@@ -20,12 +22,14 @@ export class AdminProductsController {
   list(
     @Query('search') search?: string,
     @Query('tenantId') tenantId?: string,
+    @Query('status') status?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.service.list({
       search,
       tenantId,
+      status,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 30,
     });

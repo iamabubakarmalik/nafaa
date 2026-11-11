@@ -25,12 +25,13 @@ export interface DeletionRequest {
 export interface DeletionRequestsResponse {
   items: DeletionRequest[];
   counts: { inGrace: number; due: number; processed: number; cancelled: number };
+  meta: { page: number; limit: number; total: number; totalPages: number };
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const adminDeletionRequestsApi = {
-  list: (params: { status?: string; kind?: string }) =>
+  list: (params: { status?: string; kind?: string; search?: string; page?: number; limit?: number }) =>
     apiClient.get<{ data: DeletionRequestsResponse }>('/admin/deletion-requests', { params }).then(unwrap),
   process: (id: string, note?: string) =>
     apiClient.post<{ data: { success: boolean; alreadyProcessed: boolean } }>(

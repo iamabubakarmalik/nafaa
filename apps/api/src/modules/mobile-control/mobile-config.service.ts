@@ -174,8 +174,34 @@ export class MobileConfigService {
 
   // ─── Announcements (admin) ────────────────────────────────────────
 
-  listAnnouncements() {
-    return this.prisma.mobileAnnouncement.findMany({ orderBy: [{ isActive: 'desc' }, { priority: 'desc' }, { createdAt: 'desc' }], take: 200 });
+  /**
+   * Without paging params this returns the plain list (old behavior). With
+   * `page` it returns one page plus counts by state, searched on the English title.
+   */
+  async listAnnouncements(q?: { page?: number; limit?: number; search?: string; status?: string }) {
+    const orderBy: Prisma.MobileAnnouncementOrderByWithRelationInput[] = [{ isActive: 'desc' }, { priority: 'desc' }, { createdAt: 'desc' }];
+    if (!q?.page) return this.prisma.mobileAnnouncement.findMany({ orderBy, take: 200 });
+    const now = new Date();
+    const live: Prisma.MobileAnnouncementWhereInput = { isActive: true, AND: [{ OR: [{ startsAt: null }, { startsAt: { lte: now } }] }, { OR: [{ endsAt: null }, { endsAt: { gt: now } }] }] };
+    const scheduled: Prisma.MobileAnnouncementWhereInput = { isActive: true, startsAt: { gt: now } };
+    const ended: Prisma.MobileAnnouncementWhereInput = { isActive: true, endsAt: { lte: now } };
+    const off: Prisma.MobileAnnouncementWhereInput = { isActive: false };
+    const byStatus: Record<string, Prisma.MobileAnnouncementWhereInput> = { live, scheduled, ended, off };
+    const where: Prisma.MobileAnnouncementWhereInput = {
+      ...(q.status && byStatus[q.status] ? byStatus[q.status] : {}),
+      ...(q.search?.trim() ? { title: { path: ['en'], string_contains: q.search.trim(), mode: 'insensitive' } } : {}),
+    };
+    const limit = Math.min(100, Math.max(1, q.limit ?? 25));
+    const page = Math.max(1, q.page);
+    const [items, total, nLive, nScheduled, nEnded, nOff] = await Promise.all([
+      this.prisma.mobileAnnouncement.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit }),
+      this.prisma.mobileAnnouncement.count({ where }),
+      this.prisma.mobileAnnouncement.count({ where: live }),
+      this.prisma.mobileAnnouncement.count({ where: scheduled }),
+      this.prisma.mobileAnnouncement.count({ where: ended }),
+      this.prisma.mobileAnnouncement.count({ where: off }),
+    ]);
+    return { items, total, page, limit, pages: Math.max(1, Math.ceil(total / limit)), counts: { live: nLive, scheduled: nScheduled, ended: nEnded, off: nOff } };
   }
 
   async createAnnouncement(adminId: string, input: unknown) {

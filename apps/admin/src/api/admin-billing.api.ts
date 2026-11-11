@@ -27,6 +27,7 @@ export interface BillingStats {
   pending: number;
   approved: number;
   rejected: number;
+  pendingAmount?: number;
   totalApproved: number;
   todayApproved: number;
 }
@@ -36,7 +37,7 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 export const adminBillingApi = {
   stats: () =>
     apiClient.get<{ data: BillingStats }>('/admin/billing/stats').then(unwrap),
-  list: (params?: { status?: PaymentStatus; search?: string; page?: number; limit?: number }) =>
+  list: (params?: { status?: PaymentStatus; provider?: string; from?: string; to?: string; search?: string; page?: number; limit?: number }) =>
     apiClient
       .get<{ data: { items: AdminPayment[]; meta: any } }>('/admin/billing/payments', { params })
       .then(unwrap),

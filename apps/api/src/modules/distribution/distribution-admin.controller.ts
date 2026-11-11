@@ -14,18 +14,32 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../../admin/common/super-admin.guard';
 import { PERMISSIONS } from '../../common/constants/permissions.constants';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
 @ApiTags('Admin - Distribution')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('plans')
 @Controller('admin/distribution')
 export class DistributionAdminController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get('usage')
-  async usage(@Query('tenantId') tenantId?: string) {
+  async usage(
+    @Query('tenantId') tenantId?: string,
+    @Query('search') search?: string,
+    @Query('onlyOn') onlyOn?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     const settings = await this.prisma.distributionSettings.findMany({
-      where: { ...(tenantId ? { tenantId } : { enabled: true }) },
+      where: {
+        ...(tenantId ? { tenantId } : { enabled: true }),
+        tenant: {
+          slug: { not: 'nafaa-system' },
+          ...(search ? { name: { contains: search, mode: 'insensitive' as const } } : {}),
+        },
+      },
       select: { tenantId: true, enabled: true, updatedAt: true, tenant: { select: { name: true, status: true, businessType: true } } },
     });
     const ids = settings.map((s) => s.tenantId);
@@ -56,6 +70,22 @@ export class DistributionAdminController {
       orders30d: oMap.get(s.tenantId)?._count._all ?? 0,
       orderValue30d: Math.round((oMap.get(s.tenantId)?._sum.total ?? 0) * 100) / 100,
     })).sort((a, b) => b.bookerLogins - a.bookerLogins);
-    return { tenants: rows, totals: { tenants: rows.length, bookerLogins: rows.reduce((s, r) => s + r.bookerLogins, 0) } };
+    const totals = {
+      tenants: rows.length,
+      bookerLogins: rows.reduce((s, r) => s + r.bookerLogins, 0),
+      switchedOn: rows.filter((r) => r.enabled).length,
+      orders30d: rows.reduce((s, r) => s + r.orders30d, 0),
+      orderValue30d: Math.round(rows.reduce((s, r) => s + r.orderValue30d, 0)),
+    };
+    // Without paging params the full list is returned, as before.
+    if (!page && !limit) return { tenants: rows, totals };
+    const size = Math.min(100, Math.max(1, Number(limit) || 25));
+    const current = Math.max(1, Number(page) || 1);
+    const filtered = onlyOn === 'true' ? rows.filter((r) => r.enabled) : rows;
+    return {
+      tenants: filtered.slice((current - 1) * size, current * size),
+      totals,
+      meta: { page: current, limit: size, total: filtered.length, totalPages: Math.ceil(filtered.length / size) },
+    };
   }
 }

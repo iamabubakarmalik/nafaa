@@ -18,7 +18,7 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@/lib/cn';
 import { formatPKR, formatPKRFull } from '@/lib/format';
 import { adminDashboardApi, type Compare, type DashboardDays, type DashboardSummary } from '@/api/admin-dashboard.api';
-import { WORKSPACES } from '@/shell/navigation/nav-config';
+import { useVisibleNav } from '@/shell/navigation/useVisibleNav';
 import { WorkspaceMark } from '@/shell/sidebar/WorkspaceMark';
 import { TrendChart } from '../components/TrendChart';
 import { industryForType } from '@/lib/industries';
@@ -153,10 +153,11 @@ function Industries({ data }: { data: DashboardSummary }) {
 }
 
 function Workspaces() {
+  const { workspaces } = useVisibleNav('/dashboard');
   return (
     <Card title="Workspaces" description="Every area of Nafaa has its own menu.">
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        {WORKSPACES.filter((w) => w.id !== 'platform').map((ws) => (
+        {workspaces.filter((w) => w.id !== 'platform').map((ws) => (
           <Link key={ws.id} to={ws.root} className="group flex items-center gap-3 rounded-xl p-2.5 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:ring-slate-300">
             <WorkspaceMark workspace={ws} />
             <span className="min-w-0 flex-1">

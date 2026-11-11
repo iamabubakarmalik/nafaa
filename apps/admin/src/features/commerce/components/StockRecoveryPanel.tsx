@@ -12,7 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { History } from 'lucide-react';
 import { adminCommerceApi, type StockRecoveryRow, type TenantStockRecovery } from '@/api/admin-commerce.api';
-import { Button } from '@/components/ui/Button';
+import { Button, confirmDialog } from '@/design-system/components';
 import { cn } from '@/lib/cn';
 import { Empty, kindLabel, Pill, when } from './CommerceUi';
 
@@ -75,12 +75,12 @@ function ChannelRecovery({ tenantId, channel }: { tenantId: string; channel: Ten
     },
     onError: (e) => toast.error(errMsg(e)),
   });
-  const run = () => {
+  const run = async () => {
     const chosen = rows.filter((r) => picked.has(r.mappingId));
     if (!chosen.length) return;
     const untrack = chosen.filter((r) => r.action === 'untrack').length;
     const restore = chosen.length - untrack;
-    if (window.confirm(`Apply the import fix to ${chosen.length} links on ${channel.name}?\n\n${untrack} untrack: channel tracking ("Track quantity") goes off again; Nafaa stock is not changed and nothing is deleted.\n${restore} restore: Nafaa stock is set to the found number (reason "Import fix") and pushed to the channel.`)) apply.mutate(chosen.map((r) => r.mappingId));
+    if (await confirmDialog({ title: 'Apply import fix', text: `Apply the import fix to ${chosen.length} links on ${channel.name}?\n\n${untrack} untrack: channel tracking ("Track quantity") goes off again; Nafaa stock is not changed and nothing is deleted.\n${restore} restore: Nafaa stock is set to the found number (reason "Import fix") and pushed to the channel.`, yes: 'Apply' })) apply.mutate(chosen.map((r) => r.mappingId));
   };
   const toggle = (id: string) => setPicked((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const allPicked = rows.length > 0 && rows.every((r) => picked.has(r.mappingId));
@@ -119,7 +119,7 @@ function ChannelRecovery({ tenantId, channel }: { tenantId: string; channel: Ten
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((r) => (
-                <tr key={r.mappingId} className={cn(picked.has(r.mappingId) && 'bg-indigo-50/40')}>
+                <tr key={r.mappingId} className={cn(picked.has(r.mappingId) && 'bg-brand-50/40')}>
                   <td className="px-4 py-2"><input type="checkbox" checked={picked.has(r.mappingId)} onChange={() => toggle(r.mappingId)} aria-label={`Pick ${r.name}`} /></td>
                   <td className="max-w-[18rem] px-3 py-2">
                     <div className="truncate font-medium text-slate-900">{r.name}{r.variantName ? <span className="text-slate-500"> — {r.variantName}</span> : null}</div>

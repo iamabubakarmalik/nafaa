@@ -71,7 +71,7 @@ export class AdminDeletionRequestsService {
     });
   }
 
-  async list(params: { status?: string; kind?: string }) {
+  async list(params: { status?: string; kind?: string; search?: string; page?: number; limit?: number }) {
     const now = new Date();
     const items: any[] = [];
 
@@ -112,8 +112,10 @@ export class AdminDeletionRequestsService {
     }
 
     const f = (params.status ?? 'pending').toLowerCase();
+    const q = params.search?.trim().toLowerCase();
     const filtered = items.filter((i) =>
-      f === 'all' ? true : f === 'pending' ? i.status === 'IN_GRACE' || i.status === 'DUE' : i.status.toLowerCase() === f);
+      (f === 'all' ? true : f === 'pending' ? i.status === 'IN_GRACE' || i.status === 'DUE' : i.status.toLowerCase() === f) &&
+      (!q || [i.name, i.email, i.tenantName].some((v) => typeof v === 'string' && v.toLowerCase().includes(q))));
     filtered.sort((a, b) => new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime());
     const counts = { inGrace: 0, due: 0, processed: 0, cancelled: 0 };
     for (const i of items) {
@@ -122,7 +124,15 @@ export class AdminDeletionRequestsService {
       else if (i.status === 'PROCESSED') counts.processed++;
       else counts.cancelled++;
     }
-    return { items: filtered, counts };
+    // Requests are derived from the activity log, so paging happens after the filter.
+    const limit = Math.min(100, Math.max(1, params.limit ?? 100));
+    const page = Math.max(1, params.page ?? 1);
+    const total = filtered.length;
+    return {
+      items: filtered.slice((page - 1) * limit, page * limit),
+      counts,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async process(adminId: string, id: string, note?: string) {

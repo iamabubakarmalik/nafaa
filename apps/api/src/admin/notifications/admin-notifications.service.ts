@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateAdminNotificationDto } from './dto/create-notification.dto';
+import { dayRange } from '../common/date-range';
 
 @Injectable()
 export class AdminNotificationsService {
@@ -27,17 +28,28 @@ export class AdminNotificationsService {
     isRead?: boolean;
     type?: string;
     priority?: string;
+    search?: string;
+    from?: string;
+    to?: string;
     page?: number;
     limit?: number;
   }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 50;
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 50));
     const skip = (page - 1) * limit;
 
     const where: any = {};
     if (params.isRead !== undefined) where.isRead = params.isRead;
     if (params.type) where.type = params.type;
     if (params.priority) where.priority = params.priority;
+    const range = dayRange(params.from, params.to);
+    if (range) where.createdAt = range;
+    if (params.search) {
+      where.OR = [
+        { title: { contains: params.search, mode: 'insensitive' } },
+        { message: { contains: params.search, mode: 'insensitive' } },
+      ];
+    }
 
     const [items, total] = await Promise.all([
       this.prisma.adminNotification.findMany({

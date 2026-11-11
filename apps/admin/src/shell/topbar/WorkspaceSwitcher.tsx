@@ -9,13 +9,13 @@ import { Check, ChevronsUpDown } from 'lucide-react';
 import { Kbd } from '@/design-system/components';
 import { Panel, useDismiss } from '@web-shell/ui';
 import { cn } from '@/lib/cn';
-import { WORKSPACES, workspaceForPath } from '../navigation/nav-config';
+import { useVisibleNav } from '../navigation/useVisibleNav';
 import { WorkspaceMark } from '../sidebar/WorkspaceMark';
 
 export function WorkspaceSwitcher() {
   const navigate = useNavigate();
   const location = useLocation();
-  const current = workspaceForPath(location.pathname);
+  const { workspaces, current } = useVisibleNav(location.pathname);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpen(false), []);
@@ -59,7 +59,7 @@ export function WorkspaceSwitcher() {
           <Kbd className="hidden sm:inline-flex">Alt W</Kbd>
         </div>
         <div className="space-y-0.5 overflow-y-auto p-2" role="listbox" aria-label="Workspaces">
-          {WORKSPACES.map((ws) => {
+          {workspaces.map((ws) => {
             const active = ws.id === current.id;
             return (
               <button

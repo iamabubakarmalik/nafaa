@@ -13,10 +13,12 @@ import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminPlansService } from './admin-plans.service';
 import { UpsertPlanDto } from './dto/upsert-plan.dto';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Plans')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('plans')
 @Controller('admin/plans')
 export class AdminPlansController {
   constructor(private readonly service: AdminPlansService) {}

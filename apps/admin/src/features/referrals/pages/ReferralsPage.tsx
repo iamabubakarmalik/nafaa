@@ -1,134 +1,178 @@
+/**
+ * Referrals: shops that brought other shops to Nafaa, the rewards paid, and
+ * the top referrers. The list is filtered and paged on the server.
+ */
+
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Gift, Crown, Users, TrendingUp, Award } from 'lucide-react';
-import { adminReferralsApi } from '@/api/admin-referrals.api';
-import { formatPKR } from '@/lib/format';
+import { toast } from 'sonner';
+import { ArrowRight, Crown, Download, Gift, Lightbulb, Search, Store, Tag, UserPlus, Wallet } from 'lucide-react';
+import {
+  Card, DateRangeMenu, EmptyState, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Skeleton, Table, TBody, Td, Th, THead, Tr, heroButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { adminReferralsApi, type AdminReferral } from '@/api/admin-referrals.api';
+import { formatDate, formatPKR } from '@/lib/format';
+import { cn } from '@/lib/cn';
+import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
+import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '../../shared/period';
+
+const STATUSES = ['ALL', 'PENDING', 'CONVERTED', 'PAID', 'EXPIRED'];
+const num = (n: number) => n.toLocaleString('en-PK');
+const MEDAL = ['bg-amber-100 text-amber-700', 'bg-slate-200 text-slate-700', 'bg-orange-100 text-orange-700'];
 
 export default function ReferralsPage() {
-  const { data: stats } = useQuery({
-    queryKey: ['admin-referrals-stats'],
-    queryFn: adminReferralsApi.stats,
-  });
+  const guide = usePageGuide();
+  const [exporting, setExporting] = useState(false);
+  const list = useListParams({ status: 'ALL', ...PERIOD_DEFAULTS });
+  const { status } = list.filters;
+  const range = periodChip(list.filters);
+  const query = { search: list.debouncedSearch || undefined, status: status === 'ALL' ? undefined : status, ...periodQuery(list.filters) };
 
-  const { data: leaderboard = [] } = useQuery({
-    queryKey: ['admin-referrals-leaderboard'],
-    queryFn: adminReferralsApi.leaderboard,
+  const referrals = useQuery({
+    queryKey: ['admin', 'referrals', query, list.page, list.limit],
+    queryFn: () => adminReferralsApi.listPaged({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
   });
+  const stats = useQuery({ queryKey: ['admin', 'referrals', 'stats'], queryFn: adminReferralsApi.stats, staleTime: 60_000 });
+  const board = useQuery({ queryKey: ['admin', 'referrals', 'leaderboard'], queryFn: adminReferralsApi.leaderboard, staleTime: 60_000 });
+  const s = stats.data;
+  const rows = referrals.data?.items ?? [];
+  const top = (board.data ?? []).slice(0, 10);
 
-  const { data: list = [] } = useQuery({
-    queryKey: ['admin-referrals-list'],
-    queryFn: () => adminReferralsApi.list({ limit: 30 }),
-  });
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all = await fetchAllPages((page) => adminReferralsApi.listPaged({ ...query, page, limit: 100 }));
+      downloadCsv<AdminReferral>('referrals', all, [
+        { label: 'Date', value: (r) => r.createdAt.slice(0, 10) },
+        { label: 'Referrer', value: (r) => r.referrer.name },
+        { label: 'New shop', value: (r) => r.referee.name },
+        { label: 'Code', value: (r) => r.code },
+        { label: 'Status', value: (r) => r.status },
+        { label: 'Reward', value: (r) => r.rewardAmount },
+      ]);
+      toast.success(`${num(all.length)} referrals exported`);
+    } catch {
+      toast.error('Export failed. Try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const chips = [
+    status !== 'ALL' && <FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{statusLabel(status)}</FilterChip>,
+    range && <FilterChip key="d" onRemove={() => clearPeriod(list)}>{range}</FilterChip>,
+  ].filter(Boolean);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-pink-900 via-rose-800 to-pink-700 text-white p-6 shadow-soft">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-          <Gift className="h-3.5 w-3.5" />
-          Referral Program
-        </div>
-        <h2 className="mt-3 text-3xl font-bold">Referrals Overview</h2>
-        <p className="mt-2 text-sm text-white/80">
-          Saare referrals — pending, converted, paid
-        </p>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Referrals"
+        chip={s ? `${num(s.total)} total` : undefined}
+        busy={referrals.isFetching}
+        loading={stats.isLoading}
+        actions={
+          <>
+            <button type="button" className={heroButton} onClick={exportCsv} disabled={exporting}><Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}</button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={s ? [
+          { label: 'Rewards earned', value: formatPKR(s.totalRewardsPaid) },
+          { label: 'Waiting to convert', value: num(s.pending), hint: 'New shop has not paid yet' },
+          { label: 'Converted', value: num(s.converted) },
+          { label: 'Paid out', value: num(s.paid) },
+        ] : undefined}
+      />
 
-      <section className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="rounded-2xl bg-white border border-slate-200 p-4">
-          <div className="text-xs text-slate-500">Total</div>
-          <div className="mt-1 text-2xl font-bold">{stats?.total ?? 0}</div>
-        </div>
-        <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4">
-          <div className="text-xs text-amber-700">Pending</div>
-          <div className="mt-1 text-2xl font-bold text-amber-900">{stats?.pending ?? 0}</div>
-        </div>
-        <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4">
-          <div className="text-xs text-emerald-700">Converted</div>
-          <div className="mt-1 text-2xl font-bold text-emerald-900">{stats?.converted ?? 0}</div>
-        </div>
-        <div className="rounded-2xl bg-blue-50 border border-blue-200 p-4">
-          <div className="text-xs text-blue-700">Paid Out</div>
-          <div className="mt-1 text-2xl font-bold text-blue-900">{stats?.paid ?? 0}</div>
-        </div>
-        <div className="rounded-2xl bg-gradient-to-br from-violet-600 to-violet-800 text-white p-4">
-          <div className="text-xs text-white/80">Total Rewards</div>
-          <div className="mt-1 text-lg font-bold">{formatPKR(stats?.totalRewardsPaid ?? 0)}</div>
-        </div>
-      </section>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="space-y-4 xl:col-span-2">
+          <FilterBar
+            search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search shop name or code" />}
+            chips={chips.length ? chips : undefined}
+            onClear={list.clear}
+          >
+            <DateRangeMenu value={periodValue(list.filters)} onChange={(v) => setPeriod(list, v)} startHour={0} />
+            <FilterMenu icon={Tag} label="Status" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)} align="right"
+              options={STATUSES.map((v) => ({ value: v, label: v === 'ALL' ? 'All statuses' : statusLabel(v) }))} />
+          </FilterBar>
 
-      <section className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-            <Crown className="h-5 w-5 text-amber-600" />
-            <h3 className="font-bold">Top Referrers</h3>
-          </div>
-          <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
-            {leaderboard.length === 0 ? (
-              <div className="p-6 text-sm text-slate-500 text-center">No referrers yet</div>
-            ) : (
-              leaderboard.map((t: any, idx: number) => (
-                <div key={t.id} className="px-6 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`h-9 w-9 rounded-full flex items-center justify-center font-bold text-xs ${
-                      idx === 0 ? 'bg-amber-100 text-amber-700' :
-                      idx === 1 ? 'bg-slate-200 text-slate-700' :
-                      idx === 2 ? 'bg-orange-100 text-orange-700' :
-                      'bg-slate-100 text-slate-600'
-                    }`}>
-                      #{idx + 1}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{t.name}</div>
-                      <div className="text-xs text-slate-500 font-mono">{t.referralCode}</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-emerald-700">{formatPKR(t.totalEarned)}</div>
-                    <div className="text-xs text-slate-500">{t.successfulReferrals} refs</div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          <ListCard
+            loading={referrals.isLoading}
+            empty={!rows.length}
+            emptyIcon={<Gift className="h-6 w-6" />}
+            emptyTitle="No referrals match"
+            emptyText="Referrals appear when a shop signs up with another shop's code."
+            page={list.page} limit={list.limit} total={referrals.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+          >
+            <Table minWidth="44rem">
+              <THead><Tr><Th>Referrer</Th><Th>New shop</Th><Th>Code</Th><Th>Status</Th><Th align="right">Reward</Th><Th align="right">Date</Th></Tr></THead>
+              <TBody>
+                {rows.map((r) => (
+                  <Tr key={r.id}>
+                    <Td><Link to={`/tenants/${r.referrer.id}`} className="font-semibold text-slate-900 hover:text-brand-700">{r.referrer.name}</Link></Td>
+                    <Td><Link to={`/tenants/${r.referee.id}`} className="font-medium text-slate-900 hover:text-brand-700">{r.referee.name}</Link></Td>
+                    <Td className="font-mono text-[0.8125rem] text-slate-600">{r.code}</Td>
+                    <Td><StatusBadge value={r.status} /></Td>
+                    <Td align="right" className={r.rewardAmount > 0 ? 'font-semibold text-emerald-700' : 'text-slate-400'}>{r.rewardAmount > 0 ? `+${formatPKR(r.rewardAmount)}` : '—'}</Td>
+                    <Td align="right" className="whitespace-nowrap text-slate-500">{formatDate(r.createdAt)}</Td>
+                  </Tr>
+                ))}
+              </TBody>
+            </Table>
+          </ListCard>
         </div>
 
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-            <Users className="h-5 w-5 text-admin-600" />
-            <h3 className="font-bold">Recent Referrals</h3>
-          </div>
-          <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
-            {list.map((r: any) => (
-              <div key={r.id} className="px-6 py-3 text-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="font-medium text-slate-900 truncate">
-                      {r.referrer.name} → {r.referee.name}
-                    </div>
-                    <div className="text-xs text-slate-500 font-mono">{r.code}</div>
-                  </div>
-                  <div className="text-right">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      r.status === 'CONVERTED' || r.status === 'PAID'
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {r.status}
+        <Card title="Top referrers" description="By rewards earned" className="h-fit">
+          {board.isLoading ? (
+            <div className="space-y-2">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-11 rounded-xl" />)}</div>
+          ) : top.length === 0 ? (
+            <EmptyState icon={<Crown className="h-6 w-6" />} title="No referrers yet" description="Shops that bring in paying shops appear here." />
+          ) : (
+            <ul className="space-y-1">
+              {top.map((t, i) => (
+                <li key={t.id}>
+                  <Link to={`/tenants/${t.id}`} className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-slate-50">
+                    <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[0.75rem] font-bold', MEDAL[i] ?? 'bg-slate-100 text-slate-600')}>{i + 1}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[0.875rem] font-medium text-slate-900">{t.name}</span>
+                      <span className="block font-mono text-[0.75rem] text-slate-500">{t.referralCode}</span>
                     </span>
-                    {r.rewardAmount > 0 && (
-                      <div className="text-xs text-emerald-700 font-bold mt-1">
-                        +{formatPKR(r.rewardAmount)}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-            {list.length === 0 && (
-              <div className="p-6 text-sm text-slate-500 text-center">No referrals yet</div>
-            )}
-          </div>
-        </div>
-      </section>
-    </div>
+                    <span className="text-end">
+                      <span className="block text-[0.875rem] font-semibold text-emerald-700">{formatPKR(t.totalEarned)}</span>
+                      <span className="block text-[0.75rem] text-slate-500">{t.successfulReferrals} referrals</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Referrals"
+          description="Shops earn a reward when a shop they refer becomes a paying customer."
+          flowTitle="How a referral pays off"
+          flow={[
+            { label: 'Shop shares code', icon: Store, color: '#4f46e5' },
+            { label: 'New shop signs up', hint: 'Pending', icon: UserPlus, color: '#0284c7' },
+            { label: 'New shop pays', hint: 'Converted', icon: Wallet, color: '#d97706' },
+            { label: 'Reward added', hint: 'Account credit', icon: Gift, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Search, color: '#4f46e5', title: 'Find a referral', text: 'Search by either shop name or the code, and filter by status or date.' },
+            { icon: Crown, color: '#d97706', title: 'Top referrers', text: 'The list on the right ranks shops by the rewards they have earned.' },
+            { icon: ArrowRight, color: '#059669', title: 'Open a shop', text: 'Click a shop name to see its profile and account credit.' },
+          ]}
+          tips={['Pending means the new shop has signed up but not paid yet.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

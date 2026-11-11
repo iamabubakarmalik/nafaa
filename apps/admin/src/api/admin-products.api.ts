@@ -28,7 +28,7 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const adminProductsApi = {
   stats: () => apiClient.get<{ data: ProductsStats }>('/admin/products/stats').then(unwrap),
-  list: (params?: { search?: string; tenantId?: string; page?: number; limit?: number }) =>
+  list: (params?: { search?: string; tenantId?: string; status?: string; page?: number; limit?: number }) =>
     apiClient
       .get<{ data: { items: AdminProduct[]; meta: any } }>('/admin/products', { params })
       .then(unwrap),

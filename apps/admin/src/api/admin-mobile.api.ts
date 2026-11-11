@@ -179,7 +179,8 @@ export const adminMobileApi = {
   config: () => apiClient.get('/admin/mobile/config').then(unwrap<AdminMobileConfig>),
   saveConfig: (config: MobileConfig) => apiClient.put('/admin/mobile/config', config).then(unwrap<AdminMobileConfig>),
 
-  announcements: () => apiClient.get('/admin/mobile/announcements').then(unwrap<Announcement[]>),
+  announcements: (q: { page: number; limit: number; search?: string; status?: string }) =>
+    apiClient.get('/admin/mobile/announcements', { params: clean(q) }).then(unwrap<Paged<Announcement> & { counts: { live: number; scheduled: number; ended: number; off: number } }>),
   createAnnouncement: (a: AnnouncementInput) => apiClient.post('/admin/mobile/announcements', a).then(unwrap<Announcement>),
   updateAnnouncement: (id: string, a: Partial<AnnouncementInput>) => apiClient.put(`/admin/mobile/announcements/${id}`, a).then(unwrap<Announcement>),
   deleteAnnouncement: (id: string) => apiClient.delete(`/admin/mobile/announcements/${id}`).then(unwrap<{ ok: boolean }>),

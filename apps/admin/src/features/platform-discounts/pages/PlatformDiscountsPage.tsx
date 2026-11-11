@@ -1,199 +1,194 @@
+/**
+ * Promo codes: platform-wide discount codes shops can use when they pay for
+ * a plan. Create, edit, switch on or off, and delete. The list is searched,
+ * filtered and paged on the server.
+ */
+
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Tag, Plus, Trash2, ToggleLeft, ToggleRight, Percent, DollarSign, X, Check } from 'lucide-react';
-import {
-  adminPlatformDiscountsApi,
-  type PlatformDiscount,
-  type DiscountType,
-  type UpsertPlatformDiscountPayload,
-} from '@/api/admin-platform-discounts.api';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
+import { BadgePercent, CalendarClock, Edit, Lightbulb, Plus, Receipt, Tag, Ticket, Trash2, Users } from 'lucide-react';
+import {
+  Badge, Button, FilterBar, FilterChip, FilterMenu, Input, Modal, PageHero, PageShell, SearchField, Segmented, Switch, Table, TBody, Td, Th, THead, Tr, confirmDialog, heroButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { adminPlatformDiscountsApi, type PlatformDiscount, type UpsertPlatformDiscountPayload } from '@/api/admin-platform-discounts.api';
+import { formatDate, formatPKR } from '@/lib/format';
+import { ListCard, StatusBadge, useListParams } from '@/ui';
 
-const formatDate = (v?: string | null) =>
-  v ? new Intl.DateTimeFormat('en-PK', { dateStyle: 'short' }).format(new Date(v)) : '—';
+const num = (n: number) => n.toLocaleString('en-PK');
+const BLANK: UpsertPlatformDiscountPayload = { code: '', description: '', type: 'PERCENTAGE', value: 0, scope: 'ANY', minPurchase: 0, isActive: true };
+const STATUS = [{ value: 'ALL', label: 'All codes' }, { value: 'active', label: 'Active' }, { value: 'off', label: 'Switched off' }, { value: 'expired', label: 'Expired' }];
+
+const isExpired = (d: PlatformDiscount) => !!d.validUntil && new Date(d.validUntil).getTime() < Date.now();
 
 export default function PlatformDiscountsPage() {
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const list = useListParams({ status: 'ALL' }, { limit: 25 });
+  const { status } = list.filters;
+  const [form, setForm] = useState<UpsertPlatformDiscountPayload | null>(null);
   const [editing, setEditing] = useState<PlatformDiscount | null>(null);
 
-  const [form, setForm] = useState<UpsertPlatformDiscountPayload>({
-    code: '', description: '', type: 'PERCENTAGE', value: 0,
-    scope: 'ANY', minPurchase: 0, isActive: true,
+  const query = { search: list.debouncedSearch || undefined, status: status === 'ALL' ? undefined : status };
+  const codes = useQuery({
+    queryKey: ['admin', 'promo-codes', query, list.page, list.limit],
+    queryFn: () => adminPlatformDiscountsApi.listPaged({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
   });
+  const stats = useQuery({ queryKey: ['admin', 'promo-codes', 'stats'], queryFn: adminPlatformDiscountsApi.stats, staleTime: 30_000 });
+  const s = stats.data;
+  const rows = codes.data?.items ?? [];
 
-  const { data: list = [] } = useQuery({
-    queryKey: ['admin-platform-discounts'],
-    queryFn: adminPlatformDiscountsApi.list,
-  });
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin', 'promo-codes'] });
+  const fail = (e: any) => toast.error(e?.response?.data?.message || 'Something went wrong');
+  const toggle = useMutation({ mutationFn: (d: PlatformDiscount) => adminPlatformDiscountsApi.update(d.id, { isActive: !d.isActive }), onSuccess: refresh, onError: fail });
+  const remove = useMutation({ mutationFn: adminPlatformDiscountsApi.remove, onSuccess: () => { toast.success('Code deleted'); refresh(); }, onError: fail });
 
-  const saveMutation = useMutation({
-    mutationFn: () => editing
-      ? adminPlatformDiscountsApi.update(editing.id, form)
-      : adminPlatformDiscountsApi.create(form),
-    onSuccess: () => {
-      toast.success(editing ? 'Discount updated' : 'Discount created');
-      setShowForm(false);
-      setEditing(null);
-      setForm({ code: '', description: '', type: 'PERCENTAGE', value: 0, scope: 'ANY', minPurchase: 0, isActive: true });
-      queryClient.invalidateQueries({ queryKey: ['admin-platform-discounts'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
-  });
-
-  const toggleMutation = useMutation({
-    mutationFn: (d: PlatformDiscount) =>
-      adminPlatformDiscountsApi.update(d.id, { isActive: !d.isActive }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-platform-discounts'] }),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: adminPlatformDiscountsApi.remove,
-    onSuccess: () => {
-      toast.success('Deleted');
-      queryClient.invalidateQueries({ queryKey: ['admin-platform-discounts'] });
-    },
-  });
-
-  const startEdit = (d: PlatformDiscount) => {
+  const openNew = () => { setEditing(null); setForm({ ...BLANK }); };
+  const openEdit = (d: PlatformDiscount) => {
     setEditing(d);
     setForm({
-      code: d.code, description: d.description ?? '', type: d.type, value: d.value,
-      scope: d.scope, minPurchase: d.minPurchase, maxDiscount: d.maxDiscount ?? undefined,
-      usageLimit: d.usageLimit ?? undefined, perTenantLimit: d.perTenantLimit ?? undefined,
+      code: d.code, description: d.description ?? '', type: d.type, value: d.value, scope: d.scope, minPurchase: d.minPurchase,
+      maxDiscount: d.maxDiscount ?? undefined, usageLimit: d.usageLimit ?? undefined, perTenantLimit: d.perTenantLimit ?? undefined,
       validFrom: d.validFrom ?? undefined, validUntil: d.validUntil ?? undefined, isActive: d.isActive,
     });
-    setShowForm(true);
+  };
+  const onDelete = async (d: PlatformDiscount) => {
+    if (await confirmDialog({ title: `Delete ${d.code}?`, text: 'Shops can no longer use this code.', yes: 'Delete', danger: true })) remove.mutate(d.id);
   };
 
+  const chips = status !== 'ALL' ? [<FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{STATUS.find((o) => o.value === status)?.label}</FilterChip>] : [];
+
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-pink-900 to-pink-700 text-white p-6 shadow-soft">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-              <Tag className="h-3.5 w-3.5" /> Platform Discounts
-            </div>
-            <h2 className="mt-3 text-3xl font-bold">Promo Codes</h2>
-            <p className="mt-2 text-sm text-white/80">Platform-wide promo codes admin ke under</p>
-          </div>
-          <Button onClick={() => { setShowForm(true); setEditing(null); }}
-            className="bg-white text-slate-900 hover:bg-slate-100">
-            <Plus className="h-4 w-4" /> New Code
-          </Button>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Promo codes"
+        chip={s ? `${num(s.total)} codes` : undefined}
+        busy={codes.isFetching}
+        loading={stats.isLoading}
+        actions={
+          <>
+            <button type="button" className={heroPrimaryButton} onClick={openNew}><Plus className="h-4 w-4" /> New code</button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={s ? [
+          { label: 'Active codes', value: num(s.active), hint: `of ${num(s.total)}` },
+          { label: 'Times used', value: num(s.totalUses) },
+          { label: 'Expired', value: num(s.expired) },
+        ] : undefined}
+      />
 
-      <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {list.map((d) => (
-          <div key={d.id} className={`rounded-2xl border-2 p-5 ${
-            d.isActive ? 'border-pink-200 bg-pink-50/50' : 'border-slate-200 bg-slate-50 opacity-60'
-          }`}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="font-mono text-xl font-bold">{d.code}</div>
-                {d.description && <div className="text-xs text-slate-600 mt-1">{d.description}</div>}
-              </div>
-              <div className="flex gap-1">
-                <button onClick={() => toggleMutation.mutate(d)} className="rounded-lg p-1.5">
-                  {d.isActive ? <ToggleRight className="h-5 w-5 text-emerald-600" /> : <ToggleLeft className="h-5 w-5" />}
-                </button>
-                <button onClick={() => startEdit(d)} className="text-slate-700 hover:bg-white rounded-lg p-1.5">
-                  <Plus className="h-4 w-4 rotate-45" />
-                </button>
-                <button onClick={() => { if (confirm(`Delete ${d.code}?`)) removeMutation.mutate(d.id); }}
-                  className="text-rose-600 hover:bg-white rounded-lg p-1.5">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search code or description" />}
+        chips={chips.length ? chips : undefined}
+        onClear={list.clear}
+      >
+        <FilterMenu icon={Tag} label="Show" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)} align="right" options={STATUS} />
+      </FilterBar>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <div className="text-xs text-slate-500">Discount</div>
-                <div className="font-bold">{d.type === 'PERCENTAGE' ? `${d.value}%` : formatPKR(d.value)}</div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-500">Min Purchase</div>
-                <div className="font-medium">{formatPKR(d.minPurchase)}</div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-500">Used</div>
-                <div className="font-medium">{d.usageCount}{d.usageLimit ? ` / ${d.usageLimit}` : ''}</div>
-              </div>
-              <div>
-                <div className="text-xs text-slate-500">Valid Until</div>
-                <div className="font-medium text-xs">{formatDate(d.validUntil)}</div>
-              </div>
-            </div>
-          </div>
-        ))}
-        {list.length === 0 && (
-          <div className="col-span-full p-12 text-center text-sm text-slate-500">No platform discounts yet</div>
-        )}
-      </section>
+      <ListCard
+        loading={codes.isLoading}
+        empty={!rows.length}
+        emptyIcon={<Ticket className="h-6 w-6" />}
+        emptyTitle="No promo codes"
+        emptyText="Create a code to give shops a discount on their plan."
+        emptyAction={<Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={openNew}>New code</Button>}
+        page={list.page} limit={list.limit} total={codes.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="54rem">
+          <THead><Tr><Th>Code</Th><Th>Discount</Th><Th align="right">Min purchase</Th><Th align="right">Used</Th><Th>Valid until</Th><Th>Status</Th><Th align="right"><span className="sr-only">Actions</span></Th></Tr></THead>
+          <TBody>
+            {rows.map((d) => {
+              const expired = isExpired(d);
+              return (
+                <Tr key={d.id}>
+                  <Td><div className="font-mono text-[0.9375rem] font-bold text-slate-900">{d.code}</div>{d.description && <div className="max-w-[16rem] truncate text-[0.75rem] text-slate-500">{d.description}</div>}</Td>
+                  <Td className="font-semibold">{d.type === 'PERCENTAGE' ? `${d.value}% off` : `${formatPKR(d.value)} off`}{d.maxDiscount ? <div className="text-[0.75rem] font-normal text-slate-500">Up to {formatPKR(d.maxDiscount)}</div> : null}</Td>
+                  <Td align="right">{d.minPurchase ? formatPKR(d.minPurchase) : <span className="text-slate-400">None</span>}</Td>
+                  <Td align="right">{num(d.usageCount)}{d.usageLimit ? <span className="text-slate-400"> / {num(d.usageLimit)}</span> : ''}</Td>
+                  <Td className="whitespace-nowrap">{d.validUntil ? formatDate(d.validUntil) : <span className="text-slate-400">No end date</span>}</Td>
+                  <Td>{expired ? <StatusBadge value="EXPIRED" /> : d.isActive ? <StatusBadge value="ACTIVE" /> : <Badge>Switched off</Badge>}</Td>
+                  <Td align="right">
+                    <div className="inline-flex items-center gap-1">
+                      <Switch size="sm" checked={d.isActive} onChange={() => toggle.mutate(d)} aria-label={d.isActive ? 'Switch off' : 'Switch on'} />
+                      <button type="button" onClick={() => openEdit(d)} aria-label="Edit code" className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Edit className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => onDelete(d)} aria-label="Delete code" className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                    </div>
+                  </Td>
+                </Tr>
+              );
+            })}
+          </TBody>
+        </Table>
+      </ListCard>
 
-      {showForm && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 my-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-xl">{editing ? 'Edit Discount' : 'New Discount'}</h3>
-              <button onClick={() => setShowForm(false)} className="rounded-lg p-2 hover:bg-slate-100">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      {form && <CodeModal initial={form} editing={editing} onClose={() => setForm(null)} onSaved={refresh} />}
 
-            <div className="space-y-3">
-              <Input label="Code" value={form.code}
-                onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                placeholder="LAUNCH50" disabled={!!editing} />
-              <Input label="Description" value={form.description ?? ''}
-                onChange={(e) => setForm({ ...form, description: e.target.value })} />
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Type</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={() => setForm({ ...form, type: 'PERCENTAGE' })}
-                    className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 ${
-                      form.type === 'PERCENTAGE' ? 'border-pink-500 bg-pink-50' : 'border-slate-200'
-                    }`}>
-                    <Percent className="h-4 w-4" /> Percentage
-                  </button>
-                  <button onClick={() => setForm({ ...form, type: 'FIXED_AMOUNT' })}
-                    className={`p-3 rounded-xl border-2 flex items-center justify-center gap-2 ${
-                      form.type === 'FIXED_AMOUNT' ? 'border-pink-500 bg-pink-50' : 'border-slate-200'
-                    }`}>
-                    <DollarSign className="h-4 w-4" /> Fixed
-                  </button>
-                </div>
-              </div>
-
-              <Input label={form.type === 'PERCENTAGE' ? 'Percentage' : 'Amount (PKR)'} type="number"
-                value={form.value} onChange={(e) => setForm({ ...form, value: Number(e.target.value) })} />
-              <Input label="Min Purchase (PKR)" type="number" value={form.minPurchase ?? 0}
-                onChange={(e) => setForm({ ...form, minPurchase: Number(e.target.value) })} />
-              <Input label="Usage Limit (optional)" type="number" value={form.usageLimit ?? ''}
-                onChange={(e) => setForm({ ...form, usageLimit: e.target.value ? Number(e.target.value) : undefined })} />
-              <Input label="Valid Until (optional)" type="date" value={form.validUntil?.slice(0, 10) ?? ''}
-                onChange={(e) => setForm({ ...form, validUntil: e.target.value })} />
-
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => setShowForm(false)} className="flex-1">Cancel</Button>
-                <Button onClick={() => {
-                  if (!form.code.trim()) return toast.error('Code likhein');
-                  if (!form.value) return toast.error('Value likhein');
-                  saveMutation.mutate();
-                }} loading={saveMutation.isPending} className="flex-1">
-                  <Check className="h-4 w-4" /> {editing ? 'Update' : 'Create'}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {guide.isOpen && (
+        <PageGuide
+          title="Promo codes"
+          description="Codes shops type in when they pay for a plan, to get money off."
+          flowTitle="How a code is used"
+          flow={[
+            { label: 'You create a code', icon: Ticket, color: '#4f46e5' },
+            { label: 'Shop enters it', hint: 'At checkout', icon: Receipt, color: '#0284c7' },
+            { label: 'Discount applies', icon: BadgePercent, color: '#059669' },
+            { label: 'Use count goes up', icon: Users, color: '#d97706' },
+          ]}
+          steps={[
+            { icon: Plus, color: '#4f46e5', title: 'Create', text: 'Choose a percentage or a fixed amount, then add limits if you need them.' },
+            { icon: CalendarClock, color: '#d97706', title: 'Limit', text: 'Set a minimum purchase, a total use limit and an end date.' },
+            { icon: Edit, color: '#059669', title: 'Switch off', text: 'Use the switch to pause a code without deleting it.' },
+          ]}
+          tips={['A code cannot be renamed after it is created.', 'Deleting a code does not change plans that already used it.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
       )}
-    </div>
+    </PageShell>
+  );
+}
+
+function CodeModal({ initial, editing, onClose, onSaved }: { initial: UpsertPlatformDiscountPayload; editing: PlatformDiscount | null; onClose: () => void; onSaved: () => void }) {
+  const [form, setForm] = useState(initial);
+  const set = (patch: Partial<UpsertPlatformDiscountPayload>) => setForm((f) => ({ ...f, ...patch }));
+  const save = useMutation({
+    mutationFn: () => (editing ? adminPlatformDiscountsApi.update(editing.id, form) : adminPlatformDiscountsApi.create(form)),
+    onSuccess: () => { toast.success(editing ? 'Code updated' : 'Code created'); onSaved(); onClose(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Could not save the code'),
+  });
+  const submit = () => {
+    if (!form.code.trim()) return toast.error('Enter a code');
+    if (!form.value) return toast.error('Enter the discount value');
+    if (form.type === 'PERCENTAGE' && form.value > 100) return toast.error('A percentage cannot be more than 100');
+    save.mutate();
+  };
+  const optionalNumber = (v: string) => (v ? Number(v) : undefined);
+
+  return (
+    <Modal open onClose={onClose} title={editing ? `Edit ${editing.code}` : 'New promo code'}
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button onClick={submit} loading={save.isPending}>{editing ? 'Save changes' : 'Create code'}</Button></>}>
+      <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input label="Code" value={form.code} onChange={(e) => set({ code: e.target.value.toUpperCase() })} placeholder="LAUNCH50" disabled={!!editing} />
+          <Input label="Description (optional)" value={form.description ?? ''} onChange={(e) => set({ description: e.target.value })} />
+        </div>
+        <div>
+          <div className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">Type</div>
+          <Segmented value={form.type} onChange={(type) => set({ type })} label="Discount type" items={[{ value: 'PERCENTAGE', label: 'Percentage' }, { value: 'FIXED_AMOUNT', label: 'Fixed amount' }]} />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input label={form.type === 'PERCENTAGE' ? 'Percentage' : 'Amount (PKR)'} type="number" min={0} value={form.value || ''} onChange={(e) => set({ value: Number(e.target.value) })} />
+          <Input label="Minimum purchase (PKR)" type="number" min={0} value={form.minPurchase ?? 0} onChange={(e) => set({ minPurchase: Number(e.target.value) })} />
+          {form.type === 'PERCENTAGE' && <Input label="Biggest discount (PKR, optional)" type="number" min={0} value={form.maxDiscount ?? ''} onChange={(e) => set({ maxDiscount: optionalNumber(e.target.value) })} />}
+          <Input label="Total use limit (optional)" type="number" min={1} value={form.usageLimit ?? ''} onChange={(e) => set({ usageLimit: optionalNumber(e.target.value) })} />
+          <Input label="Uses per shop (optional)" type="number" min={1} value={form.perTenantLimit ?? ''} onChange={(e) => set({ perTenantLimit: optionalNumber(e.target.value) })} />
+          <Input label="Valid until (optional)" type="date" value={form.validUntil?.slice(0, 10) ?? ''} onChange={(e) => set({ validUntil: e.target.value || undefined })} />
+        </div>
+        <Switch label="Active" description="Shops can use the code while it is on." checked={form.isActive ?? true} onChange={(e) => set({ isActive: e.target.checked })} />
+      </div>
+    </Modal>
   );
 }

@@ -11,7 +11,7 @@
  */
 
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { Integration, IntegrationStatus, IntegrationType, Prisma } from '@prisma/client';
+import { CourierProvider, Integration, IntegrationStatus, IntegrationType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CatalogJobsService } from './catalog-jobs.service';
 import { CatalogWatchService } from './catalog-watch.service';
@@ -176,9 +176,9 @@ export class CommerceAdminService {
   // ═══════════════════════════════════════════════════════════
 
   async channels(q: ChannelQuery) {
-    const limit = Math.min(200, Math.max(1, Math.floor(q.limit ?? 50)));
+    const limit = Math.min(100, Math.max(1, Math.floor(q.limit ?? 50)));
     const page = Math.max(1, Math.floor(q.page ?? 1));
-    const where: Prisma.Sql[] = [Prisma.sql`i."type"::text IN (${Prisma.join(COMMERCE_TYPES)})`];
+    const where: Prisma.Sql[] = [Prisma.sql`i."type"::text IN (${Prisma.join(COMMERCE_TYPES)})`, Prisma.sql`t."slug" <> 'nafaa-system'`];
     if (q.tenantId) where.push(Prisma.sql`i."tenantId" = ${q.tenantId}`);
     if (q.kind) where.push(Prisma.sql`${KIND_SQL} = ${q.kind}`);
     if (q.status === 'PAUSED') where.push(Prisma.sql`i."isActive" = false`);
@@ -367,7 +367,7 @@ export class CommerceAdminService {
   // CATALOG JOBS
   // ═══════════════════════════════════════════════════════════
 
-  async jobList(q: { status?: string; tenantId?: string; kind?: string; limit?: number }) {
+  async jobList(q: { status?: string; tenantId?: string; kind?: string; limit?: number; page?: number; search?: string }) {
     const statusWhere: Prisma.CatalogJobWhereInput =
       q.status === 'active' ? { status: { in: ACTIVE_STATUSES } }
         : q.status === 'failed' ? { OR: [{ status: 'FAILED' }, { status: 'DONE', failed: { gt: 0 } }] }
@@ -377,8 +377,16 @@ export class CommerceAdminService {
       ...(q.tenantId && { tenantId: q.tenantId }),
       ...(q.kind && (JOB_KINDS as readonly string[]).includes(q.kind) && { kind: q.kind }),
     };
-    const [jobs, counts] = await Promise.all([
-      this.prisma.catalogJob.findMany({ where, orderBy: { createdAt: 'desc' }, take: Math.min(200, q.limit ?? 100), omit: { items: true } }),
+    // CatalogJob has no shop relation, so a shop-name search resolves ids first.
+    if (q.search?.trim()) {
+      const hit = await this.prisma.tenant.findMany({ where: { name: { contains: q.search.trim(), mode: 'insensitive' } }, select: { id: true }, take: 200 });
+      where.tenantId = q.tenantId ? (hit.some((t) => t.id === q.tenantId) ? q.tenantId : '-') : { in: hit.map((t) => t.id) };
+    }
+    const limit = Math.min(100, Math.max(1, q.limit ?? 25));
+    const page = Math.max(1, q.page ?? 1);
+    const [jobs, total, counts] = await Promise.all([
+      this.prisma.catalogJob.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit, omit: { items: true } }),
+      this.prisma.catalogJob.count({ where }),
       this.prisma.catalogJob.groupBy({ by: ['status'], _count: { _all: true } }),
     ]);
     const [tenants, channels] = await Promise.all([
@@ -390,6 +398,7 @@ export class CommerceAdminService {
     const now = Date.now();
     return {
       counts: Object.fromEntries(counts.map((c) => [c.status, c._count._all])),
+      meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
       jobs: jobs.map((j) => ({
         ...this.jobs.view(j),
         tenantId: j.tenantId, tenantName: tName.get(j.tenantId) ?? null,
@@ -437,27 +446,32 @@ export class CommerceAdminService {
     integration: { select: { id: true, type: true, displayName: true } },
   } satisfies Prisma.ChannelOrderSelect;
 
-  async searchOrders(q: string) {
+  async searchOrders(q: string, pageIn?: number, limitIn?: number) {
+    const limit = Math.min(100, Math.max(1, Math.floor(limitIn ?? 25)));
+    const page = Math.max(1, Math.floor(pageIn ?? 1));
     const s = (q ?? '').trim().replace(/^#/, '');
     if (s.length < 3) throw new BadRequestException('Type at least 3 characters');
     const digits = s.replace(/\D/g, '');
     const phoneTail = digits.length >= 7 ? digits.slice(-10) : null;
-    const rows = await this.prisma.channelOrder.findMany({
-      where: {
-        OR: [
-          { externalOrderNumber: { in: [s, `#${s}`] } },
-          { externalOrderId: s },
-          { trackingNumber: s },
-          { id: s },
-          ...(phoneTail ? [{ customerPhone: { contains: phoneTail } }] : []),
-        ],
-      },
-      orderBy: { receivedAt: 'desc' }, take: 50, select: this.orderSelect,
-    });
-    return { orders: await this.withTenants(rows) };
+    const where: Prisma.ChannelOrderWhereInput = {
+      OR: [
+        { externalOrderNumber: { in: [s, `#${s}`] } },
+        { externalOrderId: s },
+        { trackingNumber: s },
+        { id: s },
+        ...(phoneTail ? [{ customerPhone: { contains: phoneTail } }] : []),
+      ],
+    };
+    const [rows, total] = await Promise.all([
+      this.prisma.channelOrder.findMany({ where, orderBy: { receivedAt: 'desc' }, skip: (page - 1) * limit, take: limit, select: this.orderSelect }),
+      this.prisma.channelOrder.count({ where }),
+    ]);
+    return { orders: await this.withTenants(rows), meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) } };
   }
 
-  async stuckOrders() {
+  async stuckOrders(pageIn?: number, limitIn?: number) {
+    const limit = Math.min(100, Math.max(1, Math.floor(limitIn ?? 25)));
+    const page = Math.max(1, Math.floor(pageIn ?? 1));
     const now = Date.now();
     const recent = new Date(now - 60 * DAY_MS);
     const pendingBefore = new Date(now - DAY_MS);
@@ -469,8 +483,8 @@ export class CommerceAdminService {
       orderStatus: { notIn: ['DELIVERED', ...CLOSED] },
     };
     const [pending, transit, pendingCount, transitCount, pendingByTenant, transitByTenant] = await Promise.all([
-      this.prisma.channelOrder.findMany({ where: pendingWhere, orderBy: { receivedAt: 'asc' }, take: 100, select: this.orderSelect }),
-      this.prisma.channelOrder.findMany({ where: transitWhere, orderBy: { dispatchedAt: 'asc' }, take: 100, select: this.orderSelect }),
+      this.prisma.channelOrder.findMany({ where: pendingWhere, orderBy: { receivedAt: 'asc' }, skip: (page - 1) * limit, take: limit, select: this.orderSelect }),
+      this.prisma.channelOrder.findMany({ where: transitWhere, orderBy: { dispatchedAt: 'asc' }, skip: (page - 1) * limit, take: limit, select: this.orderSelect }),
       this.prisma.channelOrder.count({ where: pendingWhere }),
       this.prisma.channelOrder.count({ where: transitWhere }),
       this.prisma.channelOrder.groupBy({ by: ['tenantId'], where: pendingWhere, _count: { _all: true } }),
@@ -486,6 +500,7 @@ export class CommerceAdminService {
     return {
       rules: { pendingHours: 24, dispatchedDays: STUCK_DAYS, lookbackDays: 60 },
       counts: { pending: pendingCount, inTransit: transitCount },
+      meta: { page, limit },
       byTenant,
       pending: await this.withTenants(pending),
       inTransit: await this.withTenants(transit),
@@ -531,13 +546,23 @@ export class CommerceAdminService {
   // COURIERS
   // ═══════════════════════════════════════════════════════════
 
-  async couriers(tenantId?: string) {
+  async couriers(tenantId?: string, list?: { search?: string; page?: number; limit?: number }) {
+    // With `list`, the account table is paged and searched here; without it (shop panel) every account comes back.
+    const limit = Math.min(100, Math.max(1, Math.floor(list?.limit ?? 25)));
+    const page = Math.max(1, Math.floor(list?.page ?? 1));
+    let accountWhere: Prisma.CourierConfigWhereInput = tenantId ? { tenantId } : {};
+    if (list?.search?.trim()) {
+      const term = list.search.trim();
+      const hit = await this.prisma.tenant.findMany({ where: { name: { contains: term, mode: 'insensitive' } }, select: { id: true }, take: 200 });
+      accountWhere = { ...accountWhere, OR: [{ tenantId: { in: hit.map((t) => t.id) } }, { provider: { in: Object.values(CourierProvider).filter((v) => v.toLowerCase().includes(term.toLowerCase().replace(/\s+/g, '_'))) } }] };
+    }
     const since = new Date(Date.now() - 30 * DAY_MS);
     const tenantSql = tenantId ? Prisma.sql`AND o."tenantId" = ${tenantId}` : Prisma.empty;
     const [accounts, shipments, bookedByTenant, rates, recentErrors] = await Promise.all([
       this.prisma.courierConfig.findMany({
-        where: tenantId ? { tenantId } : {},
+        where: accountWhere,
         orderBy: [{ isActive: 'desc' }, { updatedAt: 'desc' }],
+        ...(list && { skip: (page - 1) * limit, take: limit }),
         // apiKey / apiSecret are never read here.
         select: { id: true, tenantId: true, provider: true, isActive: true, isSandbox: true, lastTestedAt: true, lastSyncAt: true, lastError: true, createdAt: true, updatedAt: true },
       }),
@@ -560,7 +585,18 @@ export class CommerceAdminService {
         WHERE o."metadata" ->> 'autoBookError' IS NOT NULL AND o."courierBookedAt" IS NULL AND o."receivedAt" >= ${since} ${tenantSql}
         ORDER BY o."receivedAt" DESC LIMIT 40`,
     ]);
-    const tIds = [...new Set([...accounts.map((a) => a.tenantId), ...recentErrors.map((e) => e.tenantId)])];
+    // Paged mode: account errors and header numbers come from their own queries, not from the visible page.
+    const base: Prisma.CourierConfigWhereInput = tenantId ? { tenantId } : {};
+    const [errorAccounts, accountTotal, accountActive, accountErrors, matched] = list
+      ? await Promise.all([
+        this.prisma.courierConfig.findMany({ where: { ...base, lastError: { not: null } }, orderBy: { updatedAt: 'desc' }, take: 40, select: { id: true, tenantId: true, provider: true, lastError: true, updatedAt: true } }),
+        this.prisma.courierConfig.count({ where: base }),
+        this.prisma.courierConfig.count({ where: { ...base, isActive: true } }),
+        this.prisma.courierConfig.count({ where: { ...base, lastError: { not: null } } }),
+        this.prisma.courierConfig.count({ where: accountWhere }),
+      ])
+      : [accounts.filter((a) => a.lastError), accounts.length, accounts.filter((a) => a.isActive).length, accounts.filter((a) => a.lastError).length, accounts.length];
+    const tIds = [...new Set([...accounts.map((a) => a.tenantId), ...errorAccounts.map((a) => a.tenantId), ...recentErrors.map((e) => e.tenantId)])];
     const names = new Map((await this.prisma.tenant.findMany({ where: { id: { in: tIds } }, select: { id: true, name: true } })).map((t) => [t.id, t.name]));
     return {
       accounts: accounts.map((a) => ({
@@ -569,9 +605,11 @@ export class CommerceAdminService {
         shipments: (shipments.find((s) => s.tenantId === a.tenantId && s.provider === a.provider)?._count._all ?? 0)
           + (bookedByTenant.find((b) => b.tenantId === a.tenantId && b.courier === a.provider)?.booked ?? 0),
       })),
+      accountStats: { total: accountTotal, active: accountActive, withError: accountErrors },
+      meta: { page, limit, total: matched, totalPages: Math.max(1, Math.ceil(matched / limit)) },
       rates: rates.map((r) => ({ ...r, failureRate: r.booked + r.failed ? round((r.failed / (r.booked + r.failed)) * 100) : null })),
       recentErrors: [
-        ...accounts.filter((a) => a.lastError).map((a) => ({ kind: 'account' as const, tenantId: a.tenantId, tenantName: names.get(a.tenantId) ?? null, courier: a.provider, error: a.lastError!, at: a.updatedAt, orderId: null, number: null })),
+        ...errorAccounts.map((a) => ({ kind: 'account' as const, tenantId: a.tenantId, tenantName: names.get(a.tenantId) ?? null, courier: a.provider, error: a.lastError!, at: a.updatedAt, orderId: null, number: null })),
         ...recentErrors.map((e) => ({ kind: 'booking' as const, tenantId: e.tenantId, tenantName: names.get(e.tenantId) ?? null, courier: e.courier, error: e.error, at: e.receivedAt, orderId: e.id, number: e.number })),
       ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime()).slice(0, 60),
     };

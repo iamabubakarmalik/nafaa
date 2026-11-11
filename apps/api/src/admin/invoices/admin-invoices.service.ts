@@ -3,6 +3,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../../modules/notifications/notifications.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { apiMessage } from '../../common/i18n/api-message';
+import { startOfMonthTz } from '../../common/helpers/business-time.helper';
+import { dayRange } from '../common/date-range';
 
 @Injectable()
 export class AdminInvoicesService {
@@ -11,19 +13,56 @@ export class AdminInvoicesService {
     private readonly notifications: NotificationsService,
   ) {}
 
+  /** Headline numbers for the Invoices page. */
+  async stats() {
+    const real = { tenant: { slug: { not: 'nafaa-system' } } };
+    const now = new Date();
+    const [open, overdue, paidMonth, paidCount] = await Promise.all([
+      this.prisma.invoice.aggregate({ where: { ...real, status: 'PENDING' }, _sum: { amountDue: true }, _count: true }),
+      this.prisma.invoice.aggregate({ where: { ...real, status: 'PENDING', dueDate: { lt: now } }, _sum: { amountDue: true }, _count: true }),
+      this.prisma.invoice.aggregate({ where: { ...real, status: 'PAID', paidAt: { gte: startOfMonthTz() } }, _sum: { total: true } }),
+      this.prisma.invoice.count({ where: { ...real, status: 'PAID' } }),
+    ]);
+    return {
+      openCount: open._count,
+      openAmount: open._sum.amountDue ?? 0,
+      overdueCount: overdue._count,
+      overdueAmount: overdue._sum.amountDue ?? 0,
+      paidThisMonth: paidMonth._sum.total ?? 0,
+      paidCount,
+    };
+  }
+
   async list(params: {
     status?: string;
     tenantId?: string;
+    search?: string;
+    overdue?: boolean;
+    from?: string;
+    to?: string;
     page?: number;
     limit?: number;
   }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 30;
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 30));
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: any = { tenant: { slug: { not: 'nafaa-system' } } };
     if (params.tenantId) where.tenantId = params.tenantId;
     if (params.status) where.status = params.status;
+    if (params.overdue) {
+      where.status = 'PENDING';
+      where.dueDate = { lt: new Date() };
+    }
+    const range = dayRange(params.from, params.to);
+    if (range) where.createdAt = range;
+    if (params.search) {
+      where.OR = [
+        { invoiceNumber: { contains: params.search, mode: 'insensitive' } },
+        { description: { contains: params.search, mode: 'insensitive' } },
+        { tenant: { name: { contains: params.search, mode: 'insensitive' } } },
+      ];
+    }
 
     const [items, total] = await Promise.all([
       this.prisma.invoice.findMany({

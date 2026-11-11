@@ -1,148 +1,119 @@
+/**
+ * Internal notes for one shop. Only the admin team sees them. Used on the
+ * shop detail page: add, edit, pin and delete notes.
+ */
+
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { StickyNote, Plus, Trash2, Pin, PinOff, X, Edit } from 'lucide-react';
-import { adminNotesApi, type TenantNote } from '@/api/admin-notes.api';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Edit, Pin, PinOff, Plus, StickyNote, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
-
-const formatDate = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(v));
+import { Button, Card, Checkbox, EmptyState, Input, Modal, Skeleton, Textarea, confirmDialog } from '@/design-system/components';
+import { adminNotesApi, type TenantNote } from '@/api/admin-notes.api';
+import { formatRelative } from '@/lib/format';
+import { cn } from '@/lib/cn';
 
 export default function TenantNotesPanel({ tenantId }: { tenantId: string }) {
-  const queryClient = useQueryClient();
-  const [showForm, setShowForm] = useState(false);
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<TenantNote | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isPinned, setIsPinned] = useState(false);
 
-  const { data: notes = [] } = useQuery({
-    queryKey: ['admin-notes', tenantId],
-    queryFn: () => adminNotesApi.list(tenantId),
-  });
+  const notes = useQuery({ queryKey: ['admin-notes', tenantId], queryFn: () => adminNotesApi.list(tenantId) });
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin-notes', tenantId] });
+  const fail = (e: any) => toast.error(e?.response?.data?.message || 'Could not save the note');
 
-  const saveMutation = useMutation({
+  const close = () => { setOpen(false); setEditing(null); setTitle(''); setContent(''); setIsPinned(false); };
+
+  const save = useMutation({
     mutationFn: () => editing
       ? adminNotesApi.update(editing.id, { tenantId, title, content, isPinned })
       : adminNotesApi.create({ tenantId, title, content, isPinned }),
-    onSuccess: () => {
-      toast.success(editing ? 'Note updated' : 'Note added');
-      setShowForm(false);
-      setEditing(null);
-      setTitle('');
-      setContent('');
-      setIsPinned(false);
-      queryClient.invalidateQueries({ queryKey: ['admin-notes', tenantId] });
-    },
+    onSuccess: () => { toast.success(editing ? 'Note updated' : 'Note added'); close(); refresh(); },
+    onError: fail,
   });
-
-  const deleteMutation = useMutation({
+  const remove = useMutation({
     mutationFn: adminNotesApi.remove,
-    onSuccess: () => {
-      toast.success('Note deleted');
-      queryClient.invalidateQueries({ queryKey: ['admin-notes', tenantId] });
-    },
+    onSuccess: () => { toast.success('Note deleted'); refresh(); },
+    onError: fail,
+  });
+  const pin = useMutation({
+    mutationFn: (n: TenantNote) => adminNotesApi.update(n.id, { tenantId, content: n.content, isPinned: !n.isPinned }),
+    onSuccess: refresh,
+    onError: fail,
   });
 
-  const togglePinMutation = useMutation({
-    mutationFn: (note: TenantNote) =>
-      adminNotesApi.update(note.id, { tenantId, content: note.content, isPinned: !note.isPinned }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-notes', tenantId] });
-    },
-  });
-
-  const startEdit = (note: TenantNote) => {
-    setEditing(note);
-    setTitle(note.title || '');
-    setContent(note.content);
-    setIsPinned(note.isPinned);
-    setShowForm(true);
+  const startEdit = (n: TenantNote) => {
+    setEditing(n); setTitle(n.title || ''); setContent(n.content); setIsPinned(n.isPinned); setOpen(true);
+  };
+  const onDelete = async (n: TenantNote) => {
+    if (await confirmDialog({ title: 'Delete this note?', text: 'This cannot be undone.', yes: 'Delete', danger: true })) remove.mutate(n.id);
+  };
+  const submit = () => {
+    if (!content.trim()) return toast.error('Write the note first');
+    save.mutate();
   };
 
+  const list = notes.data ?? [];
+  const iconBtn = 'flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100';
+
   return (
-    <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <StickyNote className="h-5 w-5 text-amber-600" />
-          <h3 className="font-bold">Internal Notes</h3>
-          <span className="text-xs text-slate-500">({notes.length})</span>
-        </div>
-        <Button size="sm" onClick={() => { setShowForm(true); setEditing(null); }}>
-          <Plus className="h-4 w-4" /> Add Note
-        </Button>
-      </div>
-
-      {showForm && (
-        <div className="p-4 bg-amber-50/50 border-b border-amber-100">
-          <div className="flex justify-between mb-3">
-            <h4 className="font-semibold">{editing ? 'Edit Note' : 'New Note'}</h4>
-            <button onClick={() => { setShowForm(false); setEditing(null); }}>
-              <X className="h-4 w-4 text-slate-500" />
-            </button>
-          </div>
-          <div className="space-y-3">
-            <Input label="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Important context..." />
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Content</label>
-              <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={4}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                placeholder="Internal note for admin team..." />
-            </div>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={isPinned} onChange={(e) => setIsPinned(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300" />
-              Pin to top
-            </label>
-            <div className="flex gap-2">
-              <Button variant="secondary" onClick={() => { setShowForm(false); setEditing(null); }} className="flex-1">
-                Cancel
-              </Button>
-              <Button onClick={() => {
-                if (!content.trim()) return toast.error('Content likhein');
-                saveMutation.mutate();
-              }} loading={saveMutation.isPending} className="flex-1">
-                {editing ? 'Update' : 'Add Note'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
-        {notes.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-500">No notes yet</div>
-        ) : notes.map((n) => (
-          <div key={n.id} className={`px-6 py-3 ${n.isPinned ? 'bg-amber-50/30' : ''}`}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {n.isPinned && <Pin className="h-3 w-3 text-amber-600" />}
-                  {n.title && <span className="font-bold text-slate-900">{n.title}</span>}
-                  <span className="text-xs text-slate-500">{n.author.fullName}</span>
-                  <span className="text-xs text-slate-400">{formatDate(n.createdAt)}</span>
+    <>
+      <Card
+        title="Internal notes"
+        description={`${list.length} ${list.length === 1 ? 'note' : 'notes'}. Only admins can see these.`}
+        actions={<Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setOpen(true)}>Add note</Button>}
+      >
+        {notes.isLoading ? (
+          <div className="space-y-2"><Skeleton className="h-14 rounded-xl" /><Skeleton className="h-14 rounded-xl" /></div>
+        ) : list.length === 0 ? (
+          <EmptyState icon={<StickyNote className="h-6 w-6" />} title="No notes yet" description="Add context about this shop for the rest of the team." />
+        ) : (
+          <ul className="max-h-[26rem] space-y-2 overflow-y-auto">
+            {list.map((n) => (
+              <li key={n.id} className={cn('rounded-xl p-3 ring-1', n.isPinned ? 'bg-amber-50 ring-amber-200' : 'bg-white ring-slate-200')}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-2 text-[0.75rem] text-slate-500">
+                      {n.isPinned && <Pin className="h-3 w-3 text-amber-600" />}
+                      {n.title && <span className="text-[0.875rem] font-semibold text-slate-900">{n.title}</span>}
+                      <span>{n.author.fullName}</span>
+                      <span>{formatRelative(n.createdAt)}</span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap text-[0.875rem] text-slate-700">{n.content}</p>
+                  </div>
+                  <div className="flex shrink-0">
+                    <button type="button" className={iconBtn} onClick={() => pin.mutate(n)} aria-label={n.isPinned ? 'Unpin note' : 'Pin note'}>
+                      {n.isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                    </button>
+                    <button type="button" className={iconBtn} onClick={() => startEdit(n)} aria-label="Edit note"><Edit className="h-4 w-4" /></button>
+                    <button type="button" className={cn(iconBtn, 'text-rose-600 hover:bg-rose-50')} onClick={() => onDelete(n)} aria-label="Delete note"><Trash2 className="h-4 w-4" /></button>
+                  </div>
                 </div>
-                <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{n.content}</p>
-              </div>
-              <div className="flex gap-1">
-                <button onClick={() => togglePinMutation.mutate(n)}
-                  className="text-slate-600 hover:bg-slate-100 rounded p-1.5">
-                  {n.isPinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
-                </button>
-                <button onClick={() => startEdit(n)}
-                  className="text-slate-600 hover:bg-slate-100 rounded p-1.5">
-                  <Edit className="h-3.5 w-3.5" />
-                </button>
-                <button onClick={() => { if (confirm('Delete?')) deleteMutation.mutate(n.id); }}
-                  className="text-rose-600 hover:bg-rose-50 rounded p-1.5">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <Modal
+        open={open}
+        onClose={close}
+        title={editing ? 'Edit note' : 'New note'}
+        footer={
+          <>
+            <Button variant="secondary" onClick={close}>Cancel</Button>
+            <Button onClick={submit} loading={save.isPending}>{editing ? 'Save changes' : 'Add note'}</Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <Input label="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What is this about?" />
+          <Textarea label="Note" value={content} onChange={(e) => setContent(e.target.value)} rows={5} placeholder="Write for the admin team" />
+          <Checkbox label="Pin to the top" checked={isPinned} onChange={(e) => setIsPinned(e.target.checked)} />
+        </div>
+      </Modal>
+    </>
   );
 }

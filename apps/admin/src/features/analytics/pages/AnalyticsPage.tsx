@@ -1,135 +1,203 @@
+/**
+ * Revenue analytics: recurring revenue (MRR and ARR), plan payments per
+ * month, cancelled plans per month, revenue by plan and the shops that paid
+ * the most. Months follow Pakistan time.
+ */
+
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import {
-  TrendingUp, DollarSign, AlertCircle, Crown,
-} from 'lucide-react';
-import {
-  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, AreaChart, Area,
-} from 'recharts';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { BarChart3, Crown, CreditCard, Layers, Lightbulb, Repeat, TrendingDown, Wallet } from 'lucide-react';
+import { Card, EmptyState, PageHero, PageShell, Segmented, Skeleton, heroButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { useAppearanceStore } from '@/design-system';
 import { adminAnalyticsApi } from '@/api/admin-analytics.api';
-import { formatPKR } from '@/lib/format';
+import { formatPKR, formatPKRFull } from '@/lib/format';
+import { cn } from '@/lib/cn';
+import { useListParams } from '@/ui';
+
+const RANGES = [{ value: '6', label: '6 months' }, { value: '12', label: '12 months' }, { value: '24', label: '24 months' }];
+const MEDAL = ['bg-amber-100 text-amber-700', 'bg-slate-200 text-slate-700', 'bg-orange-100 text-orange-700'];
+const num = (n: number) => n.toLocaleString('en-PK');
+
+/** Reads an "r g b" CSS variable from <html> as an rgb() color. */
+function cssColor(name: string, fallback: string) {
+  if (typeof document === 'undefined') return fallback;
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v ? `rgb(${v.split(/[\s,]+/).join(' ')})` : fallback;
+}
+
+/** Short axis label: 1.2Cr, 90L, 30K. */
+function axisValue(v: number) {
+  if (v >= 1e7) return `${+(v / 1e7).toFixed(1)}Cr`;
+  if (v >= 1e5) return `${+(v / 1e5).toFixed(1)}L`;
+  if (v >= 1e3) return `${+(v / 1e3).toFixed(1)}K`;
+  return String(v);
+}
+
+const monthLabel = (key: string) => new Date(`${key}-01T12:00:00`).toLocaleDateString('en-PK', { month: 'short', year: '2-digit' });
 
 export default function AnalyticsPage() {
-  const { data: mrr } = useQuery({
-    queryKey: ['admin-mrr-arr'],
-    queryFn: adminAnalyticsApi.mrrArr,
-  });
+  const guide = usePageGuide();
+  const list = useListParams({ months: '12' });
+  const months = Number(list.filters.months) || 12;
 
-  const { data: revenue = [] } = useQuery({
-    queryKey: ['admin-monthly-revenue'],
-    queryFn: () => adminAnalyticsApi.monthlyRevenue(12),
-  });
+  const mrr = useQuery({ queryKey: ['admin', 'analytics', 'mrr'], queryFn: adminAnalyticsApi.mrrArr, staleTime: 60_000 });
+  const revenue = useQuery({ queryKey: ['admin', 'analytics', 'revenue', months], queryFn: () => adminAnalyticsApi.monthlyRevenue(months), staleTime: 60_000 });
+  const churn = useQuery({ queryKey: ['admin', 'analytics', 'churn', months], queryFn: () => adminAnalyticsApi.churn(months), staleTime: 60_000 });
+  const top = useQuery({ queryKey: ['admin', 'analytics', 'top'], queryFn: () => adminAnalyticsApi.topTenants(10), staleTime: 60_000 });
+  const mix = useQuery({ queryKey: ['admin', 'analytics', 'plan-mix'], queryFn: adminAnalyticsApi.planMix, staleTime: 60_000 });
 
-  const { data: churn = [] } = useQuery({
-    queryKey: ['admin-churn'],
-    queryFn: () => adminAnalyticsApi.churn(6),
-  });
+  const theme = useAppearanceStore((s) => `${s.resolved.accentHex}|${s.resolved.mode}|${s.systemPrefersDark}`);
+  const colors = useMemo(() => ({
+    line: cssColor('--brand-500', '#6366f1'),
+    bad: cssColor('--rose-500', '#f43f5e'),
+    grid: cssColor('--bd-slate-200', '#e2e8f0'),
+    text: cssColor('--tx-slate-500', '#64748b'),
+  }), [theme]); // eslint-disable-line react-hooks/exhaustive-deps
+  const axis = { stroke: colors.text, fontSize: 11, tickLine: false, axisLine: false } as const;
 
-  const { data: topTenants = [] } = useQuery({
-    queryKey: ['admin-top-tenants'],
-    queryFn: adminAnalyticsApi.topTenants,
-  });
+  const m = mrr.data;
+  const rev = revenue.data ?? [];
+  const cur = rev[rev.length - 1]?.revenue ?? 0;
+  const periodTotal = rev.reduce((n, r) => n + r.revenue, 0);
+  const churned = (churn.data ?? []).reduce((n, c) => n + c.churned, 0);
+  const planRows = mix.data ?? [];
+  const maxMrr = Math.max(1, ...planRows.map((p) => p.mrr));
+  const topRows = top.data ?? [];
+
+  const tip = (money: boolean, label: string) => (
+    <Tooltip
+      cursor={{ fill: 'rgba(100,116,139,0.08)' }}
+      contentStyle={{ borderRadius: 12, border: `1px solid ${colors.grid}`, fontSize: 12 }}
+      labelFormatter={(l) => monthLabel(String(l))}
+      formatter={(v) => [money ? formatPKRFull(Number(v)) : num(Number(v)), label]}
+    />
+  );
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-admin-950 via-violet-900 to-admin-700 text-white p-6 shadow-soft">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-          <TrendingUp className="h-3.5 w-3.5" />
-          Business Intelligence
-        </div>
-        <h2 className="mt-3 text-3xl font-bold">Revenue Analytics</h2>
-        <p className="mt-2 text-sm text-white/80">
-          MRR, ARR, churn rate, top revenue tenants
-        </p>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Revenue analytics"
+        chip={`Last ${months} months`}
+        busy={revenue.isFetching || churn.isFetching}
+        loading={mrr.isLoading}
+        actions={<button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>}
+        stats={m ? [
+          { label: 'Monthly recurring revenue', value: formatPKR(m.mrr), hint: `${num(m.activeSubscriptions)} active plans` },
+          { label: 'Yearly recurring revenue', value: formatPKR(m.arr), hint: 'MRR times 12' },
+          { label: 'Collected this month', value: formatPKR(cur), hint: 'Approved payments' },
+          { label: `Collected, ${months} months`, value: formatPKR(periodTotal) },
+        ] : undefined}
+      />
 
-      <section className="grid sm:grid-cols-3 gap-4">
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-5 shadow-sm">
-          <div className="text-sm text-white/80">MRR (Monthly Recurring)</div>
-          <div className="mt-2 text-3xl font-bold">{formatPKR(mrr?.mrr ?? 0)}</div>
-          <div className="text-xs text-white/80 mt-1">{mrr?.activeSubscriptions ?? 0} active subs</div>
-        </div>
-        <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white p-5 shadow-sm">
-          <div className="text-sm text-white/80">ARR (Annual Recurring)</div>
-          <div className="mt-2 text-3xl font-bold">{formatPKR(mrr?.arr ?? 0)}</div>
-          <div className="text-xs text-white/80 mt-1">Projected annual</div>
-        </div>
-        <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
-          <div className="text-sm text-slate-500">Active Subscriptions</div>
-          <div className="mt-2 text-3xl font-bold text-slate-900">{mrr?.activeSubscriptions ?? 0}</div>
-          <div className="text-xs text-slate-500 mt-1">All paid plans</div>
-        </div>
-      </section>
+      <div className="flex justify-end">
+        <Segmented value={String(months)} onChange={(v) => list.setFilter('months', v)} items={RANGES} label="Period" />
+      </div>
 
-      <section className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-          <h3 className="text-lg font-bold mb-4">Monthly Revenue (12 months)</h3>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenue}>
-                <defs>
-                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity={0.4} />
-                    <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="month" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <Tooltip formatter={(v: any) => formatPKR(Number(v))} />
-                <Area type="monotone" dataKey="revenue" stroke="#6366f1" fill="url(#revGrad)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card title="Payments collected" description="Plan payments approved each month (Nafaa income).">
+          <div className="h-72">
+            {revenue.isLoading ? <Skeleton className="h-full rounded-2xl" /> : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={rev} margin={{ top: 8, right: 4, left: -8, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="rev-fill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={colors.line} stopOpacity={0.28} />
+                      <stop offset="100%" stopColor={colors.line} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} stroke={colors.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="month" tickFormatter={monthLabel} minTickGap={24} {...axis} />
+                  <YAxis tickFormatter={axisValue} width={52} {...axis} />
+                  {tip(true, 'Collected')}
+                  <Area type="monotone" dataKey="revenue" stroke={colors.line} strokeWidth={2} fill="url(#rev-fill)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-          <h3 className="text-lg font-bold mb-4">Churn (Cancelled subs / month)</h3>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={churn}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="month" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={11} />
-                <Tooltip />
-                <Bar dataKey="churned" fill="#ef4444" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+        <Card title="Cancelled plans" description={`${num(churned)} plans cancelled in ${months} months.`}>
+          <div className="h-72">
+            {churn.isLoading ? <Skeleton className="h-full rounded-2xl" /> : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={churn.data ?? []} margin={{ top: 8, right: 4, left: -8, bottom: 0 }}>
+                  <CartesianGrid vertical={false} stroke={colors.grid} strokeDasharray="3 3" />
+                  <XAxis dataKey="month" tickFormatter={monthLabel} minTickGap={24} {...axis} />
+                  <YAxis allowDecimals={false} width={40} {...axis} />
+                  {tip(false, 'Cancelled')}
+                  <Bar dataKey="churned" fill={colors.bad} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
-        </div>
-      </section>
+        </Card>
+      </div>
 
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-          <Crown className="h-5 w-5 text-amber-600" />
-          <h3 className="font-bold">Top Revenue Tenants</h3>
-        </div>
-        <div className="divide-y divide-slate-100">
-          {topTenants.length === 0 ? (
-            <div className="p-6 text-sm text-slate-500 text-center">No revenue yet</div>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card title="Revenue by plan" description="Monthly recurring revenue from active plans.">
+          {mix.isLoading ? <Skeleton className="h-40 rounded-2xl" /> : planRows.length === 0 ? (
+            <EmptyState icon={<Layers className="h-6 w-6" />} title="No active plans yet" description="Active paid plans appear here." />
           ) : (
-            topTenants.map((t: any, idx: number) => (
-              <div key={t.tenantId} className="px-6 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className={`h-9 w-9 rounded-full flex items-center justify-center font-bold text-xs ${
-                    idx === 0 ? 'bg-amber-100 text-amber-700' :
-                    idx === 1 ? 'bg-slate-200 text-slate-700' :
-                    idx === 2 ? 'bg-orange-100 text-orange-700' :
-                    'bg-slate-100 text-slate-600'
-                  }`}>
-                    #{idx + 1}
+            <ul className="space-y-3">
+              {planRows.map((p) => (
+                <li key={p.planId}>
+                  <div className="flex items-baseline justify-between gap-2 text-[0.875rem]">
+                    <span className="font-medium text-slate-900">{p.name} <span className="font-normal text-slate-500">· {num(p.subscriptions)} shops</span></span>
+                    <span className="font-semibold text-slate-900">{formatPKR(p.mrr)}</span>
                   </div>
-                  <div className="min-w-0">
-                    <div className="font-semibold truncate">{t.tenant?.name || '—'}</div>
-                    <div className="text-xs text-slate-500">{t.paymentsCount} payments</div>
-                  </div>
-                </div>
-                <div className="font-bold text-emerald-700">{formatPKR(t.totalPaid)}</div>
-              </div>
-            ))
+                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-brand-500" style={{ width: `${Math.max(3, (p.mrr / maxMrr) * 100)}%` }} /></div>
+                </li>
+              ))}
+            </ul>
           )}
-        </div>
-      </section>
-    </div>
+        </Card>
+
+        <Card title="Top paying shops" description="By total approved payments.">
+          {top.isLoading ? <Skeleton className="h-40 rounded-2xl" /> : topRows.length === 0 ? (
+            <EmptyState icon={<Crown className="h-6 w-6" />} title="No revenue yet" description="Shops appear here after their first approved payment." />
+          ) : (
+            <ul className="space-y-1">
+              {topRows.map((t, i) => (
+                <li key={t.tenantId}>
+                  <Link to={`/tenants/${t.tenantId}`} className="flex items-center gap-3 rounded-xl p-2 transition hover:bg-slate-50">
+                    <span className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[0.75rem] font-bold', MEDAL[i] ?? 'bg-slate-100 text-slate-600')}>{i + 1}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[0.875rem] font-medium text-slate-900">{t.tenant?.name ?? 'Unknown shop'}</span>
+                      <span className="block text-[0.75rem] text-slate-500">{num(t.paymentsCount)} payments</span>
+                    </span>
+                    <span className="text-[0.875rem] font-semibold text-emerald-700">{formatPKR(t.totalPaid)}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Revenue analytics"
+          description="How much Nafaa earns from plans, and how that changes over time."
+          flowTitle="Where the numbers come from"
+          flow={[
+            { label: 'Shop pays for a plan', icon: CreditCard, color: '#4f46e5' },
+            { label: 'You approve it', icon: Wallet, color: '#0284c7' },
+            { label: 'Counts as collected', icon: BarChart3, color: '#059669' },
+            { label: 'Plan ends or is cancelled', icon: TrendingDown, color: '#e11d48' },
+          ]}
+          steps={[
+            { icon: Repeat, color: '#4f46e5', title: 'MRR and ARR', text: 'Monthly recurring revenue spreads quarterly and yearly plans over their months. ARR is MRR times 12.' },
+            { icon: BarChart3, color: '#059669', title: 'Collected', text: 'Money from payments you approved, grouped by the month of approval.' },
+            { icon: Layers, color: '#d97706', title: 'Revenue by plan', text: 'See which plans bring the most recurring revenue.' },
+          ]}
+          tips={['Change the period with the switch above the charts.', 'Months follow Pakistan time.']}
+          shortcuts={[['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

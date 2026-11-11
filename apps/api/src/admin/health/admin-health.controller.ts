@@ -3,10 +3,12 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminHealthService } from './admin-health.service';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - System Health')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('system')
 @Controller('admin/health')
 export class AdminHealthController {
   constructor(private readonly service: AdminHealthService) {}

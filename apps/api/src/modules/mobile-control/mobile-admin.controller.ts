@@ -16,10 +16,12 @@ import { MobileConfigService } from './mobile-config.service';
 import { MobileDevicesService } from './mobile-devices.service';
 import { MobilePushService } from './mobile-push.service';
 import { PushDeliveryService } from '../push/push-delivery.service';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
 @ApiTags('Admin - Mobile app')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('mobile')
 @Controller('admin/mobile')
 export class MobileAdminController {
   constructor(
@@ -89,8 +91,8 @@ export class MobileAdminController {
   // ─── Announcements ────────────────────────────────────────────────
 
   @Get('announcements')
-  announcements() {
-    return this.configs.listAnnouncements();
+  announcements(@Query('page') page?: string, @Query('limit') limit?: string, @Query('search') search?: string, @Query('status') status?: string) {
+    return this.configs.listAnnouncements({ page: Number(page) || undefined, limit: Number(limit) || undefined, search, status });
   }
 
   @Post('announcements')

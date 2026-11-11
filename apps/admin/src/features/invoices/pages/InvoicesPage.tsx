@@ -1,207 +1,221 @@
+/**
+ * Invoices: bills sent to shops for their plan or anything else. Create an
+ * invoice, mark it paid by hand, or void it. Search and filters run on the
+ * server.
+ */
+
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Receipt, Plus, CheckCircle2, XCircle, X } from 'lucide-react';
-import { adminInvoicesApi } from '@/api/admin-invoices.api';
-import { adminTenantsApi } from '@/api/admin-tenants.api';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
+import { AlertTriangle, CheckCircle2, Download, FilePlus2, Lightbulb, Plus, Receipt, Send, Wallet, XCircle } from 'lucide-react';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, Input, Modal, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, ViewTabs, confirmDialog, heroButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { adminInvoicesApi, type AdminInvoice } from '@/api/admin-invoices.api';
+import { formatDate, formatPKR } from '@/lib/format';
+import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
+import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '../../shared/period';
+import { ShopPicker, type PickedShop } from '../../shared/ShopPicker';
 
-const formatDate = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium' }).format(new Date(v));
-
-const statusColors: Record<string, string> = {
-  PENDING: 'bg-amber-100 text-amber-700',
-  PAID: 'bg-emerald-100 text-emerald-700',
-  OVERDUE: 'bg-rose-100 text-rose-700',
-  CANCELLED: 'bg-slate-100 text-slate-700',
-  DRAFT: 'bg-slate-100 text-slate-700',
-  REFUNDED: 'bg-blue-100 text-blue-700',
-};
+const TABS = ['ALL', 'PENDING', 'OVERDUE', 'PAID', 'CANCELLED'] as const;
+type Tab = (typeof TABS)[number];
+const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function InvoicesPage() {
-  const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState('');
-  const [page, setPage] = useState(1);
-  const [showCreate, setShowCreate] = useState(false);
-  const [tenantId, setTenantId] = useState('');
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const [exporting, setExporting] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  const list = useListParams({ tab: 'ALL', ...PERIOD_DEFAULTS });
+  const { tab } = list.filters;
+  const range = periodChip(list.filters);
+  const query = {
+    search: list.debouncedSearch || undefined,
+    status: tab === 'ALL' || tab === 'OVERDUE' ? undefined : tab,
+    overdue: tab === 'OVERDUE' ? true : undefined,
+    ...periodQuery(list.filters),
+  };
+
+  const invoices = useQuery({
+    queryKey: ['admin', 'invoices', query, list.page, list.limit],
+    queryFn: () => adminInvoicesApi.list({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
+  });
+  const stats = useQuery({ queryKey: ['admin', 'invoices', 'stats'], queryFn: adminInvoicesApi.stats, staleTime: 30_000 });
+  const s = stats.data;
+  const rows = invoices.data?.items ?? [];
+
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin', 'invoices'] });
+  const fail = (e: any) => toast.error(e?.response?.data?.message || 'Something went wrong');
+  const markPaid = useMutation({ mutationFn: (id: string) => adminInvoicesApi.markPaid(id), onSuccess: () => { toast.success('Marked as paid'); refresh(); }, onError: fail });
+  const voidInv = useMutation({ mutationFn: adminInvoicesApi.voidInvoice, onSuccess: () => { toast.success('Invoice voided'); refresh(); }, onError: fail });
+
+  const onMarkPaid = async (i: AdminInvoice) => {
+    if (await confirmDialog({ title: `Mark ${i.invoiceNumber} as paid?`, text: `${formatPKR(i.amountDue)} from ${i.tenant.name} is recorded as received.`, yes: 'Mark paid' })) markPaid.mutate(i.id);
+  };
+  const onVoid = async (i: AdminInvoice) => {
+    if (await confirmDialog({ title: `Void ${i.invoiceNumber}?`, text: 'The shop no longer has to pay this invoice.', yes: 'Void invoice', danger: true })) voidInv.mutate(i.id);
+  };
+
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all = await fetchAllPages((page) => adminInvoicesApi.list({ ...query, page, limit: 100 }));
+      downloadCsv<AdminInvoice>('invoices', all, [
+        { label: 'Invoice', value: (i) => i.invoiceNumber },
+        { label: 'Shop', value: (i) => i.tenant.name },
+        { label: 'Description', value: (i) => i.description },
+        { label: 'Total', value: (i) => i.total },
+        { label: 'Paid', value: (i) => i.amountPaid },
+        { label: 'Due', value: (i) => i.amountDue },
+        { label: 'Status', value: (i) => i.status },
+        { label: 'Due date', value: (i) => i.dueDate.slice(0, 10) },
+        { label: 'Created', value: (i) => i.createdAt.slice(0, 10) },
+      ]);
+      toast.success(`${num(all.length)} invoices exported`);
+    } catch {
+      toast.error('Export failed. Try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const chips = range ? [<FilterChip key="d" onRemove={() => clearPeriod(list)}>{range}</FilterChip>] : [];
+
+  return (
+    <PageShell>
+      <PageHero
+        title="Invoices"
+        chip={s ? `${num(s.openCount)} open` : undefined}
+        busy={invoices.isFetching}
+        loading={stats.isLoading}
+        actions={
+          <>
+            <button type="button" className={heroPrimaryButton} onClick={() => setCreating(true)}><Plus className="h-4 w-4" /> Create invoice</button>
+            <button type="button" className={heroButton} onClick={exportCsv} disabled={exporting}><Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}</button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={s ? [
+          { label: 'Waiting to be paid', value: formatPKR(s.openAmount), hint: `${num(s.openCount)} invoices` },
+          { label: 'Overdue', value: formatPKR(s.overdueAmount), hint: `${num(s.overdueCount)} invoices` },
+          { label: 'Paid this month', value: formatPKR(s.paidThisMonth) },
+          { label: 'Paid, all time', value: num(s.paidCount), hint: 'invoices' },
+        ] : undefined}
+      />
+
+      <ViewTabs
+        tabs={TABS.map((t) => ({ id: t, label: t === 'ALL' ? 'All' : statusLabel(t), count: s ? (t === 'PENDING' ? s.openCount : t === 'OVERDUE' ? s.overdueCount : null) : null }))}
+        value={tab as Tab}
+        onChange={(v) => list.setFilter('tab', v)}
+      />
+
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search invoice number, shop or description" />}
+        chips={chips.length ? chips : undefined}
+        onClear={() => clearPeriod(list)}
+      >
+        <DateRangeMenu value={periodValue(list.filters)} onChange={(v) => setPeriod(list, v)} startHour={0} label="Created" />
+      </FilterBar>
+
+      <ListCard
+        loading={invoices.isLoading}
+        empty={!rows.length}
+        emptyIcon={<Receipt className="h-6 w-6" />}
+        emptyTitle="No invoices match"
+        emptyText="Create an invoice to bill a shop, or change the filters."
+        emptyAction={<Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setCreating(true)}>Create invoice</Button>}
+        page={list.page} limit={list.limit} total={invoices.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="56rem">
+          <THead><Tr><Th>Invoice</Th><Th>Shop</Th><Th>For</Th><Th align="right">Total</Th><Th align="right">Due</Th><Th>Status</Th><Th>Due date</Th><Th align="right"><span className="sr-only">Actions</span></Th></Tr></THead>
+          <TBody>
+            {rows.map((i) => {
+              const late = i.status === 'PENDING' && new Date(i.dueDate).getTime() < Date.now();
+              return (
+                <Tr key={i.id}>
+                  <Td className="font-mono text-[0.8125rem] font-semibold text-slate-900">{i.invoiceNumber}</Td>
+                  <Td><Link to={`/tenants/${i.tenant.id}`} className="font-medium text-slate-900 hover:text-brand-700">{i.tenant.name}</Link></Td>
+                  <Td className="max-w-[16rem] truncate text-slate-600">{i.description || i.subscription?.plan.name || '—'}</Td>
+                  <Td align="right">{formatPKR(i.total)}</Td>
+                  <Td align="right"><span className={i.amountDue > 0 ? 'font-semibold text-amber-700' : 'text-slate-400'}>{formatPKR(i.amountDue)}</span></Td>
+                  <Td><StatusBadge value={late ? 'OVERDUE' : i.status} /></Td>
+                  <Td className="whitespace-nowrap text-slate-600">{formatDate(i.dueDate)}</Td>
+                  <Td align="right">
+                    {i.status === 'PENDING' && (
+                      <div className="inline-flex gap-1">
+                        <Button size="xs" variant="success" leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} onClick={() => onMarkPaid(i)}>Mark paid</Button>
+                        <Button size="xs" variant="critical" leftIcon={<XCircle className="h-3.5 w-3.5" />} onClick={() => onVoid(i)}>Void</Button>
+                      </div>
+                    )}
+                  </Td>
+                </Tr>
+              );
+            })}
+          </TBody>
+        </Table>
+      </ListCard>
+
+      {creating && <CreateModal onClose={() => setCreating(false)} onDone={refresh} />}
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Invoices"
+          description="Bills for shops. Most come from plan renewals; you can also create one by hand."
+          flowTitle="How an invoice is settled"
+          flow={[
+            { label: 'Invoice created', icon: FilePlus2, color: '#4f46e5' },
+            { label: 'Shop is told', hint: 'In their app', icon: Send, color: '#0284c7' },
+            { label: 'Shop pays', hint: 'See Payment approvals', icon: Wallet, color: '#d97706' },
+            { label: 'Paid', icon: CheckCircle2, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Plus, color: '#4f46e5', title: 'Create', text: 'Pick a shop, enter the amount, what it is for and the due date. The shop gets a notice.' },
+            { icon: CheckCircle2, color: '#059669', title: 'Mark paid', text: 'If a shop paid you outside Nafaa, mark the invoice paid by hand.' },
+            { icon: AlertTriangle, color: '#e11d48', title: 'Void', text: 'Void an invoice the shop should not pay any more. This cannot be undone.' },
+          ]}
+          tips={['Overdue means still unpaid after the due date.', 'Payments uploaded by shops are approved on the Payment approvals page.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
+  );
+}
+
+function CreateModal({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [shop, setShop] = useState<PickedShop | null>(null);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
   const [dueDate, setDueDate] = useState('');
-
-  const { data } = useQuery({
-    queryKey: ['admin-invoices', statusFilter, page],
-    queryFn: () => adminInvoicesApi.list({
-      status: statusFilter || undefined, page, limit: 30,
-    }),
-  });
-
-  const { data: tenantsData } = useQuery({
-    queryKey: ['admin-tenants-for-invoice'],
-    queryFn: () => adminTenantsApi.list({ limit: 100 }),
-    enabled: showCreate,
-  });
-
-  const createMutation = useMutation({
+  const create = useMutation({
     mutationFn: adminInvoicesApi.create,
-    onSuccess: () => {
-      toast.success('Invoice created');
-      setShowCreate(false);
-      setTenantId(''); setAmount(''); setDescription(''); setNotes(''); setDueDate('');
-      queryClient.invalidateQueries({ queryKey: ['admin-invoices'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Create failed'),
+    onSuccess: () => { toast.success('Invoice created'); onDone(); onClose(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Could not create the invoice'),
   });
-
-  const markPaidMutation = useMutation({
-    mutationFn: (id: string) => adminInvoicesApi.markPaid(id),
-    onSuccess: () => {
-      toast.success('Marked as paid');
-      queryClient.invalidateQueries({ queryKey: ['admin-invoices'] });
-    },
-  });
-
-  const voidMutation = useMutation({
-    mutationFn: adminInvoicesApi.voidInvoice,
-    onSuccess: () => {
-      toast.success('Invoice voided');
-      queryClient.invalidateQueries({ queryKey: ['admin-invoices'] });
-    },
-  });
-
+  const submit = () => {
+    if (!shop) return toast.error('Pick a shop');
+    if (!Number(amount) || Number(amount) <= 0) return toast.error('Enter an amount');
+    if (!description.trim()) return toast.error('Write what the invoice is for');
+    if (!dueDate) return toast.error('Pick a due date');
+    create.mutate({ tenantId: shop.id, amount: Number(amount), description: description.trim(), notes: notes || undefined, dueDate });
+  };
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-cyan-900 to-cyan-700 text-white p-6 shadow-soft">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-              <Receipt className="h-3.5 w-3.5" /> Invoice Management
-            </div>
-            <h2 className="mt-3 text-3xl font-bold">Invoices</h2>
-            <p className="mt-2 text-sm text-white/80">Create, mark paid, void invoices</p>
-          </div>
-          <Button onClick={() => setShowCreate(true)} className="bg-white text-slate-900 hover:bg-slate-100">
-            <Plus className="h-4 w-4" /> Create Invoice
-          </Button>
+    <Modal open onClose={onClose} title="Create invoice" description="The shop gets a notice with a link to pay."
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button onClick={submit} loading={create.isPending}>Create invoice</Button></>}>
+      <div className="space-y-4">
+        <ShopPicker value={shop} onChange={setShop} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input label="Amount (PKR)" type="number" min={1} value={amount} onChange={(e) => setAmount(e.target.value)} />
+          <Input label="Due date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         </div>
-      </section>
-
-      <div className="flex gap-2 flex-wrap">
-        {['', 'PENDING', 'PAID', 'OVERDUE', 'CANCELLED'].map((s) => (
-          <button key={s || 'ALL'} onClick={() => { setStatusFilter(s); setPage(1); }}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold ${
-              statusFilter === s ? 'bg-admin-600 text-white' : 'bg-white text-slate-700 border border-slate-200'
-            }`}>
-            {s || 'ALL'}
-          </button>
-        ))}
+        <Input label="What is it for" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="For example: Pro plan, 3 months" />
+        <Input label="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
-
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-slate-600">
-              <tr>
-                <th className="text-left px-6 py-4 font-medium">Invoice #</th>
-                <th className="text-left px-6 py-4 font-medium">Tenant</th>
-                <th className="text-left px-6 py-4 font-medium">Description</th>
-                <th className="text-right px-6 py-4 font-medium">Amount Due</th>
-                <th className="text-right px-6 py-4 font-medium">Total</th>
-                <th className="text-left px-6 py-4 font-medium">Status</th>
-                <th className="text-left px-6 py-4 font-medium">Due Date</th>
-                <th className="text-right px-6 py-4 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(data?.items ?? []).map((inv) => (
-                <tr key={inv.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-3 font-mono text-xs">{inv.invoiceNumber}</td>
-                  <td className="px-6 py-3 font-medium">{inv.tenant.name}</td>
-                  <td className="px-6 py-3 text-xs text-slate-600">{inv.description}</td>
-                  <td className="px-6 py-3 text-right font-bold text-amber-700">{formatPKR(inv.amountDue)}</td>
-                  <td className="px-6 py-3 text-right">{formatPKR(inv.total)}</td>
-                  <td className="px-6 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColors[inv.status]}`}>
-                      {inv.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-xs text-slate-600">{formatDate(inv.dueDate)}</td>
-                  <td className="px-6 py-3 text-right">
-                    <div className="inline-flex gap-1">
-                      {inv.status === 'PENDING' && (
-                        <>
-                          <button onClick={() => markPaidMutation.mutate(inv.id)}
-                            className="text-emerald-600 hover:bg-emerald-50 rounded-lg p-2" title="Mark Paid">
-                            <CheckCircle2 className="h-4 w-4" />
-                          </button>
-                          <button onClick={() => { if (confirm('Void invoice?')) voidMutation.mutate(inv.id); }}
-                            className="text-rose-600 hover:bg-rose-50 rounded-lg p-2" title="Void">
-                            <XCircle className="h-4 w-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {data && (
-          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-sm text-slate-500">
-              Page {data.meta.page} of {data.meta.totalPages} • {data.meta.total} total
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-50">Previous</button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={page >= data.meta.totalPages}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-50">Next</button>
-            </div>
-          </div>
-        )}
-      </section>
-
-      {showCreate && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 my-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-xl">Create Invoice</h3>
-              <button onClick={() => setShowCreate(false)} className="rounded-lg p-2 hover:bg-slate-100">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Tenant</label>
-                <select value={tenantId} onChange={(e) => setTenantId(e.target.value)}
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm">
-                  <option value="">Select tenant...</option>
-                  {(tenantsData?.items ?? []).map((t) => (
-                    <option key={t.id} value={t.id}>{t.name} ({t.slug})</option>
-                  ))}
-                </select>
-              </div>
-              <Input label="Amount (PKR)" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
-              <Input label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-              <Input label="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
-              <Input label="Due Date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-              <div className="flex gap-2">
-                <Button variant="secondary" onClick={() => setShowCreate(false)} className="flex-1">Cancel</Button>
-                <Button onClick={() => {
-                  if (!tenantId || !amount || !description || !dueDate) return toast.error('Sab fields required hain');
-                  createMutation.mutate({
-                    tenantId, amount: Number(amount), description, notes: notes || undefined, dueDate,
-                  });
-                }} loading={createMutation.isPending} className="flex-1">Create</Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </Modal>
   );
 }

@@ -16,10 +16,12 @@ import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.int
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminNotificationsService } from './admin-notifications.service';
 import { CreateAdminNotificationDto } from './dto/create-notification.dto';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Notifications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('notifications')
 @Controller('admin/notifications')
 export class AdminNotificationsController {
   constructor(private readonly service: AdminNotificationsService) {}
@@ -29,6 +31,9 @@ export class AdminNotificationsController {
     @Query('isRead') isRead?: string,
     @Query('type') type?: string,
     @Query('priority') priority?: string,
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -36,6 +41,9 @@ export class AdminNotificationsController {
       isRead: isRead === 'true' ? true : isRead === 'false' ? false : undefined,
       type,
       priority,
+      search,
+      from,
+      to,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 50,
     });

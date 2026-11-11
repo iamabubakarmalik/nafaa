@@ -1253,6 +1253,8 @@ export class AuthService {
   // HELPERS
   // ═══════════════════════════════════════════════════════════
   private async issueTokens(payload: JwtPayload, userAgent?: string, ip?: string) {
+    // Admin staff work only in the admin panel; they have no merchant access.
+    if (payload.role === UserRole.ADMIN_STAFF) throw new UnauthorizedException('This is an admin panel account. Sign in at the Nafaa admin panel.');
     const accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET')!;
     const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET')!;
     const accessExpires = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN')!;

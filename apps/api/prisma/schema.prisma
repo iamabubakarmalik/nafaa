@@ -27,6 +27,8 @@ enum UserRole {
   CASHIER
   STAFF
   SUPER_ADMIN
+  /// Nafaa team member who uses the admin panel with an AdminRole. Cannot sign in to the merchant app.
+  ADMIN_STAFF
 }
 
 enum PaymentMethod {
@@ -807,6 +809,7 @@ model User {
   broadcasts          BroadcastNotification[] @relation("UserBroadcasts")
   platformDiscounts   PlatformDiscount[]      @relation("UserPlatformDiscounts")
   staffProfile        Staff?                  @relation("StaffUser")
+  adminMember         AdminMember?            @relation("AdminMemberUser")
 
   commissionRules       CommissionRule[]       @relation("CommissionRuleUser")
   commissionEnrollments CommissionEnrollment[] @relation("CommissionEnrollmentUser")
@@ -25804,4 +25807,72 @@ model ChannelPublishMark {
   @@unique([integrationId, productId])
   @@index([tenantId, integrationId, publishedAt])
   @@map("channel_publish_marks")
+}
+
+// ─── Admin panel staff and audit ───────────────────────────────
+
+/// A named set of admin permissions (Owner, Support, Finance…). Permission keys are defined in
+/// apps/api/src/admin/access/admin-permissions.ts; a key grants exactly what its name says.
+model AdminRole {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  name        String
+  description String?
+  permissions String[] @default([])
+  /// Built-in roles can be edited but not deleted.
+  isSystem    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members AdminMember[]
+}
+
+/// Admin panel access for one user: role, extra permissions, invite and two-step sign-in.
+/// SUPER_ADMIN users always have every permission; their row only holds security settings.
+model AdminMember {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  roleId           String?
+  extraPermissions String[]  @default([])
+  /// ACTIVE, DISABLED or INVITED
+  status           String    @default("ACTIVE")
+  invitedById      String?
+  inviteTokenHash  String?
+  inviteExpiresAt  DateTime?
+  /// Encrypted TOTP secret (core/lib/crypto).
+  totpSecret       String?
+  totpEnabled      Boolean   @default(false)
+  /// Hashed one-time backup codes.
+  backupCodes      String[]  @default([])
+  lastActiveAt     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user User       @relation("AdminMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+  role AdminRole? @relation(fields: [roleId], references: [id], onDelete: SetNull)
+
+  @@index([roleId])
+}
+
+/// Every change made through the admin panel (and every impersonation), newest first.
+model AdminAuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  actorEmail String?
+  /// Permission or action key, e.g. "tenants.manage" or "auth.login".
+  action     String
+  method     String
+  path       String
+  targetType String?
+  targetId   String?
+  summary    String?
+  statusCode Int?
+  ip         String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
 }

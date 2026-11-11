@@ -10,10 +10,23 @@ import { UpsertEmailTemplateDto } from './dto/upsert-template.dto';
 export class AdminEmailTemplatesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  list() {
-    return this.prisma.emailTemplate.findMany({
-      orderBy: { name: 'asc' },
-    });
+  /** Without `paged` this returns every template (old behavior). With it, one searched page plus counts. */
+  async list(q: { paged?: boolean; page?: number; limit?: number; search?: string; active?: string } = {}) {
+    if (!q.paged) return this.prisma.emailTemplate.findMany({ orderBy: { name: 'asc' } });
+    const limit = Math.min(100, Math.max(1, q.limit ?? 25));
+    const page = Math.max(1, q.page ?? 1);
+    const term = q.search?.trim();
+    const where = {
+      ...(q.active === 'yes' ? { isActive: true } : q.active === 'no' ? { isActive: false } : {}),
+      ...(term ? { OR: [{ name: { contains: term, mode: 'insensitive' as const } }, { slug: { contains: term, mode: 'insensitive' as const } }, { subject: { contains: term, mode: 'insensitive' as const } }] } : {}),
+    };
+    const [items, total, all, active] = await Promise.all([
+      this.prisma.emailTemplate.findMany({ where, orderBy: { name: 'asc' }, skip: (page - 1) * limit, take: limit }),
+      this.prisma.emailTemplate.count({ where }),
+      this.prisma.emailTemplate.count(),
+      this.prisma.emailTemplate.count({ where: { isActive: true } }),
+    ]);
+    return { items, meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) }, stats: { total: all, active, inactive: all - active } };
   }
 
   async getOne(id: string) {

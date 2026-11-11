@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { SuperAdminGuard } from '../../admin/common/super-admin.guard';
 import { AppearanceService } from './appearance.service';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
 @ApiTags('Appearance')
 @ApiBearerAuth()
@@ -53,6 +54,7 @@ export class AppearanceController {
 @ApiTags('Admin')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('settings')
 @Controller('admin/appearance')
 export class AdminAppearanceController {
   constructor(private readonly svc: AppearanceService) {}

@@ -23,6 +23,10 @@ export interface UpsertSettingPayload {
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const adminSettingsApi = {
+  paged: (params: { search?: string; category?: string; page?: number; limit?: number }) =>
+    apiClient
+      .get<{ data: { items: SystemSetting[]; meta: { page: number; limit: number; total: number; totalPages: number }; stats: { total: number; categories: Array<{ category: string; count: number }> } } }>('/admin/settings', { params: { ...params, paged: 1 } })
+      .then(unwrap),
   list: () => apiClient.get<{ data: SystemSetting[] }>('/admin/settings').then(unwrap),
   byCategory: (category: string) =>
     apiClient.get<{ data: SystemSetting[] }>(`/admin/settings/category/${category}`).then(unwrap),

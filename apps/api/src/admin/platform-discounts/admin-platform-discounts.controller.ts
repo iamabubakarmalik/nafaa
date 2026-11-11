@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -15,10 +16,12 @@ import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.int
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminPlatformDiscountsService } from './admin-platform-discounts.service';
 import { UpsertPlatformDiscountDto } from './dto/upsert-discount.dto';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Platform Discounts')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('promos')
 @Controller('admin/platform-discounts')
 export class AdminPlatformDiscountsController {
   constructor(private readonly service: AdminPlatformDiscountsService) {}
@@ -26,6 +29,21 @@ export class AdminPlatformDiscountsController {
   @Get()
   list() {
     return this.service.list();
+  }
+
+  @Get('paged')
+  listPaged(
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.service.listPaged({ search, status, page: page ? Number(page) : 1, limit: limit ? Number(limit) : 24 });
+  }
+
+  @Get('stats')
+  stats() {
+    return this.service.stats();
   }
 
   @Post()

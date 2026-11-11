@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { dayRange } from '../common/date-range';
 
 @Injectable()
 export class AdminReferralsService {
@@ -27,8 +28,8 @@ export class AdminReferralsService {
   }
 
   list(params: { page?: number; limit?: number }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 30;
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 30));
     const skip = (page - 1) * limit;
 
     return this.prisma.referral.findMany({
@@ -40,6 +41,37 @@ export class AdminReferralsService {
         referee: { select: { id: true, name: true, status: true, createdAt: true } },
       },
     });
+  }
+
+  /** Paged and filtered list with a total, for the Referrals page. */
+  async listPaged(params: { status?: string; search?: string; from?: string; to?: string; page?: number; limit?: number }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 25));
+    const where: any = {};
+    if (params.status) where.status = params.status;
+    const range = dayRange(params.from, params.to);
+    if (range) where.createdAt = range;
+    if (params.search) {
+      where.OR = [
+        { code: { contains: params.search, mode: 'insensitive' } },
+        { referrer: { name: { contains: params.search, mode: 'insensitive' } } },
+        { referee: { name: { contains: params.search, mode: 'insensitive' } } },
+      ];
+    }
+    const [items, total] = await Promise.all([
+      this.prisma.referral.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          referrer: { select: { id: true, name: true, referralCode: true } },
+          referee: { select: { id: true, name: true, status: true, createdAt: true } },
+        },
+      }),
+      this.prisma.referral.count({ where }),
+    ]);
+    return { items, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   }
 
   async leaderboard() {

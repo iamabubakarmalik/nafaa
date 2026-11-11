@@ -2,6 +2,15 @@ import { apiClient } from './client';
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
+export interface TopTenant {
+  tenantId: string;
+  tenant?: { id: string; name: string; status: string };
+  totalPaid: number;
+  paymentsCount: number;
+}
+
+export interface PlanMixRow { planId: string; name: string; subscriptions: number; mrr: number }
+
 export const adminAnalyticsApi = {
   mrrArr: () =>
     apiClient.get<{ data: { mrr: number; arr: number; activeSubscriptions: number } }>(
@@ -21,6 +30,10 @@ export const adminAnalyticsApi = {
         { params: { months } },
       )
       .then(unwrap),
-  topTenants: () =>
-    apiClient.get<{ data: any[] }>('/admin/analytics/top-tenants').then(unwrap),
+  topTenants: (limit = 10) =>
+    apiClient
+      .get<{ data: TopTenant[] }>('/admin/analytics/top-tenants', { params: { limit } })
+      .then(unwrap),
+  planMix: () =>
+    apiClient.get<{ data: PlanMixRow[] }>('/admin/analytics/plan-mix').then(unwrap),
 };

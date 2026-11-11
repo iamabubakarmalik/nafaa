@@ -7,11 +7,12 @@ export class AdminCustomersService {
   constructor(private readonly prisma: PrismaService) {}
 
   async stats() {
+    const real = { tenant: { slug: { not: 'nafaa-system' } } };
     const [total, withCredit, totalSpentAgg, totalCreditAgg] = await Promise.all([
-      this.prisma.customer.count(),
-      this.prisma.customer.count({ where: { balance: { gt: 0 } } }),
-      this.prisma.customer.aggregate({ _sum: { totalSpent: true } }),
-      this.prisma.customer.aggregate({ _sum: { balance: true } }),
+      this.prisma.customer.count({ where: real }),
+      this.prisma.customer.count({ where: { ...real, balance: { gt: 0 } } }),
+      this.prisma.customer.aggregate({ where: real, _sum: { totalSpent: true } }),
+      this.prisma.customer.aggregate({ where: real, _sum: { balance: true } }),
     ]);
 
     return {
@@ -26,14 +27,17 @@ export class AdminCustomersService {
     search?: string;
     tenantId?: string;
     hasCredit?: boolean;
+    status?: string;
     page?: number;
     limit?: number;
   }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 30;
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 30));
     const skip = (page - 1) * limit;
 
     const where: Prisma.CustomerWhereInput = {
+      tenant: { slug: { not: 'nafaa-system' } },
+      ...(params.status === 'active' ? { isActive: true } : params.status === 'inactive' ? { isActive: false } : {}),
       ...(params.tenantId ? { tenantId: params.tenantId } : {}),
       ...(params.hasCredit ? { balance: { gt: 0 } } : {}),
       ...(params.search

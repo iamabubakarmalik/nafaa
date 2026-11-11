@@ -1,154 +1,164 @@
+/**
+ * Products: every product across all shops, with stock health at a glance.
+ * Search and the stock filter run on the server.
+ */
+
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Package, Search, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
-import { adminProductsApi } from '@/api/admin-products.api';
+import { toast } from 'sonner';
+import { AlertTriangle, Download, Lightbulb, Package, Search, Tag, Warehouse } from 'lucide-react';
+import { FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, heroButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { adminProductsApi, type AdminProduct } from '@/api/admin-products.api';
 import { formatPKR } from '@/lib/format';
+import { ListCard, StatusBadge, downloadCsv, fetchAllPages, useListParams } from '@/ui';
+
+const STOCK = [
+  { value: 'ALL', label: 'All products' },
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+  { value: 'low', label: 'Low stock' },
+  { value: 'out', label: 'Out of stock' },
+];
+const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function AdminProductsPage() {
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const guide = usePageGuide();
+  const [exporting, setExporting] = useState(false);
+  const list = useListParams({ status: 'ALL' });
+  const { status } = list.filters;
+  const query = { search: list.debouncedSearch || undefined, status: status === 'ALL' ? undefined : status };
 
-  const { data: stats } = useQuery({
-    queryKey: ['admin-products-stats'],
-    queryFn: adminProductsApi.stats,
+  const products = useQuery({
+    queryKey: ['admin', 'products', query, list.page, list.limit],
+    queryFn: () => adminProductsApi.list({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
   });
+  const stats = useQuery({ queryKey: ['admin', 'products', 'stats'], queryFn: adminProductsApi.stats, staleTime: 60_000 });
+  const s = stats.data;
+  const rows = products.data?.items ?? [];
 
-  const { data } = useQuery({
-    queryKey: ['admin-products', search, page],
-    queryFn: () => adminProductsApi.list({ search: search || undefined, page, limit: 30 }),
-  });
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all = await fetchAllPages((page) => adminProductsApi.list({ ...query, page, limit: 100 }));
+      downloadCsv<AdminProduct>('products', all, [
+        { label: 'Name', value: (p) => p.name },
+        { label: 'SKU', value: (p) => p.sku },
+        { label: 'Barcode', value: (p) => p.barcode },
+        { label: 'Shop', value: (p) => p.tenant.name },
+        { label: 'Category', value: (p) => p.category?.name },
+        { label: 'Price', value: (p) => p.price },
+        { label: 'Cost', value: (p) => p.costPrice },
+        { label: 'Stock', value: (p) => p.stock },
+        { label: 'Active', value: (p) => p.isActive },
+      ]);
+      toast.success(`${num(all.length)} products exported`);
+    } catch {
+      toast.error('Export failed. Try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const chips = status !== 'ALL' ? [<FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{STOCK.find((o) => o.value === status)?.label}</FilterChip>] : [];
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-violet-900 to-violet-700 text-white p-6 shadow-soft">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-          <Package className="h-3.5 w-3.5" />
-          Cross-Tenant Inventory
-        </div>
-        <h2 className="mt-3 text-3xl font-bold">All Products</h2>
-        <p className="mt-2 text-sm text-white/80">Sab tenants ke products ek jagah</p>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Products"
+        chip={s ? `${num(s.total)} across all shops` : undefined}
+        busy={products.isFetching}
+        loading={stats.isLoading}
+        actions={
+          <>
+            <button type="button" className={heroButton} onClick={exportCsv} disabled={exporting}>
+              <Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={s ? [
+          { label: 'Active products', value: num(s.active), hint: `of ${num(s.total)}` },
+          { label: 'Low stock', value: num(s.lowStock) },
+          { label: 'Out of stock', value: num(s.outOfStock) },
+          { label: 'Units in stock', value: num(s.totalStockUnits) },
+        ] : undefined}
+      />
 
-      <section className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="rounded-2xl bg-white border border-slate-200 p-4">
-          <div className="text-xs text-slate-500">Total Products</div>
-          <div className="mt-1 text-2xl font-bold">{stats?.total ?? 0}</div>
-        </div>
-        <div className="rounded-2xl bg-emerald-50 border border-emerald-200 p-4">
-          <div className="text-xs text-emerald-700">Active</div>
-          <div className="mt-1 text-2xl font-bold text-emerald-900 flex items-center gap-1">
-            <CheckCircle2 className="h-5 w-5" /> {stats?.active ?? 0}
-          </div>
-        </div>
-        <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4">
-          <div className="text-xs text-amber-700">Low Stock</div>
-          <div className="mt-1 text-2xl font-bold text-amber-900 flex items-center gap-1">
-            <AlertTriangle className="h-5 w-5" /> {stats?.lowStock ?? 0}
-          </div>
-        </div>
-        <div className="rounded-2xl bg-rose-50 border border-rose-200 p-4">
-          <div className="text-xs text-rose-700">Out of Stock</div>
-          <div className="mt-1 text-2xl font-bold text-rose-900 flex items-center gap-1">
-            <XCircle className="h-5 w-5" /> {stats?.outOfStock ?? 0}
-          </div>
-        </div>
-        <div className="rounded-2xl bg-gradient-to-br from-violet-600 to-violet-800 text-white p-4">
-          <div className="text-xs text-white/80">Total Stock Units</div>
-          <div className="mt-1 text-lg font-bold">{(stats?.totalStockUnits ?? 0).toLocaleString()}</div>
-        </div>
-      </section>
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search name, SKU or barcode" />}
+        chips={chips.length ? chips : undefined}
+        onClear={list.clear}
+      >
+        <FilterMenu icon={Tag} label="Show" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)} align="right" options={STOCK} />
+      </FilterBar>
 
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
-        <div className="relative">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            className="h-11 w-full rounded-xl border border-slate-200 pl-10 pr-4 text-sm"
-            placeholder="Search by name, SKU, barcode..."
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          />
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-slate-600">
-              <tr>
-                <th className="text-left px-6 py-4 font-medium">Product</th>
-                <th className="text-left px-6 py-4 font-medium">Tenant</th>
-                <th className="text-left px-6 py-4 font-medium">Category</th>
-                <th className="text-right px-6 py-4 font-medium">Price</th>
-                <th className="text-right px-6 py-4 font-medium">Cost</th>
-                <th className="text-right px-6 py-4 font-medium">Stock</th>
-                <th className="text-left px-6 py-4 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(data?.items ?? []).map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-3">
-                    <div className="font-semibold">{p.name}</div>
-                    <div className="text-xs text-slate-500">
-                      {p.sku && <span className="font-mono">{p.sku}</span>}
-                      {p.barcode && <span className="ml-2 font-mono">📊 {p.barcode}</span>}
-                    </div>
-                  </td>
-                  <td className="px-6 py-3">
-                    <div className="font-medium text-slate-900 text-xs">{p.tenant.name}</div>
-                  </td>
-                  <td className="px-6 py-3">
-                    {p.category ? (
-                      <span
-                        className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold text-white"
-                        style={{ backgroundColor: p.category.color }}
-                      >
-                        {p.category.name}
-                      </span>
-                    ) : <span className="text-slate-400 text-xs">—</span>}
-                  </td>
-                  <td className="px-6 py-3 text-right font-medium">{formatPKR(p.price)}</td>
-                  <td className="px-6 py-3 text-right text-slate-600">{formatPKR(p.costPrice)}</td>
-                  <td className="px-6 py-3 text-right">
-                    <span className={`font-bold ${
-                      p.stock === 0 ? 'text-rose-700' :
-                      p.stock <= p.lowStockAlert ? 'text-amber-700' :
-                      'text-emerald-700'
-                    }`}>
-                      {p.stock} {p.unit}
+      <ListCard
+        loading={products.isLoading}
+        empty={!rows.length}
+        emptyIcon={<Package className="h-6 w-6" />}
+        emptyTitle="No products match"
+        emptyText="Try another search or clear the filters."
+        page={list.page} limit={list.limit} total={products.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="54rem">
+          <THead>
+            <Tr><Th>Product</Th><Th>Shop</Th><Th>Category</Th><Th align="right">Price</Th><Th align="right">Cost</Th><Th align="right">Stock</Th><Th>Status</Th></Tr>
+          </THead>
+          <TBody>
+            {rows.map((p) => {
+              const out = p.stock <= 0;
+              const low = !out && p.stock <= p.lowStockAlert;
+              return (
+                <Tr key={p.id}>
+                  <Td>
+                    <div className="font-semibold text-slate-900">{p.name}</div>
+                    <div className="font-mono text-[0.75rem] text-slate-500">{[p.sku, p.barcode].filter(Boolean).join(' · ') || '—'}</div>
+                  </Td>
+                  <Td><Link to={`/tenants/${p.tenant.id}`} className="font-medium text-slate-900 hover:text-brand-700">{p.tenant.name}</Link></Td>
+                  <Td>
+                    {p.category
+                      ? <span className="inline-flex items-center gap-1.5 text-slate-700"><span className="h-2 w-2 rounded-full" style={{ backgroundColor: p.category.color }} />{p.category.name}</span>
+                      : <span className="text-slate-400">—</span>}
+                  </Td>
+                  <Td align="right" className="font-medium">{formatPKR(p.price)}</Td>
+                  <Td align="right" className="text-slate-500">{formatPKR(p.costPrice)}</Td>
+                  <Td align="right">
+                    <span className={out ? 'font-semibold text-rose-600' : low ? 'inline-flex items-center gap-1 font-semibold text-amber-600' : ''}>
+                      {low && <AlertTriangle className="h-3.5 w-3.5" />}{num(p.stock)} <span className="font-normal text-slate-400">{p.unit}</span>
                     </span>
-                  </td>
-                  <td className="px-6 py-3">
-                    <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      p.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
-                    }`}>
-                      {p.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </Td>
+                  <Td><StatusBadge value={p.isActive ? 'ACTIVE' : 'INACTIVE'} /></Td>
+                </Tr>
+              );
+            })}
+          </TBody>
+        </Table>
+      </ListCard>
 
-        {data && (
-          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-sm text-slate-500">
-              Page {data.meta.page} of {data.meta.totalPages} • {data.meta.total} total
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-50">
-                Previous
-              </button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={page >= data.meta.totalPages}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-50">
-                Next
-              </button>
-            </div>
-          </div>
-        )}
-      </section>
-    </div>
+      {guide.isOpen && (
+        <PageGuide
+          title="Products"
+          description="Every product that shops have added, in one list. Shops manage their own products; this is a read-only view."
+          flowTitle="Where stock numbers come from"
+          flow={[
+            { label: 'Shop adds product', icon: Package, color: '#4f46e5' },
+            { label: 'Stock in', hint: 'Purchases', icon: Warehouse, color: '#0284c7' },
+            { label: 'Sold at counter', icon: Tag, color: '#059669' },
+            { label: 'Low or out', hint: 'Needs restock', icon: AlertTriangle, color: '#d97706' },
+          ]}
+          steps={[
+            { icon: Search, color: '#4f46e5', title: 'Search', text: 'Find a product by name, SKU or barcode across all shops.' },
+            { icon: AlertTriangle, color: '#d97706', title: 'Spot stock problems', text: 'Use Show to list low stock or out of stock products.' },
+            { icon: Download, color: '#059669', title: 'Export', text: 'Export CSV downloads every product that matches the filters.' },
+          ]}
+          tips={['Click a shop name to open that shop.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

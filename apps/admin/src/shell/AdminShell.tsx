@@ -20,7 +20,10 @@ import { Sidebar } from './sidebar/Sidebar';
 import { MobileSidebar } from './sidebar/MobileSidebar';
 import { Topbar } from './topbar/Topbar';
 import { CommandPalette, useCommandPaletteKeys } from './search/CommandPalette';
-import { itemForPath } from './navigation/nav-config';
+import { areaForPath, itemForPath } from './navigation/nav-config';
+import { useCan } from '@/lib/access';
+import { EmptyState } from '@/design-system/components';
+import { Lock } from 'lucide-react';
 
 /** Shown while a page's code downloads (pages are loaded on first visit). */
 function PageLoading() {
@@ -40,6 +43,9 @@ export default function AdminShell() {
   const { collapsed, toggle } = useSidebarState();
   const [mobileOpen, setMobileOpen] = useState(false);
   const mainRef = useRef<HTMLElement>(null);
+  const can = useCan();
+  const area = areaForPath(location.pathname);
+  const allowed = !area || can(`${area}.view`) || (area === 'staff' && location.pathname.startsWith('/staff/audit') && can('audit.view'));
   useCommandPaletteKeys();
   useListKeys(mainRef, { global: true });
   useDialogFocusManager();
@@ -79,9 +85,17 @@ export default function AdminShell() {
             tabIndex={-1}
             className="min-h-0 flex-1 overflow-y-auto bg-shell-canvas p-3 outline-none [scrollbar-gutter:stable] sm:p-5 xl:p-6 print:overflow-visible print:p-0"
           >
-            <Suspense fallback={<PageLoading />}>
-              <Outlet />
-            </Suspense>
+            {allowed ? (
+              <Suspense fallback={<PageLoading />}>
+                <Outlet />
+              </Suspense>
+            ) : (
+              <EmptyState
+                icon={<Lock className="h-6 w-6" />}
+                title="You don’t have access to this page"
+                description="Your admin role does not include it. Ask the owner if you need it."
+              />
+            )}
           </main>
         </div>
       </div>

@@ -1,197 +1,198 @@
-import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Users, Search, ToggleLeft, ToggleRight, Crown, ShieldCheck,
-} from 'lucide-react';
-import { adminUsersApi, type UserRole } from '@/api/admin-users.api';
-import { toast } from 'sonner';
+/**
+ * Users: every person who can sign in to a shop, across the platform.
+ * Search and filters run on the server. Admins can switch a user on or off.
+ */
 
-const roleColors: Record<UserRole, string> = {
-  SUPER_ADMIN: 'bg-amber-100 text-amber-700',
-  OWNER: 'bg-violet-100 text-violet-700',
-  MANAGER: 'bg-blue-100 text-blue-700',
-  CASHIER: 'bg-emerald-100 text-emerald-700',
-  STAFF: 'bg-slate-100 text-slate-700',
-};
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Crown, Download, Lightbulb, MailQuestion, Power, ShieldCheck, Tag, UserCheck, UserPlus, Users } from 'lucide-react';
+import {
+  Avatar, Badge, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, confirmDialog, heroButton, type BadgeVariant,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { adminUsersApi, type AdminUserItem, type UserRole } from '@/api/admin-users.api';
+import { formatDate, formatRelative } from '@/lib/format';
+import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
+
+const ROLES: Array<UserRole | 'ALL'> = ['ALL', 'OWNER', 'MANAGER', 'CASHIER', 'STAFF', 'SUPER_ADMIN'];
+const ROLE_TONE: Record<UserRole, BadgeVariant> = { SUPER_ADMIN: 'warning', OWNER: 'info', MANAGER: 'default', CASHIER: 'success', STAFF: 'default' };
+const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function UsersPage() {
-  const queryClient = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [role, setRole] = useState<UserRole | ''>('');
-  const [page, setPage] = useState(1);
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const [exporting, setExporting] = useState(false);
+  const list = useListParams({ role: 'ALL', status: 'ALL' });
+  const { role, status } = list.filters;
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin-users', search, role, page],
-    queryFn: () =>
-      adminUsersApi.list({
-        search: search || undefined,
-        role: role || undefined,
-        page,
-        limit: 20,
-      }),
+  const query = {
+    search: list.debouncedSearch || undefined,
+    role: role === 'ALL' ? undefined : (role as UserRole),
+    status: status === 'ALL' ? undefined : (status as 'active' | 'inactive'),
+  };
+  const users = useQuery({
+    queryKey: ['admin', 'users', query, list.page, list.limit],
+    queryFn: () => adminUsersApi.list({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
   });
+  const stats = useQuery({ queryKey: ['admin', 'users', 'stats'], queryFn: adminUsersApi.stats, staleTime: 60_000 });
+  const s = stats.data;
+  const rows = users.data?.items ?? [];
 
-  const toggleMutation = useMutation({
+  const toggle = useMutation({
     mutationFn: adminUsersApi.toggle,
-    onSuccess: () => {
-      toast.success('User status updated');
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    onSuccess: (u) => {
+      toast.success(u.isActive ? 'User switched on' : 'User switched off');
+      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Update failed'),
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Could not update the user'),
   });
+
+  const onToggle = async (u: AdminUserItem) => {
+    if (u.isActive && !(await confirmDialog({
+      title: `Switch off ${u.fullName}?`, text: 'They will not be able to sign in until you switch them on again.', yes: 'Switch off', danger: true,
+    }))) return;
+    toggle.mutate(u.id);
+  };
+
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all = await fetchAllPages((page) => adminUsersApi.list({ ...query, page, limit: 100 }));
+      downloadCsv<AdminUserItem>('users', all, [
+        { label: 'Name', value: (u) => u.fullName },
+        { label: 'Email', value: (u) => u.email },
+        { label: 'Phone', value: (u) => u.phone },
+        { label: 'Role', value: (u) => u.role },
+        { label: 'Shop', value: (u) => u.tenant.name },
+        { label: 'Active', value: (u) => u.isActive },
+        { label: 'Last sign-in', value: (u) => u.lastLoginAt?.slice(0, 10) },
+        { label: 'Joined', value: (u) => u.createdAt.slice(0, 10) },
+      ]);
+      toast.success(`${num(all.length)} users exported`);
+    } catch {
+      toast.error('Export failed. Try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const chips = [
+    role !== 'ALL' && <FilterChip key="r" onRemove={() => list.setFilter('role', 'ALL')}>{statusLabel(role)}</FilterChip>,
+    status !== 'ALL' && <FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{statusLabel(status)}</FilterChip>,
+  ].filter(Boolean);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-admin-950 via-admin-900 to-admin-700 text-white p-6 shadow-soft">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            User Management
-          </div>
-          <h2 className="mt-3 text-3xl font-bold">All Users</h2>
-          <p className="mt-2 text-sm text-white/80">
-            Saare users across all tenants
-          </p>
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-6">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[260px]">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              className="h-11 w-full rounded-xl border border-slate-200 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-admin-500/30"
-              placeholder="Search by name, email, phone..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-            />
-          </div>
-          <select
-            value={role}
-            onChange={(e) => {
-              setRole(e.target.value as UserRole | '');
-              setPage(1);
-            }}
-            className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm"
-          >
-            <option value="">All Roles</option>
-            <option value="OWNER">Owner</option>
-            <option value="MANAGER">Manager</option>
-            <option value="CASHIER">Cashier</option>
-            <option value="STAFF">Staff</option>
-            <option value="SUPER_ADMIN">Super Admin</option>
-          </select>
-        </div>
-      </section>
-
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        {isLoading ? (
-          <div className="p-6 text-sm text-slate-500">Loading...</div>
-        ) : !data || data.items.length === 0 ? (
-          <div className="p-12 text-center">
-            <Users className="h-12 w-12 text-slate-300 mx-auto" />
-            <h4 className="mt-4 text-lg font-semibold text-slate-900">No users found</h4>
-          </div>
-        ) : (
+    <PageShell>
+      <PageHero
+        title="Users"
+        chip={s ? `${num(s.total)} people` : undefined}
+        busy={users.isFetching}
+        loading={stats.isLoading}
+        actions={
           <>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th className="text-left px-6 py-4 font-medium">User</th>
-                    <th className="text-left px-6 py-4 font-medium">Tenant</th>
-                    <th className="text-left px-6 py-4 font-medium">Role</th>
-                    <th className="text-left px-6 py-4 font-medium">Last Login</th>
-                    <th className="text-left px-6 py-4 font-medium">Status</th>
-                    <th className="text-right px-6 py-4 font-medium">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {data.items.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-2">
-                          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-admin-500 to-admin-700 text-white flex items-center justify-center text-xs font-bold">
-                            {u.fullName.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1">
-                              <span className="font-medium text-slate-900 truncate">{u.fullName}</span>
-                              {u.role === 'SUPER_ADMIN' && <Crown className="h-3 w-3 text-amber-500" />}
-                            </div>
-                            <div className="text-xs text-slate-500 truncate">{u.email}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-3">
-                        <div className="font-medium text-slate-900 text-xs">{u.tenant.name}</div>
-                        <div className="text-[10px] text-slate-500 font-mono">{u.tenant.slug}</div>
-                      </td>
-                      <td className="px-6 py-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${roleColors[u.role]}`}>
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-xs text-slate-600">
-                        {u.lastLoginAt
-                          ? new Intl.DateTimeFormat('en-PK', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(u.lastLoginAt))
-                          : 'Never'}
-                      </td>
-                      <td className="px-6 py-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          u.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                        }`}>
-                          {u.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-right">
-                        {u.role !== 'SUPER_ADMIN' && (
-                          <button
-                            onClick={() => toggleMutation.mutate(u.id)}
-                            className="text-slate-700 hover:bg-slate-100 rounded-lg p-2"
-                            title={u.isActive ? 'Deactivate' : 'Activate'}
-                          >
-                            {u.isActive ? (
-                              <ToggleRight className="h-5 w-5 text-emerald-600" />
-                            ) : (
-                              <ToggleLeft className="h-5 w-5 text-slate-400" />
-                            )}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-              <div className="text-sm text-slate-500">
-                Page {data.meta.page} of {data.meta.totalPages} • {data.meta.total} total
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page >= data.meta.totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <button type="button" className={heroButton} onClick={exportCsv} disabled={exporting}>
+              <Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
           </>
-        )}
-      </section>
-    </div>
+        }
+        stats={s ? [
+          { label: 'Active users', value: num(s.active), hint: `of ${num(s.total)}` },
+          { label: 'Switched off', value: num(s.inactive) },
+          { label: 'New this week', value: num(s.newThisWeek) },
+          { label: 'Never signed in', value: num(s.neverSignedIn) },
+        ] : undefined}
+      />
+
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search name, email or phone" />}
+        chips={chips.length ? chips : undefined}
+        onClear={list.clear}
+      >
+        <FilterMenu icon={ShieldCheck} label="Role" value={role} active={role !== 'ALL'} onChange={(v) => list.setFilter('role', v)}
+          options={ROLES.map((v) => ({ value: v, label: v === 'ALL' ? 'All roles' : statusLabel(v) }))} />
+        <FilterMenu icon={Tag} label="Status" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)} align="right"
+          options={[{ value: 'ALL', label: 'All users' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Switched off' }]} />
+      </FilterBar>
+
+      <ListCard
+        loading={users.isLoading}
+        empty={!rows.length}
+        emptyIcon={<Users className="h-6 w-6" />}
+        emptyTitle="No users match"
+        emptyText="Try another search or clear the filters."
+        page={list.page} limit={list.limit} total={users.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="52rem">
+          <THead>
+            <Tr>
+              <Th>User</Th><Th>Shop</Th><Th>Role</Th><Th>Last sign-in</Th><Th>Status</Th><Th align="right">Joined</Th><Th align="right"><span className="sr-only">Actions</span></Th>
+            </Tr>
+          </THead>
+          <TBody>
+            {rows.map((u) => (
+              <Tr key={u.id}>
+                <Td>
+                  <div className="flex items-center gap-3">
+                    <Avatar name={u.fullName} size={36} />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1 font-semibold text-slate-900">
+                        <span className="truncate">{u.fullName}</span>
+                        {u.role === 'SUPER_ADMIN' && <Crown className="h-3.5 w-3.5 text-amber-500" />}
+                      </div>
+                      <div className="truncate text-[0.75rem] text-slate-500">
+                        {u.email}{u.phone ? ` · ${u.phone}` : ''}
+                        {!u.emailVerified && <MailQuestion className="ms-1 inline h-3 w-3 text-amber-500" aria-label="Email not verified" />}
+                      </div>
+                    </div>
+                  </div>
+                </Td>
+                <Td className="max-w-[14rem]">
+                  <Link to={`/tenants/${u.tenant.id}`} className="block truncate font-medium text-slate-900 hover:text-brand-700">{u.tenant.name}</Link>
+                  <div className="truncate text-[0.75rem] text-slate-500">@{u.tenant.slug}</div>
+                </Td>
+                <Td><Badge variant={ROLE_TONE[u.role]}>{statusLabel(u.role)}</Badge></Td>
+                <Td className="whitespace-nowrap text-slate-600">{u.lastLoginAt ? formatRelative(u.lastLoginAt) : <span className="text-slate-400">Never</span>}</Td>
+                <Td><StatusBadge value={u.isActive ? 'ACTIVE' : 'DISABLED'} label={u.isActive ? 'Active' : 'Switched off'} /></Td>
+                <Td align="right" className="whitespace-nowrap text-slate-500">{formatDate(u.createdAt)}</Td>
+                <Td align="right">
+                  {u.role !== 'SUPER_ADMIN' && (
+                    <button type="button" onClick={() => onToggle(u)} disabled={toggle.isPending}
+                      className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">
+                      <Power className={u.isActive ? 'h-3.5 w-3.5 text-rose-600' : 'h-3.5 w-3.5 text-emerald-600'} />{u.isActive ? 'Switch off' : 'Switch on'}
+                    </button>
+                  )}
+                </Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
+      </ListCard>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Users"
+          description="Everyone who can sign in to a shop: owners, managers, cashiers and staff."
+          flowTitle="How a user is used"
+          flow={[
+            { label: 'Shop owner signs up', icon: UserPlus, color: '#4f46e5' },
+            { label: 'Adds staff', hint: 'Manager, cashier', icon: Users, color: '#0284c7' },
+            { label: 'Signs in', icon: UserCheck, color: '#059669' },
+            { label: 'Switched off', hint: 'By you', icon: Power, color: '#e11d48' },
+          ]}
+          steps={[
+            { icon: Tag, color: '#4f46e5', title: 'Find a person', text: 'Search by name, email or phone, or narrow by role and status.' },
+            { icon: Power, color: '#e11d48', title: 'Switch off', text: 'A switched-off user cannot sign in. Their sales and records stay.' },
+            { icon: Download, color: '#059669', title: 'Export', text: 'Export CSV downloads every user that matches the filters.' },
+          ]}
+          tips={['Click a shop name to open that shop.', 'Super admin accounts cannot be switched off here.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

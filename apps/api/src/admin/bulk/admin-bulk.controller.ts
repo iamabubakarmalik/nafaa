@@ -7,10 +7,12 @@ import {
   BulkBroadcastDto,
   BulkTenantStatusDto,
 } from './dto/bulk-action.dto';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Bulk Actions')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('bulk')
 @Controller('admin/bulk')
 export class AdminBulkController {
   constructor(private readonly service: AdminBulkService) {}

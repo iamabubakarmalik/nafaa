@@ -3,10 +3,12 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminSystemService } from './admin-system.service';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - System')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('dashboard')
 @Controller('admin/system')
 export class AdminSystemController {
   constructor(private readonly service: AdminSystemService) {}

@@ -8,12 +8,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowDown, ArrowUp, ArrowRight, Home, LayoutGrid, RotateCcw, Save, ShoppingCart, Package, Menu, BarChart3 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowRight, Home, LayoutGrid, Lightbulb, RotateCcw, Save, ShoppingCart, Package, Menu, BarChart3, Palette, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageHero, PageShell, Segmented, Skeleton, heroButton, heroPrimaryButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminAppearanceApi, type PlatformAppearance } from '@/api/admin-appearance.api';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
-import { Card, MobileHero, Toggle } from '../components/MobileUi';
+import { Card, Toggle } from '../components/MobileUi';
 
 type MobileKeys = Pick<PlatformAppearance, 'mobileTabBar' | 'mobileStartScreen' | 'mobilePosGrid' | 'mobileHomeWidgets' | 'mobileAnimations' | 'mobileHaptics'>;
 
@@ -55,18 +56,8 @@ function Choice<T extends string>({ label, help, value, options, onChange }: {
     <div className="py-3">
       <div className="text-sm font-semibold text-slate-900">{label}</div>
       <div className="text-xs text-slate-500">{help}</div>
-      <div className="mt-2 flex flex-wrap gap-2">
-        <button type="button" onClick={() => onChange(undefined)}
-          className={cn('rounded-full border px-3 py-1 text-xs font-semibold', value === undefined ? 'border-slate-800 bg-slate-800 text-white' : 'border-slate-200 text-slate-600')}>
-          Built-in
-        </button>
-        {options.map(([v, l]) => (
-          <button key={v} type="button" onClick={() => onChange(v)}
-            className={cn('rounded-full border px-3 py-1 text-xs font-semibold', value === v ? 'border-teal-600 bg-teal-600 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-300')}>
-            {l}
-          </button>
-        ))}
-      </div>
+      <Segmented className="mt-2 flex-wrap" label={label} value={(value ?? 'built-in') as T | 'built-in'} onChange={(v) => onChange(v === 'built-in' ? undefined : (v as T))}
+        items={[{ value: 'built-in' as const, label: 'Built-in' }, ...options.map(([v, l]) => ({ value: v as T, label: l }))]} />
     </div>
   );
 }
@@ -89,7 +80,7 @@ function PhonePreview({ v }: { v: MobileKeys }) {
             <div className="space-y-1">{Array.from({ length: 9 }).map((_, i) => <div key={i} className="h-6 rounded-md bg-slate-100" />)}</div>
           ) : (
             <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
-              {Array.from({ length: cols * 4 }).map((_, i) => <div key={i} className="aspect-square rounded-md bg-teal-100" />)}
+              {Array.from({ length: cols * 4 }).map((_, i) => <div key={i} className="aspect-square rounded-md bg-brand-100" />)}
             </div>
           )
         ) : (
@@ -103,7 +94,7 @@ function PhonePreview({ v }: { v: MobileKeys }) {
       <div className={cn('mt-2 flex items-center justify-around px-1 py-1.5',
         tab === 'floating' ? 'mx-2 rounded-full bg-slate-900 text-white shadow-lg' : 'rounded-xl bg-white text-slate-600')}>
         {tabs.map(({ i: Icon, l }, idx) => (
-          <div key={l} className={cn('flex flex-col items-center', (pos ? idx === 1 : idx === 0) && (tab === 'floating' ? 'text-teal-300' : 'text-teal-600'))}>
+          <div key={l} className={cn('flex flex-col items-center', (pos ? idx === 1 : idx === 0) && (tab === 'floating' ? 'text-brand-300' : 'text-brand-600'))}>
             <Icon className="h-3.5 w-3.5" />
             {tab === 'labels' && <span className="text-[7px]">{l}</span>}
           </div>
@@ -114,6 +105,7 @@ function PhonePreview({ v }: { v: MobileKeys }) {
 }
 
 export default function MobileAppearancePage() {
+  const guide = usePageGuide();
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({ queryKey: ['admin-appearance'], queryFn: adminAppearanceApi.get });
   const [draft, setDraft] = useState<PlatformAppearance>({});
@@ -151,16 +143,29 @@ export default function MobileAppearancePage() {
   const dirty = mobileOnly(draft) !== mobileOnly(data ?? {});
 
   return (
-    <div className="space-y-6">
-      <MobileHero title="Appearance defaults" subtitle="The starting look of the mobile app. Owners and users can change it for themselves in the app. Colors, dark mode and text size come from Platform design.">
-        <Button variant="secondary" onClick={() => setDraft((d) => Object.fromEntries(Object.entries(d).filter(([k]) => !k.startsWith('mobile'))))}>
-          <RotateCcw className="h-4 w-4" />Built-in defaults
-        </Button>
-        <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!dirty}><Save className="h-4 w-4" />Save</Button>
-      </MobileHero>
+    <PageShell>
+      <PageHero
+        title="Mobile appearance defaults"
+        chip={dirty ? 'Unsaved changes' : undefined}
+        busy={save.isPending}
+        loading={isLoading}
+        actions={
+          <>
+            <button type="button" className={heroButton} onClick={() => setDraft((d) => Object.fromEntries(Object.entries(d).filter(([k]) => !k.startsWith('mobile'))))}><RotateCcw className="h-4 w-4" /> Built-in defaults</button>
+            <button type="button" className={heroPrimaryButton} onClick={() => save.mutate()} disabled={!dirty || save.isPending}><Save className="h-4 w-4" /> Save</button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={[
+          { label: 'Tab bar', value: { labels: 'Icons + labels', icons: 'Icons only', floating: 'Floating' }[draft.mobileTabBar ?? 'labels'] },
+          { label: 'Opens on', value: draft.mobileStartScreen === 'pos' ? 'Sell (POS)' : 'Home' },
+          { label: 'POS grid', value: (draft.mobilePosGrid ?? 'medium').replace(/^\w/, (c) => c.toUpperCase()) },
+          { label: 'Home blocks', value: String((draft.mobileHomeWidgets ?? DEFAULT_WIDGETS).length) },
+        ]}
+      />
 
-      {isLoading ? <div className="h-64 animate-pulse rounded-3xl bg-slate-100" /> : (
-        <div className="grid gap-6 lg:grid-cols-[1fr_1fr_280px]">
+      {isLoading ? <Skeleton className="h-64 rounded-3xl" /> : (
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr_280px]">
           <Card title="Layout">
             <div className="divide-y divide-slate-100">
               <Choice label="Tab bar" help="Bottom navigation style" value={draft.mobileTabBar}
@@ -178,7 +183,7 @@ export default function MobileAppearancePage() {
                 <Toggle checked={draft.mobileHaptics ?? true} onChange={(v) => set('mobileHaptics', v ? undefined : false)} label="Haptics" />
               </div>
             </div>
-            <Link to="/appearance" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-teal-700 hover:text-teal-900">Colors, mode and fonts in Platform design <ArrowRight className="h-3.5 w-3.5" /></Link>
+            <Link to="/appearance" className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 hover:text-brand-900">Colors, mode and fonts in Platform design <ArrowRight className="h-3.5 w-3.5" /></Link>
           </Card>
 
           <Card title="Home screen blocks" subtitle="Order of blocks on the home screen. Blocks a person has no permission for stay hidden."
@@ -199,7 +204,7 @@ export default function MobileAppearancePage() {
                   <div className="flex flex-wrap gap-2">
                     {hidden.map((w) => (
                       <button key={w.id} type="button" onClick={() => set('mobileHomeWidgets', [...widgets, w.id])}
-                        className="rounded-full border border-dashed border-slate-300 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-teal-500 hover:text-teal-700">+ {w.label}</button>
+                        className="rounded-full border border-dashed border-slate-300 px-3 py-1 text-xs font-semibold text-slate-600 hover:border-brand-500 hover:text-brand-700">+ {w.label}</button>
                     ))}
                   </div>
                 </div>
@@ -213,6 +218,28 @@ export default function MobileAppearancePage() {
           </div>
         </div>
       )}
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Mobile appearance defaults"
+          description="The starting look of the mobile app. Owners and users can change it for themselves in the app."
+          flowTitle="Whose setting wins"
+          flow={[
+            { label: 'Built-in', hint: 'App default', icon: Smartphone, color: '#64748b' },
+            { label: 'These defaults', hint: 'Set here', icon: Palette, color: '#4f46e5' },
+            { label: 'Shop', hint: 'Owner changes it', icon: LayoutGrid, color: '#0284c7' },
+            { label: 'Person', hint: 'Final say', icon: Home, color: '#059669' },
+          ]}
+          steps={[
+            { icon: LayoutGrid, color: '#4f46e5', title: 'Layout', text: 'Pick the tab bar style, the first screen and the POS tile size. "Built-in" leaves it to the app.' },
+            { icon: ArrowUp, color: '#0284c7', title: 'Home blocks', text: 'Reorder or hide blocks. Blocks a person has no permission for stay hidden.' },
+            { icon: Palette, color: '#d97706', title: 'Colors', text: 'Colors, dark mode and text size come from Platform design and apply to web and mobile.' },
+          ]}
+          tips={['The phone preview is a rough sketch, not the real screen.', 'Apps pick up saved defaults on next start.']}
+          shortcuts={[['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

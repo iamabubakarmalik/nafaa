@@ -9,19 +9,35 @@ import {
 export class AdminBroadcastService {
   constructor(private readonly prisma: PrismaService) {}
 
-  list(params: { page?: number; limit?: number }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 30;
-    const skip = (page - 1) * limit;
-
-    return this.prisma.broadcastNotification.findMany({
-      orderBy: { sentAt: 'desc' },
-      skip,
-      take: limit,
-      include: {
-        author: { select: { id: true, fullName: true } },
-      },
-    });
+  /**
+   * Without `paged` this returns the plain list (old behavior). With it, one
+   * page of broadcasts plus header numbers, searched on title and message.
+   */
+  async list(params: { page?: number; limit?: number; search?: string; targetType?: string; paged?: boolean }) {
+    const limit = Math.min(100, Math.max(1, params.limit ?? 30));
+    const page = Math.max(1, params.page ?? 1);
+    const include = { author: { select: { id: true, fullName: true } } };
+    if (!params.paged) {
+      return this.prisma.broadcastNotification.findMany({ orderBy: { sentAt: 'desc' }, skip: (page - 1) * limit, take: limit, include });
+    }
+    const term = params.search?.trim();
+    const where = {
+      ...(params.targetType ? { targetType: params.targetType } : {}),
+      ...(term ? { OR: [{ title: { contains: term, mode: 'insensitive' as const } }, { message: { contains: term, mode: 'insensitive' as const } }] } : {}),
+    };
+    const since30 = new Date(Date.now() - 30 * 86_400_000);
+    const [items, total, all, last30, reach] = await Promise.all([
+      this.prisma.broadcastNotification.findMany({ where, orderBy: { sentAt: 'desc' }, skip: (page - 1) * limit, take: limit, include }),
+      this.prisma.broadcastNotification.count({ where }),
+      this.prisma.broadcastNotification.count(),
+      this.prisma.broadcastNotification.count({ where: { sentAt: { gte: since30 } } }),
+      this.prisma.broadcastNotification.aggregate({ _sum: { recipientCount: true } }),
+    ]);
+    return {
+      items,
+      meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+      stats: { total: all, last30d: last30, recipients: reach._sum.recipientCount ?? 0 },
+    };
   }
 
   async send(authorId: string, dto: CreateBroadcastDto) {

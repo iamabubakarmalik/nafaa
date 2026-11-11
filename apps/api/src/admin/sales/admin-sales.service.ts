@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { startOfDay, startOfMonth } from 'date-fns';
 import { PrismaService } from '../../prisma/prisma.service';
+import { startOfDayTz, startOfMonthTz } from '../../common/helpers/business-time.helper';
+import { dayRange } from '../common/date-range';
 
 @Injectable()
 export class AdminSalesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async stats() {
-    const todayStart = startOfDay(new Date());
-    const monthStart = startOfMonth(new Date());
+    const todayStart = startOfDayTz();
+    const monthStart = startOfMonthTz();
+    const real = { tenant: { slug: { not: 'nafaa-system' } } };
 
     const [
       totalCount,
@@ -18,23 +20,23 @@ export class AdminSalesService {
       todayAgg,
       monthAgg,
     ] = await Promise.all([
-      this.prisma.sale.count({ where: { status: 'COMPLETED' } }),
+      this.prisma.sale.count({ where: { status: 'COMPLETED', ...real } }),
       this.prisma.sale.count({
-        where: { status: 'COMPLETED', soldAt: { gte: todayStart } },
+        where: { status: 'COMPLETED', ...real, soldAt: { gte: todayStart } },
       }),
       this.prisma.sale.count({
-        where: { status: 'COMPLETED', soldAt: { gte: monthStart } },
+        where: { status: 'COMPLETED', ...real, soldAt: { gte: monthStart } },
       }),
       this.prisma.sale.aggregate({
-        where: { status: 'COMPLETED' },
+        where: { status: 'COMPLETED', ...real },
         _sum: { total: true, costOfGoods: true },
       }),
       this.prisma.sale.aggregate({
-        where: { status: 'COMPLETED', soldAt: { gte: todayStart } },
+        where: { status: 'COMPLETED', ...real, soldAt: { gte: todayStart } },
         _sum: { total: true },
       }),
       this.prisma.sale.aggregate({
-        where: { status: 'COMPLETED', soldAt: { gte: monthStart } },
+        where: { status: 'COMPLETED', ...real, soldAt: { gte: monthStart } },
         _sum: { total: true },
       }),
     ]);
@@ -56,17 +58,29 @@ export class AdminSalesService {
   async list(params: {
     search?: string;
     tenantId?: string;
+    method?: string;
+    credit?: boolean;
+    from?: string;
+    to?: string;
     page?: number;
     limit?: number;
   }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 30;
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 30));
     const skip = (page - 1) * limit;
 
-    const where: any = { status: 'COMPLETED' };
+    const where: any = { status: 'COMPLETED', tenant: { slug: { not: 'nafaa-system' } } };
     if (params.tenantId) where.tenantId = params.tenantId;
+    if (params.method) where.paymentMethod = params.method;
+    if (params.credit) where.creditAmount = { gt: 0 };
+    const range = dayRange(params.from, params.to);
+    if (range) where.soldAt = range;
     if (params.search) {
-      where.saleNumber = { contains: params.search, mode: 'insensitive' };
+      where.OR = [
+        { saleNumber: { contains: params.search, mode: 'insensitive' } },
+        { customer: { name: { contains: params.search, mode: 'insensitive' } } },
+        { tenant: { name: { contains: params.search, mode: 'insensitive' } } },
+      ];
     }
 
     const [items, total] = await Promise.all([

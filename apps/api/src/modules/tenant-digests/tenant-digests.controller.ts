@@ -4,10 +4,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { GetUser } from '../auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
 import { TenantDigestsService } from './tenant-digests.service';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
 @ApiTags('Tenant Digests')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@AdminArea('communications')
 @Controller('admin/digests')
 export class TenantDigestsController {
   constructor(private readonly digests: TenantDigestsService) {}

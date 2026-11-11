@@ -20,9 +20,9 @@ export default function TenantCommercePanel({ tenantId }: { tenantId: string }) 
         <Store className="h-4 w-4" />
         <h3 className="font-bold">Online store</h3>
         <div className="ml-auto flex gap-3 text-xs font-semibold">
-          <Link to={`/commerce/channels?search=${encodeURIComponent(data?.tenant.name ?? '')}`} className="text-indigo-700 hover:underline">Channels</Link>
-          <Link to="/commerce/orders" className="text-indigo-700 hover:underline">Orders monitor</Link>
-          <Link to="/commerce/jobs" className="text-indigo-700 hover:underline">Catalog jobs</Link>
+          <Link to={`/commerce/channels?q=${encodeURIComponent(data?.tenant.name ?? '')}`} className="text-brand-700 hover:underline">Channels</Link>
+          <Link to="/commerce/orders" className="text-brand-700 hover:underline">Orders monitor</Link>
+          <Link to="/commerce/jobs" className="text-brand-700 hover:underline">Catalog jobs</Link>
         </div>
       </div>
       {isLoading ? <Empty>Loading…</Empty> : error || !data ? <Empty>Could not load the online store.</Empty> : (

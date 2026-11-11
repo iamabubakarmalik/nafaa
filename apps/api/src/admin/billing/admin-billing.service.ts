@@ -12,6 +12,8 @@ import { ReferralsService } from '../../modules/customers/referrals/referrals.se
 import { SmsService } from '../../modules/sms/sms.service';
 import { SubscriptionsService } from '../../modules/billing/subscriptions/subscriptions.service';
 import { apiMessage } from '../../common/i18n/api-message';
+import { startOfDayTz } from '../../common/helpers/business-time.helper';
+import { dayRange } from '../common/date-range';
 
 @Injectable()
 export class AdminBillingService {
@@ -25,20 +27,22 @@ export class AdminBillingService {
   ) {}
 
   async stats() {
-    const [pending, approved, rejected, totalRevenue, todayRevenue] =
+    const real = { tenant: { slug: { not: 'nafaa-system' } } };
+    const [pending, approved, rejected, pendingAmount, totalRevenue, todayRevenue] =
       await Promise.all([
-        this.prisma.payment.count({ where: { status: 'PENDING' } }),
-        this.prisma.payment.count({ where: { status: 'APPROVED' } }),
-        this.prisma.payment.count({ where: { status: 'REJECTED' } }),
+        this.prisma.payment.count({ where: { ...real, status: 'PENDING' } }),
+        this.prisma.payment.count({ where: { ...real, status: 'APPROVED' } }),
+        this.prisma.payment.count({ where: { ...real, status: 'REJECTED' } }),
         this.prisma.payment.aggregate({
-          where: { status: 'APPROVED' },
+          where: { ...real, status: 'PENDING' },
           _sum: { amount: true },
         }),
         this.prisma.payment.aggregate({
-          where: {
-            status: 'APPROVED',
-            approvedAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) },
-          },
+          where: { ...real, status: 'APPROVED' },
+          _sum: { amount: true },
+        }),
+        this.prisma.payment.aggregate({
+          where: { ...real, status: 'APPROVED', approvedAt: { gte: startOfDayTz() } },
           _sum: { amount: true },
         }),
       ]);
@@ -47,6 +51,7 @@ export class AdminBillingService {
       pending,
       approved,
       rejected,
+      pendingAmount: pendingAmount._sum.amount ?? 0,
       totalApproved: totalRevenue._sum.amount ?? 0,
       todayApproved: todayRevenue._sum.amount ?? 0,
     };
@@ -54,22 +59,30 @@ export class AdminBillingService {
 
   async list(params: {
     status?: PaymentStatus;
+    provider?: string;
+    from?: string;
+    to?: string;
     search?: string;
     page?: number;
     limit?: number;
   }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 20;
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: any = { tenant: { slug: { not: 'nafaa-system' } } };
     if (params.status) where.status = params.status;
+    if (params.provider) where.provider = params.provider;
+    const range = dayRange(params.from, params.to);
+    if (range) where.createdAt = range;
     if (params.search) {
-      where.OR = [
-        { transactionId: { contains: params.search, mode: 'insensitive' } },
-        { payerName: { contains: params.search, mode: 'insensitive' } },
-        { tenant: { name: { contains: params.search, mode: 'insensitive' } } },
-      ];
+      where.AND = [{
+        OR: [
+          { transactionId: { contains: params.search, mode: 'insensitive' } },
+          { payerName: { contains: params.search, mode: 'insensitive' } },
+          { tenant: { name: { contains: params.search, mode: 'insensitive' } } },
+        ],
+      }];
     }
 
     const [items, total] = await Promise.all([

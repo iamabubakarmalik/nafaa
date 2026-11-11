@@ -13,7 +13,7 @@ import {
   FileText, Gift, Globe, Handshake, HeartPulse, Images, Layers, LayoutDashboard, ListChecks, Mail, MailCheck,
   Megaphone, Menu as MenuIcon, MessageSquare, MessageSquareText, MousePointer2, Package, PackageCheck,
   PackageSearch, Paintbrush, Palette, Plug, Power, Receipt, Rocket, Search, Send, Settings, Settings2,
-  ShieldCheck, ShoppingCart, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
+  KeyRound, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
   ToggleRight, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
@@ -28,6 +28,8 @@ export interface AdminNavItem {
   keywords?: string;
   /** Active only on an exact match (the path has child routes listed separately). */
   exact?: boolean;
+  /** Permission needed to see the item; defaults to `<area>.view` from areaForPath(). */
+  permission?: string | null;
 }
 
 export interface AdminNavGroup {
@@ -38,7 +40,7 @@ export interface AdminNavGroup {
 }
 
 export type WorkspaceId =
-  | 'platform' | 'merchants' | 'billing' | 'online-store' | 'marketing' | 'communications' | 'mobile' | 'system';
+  | 'platform' | 'merchants' | 'billing' | 'online-store' | 'marketing' | 'communications' | 'mobile' | 'system' | 'staff';
 
 export interface AdminWorkspace {
   id: WorkspaceId;
@@ -311,7 +313,7 @@ export const WORKSPACES: AdminWorkspace[] = [
     icon: ShieldCheck,
     tone: 'bg-slate-700 text-white',
     root: '/health',
-    prefixes: ['/health', '/activity', '/exports', '/settings', '/appearance'],
+    prefixes: ['/health', '/activity', '/ai-usage', '/exports', '/settings', '/appearance'],
     groups: [
       {
         id: 'monitor',
@@ -320,6 +322,7 @@ export const WORKSPACES: AdminWorkspace[] = [
         items: [
           { to: '/health', label: 'System health', icon: HeartPulse, keywords: 'uptime database redis' },
           { to: '/activity', label: 'Activity log', icon: Activity, keywords: 'audit history' },
+          { to: '/ai-usage', label: 'Nafaa AI usage', icon: Bot, keywords: 'ai cost tokens assistant' },
         ],
       },
       {
@@ -341,7 +344,71 @@ export const WORKSPACES: AdminWorkspace[] = [
       },
     ],
   },
+  {
+    id: 'staff',
+    label: 'Staff & access',
+    shortLabel: 'Staff',
+    description: 'Admin team, roles, two-step sign-in and the audit log',
+    icon: UserCog,
+    tone: 'bg-rose-600 text-white',
+    root: '/staff',
+    prefixes: ['/staff', '/account'],
+    groups: [
+      {
+        id: 'team',
+        label: 'Team',
+        icon: UserCog,
+        items: [
+          { to: '/staff', label: 'Admin staff', icon: UserCog, exact: true, keywords: 'team invite people members' },
+          { to: '/staff/roles', label: 'Roles & permissions', icon: KeyRound, keywords: 'access rights' },
+          { to: '/staff/audit', label: 'Audit log', icon: ScrollText, keywords: 'history who changed', permission: 'audit.view' },
+        ],
+      },
+      {
+        id: 'me',
+        label: 'My account',
+        icon: ShieldCheck,
+        items: [
+          { to: '/account/security', label: 'My security', icon: ShieldCheck, keywords: '2fa two-step authenticator password sessions', permission: null },
+        ],
+      },
+    ],
+  },
 ];
+
+/** Permission area of each page (see apps/api/src/admin/access/admin-permissions.ts). */
+const AREA_BY_PREFIX: Array<[string, string]> = [
+  ['/dashboard', 'dashboard'], ['/analytics', 'dashboard'], ['/notifications', 'notifications'],
+  ['/tenants', 'tenants'], ['/users', 'users'], ['/deletion-requests', 'deletion'],
+  ['/products', 'merchant_data'], ['/sales', 'merchant_data'], ['/customers', 'merchant_data'], ['/bulk-actions', 'bulk'],
+  ['/billing', 'billing'], ['/invoices', 'billing'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
+  ['/platform-discounts', 'promos'], ['/referrals', 'promos'],
+  ['/commerce', 'online_store'], ['/marketing', 'marketing'],
+  ['/broadcast', 'communications'], ['/bulk-communications', 'communications'], ['/email-templates', 'communications'],
+  ['/email-logs', 'communications'], ['/sms-templates', 'communications'], ['/sms-logs', 'communications'],
+  ['/mobile', 'mobile'], ['/health', 'system'], ['/activity', 'system'], ['/ai-usage', 'system'], ['/exports', 'exports'],
+  ['/settings', 'settings'], ['/appearance', 'settings'], ['/staff', 'staff'],
+];
+
+export function areaForPath(path: string): string | null {
+  const hit = AREA_BY_PREFIX.find(([prefix]) => path === prefix || path.startsWith(`${prefix}/`));
+  return hit ? hit[1] : null;
+}
+
+/** Permission needed to see a menu item (null = every admin). */
+export function itemPermission(item: AdminNavItem): string | null {
+  if (item.permission !== undefined) return item.permission;
+  const area = areaForPath(item.to);
+  return area ? `${area}.view` : null;
+}
+
+/** Workspaces and items the admin may see; workspaces with nothing left are dropped. */
+export function visibleWorkspaces(can: (permission: string) => boolean): AdminWorkspace[] {
+  return WORKSPACES
+    .map((ws) => ({ ...ws, groups: ws.groups.map((g) => ({ ...g, items: g.items.filter((i) => { const p = itemPermission(i); return !p || can(p); }) })).filter((g) => g.items.length) }))
+    .filter((ws) => ws.groups.length)
+    .map((ws) => ({ ...ws, root: ws.groups[0].items.some((i) => i.to === ws.root) ? ws.root : ws.groups[0].items[0].to }));
+}
 
 export const WORKSPACE_BY_ID = Object.fromEntries(WORKSPACES.map((w) => [w.id, w])) as Record<WorkspaceId, AdminWorkspace>;
 

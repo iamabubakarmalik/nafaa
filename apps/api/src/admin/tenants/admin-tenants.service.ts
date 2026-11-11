@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, TenantStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { apiMessage, notificationText } from '../../common/i18n/api-message';
+import { DEFAULT_TZ, addDaysTz, dateKeyTz, startOfDayTz, subDaysTz } from '../../common/helpers/business-time.helper';
 
 @Injectable()
 export class AdminTenantsService {
@@ -148,6 +149,77 @@ export class AdminTenantsService {
         totalCogs: salesAgg._sum.costOfGoods ?? 0,
         totalExpenses: expensesAgg._sum.amount ?? 0,
       },
+    };
+  }
+
+  /**
+   * Everything the Shop 360 page shows besides the profile: health score,
+   * 30-day sales by Pakistan day, branches, devices, online channels,
+   * couriers, setup progress and a timeline of shop and admin activity.
+   */
+  async insights(id: string) {
+    const exists = await this.prisma.tenant.findUnique({ where: { id }, select: { id: true, createdAt: true } });
+    if (!exists) throw new NotFoundException('Tenant not found');
+    const now = new Date();
+    const from30 = startOfDayTz(subDaysTz(now, 29));
+    const week = subDaysTz(now, 7);
+    const tz = Prisma.raw(`'${DEFAULT_TZ.replace(/'/g, '')}'`);
+
+    const [daily, lastSale, sales7, activeUsers7, shops, devices, integrations, couriers, onlineOrders30, onboarding, activity, adminActions, products, paidSub] = await Promise.all([
+      this.prisma.$queryRaw<Array<{ day: string; bills: bigint; total: number | null }>>`
+        SELECT to_char("soldAt" AT TIME ZONE 'UTC' AT TIME ZONE ${tz}, 'YYYY-MM-DD') AS day, COUNT(*)::bigint AS bills, SUM(total)::float8 AS total
+        FROM "Sale" WHERE "tenantId" = ${id} AND status = 'COMPLETED' AND "soldAt" >= ${from30}
+        GROUP BY 1`,
+      this.prisma.sale.findFirst({ where: { tenantId: id, status: 'COMPLETED' }, orderBy: { soldAt: 'desc' }, select: { soldAt: true } }),
+      this.prisma.sale.aggregate({ where: { tenantId: id, status: 'COMPLETED', soldAt: { gte: week } }, _count: { _all: true }, _sum: { total: true } }),
+      this.prisma.user.count({ where: { tenantId: id, lastLoginAt: { gte: week } } }),
+      this.prisma.shop.findMany({ where: { tenantId: id }, select: { id: true, name: true, isMain: true, isActive: true, createdAt: true }, orderBy: [{ isMain: 'desc' }, { createdAt: 'asc' }] }),
+      this.prisma.mobileDevice.findMany({ where: { tenantId: id }, orderBy: { lastSeenAt: 'desc' }, take: 20, select: { id: true, platform: true, appVersion: true, osVersion: true, lastSeenAt: true, user: { select: { fullName: true } } } }),
+      this.prisma.integration.findMany({ where: { tenantId: id }, select: { id: true, type: true, status: true, isActive: true, lastSyncAt: true, createdAt: true } }),
+      this.prisma.courierConfig.findMany({ where: { tenantId: id }, select: { id: true, provider: true, isActive: true } }),
+      this.prisma.channelOrder.count({ where: { tenantId: id, receivedAt: { gte: from30 } } }),
+      this.prisma.onboardingProgress.findFirst({ where: { tenantId: id }, select: { currentStep: true, completedSteps: true, isCompleted: true, isSkipped: true, completedAt: true } }),
+      this.prisma.activityLog.findMany({ where: { tenantId: id }, orderBy: { createdAt: 'desc' }, take: 30, select: { id: true, action: true, description: true, createdAt: true, user: { select: { fullName: true } } } }),
+      this.prisma.adminAuditLog.findMany({ where: { targetId: id }, orderBy: { createdAt: 'desc' }, take: 20, select: { id: true, action: true, method: true, path: true, actorEmail: true, statusCode: true, createdAt: true } }),
+      this.prisma.product.count({ where: { tenantId: id } }),
+      this.prisma.subscription.findFirst({ where: { tenantId: id, status: 'ACTIVE', amount: { gt: 0 } }, select: { id: true } }),
+    ]);
+
+    const byDay = new Map(daily.map((d) => [d.day, d]));
+    const series = Array.from({ length: 30 }, (_, i) => {
+      const date = dateKeyTz(addDaysTz(from30, i));
+      const d = byDay.get(date);
+      return { date, bills: d ? Number(d.bills) : 0, total: Math.round(d?.total ?? 0) };
+    });
+
+    // Health: five plain checks, 20 points each.
+    const daysSinceSale = lastSale ? Math.floor((now.getTime() - lastSale.soldAt.getTime()) / 86_400_000) : null;
+    const setupDone = !!onboarding && (onboarding.isCompleted || onboarding.isSkipped);
+    const factors = [
+      { key: 'selling', label: 'Sold in the last 3 days', ok: daysSinceSale !== null && daysSinceSale <= 3, detail: daysSinceSale === null ? 'No sale yet' : daysSinceSale === 0 ? 'Sold today' : `Last sale ${daysSinceSale} day${daysSinceSale === 1 ? '' : 's'} ago` },
+      { key: 'volume', label: '20+ bills this week', ok: sales7._count._all >= 20, detail: `${sales7._count._all} bills in 7 days` },
+      { key: 'team', label: 'Someone signed in this week', ok: activeUsers7 > 0, detail: `${activeUsers7} user${activeUsers7 === 1 ? '' : 's'} active` },
+      { key: 'setup', label: 'Setup finished, products added', ok: setupDone && products > 0, detail: `${products} products · setup ${setupDone ? 'done' : 'not finished'}` },
+      { key: 'paying', label: 'On a paid plan', ok: !!paidSub, detail: paidSub ? 'Paying' : 'Trial or no plan' },
+    ];
+    const score = factors.filter((f) => f.ok).length * 20;
+
+    const timeline = [
+      ...activity.map((a) => ({ id: `a:${a.id}`, kind: 'shop' as const, title: a.description || a.action, who: a.user?.fullName ?? null, at: a.createdAt })),
+      ...adminActions.map((a) => ({ id: `x:${a.id}`, kind: 'admin' as const, title: `${a.action} (${a.method} ${a.path.replace(/^\/api\/admin\//, '')})`, who: a.actorEmail, at: a.createdAt, failed: (a.statusCode ?? 0) >= 400 })),
+    ].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, 40);
+
+    return {
+      health: { score, label: score >= 80 ? 'Healthy' : score >= 40 ? 'Needs attention' : 'At risk', factors },
+      sales: { last7Bills: sales7._count._all, last7Total: Math.round(sales7._sum.total ?? 0), lastSaleAt: lastSale?.soldAt ?? null, daily: series },
+      activeUsers7,
+      shops,
+      devices: devices.map((d) => ({ id: d.id, platform: d.platform, appVersion: d.appVersion, osVersion: d.osVersion, lastSeenAt: d.lastSeenAt, user: d.user?.fullName ?? null })),
+      integrations,
+      couriers,
+      onlineOrders30,
+      onboarding,
+      timeline,
     };
   }
 

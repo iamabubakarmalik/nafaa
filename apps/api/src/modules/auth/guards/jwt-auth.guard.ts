@@ -1,4 +1,4 @@
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import { ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -16,5 +16,16 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     ]);
     if (isPublic) return true;
     return super.canActivate(context);
+  }
+
+  /** Admin staff tokens only work on admin routes; they have no merchant access. */
+  handleRequest<TUser = any>(err: any, user: any, info: any, context: ExecutionContext, status?: any): TUser {
+    const result = super.handleRequest<TUser>(err, user, info, context, status);
+    if ((result as { role?: string } | undefined)?.role === 'ADMIN_STAFF') {
+      const req = context.switchToHttp().getRequest();
+      const path: string = (req.originalUrl ?? req.url ?? '').split('?')[0];
+      if (!/^(\/api)?\/admin(\/|$)/.test(path)) throw new ForbiddenException('Admin panel accounts cannot use the merchant app.');
+    }
+    return result;
   }
 }

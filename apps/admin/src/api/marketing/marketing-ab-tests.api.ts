@@ -1,8 +1,8 @@
 import { apiClient } from '../client';
 
 export const abTestsApi = {
-  list: () =>
-    apiClient.get('/admin/marketing/ab-tests').then((r) => r.data.data),
+  list: (params: any = {}) =>
+    apiClient.get('/admin/marketing/ab-tests', { params }).then((r) => r.data.data),
 
   detail: (id: string) =>
     apiClient.get(`/admin/marketing/ab-tests/${id}`).then((r) => r.data.data),

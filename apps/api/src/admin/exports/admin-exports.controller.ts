@@ -4,10 +4,12 @@ import type { Response } from 'express';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminExportsService } from './admin-exports.service';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Exports')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('exports')
 @Controller('admin/exports')
 export class AdminExportsController {
   constructor(private readonly service: AdminExportsService) {}

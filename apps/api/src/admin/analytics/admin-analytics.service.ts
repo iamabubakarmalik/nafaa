@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { startOfMonth, subMonths, format } from 'date-fns';
 import { PrismaService } from '../../prisma/prisma.service';
+import { dateKeyTz, startOfMonthTz, subMonthsTz } from '../../common/helpers/business-time.helper';
+
+// Month keys (yyyy-MM) follow the business time zone, not the server's UTC clock.
+const monthKey = (d: Date) => dateKeyTz(d).slice(0, 7);
+const REAL = { tenant: { slug: { not: 'nafaa-system' } } };
 
 @Injectable()
 export class AdminAnalyticsService {
@@ -8,7 +12,7 @@ export class AdminAnalyticsService {
 
   async mrrArr() {
     const active = await this.prisma.subscription.findMany({
-      where: { status: 'ACTIVE' },
+      where: { status: 'ACTIVE', ...REAL },
     });
 
     let mrr = 0;
@@ -26,25 +30,27 @@ export class AdminAnalyticsService {
   }
 
   async monthlyRevenue(months = 12) {
-    const start = startOfMonth(subMonths(new Date(), months - 1));
+    const months_ = Math.min(36, Math.max(1, months));
+    const start = startOfMonthTz(subMonthsTz(new Date(), months_ - 1));
 
     const payments = await this.prisma.payment.findMany({
       where: {
         status: 'APPROVED',
+        ...REAL,
         approvedAt: { gte: start, not: null },
       },
       select: { approvedAt: true, amount: true },
     });
 
     const buckets: Record<string, { month: string; revenue: number }> = {};
-    for (let i = 0; i < months; i++) {
-      const m = format(subMonths(new Date(), months - 1 - i), 'yyyy-MM');
+    for (let i = 0; i < months_; i++) {
+      const m = monthKey(subMonthsTz(new Date(), months_ - 1 - i));
       buckets[m] = { month: m, revenue: 0 };
     }
 
     for (const p of payments) {
       if (!p.approvedAt) continue;
-      const key = format(p.approvedAt, 'yyyy-MM');
+      const key = monthKey(p.approvedAt);
       if (buckets[key]) buckets[key].revenue += p.amount;
     }
 
@@ -52,39 +58,41 @@ export class AdminAnalyticsService {
   }
 
   async churn(months = 6) {
-    const start = startOfMonth(subMonths(new Date(), months - 1));
+    const months_ = Math.min(36, Math.max(1, months));
+    const start = startOfMonthTz(subMonthsTz(new Date(), months_ - 1));
 
     const cancelled = await this.prisma.subscription.findMany({
       where: {
         status: 'CANCELLED',
+        ...REAL,
         cancelledAt: { gte: start, not: null },
       },
       select: { cancelledAt: true },
     });
 
     const buckets: Record<string, { month: string; churned: number }> = {};
-    for (let i = 0; i < months; i++) {
-      const m = format(subMonths(new Date(), months - 1 - i), 'yyyy-MM');
+    for (let i = 0; i < months_; i++) {
+      const m = monthKey(subMonthsTz(new Date(), months_ - 1 - i));
       buckets[m] = { month: m, churned: 0 };
     }
 
     for (const c of cancelled) {
       if (!c.cancelledAt) continue;
-      const key = format(c.cancelledAt, 'yyyy-MM');
+      const key = monthKey(c.cancelledAt);
       if (buckets[key]) buckets[key].churned += 1;
     }
 
     return Object.values(buckets);
   }
 
-  async topRevenueTenants() {
+  async topRevenueTenants(limit = 10) {
     const payments = await this.prisma.payment.groupBy({
       by: ['tenantId'],
-      where: { status: 'APPROVED' },
+      where: { status: 'APPROVED', ...REAL },
       _sum: { amount: true },
       _count: { _all: true },
       orderBy: { _sum: { amount: 'desc' } },
-      take: 10,
+      take: Math.min(50, Math.max(1, limit)),
     });
 
     const tenantIds = payments.map((p) => p.tenantId);
@@ -100,5 +108,22 @@ export class AdminAnalyticsService {
       totalPaid: p._sum.amount ?? 0,
       paymentsCount: p._count._all,
     }));
+  }
+
+  /** Active subscriptions and monthly recurring revenue per plan. */
+  async planMix() {
+    const active = await this.prisma.subscription.findMany({
+      where: { status: 'ACTIVE', ...REAL },
+      select: { amount: true, interval: true, plan: { select: { id: true, name: true } } },
+    });
+    const months: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, YEARLY: 12 };
+    const byPlan = new Map<string, { planId: string; name: string; subscriptions: number; mrr: number }>();
+    for (const s of active) {
+      const row = byPlan.get(s.plan.id) ?? { planId: s.plan.id, name: s.plan.name, subscriptions: 0, mrr: 0 };
+      row.subscriptions += 1;
+      row.mrr += s.amount / (months[s.interval] ?? 1);
+      byPlan.set(s.plan.id, row);
+    }
+    return [...byPlan.values()].map((r) => ({ ...r, mrr: Math.round(r.mrr) })).sort((a, b) => b.mrr - a.mrr);
   }
 }

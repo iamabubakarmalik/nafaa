@@ -27,6 +27,10 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const adminEmailTemplatesApi = {
   list: () => apiClient.get<{ data: EmailTemplate[] }>('/admin/email-templates').then(unwrap),
+  paged: (params: { search?: string; active?: string; page?: number; limit?: number }) =>
+    apiClient
+      .get<{ data: { items: EmailTemplate[]; meta: { page: number; limit: number; total: number; totalPages: number }; stats: { total: number; active: number; inactive: number } } }>('/admin/email-templates', { params: { ...params, paged: 1 } })
+      .then(unwrap),
   getOne: (id: string) =>
     apiClient.get<{ data: EmailTemplate }>(`/admin/email-templates/${id}`).then(unwrap),
   create: (payload: UpsertEmailTemplatePayload) =>

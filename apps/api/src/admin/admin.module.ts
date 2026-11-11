@@ -24,6 +24,10 @@ import { AdminSettingsModule } from './settings/admin-settings.module';
 import { AdminSubscriptionsModule } from './subscriptions/admin-subscriptions.module';
 import { AdminSystemModule } from './system/admin-system.module';
 import { AdminDashboardModule } from './dashboard/admin-dashboard.module';
+import { AdminStaffModule } from './staff/admin-staff.module';
+import { AdminAiUsageModule } from './ai-usage/admin-ai-usage.module';
+import { AdminAuditInterceptor } from './access/admin-audit.interceptor';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AdminTenantsModule } from './tenants/admin-tenants.module';
 import { AdminUsersModule } from './users/admin-users.module';
 
@@ -35,6 +39,8 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminUsersModule,
     AdminSystemModule,
     AdminDashboardModule,
+    AdminStaffModule,
+    AdminAiUsageModule,
     AdminBillingModule,
     AdminSubscriptionsModule,
     AdminPlansModule,
@@ -57,5 +63,7 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminBulkModule,
     AdminExportsModule,
   ],
+  // Every admin change is written to the audit log (see access/admin-audit.interceptor.ts).
+  providers: [{ provide: APP_INTERCEPTOR, useClass: AdminAuditInterceptor }],
 })
 export class AdminModule {}

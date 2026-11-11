@@ -12,6 +12,7 @@ import {
   ExtendSubscriptionDto,
 } from './dto/assign-plan.dto';
 import { apiMessage } from '../../common/i18n/api-message';
+import { startOfDayTz } from '../../common/helpers/business-time.helper';
 
 @Injectable()
 export class AdminSubscriptionsService {
@@ -22,18 +23,29 @@ export class AdminSubscriptionsService {
 
   async list(params: {
     status?: SubscriptionStatus;
+    planId?: string;
+    interval?: string;
+    endingInDays?: number;
     search?: string;
     page?: number;
     limit?: number;
   }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 20;
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
     const skip = (page - 1) * limit;
 
-    const where: Prisma.SubscriptionWhereInput = {};
+    const where: Prisma.SubscriptionWhereInput = { tenant: { slug: { not: 'nafaa-system' } } };
     if (params.status) where.status = params.status;
+    if (params.planId) where.planId = params.planId;
+    if (params.interval) where.interval = params.interval as any;
+    if (params.endingInDays) {
+      // Running plans whose period ends within the next N days.
+      where.status = { in: ['ACTIVE', 'TRIAL'] };
+      where.currentPeriodEnd = { gte: new Date(), lt: addDays(startOfDayTz(), params.endingInDays + 1) };
+    }
     if (params.search) {
       where.tenant = {
+        slug: { not: 'nafaa-system' },
         OR: [
           { name: { contains: params.search, mode: 'insensitive' } },
           { slug: { contains: params.search, mode: 'insensitive' } },
@@ -62,19 +74,32 @@ export class AdminSubscriptionsService {
   }
 
   async stats() {
-    const [total, active, trial, pastDue, cancelled, expired, mrrAgg] =
+    const real = { tenant: { slug: { not: 'nafaa-system' } } };
+    const [total, active, trial, pastDue, cancelled, expired, byInterval, endingSoon] =
       await Promise.all([
-        this.prisma.subscription.count(),
-        this.prisma.subscription.count({ where: { status: 'ACTIVE' } }),
-        this.prisma.subscription.count({ where: { status: 'TRIAL' } }),
-        this.prisma.subscription.count({ where: { status: 'PAST_DUE' } }),
-        this.prisma.subscription.count({ where: { status: 'CANCELLED' } }),
-        this.prisma.subscription.count({ where: { status: 'EXPIRED' } }),
-        this.prisma.subscription.aggregate({
-          where: { status: 'ACTIVE' },
+        this.prisma.subscription.count({ where: real }),
+        this.prisma.subscription.count({ where: { ...real, status: 'ACTIVE' } }),
+        this.prisma.subscription.count({ where: { ...real, status: 'TRIAL' } }),
+        this.prisma.subscription.count({ where: { ...real, status: 'PAST_DUE' } }),
+        this.prisma.subscription.count({ where: { ...real, status: 'CANCELLED' } }),
+        this.prisma.subscription.count({ where: { ...real, status: 'EXPIRED' } }),
+        this.prisma.subscription.groupBy({
+          by: ['interval'],
+          where: { ...real, status: 'ACTIVE' },
           _sum: { amount: true },
         }),
+        this.prisma.subscription.count({
+          where: {
+            ...real,
+            status: { in: ['ACTIVE', 'TRIAL'] },
+            currentPeriodEnd: { gte: new Date(), lt: addDays(startOfDayTz(), 8) },
+          },
+        }),
       ]);
+
+    // Monthly recurring revenue: quarterly and yearly amounts are spread over their months.
+    const months: Record<string, number> = { MONTHLY: 1, QUARTERLY: 3, YEARLY: 12 };
+    const mrr = byInterval.reduce((sum, r) => sum + (r._sum.amount ?? 0) / (months[r.interval] ?? 1), 0);
 
     return {
       total,
@@ -83,7 +108,8 @@ export class AdminSubscriptionsService {
       pastDue,
       cancelled,
       expired,
-      mrrEstimate: mrrAgg._sum.amount ?? 0,
+      endingSoon,
+      mrrEstimate: Math.round(mrr),
     };
   }
 

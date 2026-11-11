@@ -22,8 +22,11 @@ export interface UsersResponse {
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
+export interface UsersStats { total: number; active: number; inactive: number; newThisWeek: number; neverSignedIn: number }
+
 export const adminUsersApi = {
-  list: (params?: { search?: string; role?: UserRole; page?: number; limit?: number }) =>
+  stats: () => apiClient.get<{ data: UsersStats }>('/admin/users/stats').then(unwrap),
+  list: (params?: { search?: string; role?: UserRole; status?: 'active' | 'inactive'; page?: number; limit?: number }) =>
     apiClient
       .get<{ data: UsersResponse }>('/admin/users', { params })
       .then(unwrap),

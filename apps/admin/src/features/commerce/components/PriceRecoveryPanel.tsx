@@ -12,7 +12,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { BadgeDollarSign } from 'lucide-react';
 import { adminCommerceApi, type PriceRecoveryChoice, type PriceRecoveryRow, type PriceTarget, type TenantPriceRecovery } from '@/api/admin-commerce.api';
-import { Button } from '@/components/ui/Button';
+import { Button, confirmDialog } from '@/design-system/components';
 import { cn } from '@/lib/cn';
 import { Empty, kindLabel, Pill, when } from './CommerceUi';
 
@@ -83,12 +83,12 @@ function ChannelPriceRecovery({ tenantId, channel }: { tenantId: string; channel
     },
     onError: (e) => toast.error(errMsg(e)),
   });
-  const run = () => {
+  const run = async () => {
     const chosen = rows.filter((r) => picked.has(r.mappingId));
     if (!chosen.length) return;
     const back = chosen.filter((r) => choice[r.mappingId] !== 'nafaa').length;
     const keep = chosen.length - back;
-    if (window.confirm(`Apply price recovery to ${chosen.length} links on ${channel.name}?\n\n${back} channel price: the old channel price goes back on the channel and becomes the Nafaa price at the shown target.\n${keep} keep Nafaa: the Nafaa price stays; the row is cleared.\nNothing is deleted.`)) {
+    if (await confirmDialog({ title: 'Apply price recovery', text: `Apply price recovery to ${chosen.length} links on ${channel.name}?\n\n${back} channel price: the old channel price goes back on the channel and becomes the Nafaa price at the shown target.\n${keep} keep Nafaa: the Nafaa price stays; the row is cleared.\nNothing is deleted.`, yes: 'Apply' })) {
       apply.mutate(chosen.map((r) => ({ mappingId: r.mappingId, choice: choice[r.mappingId] ?? 'channel' })));
     }
   };
@@ -140,7 +140,7 @@ function PriceRow({ r, picked, choice, onToggle, onChoice }: {
   r: PriceRecoveryRow; picked: boolean; choice: PriceRecoveryChoice; onToggle: () => void; onChoice: (c: PriceRecoveryChoice) => void;
 }) {
   return (
-    <tr className={cn(picked && 'bg-indigo-50/40')}>
+    <tr className={cn(picked && 'bg-brand-50/40')}>
       <td className="px-4 py-2"><input type="checkbox" checked={picked} onChange={onToggle} aria-label={`Pick ${r.name}`} /></td>
       <td className="max-w-[18rem] px-3 py-2">
         <div className="truncate font-medium text-slate-900">{r.name}{r.variantName ? <span className="text-slate-500"> — {r.variantName}</span> : null}</div>

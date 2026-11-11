@@ -1,132 +1,154 @@
+/**
+ * Customers: the people shops sell to, across the platform, with the credit
+ * (udhaar) they owe. Search and filters run on the server.
+ */
+
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Users, Search, Wallet, TrendingUp } from 'lucide-react';
-import { adminCustomersApi } from '@/api/admin-customers.api';
+import { toast } from 'sonner';
+import { Banknote, Download, Lightbulb, Search, Star, Tag, UserRound, Users, Wallet } from 'lucide-react';
+import { FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, heroButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { adminCustomersApi, type AdminCustomer } from '@/api/admin-customers.api';
 import { formatPKR } from '@/lib/format';
+import { ListCard, StatusBadge, downloadCsv, fetchAllPages, useListParams } from '@/ui';
+
+const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function AdminCustomersPage() {
-  const [search, setSearch] = useState('');
-  const [hasCredit, setHasCredit] = useState(false);
-  const [page, setPage] = useState(1);
+  const guide = usePageGuide();
+  const [exporting, setExporting] = useState(false);
+  const list = useListParams({ credit: 'ALL', status: 'ALL' });
+  const { credit, status } = list.filters;
+  const query = {
+    search: list.debouncedSearch || undefined,
+    hasCredit: credit === 'credit' ? true : undefined,
+    status: status === 'ALL' ? undefined : status,
+  };
 
-  const { data: stats } = useQuery({
-    queryKey: ['admin-customers-stats'],
-    queryFn: adminCustomersApi.stats,
+  const customers = useQuery({
+    queryKey: ['admin', 'customers', query, list.page, list.limit],
+    queryFn: () => adminCustomersApi.list({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
   });
+  const stats = useQuery({ queryKey: ['admin', 'customers', 'stats'], queryFn: adminCustomersApi.stats, staleTime: 60_000 });
+  const s = stats.data;
+  const rows = customers.data?.items ?? [];
 
-  const { data } = useQuery({
-    queryKey: ['admin-customers', search, hasCredit, page],
-    queryFn: () => adminCustomersApi.list({
-      search: search || undefined, hasCredit, page, limit: 30,
-    }),
-  });
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all = await fetchAllPages((page) => adminCustomersApi.list({ ...query, page, limit: 100 }));
+      downloadCsv<AdminCustomer>('customers', all, [
+        { label: 'Name', value: (c) => c.name },
+        { label: 'Phone', value: (c) => c.phone },
+        { label: 'Email', value: (c) => c.email },
+        { label: 'Shop', value: (c) => c.tenant.name },
+        { label: 'Total spent', value: (c) => c.totalSpent },
+        { label: 'Credit owed', value: (c) => c.balance },
+        { label: 'Loyalty points', value: (c) => c.loyaltyPoints },
+        { label: 'Active', value: (c) => c.isActive },
+        { label: 'Added', value: (c) => c.createdAt.slice(0, 10) },
+      ]);
+      toast.success(`${num(all.length)} customers exported`);
+    } catch {
+      toast.error('Export failed. Try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const chips = [
+    credit !== 'ALL' && <FilterChip key="c" onRemove={() => list.setFilter('credit', 'ALL')}>Owes credit</FilterChip>,
+    status !== 'ALL' && <FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{status === 'active' ? 'Active' : 'Inactive'}</FilterChip>,
+  ].filter(Boolean);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-blue-900 to-blue-700 text-white p-6 shadow-soft">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-          <Users className="h-3.5 w-3.5" />
-          Cross-Tenant Customers
-        </div>
-        <h2 className="mt-3 text-3xl font-bold">All Customers</h2>
-        <p className="mt-2 text-sm text-white/80">Sab tenants ke customers</p>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Customers"
+        chip={s ? `${num(s.total)} across all shops` : undefined}
+        busy={customers.isFetching}
+        loading={stats.isLoading}
+        actions={
+          <>
+            <button type="button" className={heroButton} onClick={exportCsv} disabled={exporting}>
+              <Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={s ? [
+          { label: 'Customers', value: num(s.total) },
+          { label: 'Owe credit', value: num(s.withCredit), hint: `${s.total ? Math.round((s.withCredit / s.total) * 100) : 0}% of customers` },
+          { label: 'Credit outstanding', value: formatPKR(s.totalOutstandingCredit) },
+          { label: 'Total spent', value: formatPKR(s.totalSpentPlatform) },
+        ] : undefined}
+      />
 
-      <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl bg-white border border-slate-200 p-5 shadow-sm">
-          <div className="text-sm text-slate-500">Total Customers</div>
-          <div className="mt-2 text-2xl font-bold">{stats?.total ?? 0}</div>
-        </div>
-        <div className="rounded-2xl bg-amber-50 border border-amber-200 p-5">
-          <div className="text-sm text-amber-700">With Credit</div>
-          <div className="mt-2 text-2xl font-bold text-amber-900">{stats?.withCredit ?? 0}</div>
-        </div>
-        <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-white/80">Total Spent</div>
-              <div className="mt-2 text-xl font-bold">{formatPKR(stats?.totalSpentPlatform ?? 0)}</div>
-            </div>
-            <TrendingUp className="h-5 w-5" />
-          </div>
-        </div>
-        <div className="rounded-2xl bg-rose-50 border border-rose-200 p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-rose-700">Outstanding Credit</div>
-              <div className="mt-2 text-xl font-bold text-rose-900">{formatPKR(stats?.totalOutstandingCredit ?? 0)}</div>
-            </div>
-            <Wallet className="h-5 w-5 text-rose-700" />
-          </div>
-        </div>
-      </section>
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search name, phone or email" />}
+        chips={chips.length ? chips : undefined}
+        onClear={list.clear}
+      >
+        <FilterMenu icon={Wallet} label="Credit" value={credit} active={credit !== 'ALL'} onChange={(v) => list.setFilter('credit', v)}
+          options={[{ value: 'ALL', label: 'All customers' }, { value: 'credit', label: 'Owe credit' }]} />
+        <FilterMenu icon={Tag} label="Status" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)} align="right"
+          options={[{ value: 'ALL', label: 'All statuses' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }]} />
+      </FilterBar>
 
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm p-4">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative flex-1 min-w-[260px]">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input className="h-11 w-full rounded-xl border border-slate-200 pl-10 pr-4 text-sm"
-              placeholder="Search by name, phone, email..." value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
-          </div>
-          <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
-            <input type="checkbox" checked={hasCredit} onChange={(e) => { setHasCredit(e.target.checked); setPage(1); }}
-              className="h-5 w-5 rounded border-slate-300" />
-            Only with credit
-          </label>
-        </div>
-      </section>
+      <ListCard
+        loading={customers.isLoading}
+        empty={!rows.length}
+        emptyIcon={<Users className="h-6 w-6" />}
+        emptyTitle="No customers match"
+        emptyText="Try another search or clear the filters."
+        page={list.page} limit={list.limit} total={customers.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="50rem">
+          <THead>
+            <Tr><Th>Customer</Th><Th>Shop</Th><Th>Status</Th><Th align="right">Total spent</Th><Th align="right">Credit owed</Th><Th align="right">Loyalty</Th></Tr>
+          </THead>
+          <TBody>
+            {rows.map((c) => (
+              <Tr key={c.id}>
+                <Td>
+                  <div className="font-semibold text-slate-900">{c.name}</div>
+                  <div className="text-[0.75rem] text-slate-500">{[c.phone, c.email].filter(Boolean).join(' · ') || '—'}</div>
+                </Td>
+                <Td><Link to={`/tenants/${c.tenant.id}`} className="font-medium text-slate-900 hover:text-brand-700">{c.tenant.name}</Link></Td>
+                <Td><StatusBadge value={c.isActive ? 'ACTIVE' : 'INACTIVE'} /></Td>
+                <Td align="right" className="font-medium text-emerald-700">{formatPKR(c.totalSpent)}</Td>
+                <Td align="right"><span className={c.balance > 0 ? 'font-semibold text-rose-600' : 'text-slate-400'}>{formatPKR(c.balance)}</span></Td>
+                <Td align="right"><span className="inline-flex items-center gap-1 text-amber-600"><Star className="h-3.5 w-3.5" />{num(c.loyaltyPoints)}</span></Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
+      </ListCard>
 
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-slate-600">
-              <tr>
-                <th className="text-left px-6 py-4 font-medium">Customer</th>
-                <th className="text-left px-6 py-4 font-medium">Tenant</th>
-                <th className="text-right px-6 py-4 font-medium">Total Spent</th>
-                <th className="text-right px-6 py-4 font-medium">Balance (Udhaar)</th>
-                <th className="text-right px-6 py-4 font-medium">Loyalty</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(data?.items ?? []).map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-3">
-                    <div className="font-semibold">{c.name}</div>
-                    <div className="text-xs text-slate-500">
-                      {c.phone && <span>{c.phone}</span>}
-                      {c.email && <span className="ml-2">{c.email}</span>}
-                    </div>
-                  </td>
-                  <td className="px-6 py-3 font-medium text-xs">{c.tenant.name}</td>
-                  <td className="px-6 py-3 text-right font-medium text-emerald-700">{formatPKR(c.totalSpent)}</td>
-                  <td className="px-6 py-3 text-right">
-                    <span className={`font-bold ${c.balance > 0 ? 'text-rose-700' : 'text-slate-500'}`}>
-                      {formatPKR(c.balance)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-3 text-right text-amber-700 font-bold">⭐ {c.loyaltyPoints}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {data && (
-          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-sm text-slate-500">
-              Page {data.meta.page} of {data.meta.totalPages} • {data.meta.total} total
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-50">Previous</button>
-              <button onClick={() => setPage((p) => p + 1)} disabled={page >= data.meta.totalPages}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm disabled:opacity-50">Next</button>
-            </div>
-          </div>
-        )}
-      </section>
-    </div>
+      {guide.isOpen && (
+        <PageGuide
+          title="Customers"
+          description="Everyone shops have saved as a customer, with what they spent and what they still owe."
+          flowTitle="How a customer builds up"
+          flow={[
+            { label: 'Shop adds customer', icon: UserRound, color: '#4f46e5' },
+            { label: 'Buys', hint: 'Spend adds up', icon: Banknote, color: '#0284c7' },
+            { label: 'Owes credit', hint: 'Udhaar', icon: Wallet, color: '#d97706' },
+            { label: 'Pays back', icon: Users, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Search, color: '#4f46e5', title: 'Search', text: 'Find a customer by name, phone or email.' },
+            { icon: Wallet, color: '#d97706', title: 'Credit', text: 'Use the Credit filter to list only customers who owe money.' },
+            { icon: Download, color: '#059669', title: 'Export', text: 'Export CSV downloads every customer that matches the filters.' },
+          ]}
+          tips={['Click a shop name to open that shop.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

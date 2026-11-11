@@ -3,10 +3,12 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Dashboard')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('dashboard')
 @Controller('admin/dashboard')
 export class AdminDashboardController {
   constructor(private readonly service: AdminDashboardService) {}

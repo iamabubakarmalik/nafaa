@@ -7,8 +7,8 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { Check, ChevronRight, LogOut, Menu, Monitor, Moon, Search, Sun } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Check, ChevronRight, LogOut, Menu, Monitor, Moon, Search, ShieldCheck, Sun } from 'lucide-react';
 import { IconButton } from '@/design-system/components';
 import { useAppearanceStore, type ThemeMode } from '@/design-system';
 import { Panel, useDismiss } from '@web-shell/ui';
@@ -48,13 +48,20 @@ function AccountMenu({ onLogout }: { onLogout: () => void }) {
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-[0.8125rem] font-semibold text-brand-fg">{initial}</span>
         <span className="hidden text-start xl:block">
           <span className="block max-w-[9rem] truncate text-[0.8125rem] font-semibold leading-tight text-slate-900">{user?.fullName}</span>
-          <span className="block text-[0.6875rem] leading-tight text-slate-500">Super admin</span>
+          <span className="block text-[0.6875rem] leading-tight text-slate-500">{user?.role === 'SUPER_ADMIN' ? 'Super admin' : user?.adminRole ?? 'Admin staff'}</span>
         </span>
       </button>
       <Panel open={open} onClose={close} widthClass="sm:w-[18rem]" label="Account">
         <div className="border-b border-slate-200 px-4 py-3">
           <div className="truncate text-[0.875rem] font-semibold text-slate-900">{user?.fullName}</div>
           <div className="truncate text-[0.75rem] text-slate-500">{user?.email}</div>
+        </div>
+        <div className="border-b border-slate-200 p-2">
+          <Link to="/account/security" onClick={close} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-start text-[0.8125rem] transition hover:bg-slate-50">
+            <ShieldCheck className="h-4 w-4 text-slate-500" />
+            <span className="flex-1">My security</span>
+            <span className={cn('text-[0.6875rem] font-semibold', user?.totpEnabled ? 'text-emerald-600' : 'text-amber-600')}>{user?.totpEnabled ? '2-step on' : '2-step off'}</span>
+          </Link>
         </div>
         <div className="p-2">
           <div className="px-2 pb-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-slate-400">Theme</div>

@@ -15,10 +15,12 @@ import { SuperAdminGuard } from '../common/super-admin.guard';
 import { BUSINESS_MODELS } from '../../modules/onboarding/constants/business-models';
 import { AdminTenantsService } from './admin-tenants.service';
 import { UpdateTenantStatusDto } from './dto/update-tenant-status.dto';
+import { AdminArea, AdminPermission } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Tenants')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('tenants')
 @Controller('admin/tenants')
 export class AdminTenantsController {
   constructor(private readonly service: AdminTenantsService) {}
@@ -49,6 +51,11 @@ export class AdminTenantsController {
     return this.service.stats();
   }
 
+  @Get(':id/insights')
+  insights(@Param('id') id: string) {
+    return this.service.insights(id);
+  }
+
   @Get(':id')
   getOne(@Param('id') id: string) {
     return this.service.getOne(id);
@@ -59,6 +66,7 @@ export class AdminTenantsController {
     return this.service.updateStatus(id, dto.status, dto.reason);
   }
 
+  @AdminPermission('tenants.delete')
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.service.remove(id);

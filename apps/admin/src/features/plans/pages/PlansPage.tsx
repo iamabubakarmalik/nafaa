@@ -1,13 +1,20 @@
+/**
+ * Plans: the subscription plans shops can be on. Set prices, limits and which
+ * features each plan includes. Plans are few, so they are listed as cards.
+ */
+
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Sparkles, Plus, Edit, Trash2, X, Check,
-} from 'lucide-react';
-import { adminPlansApi, type AdminPlan, type UpsertPlanPayload } from '@/api/admin-plans.api';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { formatPKR } from '@/lib/format';
 import { toast } from 'sonner';
+import { Boxes, Check, Edit, Layers, Lightbulb, Plus, Sparkles, Trash2, Users } from 'lucide-react';
+import {
+  Badge, Button, Card, Checkbox, EmptyState, Input, Modal, PageHero, PageShell, Skeleton, Switch, confirmDialog, heroButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { adminPlansApi, type AdminPlan, type UpsertPlanPayload } from '@/api/admin-plans.api';
+import { formatPKR } from '@/lib/format';
+
+const num = (n: number) => n.toLocaleString('en-PK');
 
 const FEATURE_KEYS: Array<keyof UpsertPlanPayload> = [
   'featurePos', 'featureBarcodeScanner', 'featureMultiShop', 'featureReports',
@@ -19,23 +26,23 @@ const FEATURE_KEYS: Array<keyof UpsertPlanPayload> = [
 
 const FEATURE_LABELS: Record<string, string> = {
   featurePos: 'POS',
-  featureBarcodeScanner: 'Barcode Scanner',
-  featureMultiShop: 'Multi-Shop',
+  featureBarcodeScanner: 'Barcode scanner',
+  featureMultiShop: 'Multiple shops',
   featureReports: 'Reports',
-  featureProfitReport: 'Profit Reports',
-  featureLoyalty: 'Loyalty Points',
-  featureDiscounts: 'Discount Codes',
+  featureProfitReport: 'Profit reports',
+  featureLoyalty: 'Loyalty points',
+  featureDiscounts: 'Discount codes',
   featureKhata: 'Khata',
   featureExports: 'Exports',
   featureBackup: 'Backup',
   featureNotifications: 'Notifications',
-  featureCashRegister: 'Cash Register',
-  featureStockTransfer: 'Stock Transfer',
+  featureCashRegister: 'Cash register',
+  featureStockTransfer: 'Stock transfer',
   featureReturns: 'Returns',
   featureSupport24x7: '24/7 Support',
-  featureWhatsappReceipt: 'WhatsApp Receipt',
-  featureCustomBranding: 'Custom Branding',
-  featureDistribution: 'Distribution (booker, routes, load sheets)',
+  featureWhatsappReceipt: 'WhatsApp receipt',
+  featureCustomBranding: 'Custom branding',
+  featureDistribution: 'Distribution (bookers, routes, load sheets)',
 };
 
 const emptyPlan: UpsertPlanPayload = {
@@ -74,317 +81,196 @@ const emptyPlan: UpsertPlanPayload = {
 };
 
 export default function PlansPage() {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
+  const guide = usePageGuide();
   const [editPlan, setEditPlan] = useState<AdminPlan | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
 
-  const { data: plans = [] } = useQuery({
-    queryKey: ['admin-plans'],
-    queryFn: adminPlansApi.list,
+  const plans = useQuery({ queryKey: ['admin', 'plans'], queryFn: adminPlansApi.list });
+  const rows = plans.data ?? [];
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin', 'plans'] });
+
+  const remove = useMutation({
+    mutationFn: adminPlansApi.remove,
+    onSuccess: () => { toast.success('Plan deleted'); refresh(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Could not delete the plan'),
   });
+  const onDelete = async (p: AdminPlan) => {
+    const used = p._count?.subscriptions ?? 0;
+    const ok = await confirmDialog({
+      title: `Delete ${p.name}?`,
+      text: used > 0 ? `${used} subscriptions use this plan. Deleting may fail or affect those shops.` : 'This cannot be undone.',
+      yes: 'Delete plan',
+      danger: true,
+    });
+    if (ok) remove.mutate(p.id);
+  };
+
+  const subscribers = rows.reduce((sum, p) => sum + (p._count?.subscriptions ?? 0), 0);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-admin-950 via-admin-900 to-admin-700 text-white p-6 shadow-soft">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-              <Sparkles className="h-3.5 w-3.5" />
-              Plans Management
-            </div>
-            <h2 className="mt-3 text-3xl font-bold">Subscription Plans</h2>
-            <p className="mt-2 text-sm text-white/80">
-              Plans create karein, prices set karein, features control karein
-            </p>
-          </div>
-          <Button onClick={() => setShowCreate(true)} className="bg-white text-slate-900 hover:bg-slate-100">
-            <Plus className="h-4 w-4" />
-            New Plan
-          </Button>
+    <PageShell>
+      <PageHero
+        title="Plans"
+        chip={plans.data ? `${num(rows.length)} plans` : undefined}
+        busy={plans.isFetching}
+        loading={plans.isLoading}
+        actions={
+          <>
+            <button type="button" className={heroPrimaryButton} onClick={() => setCreating(true)}><Plus className="h-4 w-4" /> New plan</button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={plans.data ? [
+          { label: 'Active plans', value: num(rows.filter((p) => p.isActive).length), hint: `of ${num(rows.length)}` },
+          { label: 'Public plans', value: num(rows.filter((p) => p.isPublic).length), hint: 'Shown on the pricing page' },
+          { label: 'Subscriptions', value: num(subscribers) },
+        ] : undefined}
+      />
+
+      {plans.isLoading ? (
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-64 rounded-3xl" />)}</div>
+      ) : rows.length === 0 ? (
+        <Card><EmptyState icon={<Layers className="h-6 w-6" />} title="No plans yet" description="Create the first plan shops can subscribe to."
+          action={<Button size="sm" leftIcon={<Plus className="h-4 w-4" />} onClick={() => setCreating(true)}>New plan</Button>} /></Card>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          {rows.map((p) => {
+            const features = FEATURE_KEYS.filter((k) => p[k as keyof AdminPlan]);
+            return (
+              <Card key={p.id} className={p.isActive ? '' : 'opacity-70'}
+                title={<span className="flex items-center gap-2">{p.name}</span>}
+                description={<span className="font-mono">{p.slug}</span>}
+                actions={
+                  <div className="flex gap-1">
+                    <button type="button" aria-label={`Edit ${p.name}`} onClick={() => setEditPlan(p)} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100"><Edit className="h-4 w-4" /></button>
+                    <button type="button" aria-label={`Delete ${p.name}`} onClick={() => onDelete(p)} className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                }
+              >
+                <p className="text-[0.875rem] text-slate-600">{p.description || 'No description'}</p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  <Badge variant={p.isActive ? 'success' : 'default'}>{p.isActive ? 'Active' : 'Inactive'}</Badge>
+                  <Badge variant={p.isPublic ? 'info' : 'warning'}>{p.isPublic ? 'Public' : 'Private'}</Badge>
+                  <Badge><Users className="me-1 h-3 w-3" />{num(p._count?.subscriptions ?? 0)} shops</Badge>
+                  {p.trialDays > 0 && <Badge>{p.trialDays} day trial</Badge>}
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                  {([['Monthly', p.priceMonthly], ['Quarterly', p.priceQuarterly], ['Yearly', p.priceYearly]] as const).map(([label, price]) => (
+                    <div key={label} className="rounded-xl bg-slate-50 p-2">
+                      <div className="text-[0.6875rem] text-slate-500">{label}</div>
+                      <div className="text-[0.9375rem] font-bold text-slate-900">{formatPKR(price)}</div>
+                    </div>
+                  ))}
+                </div>
+                <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 text-[0.8125rem]">
+                  {([['Products', p.maxProducts], ['Users', p.maxUsers], ['Shops', p.maxShops], ['Sales a month', p.maxSalesPerMonth]] as const).map(([label, v]) => (
+                    <div key={label} className="flex justify-between"><dt className="text-slate-500">{label}</dt><dd className="font-semibold text-slate-900">{num(v)}</dd></div>
+                  ))}
+                </dl>
+                <div className="mt-4 border-t border-slate-100 pt-3 text-[0.75rem] text-slate-500">
+                  {features.length ? <><span className="font-medium text-slate-700">{features.length} features:</span> {features.map((k) => FEATURE_LABELS[k as string]).join(', ')}</> : 'No features included'}
+                </div>
+              </Card>
+            );
+          })}
         </div>
-      </section>
+      )}
 
-      <section className="grid lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        {plans.map((plan) => (
-          <div key={plan.id} className="rounded-2xl bg-white border border-slate-200 shadow-sm p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900">{plan.name}</h3>
-                <div className="text-xs text-slate-500 font-mono">{plan.slug}</div>
-              </div>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setEditPlan(plan)}
-                  className="text-slate-700 hover:bg-slate-100 rounded-lg p-2"
-                >
-                  <Edit className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm(`Delete ${plan.name}?`)) {
-                      adminPlansApi.remove(plan.id).then(() => {
-                        toast.success('Deleted');
-                        queryClient.invalidateQueries({ queryKey: ['admin-plans'] });
-                      });
-                    }
-                  }}
-                  className="text-rose-600 hover:bg-rose-50 rounded-lg p-2"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+      {(creating || editPlan) && (
+        <PlanFormModal plan={editPlan} onClose={() => { setCreating(false); setEditPlan(null); }} onSaved={refresh} />
+      )}
 
-            <p className="text-sm text-slate-600 mt-2">{plan.description || 'No description'}</p>
-
-            <div className="mt-4 flex gap-2 flex-wrap">
-              <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${plan.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
-                {plan.isActive ? 'Active' : 'Inactive'}
-              </span>
-              <span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${plan.isPublic ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
-                {plan.isPublic ? 'Public' : 'Private'}
-              </span>
-              <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-violet-100 text-violet-700">
-                {plan._count?.subscriptions ?? 0} subs
-              </span>
-            </div>
-
-            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg bg-slate-50 p-2">
-                <div className="text-[10px] text-slate-500">Monthly</div>
-                <div className="font-bold text-slate-900">{formatPKR(plan.priceMonthly)}</div>
-              </div>
-              <div className="rounded-lg bg-slate-50 p-2">
-                <div className="text-[10px] text-slate-500">Quarterly</div>
-                <div className="font-bold text-slate-900">{formatPKR(plan.priceQuarterly)}</div>
-              </div>
-              <div className="rounded-lg bg-slate-50 p-2">
-                <div className="text-[10px] text-slate-500">Yearly</div>
-                <div className="font-bold text-slate-900">{formatPKR(plan.priceYearly)}</div>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-              <div className="text-slate-600">Products: <span className="font-bold">{plan.maxProducts}</span></div>
-              <div className="text-slate-600">Users: <span className="font-bold">{plan.maxUsers}</span></div>
-              <div className="text-slate-600">Shops: <span className="font-bold">{plan.maxShops}</span></div>
-              <div className="text-slate-600">Sales/mo: <span className="font-bold">{plan.maxSalesPerMonth}</span></div>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {(showCreate || editPlan) && (
-        <PlanFormModal
-          plan={editPlan}
-          onClose={() => {
-            setShowCreate(false);
-            setEditPlan(null);
-          }}
-          onSaved={() => {
-            queryClient.invalidateQueries({ queryKey: ['admin-plans'] });
-          }}
+      {guide.isOpen && (
+        <PageGuide
+          title="Plans"
+          description="The plans shops can subscribe to: price, limits and features."
+          flowTitle="From plan to shop"
+          flow={[
+            { label: 'You make a plan', icon: Layers, color: '#4f46e5' },
+            { label: 'Shown on pricing', hint: 'If public', icon: Sparkles, color: '#0284c7' },
+            { label: 'Shop subscribes', icon: Users, color: '#d97706' },
+            { label: 'Features turn on', icon: Boxes, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Plus, color: '#4f46e5', title: 'Create a plan', text: 'Set the monthly, quarterly and yearly price, the trial days and the limits.' },
+            { icon: Boxes, color: '#059669', title: 'Choose features', text: 'Tick what the plan includes. Shops on the plan get exactly these.' },
+            { icon: Edit, color: '#d97706', title: 'Public or private', text: 'A private plan is hidden from the pricing page but you can still give it to a shop.' },
+          ]}
+          tips={['Changing a plan changes it for every shop on it.', 'Set a limit very high for "no limit".']}
+          shortcuts={[['G', 'This guide']]}
+          onClose={guide.close}
         />
       )}
-    </div>
+    </PageShell>
   );
 }
 
-function PlanFormModal({
-  plan,
-  onClose,
-  onSaved,
-}: {
-  plan: AdminPlan | null;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const [form, setForm] = useState<UpsertPlanPayload>(
-    plan
-      ? {
-          name: plan.name,
-          slug: plan.slug,
-          description: plan.description ?? '',
-          priceMonthly: plan.priceMonthly,
-          priceQuarterly: plan.priceQuarterly,
-          priceYearly: plan.priceYearly,
-          trialDays: plan.trialDays,
-          isActive: plan.isActive,
-          isPublic: plan.isPublic,
-          sortOrder: plan.sortOrder,
-          maxProducts: plan.maxProducts,
-          maxUsers: plan.maxUsers,
-          maxShops: plan.maxShops,
-          maxSalesPerMonth: plan.maxSalesPerMonth,
-          featurePos: plan.featurePos,
-          featureBarcodeScanner: plan.featureBarcodeScanner,
-          featureMultiShop: plan.featureMultiShop,
-          featureReports: plan.featureReports,
-          featureProfitReport: plan.featureProfitReport,
-          featureLoyalty: plan.featureLoyalty,
-          featureDiscounts: plan.featureDiscounts,
-          featureKhata: plan.featureKhata,
-          featureExports: plan.featureExports,
-          featureBackup: plan.featureBackup,
-          featureNotifications: plan.featureNotifications,
-          featureCashRegister: plan.featureCashRegister,
-          featureStockTransfer: plan.featureStockTransfer,
-          featureReturns: plan.featureReturns,
-          featureSupport24x7: plan.featureSupport24x7,
-          featureWhatsappReceipt: plan.featureWhatsappReceipt,
-          featureCustomBranding: plan.featureCustomBranding,
-          featureDistribution: plan.featureDistribution ?? false,
-        }
-      : emptyPlan,
+function PlanFormModal({ plan, onClose, onSaved }: { plan: AdminPlan | null; onClose: () => void; onSaved: () => void }) {
+  const [form, setForm] = useState<UpsertPlanPayload>(() => {
+    if (!plan) return emptyPlan;
+    const { id: _id, _count, ...rest } = plan;
+    return { ...emptyPlan, ...rest, description: plan.description ?? '', featureDistribution: plan.featureDistribution ?? false };
+  });
+  const set = (patch: Partial<UpsertPlanPayload>) => setForm((f) => ({ ...f, ...patch }));
+  const save = useMutation({
+    mutationFn: () => (plan ? adminPlansApi.update(plan.id, form) : adminPlansApi.create(form)),
+    onSuccess: () => { toast.success(plan ? 'Plan updated' : 'Plan created'); onSaved(); onClose(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Could not save the plan'),
+  });
+  const submit = () => {
+    if (!form.name.trim() || !form.slug.trim()) return toast.error('Enter a name and a slug');
+    save.mutate();
+  };
+  const numberField = (label: string, key: keyof UpsertPlanPayload) => (
+    <Input key={key} label={label} type="number" min={0} value={(form[key] as number) ?? 0} onChange={(e) => set({ [key]: Number(e.target.value) } as Partial<UpsertPlanPayload>)} />
   );
 
-  const mutation = useMutation({
-    mutationFn: () =>
-      plan ? adminPlansApi.update(plan.id, form) : adminPlansApi.create(form),
-    onSuccess: () => {
-      toast.success(plan ? 'Plan updated' : 'Plan created');
-      onSaved();
-      onClose();
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Save failed'),
-  });
-
-  const setBool = (key: keyof UpsertPlanPayload, value: boolean) => {
-    setForm((f) => ({ ...f, [key]: value }));
-  };
-
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 my-8">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-xl font-bold">{plan ? 'Edit Plan' : 'Create Plan'}</h3>
-          <button onClick={onClose} className="rounded-lg p-2 hover:bg-slate-100">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+    <Modal open onClose={onClose} size="lg" title={plan ? `Edit ${plan.name}` : 'New plan'}
+      footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button onClick={submit} loading={save.isPending} leftIcon={<Check className="h-4 w-4" />}>{plan ? 'Save changes' : 'Create plan'}</Button></>}>
+      <div className="space-y-6">
+        <section className="grid gap-4 sm:grid-cols-2">
+          <Input label="Name" value={form.name} onChange={(e) => set({ name: e.target.value })} />
+          <Input label="Slug" value={form.slug} onChange={(e) => set({ slug: e.target.value })} hint="Used in links. Lowercase, no spaces." />
+          <div className="sm:col-span-2"><Input label="Description" value={form.description ?? ''} onChange={(e) => set({ description: e.target.value })} /></div>
+        </section>
 
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Input
-            label="Name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <Input
-            label="Slug"
-            value={form.slug}
-            onChange={(e) => setForm({ ...form, slug: e.target.value })}
-          />
-          <div className="sm:col-span-2">
-            <Input
-              label="Description"
-              value={form.description ?? ''}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
+        <section>
+          <h4 className="mb-3 text-[0.875rem] font-semibold text-slate-900">Prices</h4>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {numberField('Monthly (PKR)', 'priceMonthly')}
+            {numberField('Quarterly (PKR)', 'priceQuarterly')}
+            {numberField('Yearly (PKR)', 'priceYearly')}
+            {numberField('Trial days', 'trialDays')}
+            {numberField('Sort order', 'sortOrder')}
           </div>
-          <Input
-            label="Price Monthly (PKR)"
-            type="number"
-            value={form.priceMonthly}
-            onChange={(e) => setForm({ ...form, priceMonthly: Number(e.target.value) })}
-          />
-          <Input
-            label="Price Quarterly (PKR)"
-            type="number"
-            value={form.priceQuarterly}
-            onChange={(e) => setForm({ ...form, priceQuarterly: Number(e.target.value) })}
-          />
-          <Input
-            label="Price Yearly (PKR)"
-            type="number"
-            value={form.priceYearly}
-            onChange={(e) => setForm({ ...form, priceYearly: Number(e.target.value) })}
-          />
-          <Input
-            label="Trial Days"
-            type="number"
-            value={form.trialDays ?? 0}
-            onChange={(e) => setForm({ ...form, trialDays: Number(e.target.value) })}
-          />
-          <Input
-            label="Sort Order"
-            type="number"
-            value={form.sortOrder ?? 0}
-            onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })}
-          />
-          <Input
-            label="Max Products"
-            type="number"
-            value={form.maxProducts}
-            onChange={(e) => setForm({ ...form, maxProducts: Number(e.target.value) })}
-          />
-          <Input
-            label="Max Users"
-            type="number"
-            value={form.maxUsers}
-            onChange={(e) => setForm({ ...form, maxUsers: Number(e.target.value) })}
-          />
-          <Input
-            label="Max Shops"
-            type="number"
-            value={form.maxShops}
-            onChange={(e) => setForm({ ...form, maxShops: Number(e.target.value) })}
-          />
-          <Input
-            label="Max Sales / Month"
-            type="number"
-            value={form.maxSalesPerMonth}
-            onChange={(e) => setForm({ ...form, maxSalesPerMonth: Number(e.target.value) })}
-          />
-        </div>
+        </section>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.isActive ?? true}
-              onChange={(e) => setBool('isActive', e.target.checked)}
-              className="h-4 w-4"
-            />
-            Active
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.isPublic ?? true}
-              onChange={(e) => setBool('isPublic', e.target.checked)}
-              className="h-4 w-4"
-            />
-            Public (visible on plans page)
-          </label>
-        </div>
+        <section>
+          <h4 className="mb-3 text-[0.875rem] font-semibold text-slate-900">Limits</h4>
+          <div className="grid gap-4 sm:grid-cols-4">
+            {numberField('Products', 'maxProducts')}
+            {numberField('Users', 'maxUsers')}
+            {numberField('Shops', 'maxShops')}
+            {numberField('Sales a month', 'maxSalesPerMonth')}
+          </div>
+        </section>
 
-        <div className="mt-5">
-          <h4 className="font-semibold text-slate-900 mb-2">Features</h4>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        <section className="grid gap-3 sm:grid-cols-2">
+          <Switch label="Active" description="Inactive plans cannot be chosen." checked={form.isActive ?? true} onChange={(e) => set({ isActive: e.target.checked })} />
+          <Switch label="Public" description="Show on the pricing page." checked={form.isPublic ?? true} onChange={(e) => set({ isPublic: e.target.checked })} />
+        </section>
+
+        <section>
+          <h4 className="mb-3 text-[0.875rem] font-semibold text-slate-900">Features</h4>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURE_KEYS.map((k) => (
-              <label key={k} className="flex items-center gap-2 text-xs">
-                <input
-                  type="checkbox"
-                  checked={(form[k] as boolean) ?? false}
-                  onChange={(e) => setBool(k, e.target.checked)}
-                  className="h-4 w-4"
-                />
-                {FEATURE_LABELS[k as string]}
-              </label>
+              <Checkbox key={k as string} label={FEATURE_LABELS[k as string]} checked={(form[k] as boolean) ?? false} onChange={(e) => set({ [k]: e.target.checked } as Partial<UpsertPlanPayload>)} />
             ))}
           </div>
-        </div>
-
-        <div className="flex gap-2 mt-6">
-          <Button variant="secondary" onClick={onClose} className="flex-1">
-            Cancel
-          </Button>
-          <Button onClick={() => mutation.mutate()} loading={mutation.isPending} className="flex-1">
-            <Check className="h-4 w-4" />
-            {plan ? 'Save Changes' : 'Create Plan'}
-          </Button>
-        </div>
+        </section>
       </div>
-    </div>
+    </Modal>
   );
 }

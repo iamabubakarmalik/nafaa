@@ -6,11 +6,12 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, Construction, Plus, RotateCcw, Save, Trash2 } from 'lucide-react';
+import { AlertTriangle, Construction, Lightbulb, Plus, RotateCcw, Save, Smartphone, Trash2, Rocket, ShieldAlert } from 'lucide-react';
+import { Alert, Button, Checkbox, Input, PageHero, PageShell, Select, Skeleton, heroButton, heroPrimaryButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminMobileApi, type MobileConfig, type PlatformRelease, type ReleaseNote } from '@/api/admin-mobile.api';
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/cn';
-import { Card, inputCls, labelCls, LocalizedField, MobileHero, Pill, PLATFORM_LABEL, Toggle } from '../components/MobileUi';
+import { labelCls, num } from '@/features/shared/kit';
+import { Card, LocalizedField, Pill, PLATFORM_LABEL, Toggle } from '../components/MobileUi';
 import { useMobileConfig } from '../components/useMobileConfig';
 
 const VERSION_RE = /^\d+(\.\d+){0,3}$/;
@@ -34,34 +35,24 @@ function PlatformCard({ platform, value, onChange, devices }: {
   return (
     <Card title={PLATFORM_LABEL[platform]} subtitle={platform === 'android' ? 'Google Play' : 'App Store'}>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label>
-          <span className={labelCls}>Latest version</span>
-          <input value={value.latestVersion ?? ''} onChange={(e) => set({ latestVersion: e.target.value.trim() || null })} placeholder="e.g. 2.0.0"
-            className={cn(inputCls, bad(value.latestVersion) && 'border-rose-400')} />
-          <span className="mt-1 block text-[11px] text-slate-500">Older versions see the "new version" prompt.</span>
-        </label>
-        <label>
-          <span className={labelCls}>Minimum supported</span>
-          <input value={value.minVersion ?? ''} onChange={(e) => set({ minVersion: e.target.value.trim() || null })} placeholder="None"
-            className={cn(inputCls, bad(value.minVersion) && 'border-rose-400')} />
-          <span className="mt-1 block text-[11px] text-slate-500">Older versions must update before the app opens.</span>
-        </label>
-        <label className="sm:col-span-2">
-          <span className={labelCls}>Store link</span>
-          <input value={value.storeUrl ?? ''} onChange={(e) => set({ storeUrl: e.target.value.trim() || null })} placeholder="https://"
-            className={cn(inputCls, value.storeUrl && !value.storeUrl.startsWith('https://') && 'border-rose-400')} />
-        </label>
+        <Input label="Latest version" value={value.latestVersion ?? ''} onChange={(e) => set({ latestVersion: e.target.value.trim() || null })} placeholder="e.g. 2.0.0"
+          error={bad(value.latestVersion) ? 'Use numbers like 2.0.0' : undefined} hint='Older versions see the "new version" prompt.' />
+        <Input label="Minimum supported" value={value.minVersion ?? ''} onChange={(e) => set({ minVersion: e.target.value.trim() || null })} placeholder="None"
+          error={bad(value.minVersion) ? 'Use numbers like 2.0.0' : undefined} hint="Older versions must update before the app opens." />
+        <Input wrapperClassName="sm:col-span-2" label="Store link" value={value.storeUrl ?? ''} onChange={(e) => set({ storeUrl: e.target.value.trim() || null })} placeholder="https://"
+          error={value.storeUrl && !value.storeUrl.startsWith('https://') ? 'The link must start with https://' : undefined} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2 text-xs">
         {minAboveLatest && <Pill tone="rose">Minimum is above latest</Pill>}
-        <Pill tone={forced ? 'rose' : 'slate'}>{forced.toLocaleString()} active devices would be forced</Pill>
-        <Pill tone={behind ? 'amber' : 'slate'}>{behind.toLocaleString()} behind latest</Pill>
+        <Pill tone={forced ? 'rose' : 'slate'}>{num(forced)} active devices would be forced</Pill>
+        <Pill tone={behind ? 'amber' : 'slate'}>{num(behind)} behind latest</Pill>
       </div>
     </Card>
   );
 }
 
 export default function MobileReleasesPage() {
+  const guide = usePageGuide();
   const cfg = useMobileConfig();
   const { data: overview } = useQuery({ queryKey: ['admin-mobile-overview', 30], queryFn: () => adminMobileApi.overview(30) });
   const [noteDraft, setNoteDraft] = useState<ReleaseNote>({ version: '', platform: 'all', date: null, text: { en: '' } });
@@ -75,21 +66,34 @@ export default function MobileReleasesPage() {
     || (d.releases[p].storeUrl && !d.releases[p].storeUrl!.startsWith('https://')));
 
   return (
-    <div className="space-y-6">
-      <MobileHero title="Releases & update control" subtitle="Tell the app which version is newest, which versions must update, and when to show the maintenance screen.">
-        <Button variant="secondary" onClick={cfg.reset} disabled={!cfg.dirty}><RotateCcw className="h-4 w-4" />Undo changes</Button>
-        <Button onClick={cfg.save} loading={cfg.saving} disabled={!cfg.dirty || invalid}><Save className="h-4 w-4" />Save</Button>
-      </MobileHero>
+    <PageShell>
+      <PageHero
+        title="Releases and update control"
+        chip={cfg.dirty ? 'Unsaved changes' : undefined}
+        busy={cfg.saving}
+        loading={!d}
+        actions={
+          <>
+            <button type="button" className={heroButton} onClick={cfg.reset} disabled={!cfg.dirty}><RotateCcw className="h-4 w-4" /> Undo changes</button>
+            <button type="button" className={heroPrimaryButton} onClick={cfg.save} disabled={!cfg.dirty || invalid || cfg.saving}><Save className="h-4 w-4" /> Save</button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={d ? [
+          { label: 'Android latest', value: d.releases.android.latestVersion ?? '—', hint: d.releases.android.minVersion ? `Minimum ${d.releases.android.minVersion}` : 'No minimum' },
+          { label: 'iOS latest', value: d.releases.ios.latestVersion ?? '—', hint: d.releases.ios.minVersion ? `Minimum ${d.releases.ios.minVersion}` : 'No minimum' },
+          { label: 'Maintenance', value: d.maintenance.enabled ? 'On' : 'Off' },
+          { label: 'Release notes', value: num(d.releases.notes.length) },
+        ] : undefined}
+      />
 
-      {!d ? <div className="h-64 animate-pulse rounded-3xl bg-slate-100" /> : (
+      {!d ? <Skeleton className="h-64 rounded-3xl" /> : (
         <>
-          <Card className={d.maintenance.enabled ? 'border-rose-300 bg-rose-50/40' : undefined}
+          <Card className={d.maintenance.enabled ? 'border-rose-300' : undefined}
             title="Maintenance mode" subtitle="Blocks the app with a message until you turn it off. Signed-in work saved offline stays on the phone."
             action={<Toggle checked={d.maintenance.enabled} onChange={(v) => set((c) => { c.maintenance.enabled = v; })} label="Maintenance mode" />}>
             {d.maintenance.enabled && (
-              <div className="mb-4 flex items-center gap-2 rounded-2xl bg-rose-100 px-4 py-2 text-sm font-semibold text-rose-800">
-                <Construction className="h-4 w-4" />The app is blocked for {d.maintenance.platforms.length ? d.maintenance.platforms.map((p) => PLATFORM_LABEL[p]).join(' and ') : 'everyone'} once you save.
-              </div>
+              <Alert tone="danger" className="mb-4" icon={<Construction className="h-4 w-4" />}>The app is blocked for {d.maintenance.platforms.length ? d.maintenance.platforms.map((p) => PLATFORM_LABEL[p]).join(' and ') : 'everyone'} once you save.</Alert>
             )}
             <div className="grid gap-4 lg:grid-cols-2">
               <LocalizedField label="Title" value={d.maintenance.title} maxLength={120} onChange={(v) => set((c) => { c.maintenance.title = v; })} />
@@ -98,24 +102,18 @@ export default function MobileReleasesPage() {
                   <span className={labelCls}>Platforms</span>
                   <div className="flex flex-wrap gap-3 pt-2 text-sm">
                     {(['android', 'ios'] as const).map((p) => (
-                      <label key={p} className="inline-flex items-center gap-2">
-                        <input type="checkbox" className="h-4 w-4 accent-teal-600"
+                      <Checkbox key={p} label={PLATFORM_LABEL[p]}
                           checked={!d.maintenance.platforms.length || d.maintenance.platforms.includes(p)}
                           onChange={(e) => set((c) => {
                             const all: ('ios' | 'android')[] = c.maintenance.platforms.length ? c.maintenance.platforms : ['android', 'ios'];
                             const next = e.target.checked ? [...new Set([...all, p])] : all.filter((x) => x !== p);
                             c.maintenance.platforms = next.length === 2 ? [] : next;
                           })} />
-                        {PLATFORM_LABEL[p]}
-                      </label>
                     ))}
                   </div>
                 </div>
-                <label>
-                  <span className={labelCls}>Expected back (shown to users)</span>
-                  <input type="datetime-local" value={toLocalInput(d.maintenance.until)} className={inputCls}
-                    onChange={(e) => set((c) => { c.maintenance.until = e.target.value ? new Date(e.target.value).toISOString() : null; })} />
-                </label>
+                <Input type="datetime-local" label="Expected back (shown to users)" value={toLocalInput(d.maintenance.until)}
+                  onChange={(e) => set((c) => { c.maintenance.until = e.target.value ? new Date(e.target.value).toISOString() : null; })} />
               </div>
               <div className="lg:col-span-2">
                 <LocalizedField label="Message" multiline value={d.maintenance.message} maxLength={500} onChange={(v) => set((c) => { c.maintenance.message = v; })} />
@@ -123,29 +121,24 @@ export default function MobileReleasesPage() {
             </div>
           </Card>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             <PlatformCard platform="android" value={d.releases.android} devices={devicesFor('android')} onChange={(v) => set((c) => { c.releases.android = v; })} />
             <PlatformCard platform="ios" value={d.releases.ios} devices={devicesFor('ios')} onChange={(v) => set((c) => { c.releases.ios = v; })} />
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             <Card title="New version prompt" subtitle="A sheet the user can close. It comes back after the reminder time."
               action={<Toggle checked={d.releases.softUpdate.enabled} onChange={(v) => set((c) => { c.releases.softUpdate.enabled = v; })} label="Soft prompt" />}>
               <div className="space-y-4">
                 <LocalizedField label="Title" value={d.releases.softUpdate.title} maxLength={120} onChange={(v) => set((c) => { c.releases.softUpdate.title = v; })} />
                 <LocalizedField label="Message" multiline value={d.releases.softUpdate.message} maxLength={500} onChange={(v) => set((c) => { c.releases.softUpdate.message = v; })} />
-                <label className="block max-w-[12rem]">
-                  <span className={labelCls}>Ask again after (hours)</span>
-                  <input type="number" min={1} max={720} value={d.releases.softUpdate.remindAfterHours} className={inputCls}
-                    onChange={(e) => set((c) => { c.releases.softUpdate.remindAfterHours = Number(e.target.value) || 24; })} />
-                </label>
+                <Input wrapperClassName="max-w-[12rem]" type="number" min={1} max={720} label="Ask again after (hours)" value={d.releases.softUpdate.remindAfterHours}
+                  onChange={(e) => set((c) => { c.releases.softUpdate.remindAfterHours = Number(e.target.value) || 24; })} />
               </div>
             </Card>
             <Card title="Must update screen" subtitle="Full screen with a store button. Shown below the minimum version; it cannot be closed.">
               <div className="space-y-4">
-                <div className="flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-2 text-xs text-amber-800">
-                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />Set a minimum only after the new version is live in the store, or users will be stuck.
-                </div>
+                <Alert tone="warning" icon={<AlertTriangle className="h-4 w-4" />}>Set a minimum only after the new version is live in the store, or users will be stuck.</Alert>
                 <LocalizedField label="Title" value={d.releases.forceUpdate.title} maxLength={120} onChange={(v) => set((c) => { c.releases.forceUpdate.title = v; })} />
                 <LocalizedField label="Message" multiline value={d.releases.forceUpdate.message} maxLength={500} onChange={(v) => set((c) => { c.releases.forceUpdate.message = v; })} />
               </div>
@@ -153,26 +146,19 @@ export default function MobileReleasesPage() {
           </div>
 
           <Card title="Release notes" subtitle="Shown in the update prompt and in the app's What's new. Newest first.">
-            <div className="grid gap-3 rounded-2xl border border-dashed border-slate-300 p-4 sm:grid-cols-[8rem_9rem_auto] sm:items-end">
+            <div className="grid gap-3 rounded-xl border border-dashed border-slate-300 p-4 sm:grid-cols-[8rem_9rem_auto] sm:items-end">
               <div className="sm:col-span-3">
                 <LocalizedField label="What changed" multiline value={noteDraft.text} maxLength={2000} onChange={(text) => setNoteDraft({ ...noteDraft, text })} placeholder="One change per line" />
               </div>
-              <label>
-                <span className={labelCls}>Version</span>
-                <input value={noteDraft.version} onChange={(e) => setNoteDraft({ ...noteDraft, version: e.target.value.trim() })} placeholder="2.0.0" className={inputCls} />
-              </label>
-              <label>
-                <span className={labelCls}>Platform</span>
-                <select value={noteDraft.platform} onChange={(e) => setNoteDraft({ ...noteDraft, platform: e.target.value as ReleaseNote['platform'] })} className={inputCls}>
-                  <option value="all">Both</option><option value="android">Android</option><option value="ios">iOS</option>
-                </select>
-              </label>
-              <Button variant="secondary" className="justify-self-start" disabled={!VERSION_RE.test(noteDraft.version) || !noteDraft.text.en.trim()}
+              <Input label="Version" value={noteDraft.version} onChange={(e) => setNoteDraft({ ...noteDraft, version: e.target.value.trim() })} placeholder="2.0.0" />
+              <Select label="Platform" value={noteDraft.platform} onChange={(e) => setNoteDraft({ ...noteDraft, platform: e.target.value as ReleaseNote['platform'] })}
+                options={[{ value: 'all', label: 'Both' }, { value: 'android', label: 'Android' }, { value: 'ios', label: 'iOS' }]} />
+              <Button variant="secondary" className="justify-self-start" leftIcon={<Plus className="h-4 w-4" />} disabled={!VERSION_RE.test(noteDraft.version) || !noteDraft.text.en.trim()}
                 onClick={() => {
                   set((c) => { c.releases.notes = [{ ...noteDraft, date: new Date().toISOString() }, ...c.releases.notes.filter((n) => !(n.version === noteDraft.version && n.platform === noteDraft.platform))].sort((a, b) => cmp(b.version, a.version)); });
                   setNoteDraft({ version: '', platform: 'all', date: null, text: { en: '' } });
                 }}>
-                <Plus className="h-4 w-4" />Add
+                Add
               </Button>
             </div>
             <div className="mt-4 divide-y divide-slate-100">
@@ -184,7 +170,7 @@ export default function MobileReleasesPage() {
                       <span className="font-bold tabular-nums">{n.version}</span>
                       <Pill>{n.platform === 'all' ? 'Both' : PLATFORM_LABEL[n.platform]}</Pill>
                       {n.date && <span className="text-xs text-slate-500">{new Date(n.date).toLocaleDateString('en-PK', { dateStyle: 'medium' })}</span>}
-                      {n.text.ur && <Pill tone="teal">اردو</Pill>}{n.text.roman && <Pill tone="teal">Roman</Pill>}
+                      {n.text.ur && <Pill tone="indigo">اردو</Pill>}{n.text.roman && <Pill tone="indigo">Roman</Pill>}
                     </div>
                     <p className="mt-1 whitespace-pre-line text-sm text-slate-700">{n.text.en}</p>
                   </div>
@@ -197,6 +183,27 @@ export default function MobileReleasesPage() {
           </Card>
         </>
       )}
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Releases and update control"
+          description="Tell every app which version is newest, which versions must update, and when to show the maintenance screen."
+          flowTitle="How an update reaches users"
+          flow={[
+            { label: 'Release in store', hint: 'Play or App Store', icon: Rocket, color: '#4f46e5' },
+            { label: 'Set latest', hint: 'Older apps see a prompt', icon: Smartphone, color: '#0284c7' },
+            { label: 'Set minimum', hint: 'Older apps must update', icon: ShieldAlert, color: '#e11d48' },
+          ]}
+          steps={[
+            { icon: Rocket, color: '#4f46e5', title: 'Set latest', text: 'Enter the newest store version. Devices below it see the soft prompt they can close.' },
+            { icon: ShieldAlert, color: '#e11d48', title: 'Set minimum with care', text: 'Devices below the minimum cannot open the app. Set it only after the new version is live in the store.' },
+            { icon: Construction, color: '#d97706', title: 'Maintenance', text: 'Maintenance mode blocks the app with your message until you turn it off.' },
+          ]}
+          tips={['The pills on each platform show how many active devices would be forced to update.', 'Apps pick up saved changes within a minute.']}
+          shortcuts={[['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

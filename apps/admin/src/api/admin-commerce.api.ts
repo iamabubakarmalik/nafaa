@@ -21,6 +21,8 @@ export interface CommerceOverview {
   pausedTypes: string[];
 }
 
+export interface Page { page: number; limit: number; total: number; totalPages: number }
+
 export interface ShopifyPlan { billing: string; active?: boolean; name?: string | null; status?: string | null; test?: boolean; checkedAt?: string }
 
 export interface CommerceChannelRow {
@@ -89,6 +91,8 @@ export interface CourierAccountRow {
 
 export interface CommerceCouriers {
   accounts: CourierAccountRow[];
+  accountStats: { total: number; active: number; withError: number };
+  meta: Page;
   rates: Array<{ courier: string; booked: number; failed: number; tenants: number; failureRate: number | null }>;
   recentErrors: Array<{ kind: 'account' | 'booking'; tenantId: string; tenantName: string | null; courier: string | null; error: string; at: string; orderId: string | null; number: string | null }>;
 }
@@ -162,14 +166,14 @@ export const adminCommerceApi = {
     get<{ items: CommerceChannelRow[]; meta: { page: number; limit: number; total: number } }>('/admin/commerce/channels', { ...f, problems: f.problems ? '1' : undefined }),
   channel: (id: string) => get<CommerceChannelDetail>(`/admin/commerce/channels/${id}`),
   channelAction: (id: string, action: 'pause' | 'resume' | 'rescan' | 'repush' | 'retry-failed') => post<any>(`/admin/commerce/channels/${id}/${action}`),
-  jobs: (params: { status?: string; tenantId?: string; kind?: string }) =>
-    get<{ counts: Record<string, number>; jobs: CatalogJobRow[] }>('/admin/commerce/jobs', params),
+  jobs: (params: { status?: string; tenantId?: string; kind?: string; search?: string; page?: number; limit?: number }) =>
+    get<{ counts: Record<string, number>; jobs: CatalogJobRow[]; meta: Page }>('/admin/commerce/jobs', params),
   cancelJob: (id: string) => post<any>(`/admin/commerce/jobs/${id}/cancel`),
   retryJob: (id: string) => post<{ job: { id: string }; existing: boolean }>(`/admin/commerce/jobs/${id}/retry`),
-  searchOrders: (q: string) => get<{ orders: OnlineOrderRow[] }>('/admin/commerce/orders/search', { q }),
-  stuckOrders: () => get<StuckOrders>('/admin/commerce/orders/stuck'),
+  searchOrders: (q: string, page = 1, limit = 25) => get<{ orders: OnlineOrderRow[]; meta: Page }>('/admin/commerce/orders/search', { q, page, limit }),
+  stuckOrders: (page = 1, limit = 25) => get<StuckOrders>('/admin/commerce/orders/stuck', { page, limit }),
   order: (id: string) => get<OnlineOrderDetail>(`/admin/commerce/orders/${id}`),
-  couriers: (tenantId?: string) => get<CommerceCouriers>('/admin/commerce/couriers', { tenantId }),
+  couriers: (params: { tenantId?: string; search?: string; page?: number; limit?: number } = {}) => get<CommerceCouriers>('/admin/commerce/couriers', params),
   controls: () => get<CommerceControlsResponse>('/admin/commerce/controls'),
   saveControls: (c: CommerceControls) => apiClient.put<{ data: CommerceControlsResponse }>('/admin/commerce/controls', c).then(unwrap),
   tenant: (tenantId: string) => get<TenantCommerce>(`/admin/commerce/tenants/${tenantId}`),

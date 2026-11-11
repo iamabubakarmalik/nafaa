@@ -1,8 +1,8 @@
 import { apiClient } from '../client';
 
 export const heatmapsApi = {
-  pages: () =>
-    apiClient.get('/admin/marketing/heatmaps/pages').then((r) => r.data.data),
+  pages: (params: any = {}) =>
+    apiClient.get('/admin/marketing/heatmaps/pages', { params }).then((r) => r.data.data),
 
   clicks: (path: string) =>
     apiClient

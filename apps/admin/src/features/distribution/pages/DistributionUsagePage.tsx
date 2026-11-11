@@ -1,110 +1,120 @@
 /**
- * Distribution usage (admin): every business that has distribution switched
- * on or a plan that allows it, with its booker logins (what we bill per
- * login), bookers active in the last 30 days, and orders booked. Plans gain
- * the feature in Plans → featureDistribution.
+ * Distribution usage: every business that uses wholesale and distribution,
+ * with its booker logins (what we bill per login), bookers active in the
+ * last 30 days and orders booked. A plan gets the feature in Plans.
  */
 
-import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Truck, UserCheck, Users } from 'lucide-react';
+import { Boxes, Lightbulb, ReceiptText, Truck, UserCheck, Users } from 'lucide-react';
+import { Badge, FilterBar, FilterChip, PageHero, PageShell, SearchField, Switch, Table, TBody, Td, Th, THead, Tr, heroButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminDistributionApi } from '@/api/admin-distribution.api';
 import { formatPKR } from '@/lib/format';
+import { industryForType } from '@/lib/industries';
+import { ListCard, StatusBadge, useListParams } from '@/ui';
+
+const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function DistributionUsagePage() {
-  const [q, setQ] = useState('');
-  const [onlyOn, setOnlyOn] = useState(false);
-  const { data, isLoading, error } = useQuery({ queryKey: ['admin-distribution-usage'], queryFn: () => adminDistributionApi.usage() });
+  const guide = usePageGuide();
+  const list = useListParams({ on: '0' });
+  const onlyOn = list.filters.on === '1';
+  const query = { search: list.debouncedSearch || undefined, onlyOn: onlyOn || undefined };
 
-  const rows = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    return (data?.tenants ?? [])
-      .filter((t) => !onlyOn || t.enabled)
-      .filter((t) => !s || `${t.name} ${t.businessType ?? ''} ${t.plan?.name ?? ''}`.toLowerCase().includes(s))
-      .sort((a, b) => b.bookerLogins - a.bookerLogins || b.orders30d - a.orders30d);
-  }, [data, q, onlyOn]);
-  const active = (data?.tenants ?? []).filter((t) => t.enabled).length;
-  const orders = (data?.tenants ?? []).reduce((s, t) => s + t.orders30d, 0);
+  const usage = useQuery({
+    queryKey: ['admin', 'distribution', query, list.page, list.limit],
+    queryFn: () => adminDistributionApi.usage({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
+  });
+  const t = usage.data?.totals;
+  const rows = usage.data?.tenants ?? [];
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-orange-700 via-orange-600 to-amber-500 p-6 text-white shadow-soft">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium"><Truck className="h-3.5 w-3.5" />Wholesale & distribution</div>
-        <h2 className="mt-3 text-3xl font-bold">Distribution usage</h2>
-        <p className="mt-2 text-sm text-white/85">Booker logins per business — the billable count. Turn the feature on per plan in Plans.</p>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Distribution usage"
+        chip={t ? `${num(t.tenants)} businesses` : undefined}
+        busy={usage.isFetching}
+        loading={usage.isLoading}
+        actions={<button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>}
+        stats={t ? [
+          { label: 'Booker logins', value: num(t.bookerLogins), hint: 'The billable count' },
+          { label: 'Switched on', value: num(t.switchedOn ?? t.tenants), hint: `of ${num(t.tenants)} businesses` },
+          { label: 'Orders, 30 days', value: num(t.orders30d ?? 0) },
+          { label: 'Order value, 30 days', value: formatPKR(t.orderValue30d ?? 0) },
+        ] : undefined}
+      />
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Businesses listed" value={data?.totals.tenants ?? 0} />
-        <Stat label="Switched on" value={active} />
-        <Stat label="Booker logins" value={data?.totals.bookerLogins ?? 0} tone="orange" />
-        <Stat label="Orders (30 days)" value={orders} />
-      </section>
-
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-3">
-          <label className="relative min-w-[14rem] flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search business, type or plan"
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none focus:border-orange-400 focus:bg-white" />
-          </label>
-          <label className="inline-flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" checked={onlyOn} onChange={(e) => setOnlyOn(e.target.checked)} className="h-4 w-4 accent-orange-600" />Only switched on
-          </label>
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search business name" />}
+        chips={onlyOn ? [<FilterChip key="on" onRemove={() => list.setFilter('on', '0')}>Only switched on</FilterChip>] : undefined}
+        onClear={list.clear}
+      >
+        <div className="flex h-11 items-center rounded-2xl bg-slate-100/80 px-3">
+          <Switch size="sm" label="Only switched on" checked={onlyOn} onChange={(e) => list.setFilter('on', e.target.checked ? '1' : '0')} />
         </div>
+      </FilterBar>
 
-        {isLoading ? <div className="p-10 text-center text-sm text-slate-500">Loading…</div>
-          : error ? <div className="p-10 text-center text-sm text-rose-600">Could not load usage.</div>
-          : !rows.length ? <div className="p-10 text-center text-sm text-slate-500">No business uses distribution yet.</div>
-          : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[56rem] text-sm">
-                <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <tr>
-                    <th className="px-5 py-3">Business</th><th className="px-3 py-3">Plan</th><th className="px-3 py-3">Switch</th>
-                    <th className="px-3 py-3 text-right">Booker logins</th><th className="px-3 py-3 text-right">Active bookers (30d)</th>
-                    <th className="px-3 py-3 text-right">Orders (30d)</th><th className="px-5 py-3 text-right">Order value (30d)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {rows.map((t) => (
-                    <tr key={t.tenantId} className="hover:bg-slate-50/60">
-                      <td className="px-5 py-3">
-                        <Link to={`/tenants/${t.tenantId}`} className="font-semibold text-slate-900 hover:text-orange-700">{t.name}</Link>
-                        <div className="text-xs text-slate-500">{t.businessType ?? '—'} · {t.status}</div>
-                      </td>
-                      <td className="px-3 py-3">
-                        {t.plan ? (
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${t.plan.featureDistribution ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                            {t.plan.name}{t.plan.featureDistribution ? '' : ' · not included'}
-                          </span>
-                        ) : <span className="text-xs text-slate-400">No plan</span>}
-                        {t.subscriptionStatus && <div className="mt-0.5 text-xs text-slate-500">{t.subscriptionStatus}</div>}
-                      </td>
-                      <td className="px-3 py-3">
-                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${t.enabled ? 'bg-orange-50 text-orange-700' : 'bg-slate-100 text-slate-500'}`}>{t.enabled ? 'On' : 'Off'}</span>
-                      </td>
-                      <td className="px-3 py-3 text-right"><span className="inline-flex items-center gap-1 font-bold tabular-nums text-slate-900"><Users className="h-3.5 w-3.5 text-slate-400" />{t.bookerLogins}</span></td>
-                      <td className="px-3 py-3 text-right"><span className="inline-flex items-center gap-1 tabular-nums text-slate-700"><UserCheck className="h-3.5 w-3.5 text-slate-400" />{t.activeBookers30d}</span></td>
-                      <td className="px-3 py-3 text-right tabular-nums text-slate-700">{t.orders30d}</td>
-                      <td className="px-5 py-3 text-right font-semibold tabular-nums text-slate-900">{formatPKR(t.orderValue30d)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-      </section>
-    </div>
-  );
-}
+      <ListCard
+        loading={usage.isLoading}
+        empty={!rows.length}
+        emptyIcon={<Truck className="h-6 w-6" />}
+        emptyTitle="No business uses distribution"
+        emptyText="Businesses appear here once they switch on wholesale and distribution."
+        page={list.page} limit={list.limit} total={usage.data?.meta?.total ?? rows.length} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="58rem">
+          <THead>
+            <Tr><Th>Business</Th><Th>Plan</Th><Th>Switch</Th><Th align="right">Booker logins</Th><Th align="right">Active bookers, 30d</Th><Th align="right">Orders, 30d</Th><Th align="right">Order value, 30d</Th></Tr>
+          </THead>
+          <TBody>
+            {rows.map((r) => (
+              <Tr key={r.tenantId}>
+                <Td>
+                  <Link to={`/tenants/${r.tenantId}`} className="font-semibold text-slate-900 hover:text-brand-700">{r.name}</Link>
+                  <div className="text-[0.75rem] text-slate-500">{industryForType(r.businessType ?? 'NONE').label} · <StatusBadge value={r.status} /></div>
+                </Td>
+                <Td>
+                  {r.plan ? (
+                    <>
+                      <Badge variant={r.plan.featureDistribution ? 'success' : 'danger'}>{r.plan.name}{r.plan.featureDistribution ? '' : ', not included'}</Badge>
+                      {r.subscriptionStatus && <div className="mt-0.5 text-[0.75rem] text-slate-500">{r.subscriptionStatus.replace(/_/g, ' ').toLowerCase()}</div>}
+                    </>
+                  ) : <span className="text-[0.8125rem] text-slate-400">No plan</span>}
+                </Td>
+                <Td><StatusBadge value={r.enabled ? 'ENABLED' : 'DISABLED'} label={r.enabled ? 'On' : 'Off'} /></Td>
+                <Td align="right"><span className="inline-flex items-center gap-1 font-bold tabular-nums text-slate-900"><Users className="h-3.5 w-3.5 text-slate-400" />{num(r.bookerLogins)}</span></Td>
+                <Td align="right"><span className="inline-flex items-center gap-1 tabular-nums text-slate-700"><UserCheck className="h-3.5 w-3.5 text-slate-400" />{num(r.activeBookers30d)}</span></Td>
+                <Td align="right" className="tabular-nums">{num(r.orders30d)}</Td>
+                <Td align="right" className="font-semibold tabular-nums">{formatPKR(r.orderValue30d)}</Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
+      </ListCard>
 
-function Stat({ label, value, tone }: { label: string; value: number; tone?: 'orange' }) {
-  return (
-    <div className={tone === 'orange' ? 'rounded-2xl bg-gradient-to-br from-orange-600 to-amber-600 p-4 text-white' : 'rounded-2xl border border-slate-200 bg-white p-4'}>
-      <div className={tone === 'orange' ? 'text-xs text-white/80' : 'text-xs text-slate-500'}>{label}</div>
-      <div className="mt-1 text-2xl font-bold tabular-nums">{value.toLocaleString()}</div>
-    </div>
+      {guide.isOpen && (
+        <PageGuide
+          title="Distribution usage"
+          description="Businesses that run wholesale and distribution, and how many booker logins each one uses."
+          flowTitle="How usage is counted"
+          flow={[
+            { label: 'Plan includes it', icon: Boxes, color: '#4f46e5' },
+            { label: 'Business switches on', icon: Truck, color: '#0284c7' },
+            { label: 'Adds booker logins', hint: 'Billed per login', icon: Users, color: '#d97706' },
+            { label: 'Bookers take orders', icon: ReceiptText, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Users, color: '#d97706', title: 'Booker logins', text: 'An active staff user, not the owner, who is allowed to book orders. This is what we bill.' },
+            { icon: UserCheck, color: '#059669', title: 'Active bookers', text: 'Bookers who booked at least one order in the last 30 days.' },
+            { icon: Boxes, color: '#4f46e5', title: 'Plan not included', text: 'A red plan means the business uses distribution but its plan does not include it. Fix this in Plans.' },
+          ]}
+          tips={['Click a business name to open its profile.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

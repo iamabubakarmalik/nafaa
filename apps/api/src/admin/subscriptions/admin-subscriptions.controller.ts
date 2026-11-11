@@ -18,10 +18,12 @@ import {
   AssignPlanDto,
   ExtendSubscriptionDto,
 } from './dto/assign-plan.dto';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Subscriptions')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('plans')
 @Controller('admin/subscriptions')
 export class AdminSubscriptionsController {
   constructor(private readonly service: AdminSubscriptionsService) {}
@@ -35,12 +37,18 @@ export class AdminSubscriptionsController {
   list(
     @Query('status') status?: SubscriptionStatus,
     @Query('search') search?: string,
+    @Query('planId') planId?: string,
+    @Query('interval') interval?: string,
+    @Query('endingInDays') endingInDays?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.service.list({
       status,
       search,
+      planId,
+      interval,
+      endingInDays: endingInDays ? Number(endingInDays) : undefined,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
     });

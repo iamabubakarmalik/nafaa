@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AlertTriangle } from 'lucide-react';
 import { adminMobileApi } from '@/api/admin-mobile.api';
 import { cn } from '@/lib/cn';
+import { Segmented } from '@/design-system/components';
 import { Card, Pill } from './MobileUi';
 
 /** What each Expo receipt error means and what to do. */
@@ -31,13 +32,7 @@ export function PushHealthCard() {
     <Card
       title="Delivery health"
       subtitle="Every push to the staff app (alerts, tests, broadcasts), from Expo's delivery receipts."
-      action={(
-        <div className="flex gap-1 rounded-xl bg-slate-100 p-1">
-          {DAYS.map((d) => (
-            <button key={d} type="button" onClick={() => setDays(d)} className={cn('rounded-lg px-2.5 py-1 text-xs font-semibold', days === d ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500')}>{d === 1 ? '24 h' : `${d} days`}</button>
-          ))}
-        </div>
-      )}
+      action={<Segmented value={String(days)} onChange={(v) => setDays(Number(v))} label="Period" items={DAYS.map((d) => ({ value: String(d), label: d === 1 ? '24 hours' : `${d} days` }))} />}
     >
       {isLoading || !data ? <div className="h-24 animate-pulse rounded-2xl bg-slate-100" /> : (
         <div className="space-y-4">
@@ -55,7 +50,7 @@ export function PushHealthCard() {
               { label: 'Failed', value: data.failed, hint: pct(data.failed), bad: data.failed > 0 },
               { label: 'Waiting', value: data.sent + data.unknown, hint: 'receipt not read yet' },
             ].map((k) => (
-              <div key={k.label} className="rounded-2xl border border-slate-200 p-3">
+              <div key={k.label} className="rounded-xl border border-slate-200 p-3">
                 <div className="text-xs font-semibold text-slate-500">{k.label}</div>
                 <div className={cn('text-2xl font-bold tabular-nums', k.bad ? 'text-rose-600' : 'text-slate-900')}>{k.value}</div>
                 <div className="text-xs text-slate-400">{k.hint}</div>

@@ -4,10 +4,12 @@ import { UserRole } from '@prisma/client';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminUsersService } from './admin-users.service';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Users')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('users')
 @Controller('admin/users')
 export class AdminUsersController {
   constructor(private readonly service: AdminUsersService) {}
@@ -16,15 +18,22 @@ export class AdminUsersController {
   list(
     @Query('search') search?: string,
     @Query('role') role?: UserRole,
+    @Query('status') status?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
     return this.service.list({
       search,
       role,
+      status,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
     });
+  }
+
+  @Get('stats')
+  stats() {
+    return this.service.stats();
   }
 
   @Patch(':id/toggle')

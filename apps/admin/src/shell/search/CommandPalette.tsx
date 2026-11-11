@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { create } from 'zustand';
 import { Building2, CornerDownLeft, Loader2, Search, User } from 'lucide-react';
@@ -15,7 +15,8 @@ import { isTyping } from '@core/lib/shortcuts';
 import { cn } from '@/lib/cn';
 import { adminTenantsApi } from '@/api/admin-tenants.api';
 import { adminUsersApi } from '@/api/admin-users.api';
-import { ALL_ITEMS } from '../navigation/nav-config';
+import { useVisibleNav } from '../navigation/useVisibleNav';
+import { useCan } from '@/lib/access';
 import { WorkspaceMark } from '../sidebar/WorkspaceMark';
 
 type IconType = ComponentType<{ className?: string; style?: CSSProperties }>;
@@ -32,7 +33,7 @@ interface Result {
   subtitle?: string;
   to: string;
   icon: IconType;
-  mark?: (typeof ALL_ITEMS)[number]['workspace'];
+  mark?: ReturnType<typeof useVisibleNav>['items'][number]['workspace'];
 }
 
 function useDebounced<T>(value: T, ms: number) {
@@ -72,6 +73,9 @@ export function SearchTrigger() {
 export function CommandPalette() {
   const { open, setOpen } = useCommandPalette();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { items: ALL_ITEMS } = useVisibleNav(location.pathname);
+  const can = useCan();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState('');
@@ -82,13 +86,13 @@ export function CommandPalette() {
   const tenants = useQuery({
     queryKey: ['palette', 'tenants', term],
     queryFn: () => adminTenantsApi.list({ search: term, limit: 5 }),
-    enabled: open && remote,
+    enabled: open && remote && can('tenants.view'),
     staleTime: 30_000,
   });
   const users = useQuery({
     queryKey: ['palette', 'users', term],
     queryFn: () => adminUsersApi.list({ search: term, limit: 5 }),
-    enabled: open && remote,
+    enabled: open && remote && can('users.view'),
     staleTime: 30_000,
   });
 
@@ -119,7 +123,7 @@ export function CommandPalette() {
       key: `u:${u.id}`, section: 'Users', title: u.fullName || u.email, subtitle: [u.email, u.tenant?.name].filter(Boolean).join(' · '), to: u.tenant?.id ? `/tenants/${u.tenant.id}` : `/users?search=${encodeURIComponent(u.email ?? '')}`, icon: User,
     }));
     return [...pages, ...shops, ...people];
-  }, [q, remote, tenants.data, users.data]);
+  }, [q, remote, tenants.data, users.data, ALL_ITEMS]);
 
   useEffect(() => { setIndex(0); }, [q]);
   useEffect(() => {

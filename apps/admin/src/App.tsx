@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { Suspense, lazy } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -73,6 +73,13 @@ const FunnelPage = lazy(() => import('@/features/marketing/conversions/pages/Fun
 const MarketingExportsPage = lazy(() => import('@/features/marketing/exports/pages/ExportsPage').then((m) => ({ default: m.ExportsPage })));
 const CmsRoutes = lazy(() => import('@/features/marketing/cms/routes').then((m) => ({ default: m.CmsRoutes })));
 
+const AcceptInvitePage = lazy(() => import('@/features/auth/pages/AcceptInvitePage'));
+const StaffPage = lazy(() => import('@/features/staff/pages/StaffPage'));
+const RolesPage = lazy(() => import('@/features/staff/pages/RolesPage'));
+const AuditLogPage = lazy(() => import('@/features/staff/pages/AuditLogPage'));
+const AiUsagePage = lazy(() => import('@/features/ai-usage/pages/AiUsagePage'));
+const SecurityPage = lazy(() => import('@/features/account/pages/SecurityPage'));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, refetchOnWindowFocus: false },
@@ -88,6 +95,7 @@ export default function App() {
           <Route element={<PublicOnlyRoute />}>
             <Route path="/login" element={<LoginPage />} />
           </Route>
+          <Route path="/accept-invite" element={<Suspense fallback={null}><AcceptInvitePage /></Suspense>} />
 
           <Route element={<ProtectedRoute />}>
             {/* Every signed-in page renders inside the admin shell */}
@@ -142,6 +150,12 @@ export default function App() {
               <Route path="/exports" element={<AdminExportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/appearance" element={<PlatformAppearancePage />} />
+
+              <Route path="/staff" element={<StaffPage />} />
+              <Route path="/staff/roles" element={<RolesPage />} />
+              <Route path="/staff/audit" element={<AuditLogPage />} />
+              <Route path="/account/security" element={<SecurityPage />} />
+              <Route path="/ai-usage" element={<AiUsagePage />} />
 
               {/* Marketing site workspace */}
               <Route path="/marketing">

@@ -26,6 +26,7 @@ export interface SubscriptionStats {
   pastDue: number;
   cancelled: number;
   expired: number;
+  endingSoon?: number;
   mrrEstimate: number;
 }
 
@@ -43,7 +44,7 @@ const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 export const adminSubscriptionsApi = {
   stats: () =>
     apiClient.get<{ data: SubscriptionStats }>('/admin/subscriptions/stats').then(unwrap),
-  list: (params?: { status?: SubscriptionStatus; search?: string; page?: number; limit?: number }) =>
+  list: (params?: { status?: SubscriptionStatus; planId?: string; interval?: string; endingInDays?: number; search?: string; page?: number; limit?: number }) =>
     apiClient
       .get<{ data: { items: AdminSubscription[]; meta: any } }>('/admin/subscriptions', { params })
       .then(unwrap),

@@ -1,287 +1,212 @@
-import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  CreditCard, Clock, CheckCircle2, XCircle, Eye, AlertCircle,
-  Search, TrendingUp, Wallet,
-} from 'lucide-react';
-import { adminBillingApi, type PaymentStatus } from '@/api/admin-billing.api';
-import { Button } from '@/components/ui/Button';
-import { formatPKR } from '@/lib/format';
-import { toast } from 'sonner';
+/**
+ * Payment approvals: manual payments shops send in (bank transfer, wallet,
+ * cash). An admin checks the receipt and approves or rejects each one.
+ * Approving turns on the shop's plan.
+ */
 
-const formatDate = (v: string) =>
-  new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(
-    new Date(v),
-  );
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Banknote, CheckCircle2, Clock, Download, Eye, FileCheck2, Landmark, Lightbulb, Receipt, Search, Wallet, XCircle } from 'lucide-react';
+import {
+  Button, DateRangeMenu, FilterBar, FilterChip, FilterMenu, Modal, PageHero, PageShell, SearchField, Table, TBody, Td, Textarea, Th, THead, Tr, ViewTabs, confirmDialog, heroButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { adminBillingApi, type AdminPayment, type PaymentProvider, type PaymentStatus } from '@/api/admin-billing.api';
+import { formatDate, formatPKR, formatRelative } from '@/lib/format';
+import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
+import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '../../shared/period';
+
+const TABS = ['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const;
+type Tab = (typeof TABS)[number];
+const PROVIDERS: PaymentProvider[] = ['MANUAL_BANK', 'JAZZCASH', 'EASYPAISA', 'STRIPE', 'CASH'];
+const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function BillingPage() {
-  const queryClient = useQueryClient();
-  const [tab, setTab] = useState<PaymentStatus | 'ALL'>('PENDING');
-  const [search, setSearch] = useState('');
-  const [rejectModal, setRejectModal] = useState<string | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
+  const qc = useQueryClient();
+  const guide = usePageGuide();
+  const [exporting, setExporting] = useState(false);
+  const [rejecting, setRejecting] = useState<AdminPayment | null>(null);
+  const [reason, setReason] = useState('');
 
-  const { data: stats } = useQuery({
-    queryKey: ['admin-billing-stats'],
-    queryFn: adminBillingApi.stats,
+  const list = useListParams({ tab: 'PENDING', provider: 'ALL', ...PERIOD_DEFAULTS });
+  const { tab, provider } = list.filters;
+  const range = periodChip(list.filters);
+  const query = {
+    status: tab === 'ALL' ? undefined : (tab as PaymentStatus),
+    provider: provider === 'ALL' ? undefined : provider,
+    search: list.debouncedSearch || undefined,
+    ...periodQuery(list.filters),
+  };
+
+  const payments = useQuery({
+    queryKey: ['admin', 'billing', query, list.page, list.limit],
+    queryFn: () => adminBillingApi.list({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
   });
+  const stats = useQuery({ queryKey: ['admin', 'billing', 'stats'], queryFn: adminBillingApi.stats, staleTime: 30_000 });
+  const s = stats.data;
+  const rows = payments.data?.items ?? [];
 
-  const { data } = useQuery({
-    queryKey: ['admin-billing-list', tab, search],
-    queryFn: () =>
-      adminBillingApi.list({
-        status: tab === 'ALL' ? undefined : tab,
-        search: search || undefined,
-        page: 1,
-        limit: 50,
-      }),
-  });
-
-  const approveMutation = useMutation({
+  const refresh = () => qc.invalidateQueries({ queryKey: ['admin', 'billing'] });
+  const approve = useMutation({
     mutationFn: (id: string) => adminBillingApi.approve(id),
-    onSuccess: () => {
-      toast.success('Payment approved!');
-      queryClient.invalidateQueries({ queryKey: ['admin-billing-list'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-billing-stats'] });
-    },
-    onError: (e: any) => toast.error(e?.response?.data?.message || 'Approve failed'),
+    onSuccess: () => { toast.success('Payment approved'); refresh(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Could not approve'),
+  });
+  const reject = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => adminBillingApi.reject(id, reason),
+    onSuccess: () => { toast.success('Payment rejected'); setRejecting(null); setReason(''); refresh(); },
+    onError: (e: any) => toast.error(e?.response?.data?.message || 'Could not reject'),
   });
 
-  const rejectMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-      adminBillingApi.reject(id, reason),
-    onSuccess: () => {
-      toast.success('Payment rejected');
-      setRejectModal(null);
-      setRejectReason('');
-      queryClient.invalidateQueries({ queryKey: ['admin-billing-list'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-billing-stats'] });
-    },
-  });
+  const onApprove = async (p: AdminPayment) => {
+    if (await confirmDialog({ title: `Approve ${formatPKR(p.amount)} from ${p.tenant.name}?`, text: 'The shop’s plan is turned on once the invoice is fully paid.', yes: 'Approve' })) approve.mutate(p.id);
+  };
 
-  const list = data?.items ?? [];
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all = await fetchAllPages((page) => adminBillingApi.list({ ...query, page, limit: 100 }));
+      downloadCsv<AdminPayment>('payments', all, [
+        { label: 'Date', value: (p) => p.createdAt.slice(0, 10) },
+        { label: 'Shop', value: (p) => p.tenant.name },
+        { label: 'Amount', value: (p) => p.amount },
+        { label: 'Status', value: (p) => p.status },
+        { label: 'Method', value: (p) => p.provider },
+        { label: 'Payer', value: (p) => p.payerName },
+        { label: 'Transaction', value: (p) => p.transactionId },
+        { label: 'Invoice', value: (p) => p.invoice?.invoiceNumber },
+        { label: 'Rejection reason', value: (p) => p.rejectionReason },
+      ]);
+      toast.success(`${num(all.length)} payments exported`);
+    } catch {
+      toast.error('Export failed. Try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const chips = [
+    provider !== 'ALL' && <FilterChip key="p" onRemove={() => list.setFilter('provider', 'ALL')}>{statusLabel(provider)}</FilterChip>,
+    range && <FilterChip key="d" onRemove={() => clearPeriod(list)}>{range}</FilterChip>,
+  ].filter(Boolean);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-admin-950 via-admin-900 to-admin-700 text-white p-6 shadow-soft">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-          <CreditCard className="h-3.5 w-3.5" />
-          Payment Approvals
-        </div>
-        <h2 className="mt-3 text-3xl font-bold">Billing Center</h2>
-        <p className="mt-2 text-sm text-white/80">
-          Manual payments approve/reject karein — tenants ki subscription activate karein
-        </p>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Payment approvals"
+        chip={s ? `${num(s.pending)} waiting` : undefined}
+        busy={payments.isFetching}
+        loading={stats.isLoading}
+        actions={
+          <>
+            <button type="button" className={heroButton} onClick={exportCsv} disabled={exporting}><Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}</button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={s ? [
+          { label: 'Waiting for approval', value: num(s.pending), hint: s.pendingAmount ? formatPKR(s.pendingAmount) : undefined },
+          { label: 'Approved today', value: formatPKR(s.todayApproved) },
+          { label: 'Approved, all time', value: formatPKR(s.totalApproved), hint: `${num(s.approved)} payments` },
+          { label: 'Rejected', value: num(s.rejected) },
+        ] : undefined}
+      />
 
-      <section className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs text-slate-500">Pending</div>
-              <div className="mt-1 text-2xl font-bold text-amber-700">
-                {stats?.pending ?? 0}
-              </div>
-            </div>
-            <Clock className="h-5 w-5 text-amber-600" />
-          </div>
-        </div>
-        <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs text-slate-500">Approved</div>
-              <div className="mt-1 text-2xl font-bold text-emerald-700">
-                {stats?.approved ?? 0}
-              </div>
-            </div>
-            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-          </div>
-        </div>
-        <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs text-slate-500">Rejected</div>
-              <div className="mt-1 text-2xl font-bold text-rose-700">
-                {stats?.rejected ?? 0}
-              </div>
-            </div>
-            <XCircle className="h-5 w-5 text-rose-600" />
-          </div>
-        </div>
-        <div className="rounded-2xl bg-white border border-slate-200 p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs text-slate-500">Today Revenue</div>
-              <div className="mt-1 text-lg font-bold text-slate-900">
-                {formatPKR(stats?.todayApproved ?? 0)}
-              </div>
-            </div>
-            <TrendingUp className="h-5 w-5 text-slate-600" />
-          </div>
-        </div>
-        <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-800 text-white p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-xs text-white/80">Total Revenue</div>
-              <div className="mt-1 text-lg font-bold">
-                {formatPKR(stats?.totalApproved ?? 0)}
-              </div>
-            </div>
-            <Wallet className="h-5 w-5" />
-          </div>
-        </div>
-      </section>
+      <ViewTabs
+        tabs={TABS.map((t) => ({ id: t, label: t === 'ALL' ? 'All' : statusLabel(t), count: s ? (t === 'PENDING' ? s.pending : t === 'APPROVED' ? s.approved : t === 'REJECTED' ? s.rejected : null) : null }))}
+        value={tab as Tab}
+        onChange={(v) => list.setFilter('tab', v)}
+      />
 
-      <div className="flex gap-2 flex-wrap">
-        {(['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold ${
-              tab === t
-                ? 'bg-admin-600 text-white'
-                : 'bg-white text-slate-700 border border-slate-200'
-            }`}
-          >
-            {t}
-          </button>
-        ))}
-        <div className="relative flex-1 min-w-[260px]">
-          <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            className="h-11 w-full rounded-xl border border-slate-200 pl-10 pr-4 text-sm"
-            placeholder="Search transaction, tenant, payer..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search transaction, shop or payer" />}
+        chips={chips.length ? chips : undefined}
+        onClear={() => { clearPeriod(list); list.setFilter('provider', 'ALL'); }}
+      >
+        <DateRangeMenu value={periodValue(list.filters)} onChange={(v) => setPeriod(list, v)} startHour={0} />
+        <FilterMenu icon={Landmark} label="Method" value={provider} active={provider !== 'ALL'} onChange={(v) => list.setFilter('provider', v)} align="right"
+          options={[{ value: 'ALL', label: 'All methods' }, ...PROVIDERS.map((v) => ({ value: v, label: statusLabel(v) }))]} />
+      </FilterBar>
 
-      <section className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
-        {list.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">No payments here</div>
-        ) : (
-          <div className="divide-y divide-slate-100">
-            {list.map((p) => (
-              <div key={p.id} className="px-6 py-4">
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className={`h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
-                      p.status === 'PENDING' ? 'bg-amber-100 text-amber-700' :
-                      p.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
-                      'bg-rose-100 text-rose-700'
-                    }`}>
-                      {p.status === 'PENDING' && <Clock className="h-6 w-6" />}
-                      {p.status === 'APPROVED' && <CheckCircle2 className="h-6 w-6" />}
-                      {p.status === 'REJECTED' && <XCircle className="h-6 w-6" />}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-xl text-slate-900">{formatPKR(p.amount)}</div>
-                      <div className="text-sm text-slate-700 mt-0.5">
-                        <span className="font-semibold">{p.tenant.name}</span> • {p.provider}
-                      </div>
-                      <div className="text-xs text-slate-500 mt-1">
-                        Payer: {p.payerName || '—'}
-                        {p.invoice && (
-                          <> • Invoice: <span className="font-mono">{p.invoice.invoiceNumber}</span></>
-                        )}
-                      </div>
-                      {p.transactionId && (
-                        <div className="text-xs text-slate-500">Txn: <span className="font-mono">{p.transactionId}</span></div>
-                      )}
-                      {p.bankName && (
-                        <div className="text-xs text-slate-500">From: {p.bankName}</div>
-                      )}
-                      <div className="text-xs text-slate-400 mt-1">{formatDate(p.createdAt)}</div>
-                      {p.rejectionReason && (
-                        <div className="mt-2 text-xs text-rose-700 bg-rose-50 rounded-lg px-2 py-1 inline-block">
-                          ✗ {p.rejectionReason}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap">
+      <ListCard
+        loading={payments.isLoading}
+        empty={!rows.length}
+        emptyIcon={tab === 'PENDING' ? <CheckCircle2 className="h-6 w-6" /> : <Wallet className="h-6 w-6" />}
+        emptyTitle={tab === 'PENDING' && !range && provider === 'ALL' && !list.debouncedSearch ? 'Nothing waiting' : 'No payments match'}
+        emptyText="New payments from shops appear here for you to check."
+        page={list.page} limit={list.limit} total={payments.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="58rem">
+          <THead><Tr><Th>Shop</Th><Th align="right">Amount</Th><Th>Method</Th><Th>Details</Th><Th>Status</Th><Th>Sent</Th><Th align="right"><span className="sr-only">Actions</span></Th></Tr></THead>
+          <TBody>
+            {rows.map((p) => (
+              <Tr key={p.id}>
+                <Td>
+                  <Link to={`/tenants/${p.tenant.id}`} className="font-semibold text-slate-900 hover:text-brand-700">{p.tenant.name}</Link>
+                  <div className="text-[0.75rem] text-slate-500">{p.invoice ? <>Invoice <span className="font-mono">{p.invoice.invoiceNumber}</span>{p.invoice.subscription ? ` · ${p.invoice.subscription.plan.name}` : ''}</> : '—'}</div>
+                </Td>
+                <Td align="right" className="whitespace-nowrap font-bold text-slate-900">{formatPKR(p.amount)}</Td>
+                <Td><StatusBadge value={p.provider} variant="default" /></Td>
+                <Td className="text-[0.8125rem] text-slate-600">
+                  <div>{p.payerName || <span className="text-slate-400">No payer name</span>}</div>
+                  {p.transactionId && <div className="font-mono text-[0.75rem] text-slate-500">{p.transactionId}</div>}
+                  {p.bankName && <div className="text-[0.75rem] text-slate-500">From {p.bankName}</div>}
+                  {p.rejectionReason && <div className="mt-1 text-[0.75rem] text-rose-600">Rejected: {p.rejectionReason}</div>}
+                </Td>
+                <Td><StatusBadge value={p.status} /></Td>
+                <Td className="whitespace-nowrap text-slate-500" title={formatDate(p.createdAt)}>{formatRelative(p.createdAt)}</Td>
+                <Td align="right">
+                  <div className="inline-flex flex-wrap justify-end gap-1">
                     {p.upload && (
-                      <a
-                        href={p.upload.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm hover:bg-slate-50"
-                      >
-                        <Eye className="h-4 w-4" />
-                        Receipt
+                      <a href={p.upload.url} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[0.8125rem] font-semibold text-slate-700 ring-1 ring-slate-200 hover:bg-slate-50">
+                        <Eye className="h-3.5 w-3.5" /> Receipt
                       </a>
                     )}
                     {p.status === 'PENDING' && (
                       <>
-                        <Button
-                          size="sm"
-                          loading={approveMutation.isPending}
-                          onClick={() => approveMutation.mutate(p.id)}
-                          className="bg-emerald-600 hover:bg-emerald-700"
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                          Approve
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => setRejectModal(p.id)}
-                        >
-                          <XCircle className="h-4 w-4" />
-                          Reject
-                        </Button>
+                        <Button size="xs" variant="success" leftIcon={<CheckCircle2 className="h-3.5 w-3.5" />} loading={approve.isPending && approve.variables === p.id} onClick={() => onApprove(p)}>Approve</Button>
+                        <Button size="xs" variant="critical" leftIcon={<XCircle className="h-3.5 w-3.5" />} onClick={() => { setRejecting(p); setReason(''); }}>Reject</Button>
                       </>
                     )}
                   </div>
-                </div>
-              </div>
+                </Td>
+              </Tr>
             ))}
-          </div>
-        )}
-      </section>
+          </TBody>
+        </Table>
+      </ListCard>
 
-      {rejectModal && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-12 w-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center">
-                <AlertCircle className="h-6 w-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900">Reject Payment?</h3>
-                <p className="text-sm text-slate-500">User ko reason notify hoga</p>
-              </div>
-            </div>
+      <Modal open={!!rejecting} onClose={() => setRejecting(null)} size="sm" title="Reject this payment?"
+        description={rejecting ? `${formatPKR(rejecting.amount)} from ${rejecting.tenant.name}. The shop is told why.` : undefined}
+        footer={<><Button variant="secondary" onClick={() => setRejecting(null)}>Cancel</Button>
+          <Button variant="danger" loading={reject.isPending} onClick={() => { if (!reason.trim()) return toast.error('Write a reason'); if (rejecting) reject.mutate({ id: rejecting.id, reason: reason.trim() }); }}>Reject payment</Button></>}>
+        <Textarea label="Reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="For example: the receipt does not match the amount" />
+      </Modal>
 
-            <textarea
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Reason..."
-              rows={3}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-            />
-
-            <div className="flex gap-2 mt-4">
-              <Button variant="secondary" onClick={() => setRejectModal(null)} className="flex-1">
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                onClick={() => {
-                  if (!rejectReason.trim()) return toast.error('Reason likhein');
-                  rejectMutation.mutate({ id: rejectModal, reason: rejectReason.trim() });
-                }}
-                loading={rejectMutation.isPending}
-                className="flex-1"
-              >
-                Reject
-              </Button>
-            </div>
-          </div>
-        </div>
+      {guide.isOpen && (
+        <PageGuide
+          title="Payment approvals"
+          description="Shops pay by bank transfer or wallet and upload a receipt. You check it and approve or reject."
+          flowTitle="How a payment turns on a plan"
+          flow={[
+            { label: 'Shop pays', hint: 'Bank or wallet', icon: Banknote, color: '#4f46e5' },
+            { label: 'Uploads receipt', icon: Receipt, color: '#0284c7' },
+            { label: 'You check', hint: 'Approve or reject', icon: FileCheck2, color: '#d97706' },
+            { label: 'Plan is on', icon: CheckCircle2, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Search, color: '#4f46e5', title: 'Find the payment', text: 'Waiting payments show first. Search by transaction, shop or payer name.' },
+            { icon: Eye, color: '#0284c7', title: 'Check the receipt', text: 'Open the receipt and match the amount and the transaction number.' },
+            { icon: CheckCircle2, color: '#059669', title: 'Approve or reject', text: 'Approving turns on the plan. Rejecting needs a reason, which the shop sees.' },
+          ]}
+          tips={['A payment that does not cover the full invoice keeps the invoice open.', 'Days follow Pakistan time.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
       )}
-    </div>
+    </PageShell>
   );
 }

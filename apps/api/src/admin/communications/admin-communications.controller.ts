@@ -17,10 +17,12 @@ import { UpsertSmsTemplateDto } from '../../modules/sms/dto/send-sms.dto';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminCommunicationsService } from './admin-communications.service';
 import { BulkSendDto } from './dto/bulk-send.dto';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Communications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('communications')
 @Controller('admin/communications')
 export class AdminCommunicationsController {
   constructor(
@@ -31,19 +33,21 @@ export class AdminCommunicationsController {
 
   @Get('email/stats')
   emailStats() {
-    return this.emailService.stats();
+    return this.service.emailStats();
   }
 
   @Get('email/logs')
   emailLogs(
     @Query('tenantId') tenantId?: string,
     @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.emailService.listLogs({
-      tenantId,
-      status,
+    return this.service.emailLogs({
+      tenantId, status, search, from, to,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 30,
     });
@@ -56,19 +60,21 @@ export class AdminCommunicationsController {
 
   @Get('sms/stats')
   smsStats() {
-    return this.smsService.stats();
+    return this.service.smsStats();
   }
 
   @Get('sms/logs')
   smsLogs(
     @Query('tenantId') tenantId?: string,
     @Query('status') status?: string,
+    @Query('search') search?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    return this.smsService.listLogs({
-      tenantId,
-      status,
+    return this.service.smsLogs({
+      tenantId, status, search, from, to,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 30,
     });
@@ -81,8 +87,14 @@ export class AdminCommunicationsController {
 
   // SMS Templates CRUD
   @Get('sms/templates')
-  listSmsTemplates() {
-    return this.smsService.listTemplates();
+  listSmsTemplates(
+    @Query('paged') paged?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+    @Query('active') active?: string,
+  ) {
+    return this.service.smsTemplates({ paged: paged === '1' || paged === 'true', page: Number(page) || 1, limit: Number(limit) || 25, search, active });
   }
 
   @Post('sms/templates')

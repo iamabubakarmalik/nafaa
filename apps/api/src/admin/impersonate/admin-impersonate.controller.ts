@@ -5,10 +5,13 @@ import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminImpersonateService } from './admin-impersonate.service';
+import { AdminArea, AdminPermission } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Impersonate')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('tenants')
+@AdminPermission('tenants.impersonate')
 @Controller('admin/impersonate')
 export class AdminImpersonateController {
   constructor(private readonly service: AdminImpersonateService) {}

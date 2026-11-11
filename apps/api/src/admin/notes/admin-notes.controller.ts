@@ -15,10 +15,12 @@ import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.int
 import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminNotesService } from './admin-notes.service';
 import { UpsertNoteDto } from './dto/upsert-note.dto';
+import { AdminArea } from '../access/admin-access.decorators';
 
 @ApiTags('Admin - Tenant Notes')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('tenants')
 @Controller('admin/notes')
 export class AdminNotesController {
   constructor(private readonly service: AdminNotesService) {}

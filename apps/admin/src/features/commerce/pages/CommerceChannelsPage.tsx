@@ -1,117 +1,178 @@
 /**
  * Every online channel across shops, with health columns (last sync, last
  * order, failed syncs, webhook errors, push failures, Shopify plan) and a
- * drill-down with logs and actions.
+ * drill-down panel with logs and actions. Search and filters run on the server.
  */
 
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { toast } from 'sonner';
+import { AlertTriangle, Download, Lightbulb, Plug, Pause, Search, Store, Tag, Wrench } from 'lucide-react';
+import { FilterBar, FilterChip, FilterMenu, PageHero, SearchField, PageShell, Table, TBody, Td, Th, THead, Tr, heroButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminCommerceApi, type CommerceChannelRow } from '@/api/admin-commerce.api';
-import { Button } from '@/components/ui/Button';
+import { ListCard, downloadCsv, fetchAllPages, useListParams } from '@/ui';
+import { num, Pill } from '@/features/shared/kit';
 import { ChannelDrawer } from '../components/ChannelDrawer';
-import { Card, ChannelStatus, CommerceHero, Empty, KINDS, kindLabel, Pill, tableHeadCls, tdCls, thCls, when } from '../components/CommerceUi';
+import { ChannelStatus, KINDS, kindLabel, when } from '../components/CommerceUi';
 
-const STATUSES = [['', 'Any status'], ['CONNECTED', 'Connected'], ['PAUSED', 'Paused'], ['ERROR', 'Error'], ['DISCONNECTED', 'Disconnected'], ['PENDING', 'Pending']];
-const LIMIT = 50;
+const STATUSES = [['ALL', 'Any status'], ['CONNECTED', 'Connected'], ['PAUSED', 'Paused'], ['ERROR', 'Error'], ['DISCONNECTED', 'Disconnected'], ['PENDING', 'Pending']];
 
 export default function CommerceChannelsPage() {
+  const guide = usePageGuide();
   const [params, setParams] = useSearchParams();
-  const [search, setSearch] = useState(params.get('search') ?? '');
-  const kind = params.get('kind') ?? '';
-  const status = params.get('status') ?? '';
-  const problems = params.get('problems') === '1';
-  const page = Number(params.get('page') ?? 1) || 1;
+  const [exporting, setExporting] = useState(false);
+  const list = useListParams({ kind: 'ALL', status: 'ALL', problems: 'no' }, { limit: 50 });
+  const { kind, status, problems } = list.filters;
   const open = params.get('channel');
-  const set = (k: string, v: string) => { const p = new URLSearchParams(params); if (v) p.set(k, v); else p.delete(k); if (k !== 'page' && k !== 'channel') p.delete('page'); setParams(p, { replace: true }); };
+  const setOpen = (id: string) => { const p = new URLSearchParams(params); if (id) p.set('channel', id); else p.delete('channel'); setParams(p, { replace: true }); };
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['admin-commerce-channels', kind, status, problems, page, params.get('search') ?? ''],
-    queryFn: () => adminCommerceApi.channels({ kind: kind || undefined, status: status || undefined, problems, page, limit: LIMIT, search: params.get('search') || undefined }),
+  const query = {
+    search: list.debouncedSearch || undefined,
+    kind: kind === 'ALL' ? undefined : kind,
+    status: status === 'ALL' ? undefined : status,
+    problems: problems === 'yes',
+  };
+  const { data, isLoading, isFetching, error } = useQuery({
+    queryKey: ['admin-commerce-channels', query, list.page, list.limit],
+    queryFn: () => adminCommerceApi.channels({ ...query, page: list.page, limit: list.limit }),
     placeholderData: keepPreviousData,
   });
-  const total = data?.meta.total ?? 0;
-  const pages = Math.max(1, Math.ceil(total / LIMIT));
+  // Header numbers come from the overview, which counts every channel by health.
+  const overview = useQuery({ queryKey: ['admin-commerce-overview', 'channels-header'], queryFn: () => adminCommerceApi.overview(), staleTime: 60_000 });
+  const sum = (k: 'total' | 'connected' | 'paused' | 'error') => (overview.data?.channels ?? []).reduce((s, c) => s + c[k], 0);
+  const rows = data?.items ?? [];
+
+  const exportCsv = async () => {
+    setExporting(true);
+    try {
+      const all = await fetchAllPages(async (page) => {
+        const r = await adminCommerceApi.channels({ ...query, page, limit: 100 });
+        return { items: r.items, meta: { totalPages: Math.ceil(r.meta.total / r.meta.limit) } };
+      });
+      downloadCsv<CommerceChannelRow>('channels', all, [
+        { label: 'Shop', value: (c) => c.tenantName }, { label: 'Channel', value: (c) => c.name }, { label: 'Type', value: (c) => kindLabel(c.kind) },
+        { label: 'Status', value: (c) => (c.isActive ? c.status : 'PAUSED') }, { label: 'Site', value: (c) => c.siteUrl },
+        { label: 'Last sync', value: (c) => c.lastSyncAt }, { label: 'Last order', value: (c) => c.lastOrderAt },
+        { label: 'Links', value: (c) => c.links }, { label: 'Push failures', value: (c) => c.pushFailures },
+        { label: 'Sync errors 7d', value: (c) => c.syncErrors7d }, { label: 'Webhook errors 7d', value: (c) => c.webhookErrors7d },
+      ]);
+      toast.success(`${num(all.length)} channels exported`);
+    } catch { toast.error('Export failed. Try again.'); } finally { setExporting(false); }
+  };
+
+  const chips = [
+    kind !== 'ALL' && <FilterChip key="k" onRemove={() => list.setFilter('kind', 'ALL')}>{kindLabel(kind)}</FilterChip>,
+    status !== 'ALL' && <FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{STATUSES.find(([v]) => v === status)?.[1]}</FilterChip>,
+    problems === 'yes' && <FilterChip key="p" onRemove={() => list.setFilter('problems', 'no')}>With problems</FilterChip>,
+  ].filter(Boolean);
 
   return (
-    <div className="space-y-6">
-      <CommerceHero title="Channels" subtitle="Every Shopify, Daraz, WooCommerce, website, Foodpanda, Indolj and manual channel across shops. Open a row for logs and actions." />
+    <PageShell>
+      <PageHero
+        title="Channels"
+        chip={data ? `${num(data.meta.total)} shown` : undefined}
+        busy={isFetching}
+        loading={overview.isLoading}
+        actions={
+          <>
+            <button type="button" className={heroButton} onClick={exportCsv} disabled={exporting}><Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}</button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={overview.data ? [
+          { label: 'Channels', value: num(sum('total')) },
+          { label: 'Connected', value: num(sum('connected')) },
+          { label: 'Paused', value: num(sum('paused')) },
+          { label: 'With errors', value: num(sum('error')) },
+        ] : undefined}
+      />
 
-      <Card className="overflow-hidden p-0">
-        <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 px-5 py-3">
-          <form className="relative min-w-[14rem] flex-1" onSubmit={(e) => { e.preventDefault(); set('search', search.trim()); }}>
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input value={search} onChange={(e) => setSearch(e.target.value)} onBlur={() => set('search', search.trim())} placeholder="Search shop, channel name, site URL or channel id"
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none focus:border-indigo-400 focus:bg-white" />
-          </form>
-          <select value={kind} onChange={(e) => set('kind', e.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">
-            <option value="">All types</option>
-            {KINDS.map((k) => <option key={k} value={k}>{kindLabel(k)}</option>)}
-          </select>
-          <select value={status} onChange={(e) => set('status', e.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">
-            {STATUSES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-          <label className="inline-flex items-center gap-2 text-sm text-slate-700">
-            <input type="checkbox" checked={problems} onChange={(e) => set('problems', e.target.checked ? '1' : '')} className="h-4 w-4 accent-indigo-600" />With problems only
-          </label>
-        </div>
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search shop, channel name, site address or channel id" />}
+        chips={chips.length ? chips : undefined}
+        onClear={list.clear}
+      >
+        <FilterMenu icon={Store} label="Type" value={kind} active={kind !== 'ALL'} onChange={(v) => list.setFilter('kind', v)}
+          options={[{ value: 'ALL', label: 'All types' }, ...KINDS.map((k) => ({ value: k, label: kindLabel(k) }))]} />
+        <FilterMenu icon={Tag} label="Status" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)}
+          options={STATUSES.map(([value, label]) => ({ value, label }))} />
+        <FilterMenu icon={AlertTriangle} label="Problems" value={problems} active={problems === 'yes'} onChange={(v) => list.setFilter('problems', v)} align="right"
+          options={[{ value: 'no', label: 'All channels' }, { value: 'yes', label: 'With problems only' }]} />
+      </FilterBar>
 
-        {isLoading ? <Empty>Loading…</Empty> : error ? <Empty>Could not load channels.</Empty> : !data?.items.length ? <Empty>No channels match.</Empty> : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[62rem] text-sm">
-              <thead className={tableHeadCls}>
-                <tr>
-                  <th className={thCls}>Shop</th><th className={thCls}>Channel</th><th className={thCls}>Status</th>
-                  <th className={thCls}>Last sync</th><th className={thCls}>Last order</th>
-                  <th className={`${thCls} text-right`}>Links</th><th className={`${thCls} text-right`}>Push failures</th>
-                  <th className={`${thCls} text-right`} title="Failed syncs · webhook errors in the last 7 days">Errors (7d)</th>
-                  <th className={thCls}>Plan</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {data.items.map((c) => (
-                  <tr key={c.id} onClick={() => set('channel', c.id)} className="cursor-pointer hover:bg-slate-50/80">
-                    <td className={`${tdCls} min-w-[10rem]`}>
-                      <Link to={`/tenants/${c.tenantId}`} onClick={(e) => e.stopPropagation()} className="font-semibold text-slate-900 hover:text-indigo-700">{c.tenantName}</Link>
-                      {c.tenantStatus !== 'ACTIVE' && <div className="text-xs text-slate-500">{c.tenantStatus}</div>}
-                    </td>
-                    <td className={`${tdCls} min-w-[12rem]`}>
-                      <div className="font-medium text-slate-900">{c.name}</div>
-                      <div className="text-xs text-slate-500">{kindLabel(c.kind)}{c.siteUrl ? ` · ${c.siteUrl.replace(/^https?:\/\//, '')}` : ''}</div>
-                    </td>
-                    <td className={tdCls}>
-                      <div className="flex flex-wrap gap-1"><ChannelStatus status={c.status} isActive={c.isActive} />{c.killSwitch && <Pill tone="rose">Kill switch</Pill>}</div>
-                      {c.channelError && <div className="mt-1 max-w-[14rem] truncate text-xs text-rose-700" title={c.channelError}>{c.channelError}</div>}
-                    </td>
-                    <td className={`${tdCls} whitespace-nowrap text-slate-700`}>{when(c.lastSyncAt)}</td>
-                    <td className={`${tdCls} whitespace-nowrap text-slate-700`}>{when(c.lastOrderAt)}</td>
-                    <td className={`${tdCls} text-right tabular-nums`}>{c.links}</td>
-                    <td className={`${tdCls} text-right tabular-nums`}><Num v={c.pushFailures} /></td>
-                    <td className={`${tdCls} whitespace-nowrap text-right tabular-nums`} title="Failed syncs · webhook errors"><Num v={c.syncErrors7d} /> · <Num v={c.webhookErrors7d} /></td>
-                    <td className={tdCls}><Plan c={c} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3 text-sm text-slate-600">
-          <span>{total.toLocaleString()} channels</span>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => set('page', String(page - 1))}>Previous</Button>
-            <span>Page {page} of {pages}</span>
-            <Button size="sm" variant="secondary" disabled={page >= pages} onClick={() => set('page', String(page + 1))}>Next</Button>
-          </div>
-        </div>
-      </Card>
+      <ListCard
+        loading={isLoading}
+        empty={!!error || !rows.length}
+        emptyIcon={<Plug className="h-6 w-6" />}
+        emptyTitle={error ? 'Could not load channels' : 'No channels match'}
+        emptyText={error ? 'Try again in a moment.' : 'Try another search or clear the filters.'}
+        page={list.page} limit={list.limit} total={data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="64rem">
+          <THead>
+            <Tr>
+              <Th>Shop</Th><Th>Channel</Th><Th>Status</Th><Th>Last sync</Th><Th>Last order</Th>
+              <Th align="right">Links</Th><Th align="right">Push failures</Th>
+              <Th align="right" title="Failed syncs, then webhook errors, in the last 7 days">Errors (7 days)</Th><Th>Plan</Th>
+            </Tr>
+          </THead>
+          <TBody>
+            {rows.map((c) => (
+              <Tr key={c.id} interactive onClick={() => setOpen(c.id)}>
+                <Td>
+                  <Link to={`/tenants/${c.tenantId}`} onClick={(e) => e.stopPropagation()} className="font-semibold text-slate-900 hover:text-brand-700">{c.tenantName}</Link>
+                  {c.tenantStatus !== 'ACTIVE' && <div className="text-[0.75rem] text-slate-500">{c.tenantStatus.toLowerCase()}</div>}
+                </Td>
+                <Td>
+                  <div className="font-medium text-slate-900">{c.name}</div>
+                  <div className="text-[0.75rem] text-slate-500">{kindLabel(c.kind)}{c.siteUrl ? ` · ${c.siteUrl.replace(/^https?:\/\//, '')}` : ''}</div>
+                </Td>
+                <Td>
+                  <div className="flex flex-wrap gap-1"><ChannelStatus status={c.status} isActive={c.isActive} />{c.killSwitch && <Pill tone="rose">Kill switch</Pill>}</div>
+                  {c.channelError && <div className="mt-1 max-w-[14rem] truncate text-[0.75rem] text-rose-700" title={c.channelError}>{c.channelError}</div>}
+                </Td>
+                <Td className="whitespace-nowrap">{when(c.lastSyncAt)}</Td>
+                <Td className="whitespace-nowrap">{when(c.lastOrderAt)}</Td>
+                <Td align="right">{c.links}</Td>
+                <Td align="right"><Bad v={c.pushFailures} /></Td>
+                <Td align="right" className="whitespace-nowrap"><Bad v={c.syncErrors7d} /> · <Bad v={c.webhookErrors7d} /></Td>
+                <Td><Plan c={c} /></Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
+      </ListCard>
 
-      <ChannelDrawer id={open} onClose={() => set('channel', '')} />
-    </div>
+      <ChannelDrawer id={open} onClose={() => setOpen('')} />
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Channels"
+          description="Every place shops sell online, with the health of each connection."
+          flowTitle="What a channel does"
+          flow={[
+            { label: 'Connect', hint: 'Shop links a channel', icon: Plug, color: '#4f46e5' },
+            { label: 'Sync', hint: 'Products and stock', icon: Wrench, color: '#0284c7' },
+            { label: 'Orders', hint: 'Come into Nafaa', icon: Store, color: '#059669' },
+            { label: 'Problem?', hint: 'Pause or retry here', icon: Pause, color: '#e11d48' },
+          ]}
+          steps={[
+            { icon: Search, color: '#4f46e5', title: 'Find a channel', text: 'Search by shop, channel name or site address, then filter by type or status.' },
+            { icon: AlertTriangle, color: '#e11d48', title: 'Spot trouble', text: 'Use "With problems only" to see failed syncs, webhook errors and push failures.' },
+            { icon: Wrench, color: '#059669', title: 'Act', text: 'Click a row to read logs, pause or resume, re-scan the catalog or retry failed links.' },
+          ]}
+          tips={['Every action is saved in the shop’s activity log.', 'Errors (7 days) shows failed syncs first, then webhook errors.']}
+          shortcuts={[['/', 'Search'], ['↑ ↓', 'Move between rows'], ['Enter', 'Open channel'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }
 
-function Num({ v }: { v: number }) {
+function Bad({ v }: { v: number }) {
   return v ? <span className="font-bold text-rose-700">{v}</span> : <span className="text-slate-400">0</span>;
 }
 

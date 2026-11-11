@@ -6,15 +6,34 @@ import { UpsertSettingDto } from './dto/upsert-setting.dto';
 export class AdminSettingsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  list() {
-    return this.prisma.systemSetting.findMany({
-      // Appearance and per-user preference rows are not platform settings.
-      where: { category: { notIn: ['appearance', 'preferences'] } },
-      orderBy: [{ category: 'asc' }, { key: 'asc' }],
-      include: {
-        updatedBy: { select: { id: true, fullName: true } },
-      },
-    });
+  /**
+   * Without `paged` this returns every platform setting (old behavior). With
+   * it, one searched page, optionally for one category, plus the category list.
+   */
+  async list(q: { paged?: boolean; page?: number; limit?: number; search?: string; category?: string } = {}) {
+    // Appearance and per-user preference rows are not platform settings.
+    const base = { category: { notIn: ['appearance', 'preferences'] } };
+    const include = { updatedBy: { select: { id: true, fullName: true } } };
+    const orderBy = [{ category: 'asc' as const }, { key: 'asc' as const }];
+    if (!q.paged) return this.prisma.systemSetting.findMany({ where: base, orderBy, include });
+
+    const limit = Math.min(100, Math.max(1, q.limit ?? 25));
+    const page = Math.max(1, q.page ?? 1);
+    const term = q.search?.trim();
+    const where = {
+      ...(q.category ? { category: q.category } : base),
+      ...(term ? { OR: [{ key: { contains: term, mode: 'insensitive' as const } }, { description: { contains: term, mode: 'insensitive' as const } }, { value: { contains: term, mode: 'insensitive' as const } }] } : {}),
+    };
+    const [items, total, cats] = await Promise.all([
+      this.prisma.systemSetting.findMany({ where, orderBy, include, skip: (page - 1) * limit, take: limit }),
+      this.prisma.systemSetting.count({ where }),
+      this.prisma.systemSetting.groupBy({ by: ['category'], where: base, _count: { _all: true }, orderBy: { category: 'asc' } }),
+    ]);
+    return {
+      items,
+      meta: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+      stats: { total: cats.reduce((n, c) => n + c._count._all, 0), categories: cats.map((c) => ({ category: c.category, count: c._count._all })) },
+    };
   }
 
   byCategory(category: string) {

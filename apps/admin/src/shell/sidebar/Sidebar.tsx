@@ -17,7 +17,8 @@ import { handleMenuKey } from '@/design-system/keyboard';
 import { cn } from '@/lib/cn';
 import { Logo } from '@/components/brand/Logo';
 import { useAuthStore } from '@/store/auth.store';
-import { isActivePath, WORKSPACES, workspaceForPath, type AdminNavGroup, type AdminNavItem, type AdminWorkspace } from '../navigation/nav-config';
+import { isActivePath, type AdminNavGroup, type AdminNavItem, type AdminWorkspace } from '../navigation/nav-config';
+import { useVisibleNav } from '../navigation/useVisibleNav';
 import { WorkspaceMark } from './WorkspaceMark';
 
 type IconType = ComponentType<{ className?: string; style?: CSSProperties }>;
@@ -65,10 +66,11 @@ function loadClosed(): Record<string, boolean> {
 }
 
 /** One tile per workspace; the current one is highlighted. */
-function WorkspaceTiles({ current, onPick }: { current: AdminWorkspace; onPick: (ws: AdminWorkspace) => void }) {
+function WorkspaceTiles({ workspaces, current, onPick }: { workspaces: AdminWorkspace[]; current: AdminWorkspace; onPick: (ws: AdminWorkspace) => void }) {
+  if (workspaces.length < 2) return null;
   return (
-    <div className="grid grid-cols-8 gap-1 px-3 pb-2" role="tablist" aria-label="Workspaces">
-      {WORKSPACES.map((ws) => {
+    <div className="grid gap-0.5 px-3 pb-2" style={{ gridTemplateColumns: `repeat(${workspaces.length}, minmax(0, 1fr))` }} role="tablist" aria-label="Workspaces">
+      {workspaces.map((ws) => {
         const active = ws.id === current.id;
         const Icon = ws.icon as IconType;
         return (
@@ -119,7 +121,7 @@ function UserFooter({ compact, onLogout }: { compact?: boolean; onLogout: () => 
 function SidebarExpanded({ onToggleCollapse, onItemClick, onLogout, onClose }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const workspace = workspaceForPath(location.pathname);
+  const { workspaces, current: workspace } = useVisibleNav(location.pathname);
   const searchRef = useRef<HTMLInputElement>(null);
   const navRef = useRef<HTMLElement>(null);
   const [search, setSearch] = useState('');
@@ -130,9 +132,9 @@ function SidebarExpanded({ onToggleCollapse, onItemClick, onLogout, onClose }: S
     if (!query) return workspace.groups;
     // Menu search looks across every workspace, so a page is found from anywhere.
     const match = (i: AdminNavItem) => `${i.label} ${i.keywords ?? ''}`.toLowerCase().includes(query);
-    return WORKSPACES.flatMap((ws) => ws.groups.map((g) => ({ ...g, id: `${ws.id}:${g.id}`, label: ws.groups.length > 1 ? `${ws.shortLabel} · ${g.label}` : ws.label, items: g.items.filter(match) })))
+    return workspaces.flatMap((ws) => ws.groups.map((g) => ({ ...g, id: `${ws.id}:${g.id}`, label: ws.groups.length > 1 ? `${ws.shortLabel} · ${g.label}` : ws.label, items: g.items.filter(match) })))
       .filter((g) => g.items.length);
-  }, [workspace, query]);
+  }, [workspace, workspaces, query]);
   const total = groups.reduce((n, g) => n + g.items.length, 0);
 
   const toggleGroup = (id: string) => setClosed((prev) => {
@@ -171,7 +173,7 @@ function SidebarExpanded({ onToggleCollapse, onItemClick, onLogout, onClose }: S
       </div>
 
       {/* Workspaces */}
-      <WorkspaceTiles current={workspace} onPick={pick} />
+      <WorkspaceTiles workspaces={workspaces} current={workspace} onPick={pick} />
       <div className="mx-3 mb-2 flex items-center gap-2.5 rounded-xl border border-shell-line bg-white/60 p-2 dark:bg-ink-white/[0.03]">
         <WorkspaceMark workspace={workspace} />
         <div className="min-w-0">
@@ -254,7 +256,7 @@ function SidebarExpanded({ onToggleCollapse, onItemClick, onLogout, onClose }: S
 function SidebarRail({ onToggleCollapse, onLogout }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const workspace = workspaceForPath(location.pathname);
+  const { workspaces, current: workspace } = useVisibleNav(location.pathname);
   const [picker, setPicker] = useState(false);
 
   return (
@@ -269,7 +271,7 @@ function SidebarRail({ onToggleCollapse, onLogout }: SidebarProps) {
         </button>
         {picker && (
           <div className="absolute start-full top-0 z-50 ms-2 w-60 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-2xl dark:border-ink-white/10" onMouseLeave={() => setPicker(false)}>
-            {WORKSPACES.map((ws) => (
+            {workspaces.map((ws) => (
               <button key={ws.id} type="button" onClick={() => { setPicker(false); navigate(ws.root); }} className={cn('flex w-full items-center gap-2.5 rounded-lg p-1.5 text-start text-[0.8125rem] transition hover:bg-slate-50', ws.id === workspace.id && 'bg-brand-50 font-semibold')}>
                 <WorkspaceMark workspace={ws} size="sm" /> {ws.label}
               </button>

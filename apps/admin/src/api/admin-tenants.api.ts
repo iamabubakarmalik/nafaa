@@ -35,6 +35,19 @@ export interface TenantsResponse {
   meta: { page: number; limit: number; total: number; totalPages: number };
 }
 
+export interface TenantInsights {
+  health: { score: number; label: string; factors: Array<{ key: string; label: string; ok: boolean; detail: string }> };
+  sales: { last7Bills: number; last7Total: number; lastSaleAt: string | null; daily: Array<{ date: string; bills: number; total: number }> };
+  activeUsers7: number;
+  shops: Array<{ id: string; name: string; isMain: boolean; isActive: boolean; createdAt: string }>;
+  devices: Array<{ id: string; platform: string; appVersion: string; osVersion: string | null; lastSeenAt: string; user: string | null }>;
+  integrations: Array<{ id: string; type: string; status: string; isActive: boolean; lastSyncAt: string | null; createdAt: string }>;
+  couriers: Array<{ id: string; provider: string; isActive: boolean }>;
+  onlineOrders30: number;
+  onboarding: { currentStep: number; completedSteps: number[]; isCompleted: boolean; isSkipped: boolean; completedAt: string | null } | null;
+  timeline: Array<{ id: string; kind: 'shop' | 'admin'; title: string; who: string | null; at: string; failed?: boolean }>;
+}
+
 export interface TenantStats {
   total: number; active: number; trial: number; suspended: number; expired: number; newThisWeek: number;
   industries: Array<{ type: string; count: number }>;
@@ -47,6 +60,8 @@ export const adminTenantsApi = {
     apiClient
       .get<{ data: TenantsResponse }>('/admin/tenants', { params })
       .then(unwrap),
+  insights: (id: string) =>
+    apiClient.get<{ data: TenantInsights }>(`/admin/tenants/${id}/insights`).then(unwrap),
   stats: () =>
     apiClient.get<{ data: TenantStats }>('/admin/tenants/stats').then(unwrap),
   getOne: (id: string) =>

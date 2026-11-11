@@ -3,7 +3,7 @@
  *
  * The starting look for every business on Nafaa. Each business owner can
  * override it for their staff, and each user for themselves (Settings →
- * Appearance in the web app). "Use built-in default" clears a field.
+ * Appearance in the web app). "Built-in default" clears a field.
  *
  * Note: the accent color here applies only to businesses whose industry has
  * no identity color; industry colors take priority so each industry keeps
@@ -12,23 +12,32 @@
 
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Palette, RotateCcw, Save } from 'lucide-react';
+import { Layers, Lightbulb, Palette, RotateCcw, Save, Type } from 'lucide-react';
 import { toast } from 'sonner';
+import { Card, Input, PageHero, PageShell, Select, Skeleton, Switch, heroButton, heroPrimaryButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminAppearanceApi, type PlatformAppearance } from '@/api/admin-appearance.api';
-import { Button } from '@/components/ui/Button';
+import { num } from '@/features/shared/kit';
 
 type Field = Exclude<keyof PlatformAppearance, 'brandColor' | 'reduceMotion' | `mobile${string}`>;
+type Option = { key: Field; label: string; help: string; values: [string, string][] };
 
-const OPTIONS: { key: Field; label: string; help: string; values: [string, string][] }[] = [
+const COLORS: Option[] = [
   { key: 'mode', label: 'Mode', help: 'Light, dark, or follow each device', values: [['system', 'System'], ['light', 'Light'], ['dark', 'Dark']] },
   { key: 'canvasTone', label: 'Background', help: 'Page background behind cards', values: [['soft', 'Soft grey'], ['white', 'Clean white'], ['warm', 'Warm'], ['cool', 'Cool'], ['tinted', 'Brand tint']] },
   { key: 'sidebarStyle', label: 'Sidebar', help: 'Menu color', values: [['light', 'Light'], ['dark', 'Dark'], ['brand', 'Brand']] },
+  { key: 'contrast', label: 'Contrast', help: 'High darkens secondary text and lines', values: [['normal', 'Normal'], ['high', 'High']] },
+];
+const TEXT: Option[] = [
   { key: 'latinFont', label: 'Font', help: 'Default UI font', values: [['inter', 'Inter'], ['jakarta', 'Plus Jakarta Sans'], ['manrope', 'Manrope'], ['poppins', 'Poppins'], ['nunito', 'Nunito'], ['ibm-plex', 'IBM Plex Sans'], ['system', 'System font']] },
   { key: 'urduFont', label: 'Urdu font', help: 'Default Urdu script font', values: [['naskh', 'Noto Naskh'], ['nastaliq', 'Noto Nastaliq'], ['gulzar', 'Gulzar'], ['noto-sans-arabic', 'Noto Sans Arabic']] },
   { key: 'textScale', label: 'Text size', help: 'Default text size', values: [['sm', 'Small'], ['md', 'Normal'], ['lg', 'Large'], ['xl', 'Extra large']] },
+];
+const LAYOUT: Option[] = [
   { key: 'density', label: 'Density', help: 'Spacing between elements', values: [['comfortable', 'Comfortable'], ['compact', 'Compact']] },
   { key: 'radius', label: 'Corners', help: 'Button and card corners', values: [['default', 'Rounded'], ['sharp', 'Sharp'], ['round', 'Extra round']] },
-  { key: 'contrast', label: 'Contrast', help: 'High darkens secondary text and lines', values: [['normal', 'Normal'], ['high', 'High']] },
+];
+const HEADER: Option[] = [
   { key: 'heroStyle', label: 'Header style', help: 'The colored box at the top of every page', values: [['modern', 'Modern (gradient, glow)'], ['simple', 'Simple (flat accent)'], ['soft', 'Soft (light tint, dark text)'], ['dark', 'Dark (ink with accent glow)'], ['aurora', 'Aurora (accent mesh)'], ['outline', 'Outline (border only)']] },
   { key: 'heroPattern', label: 'Header pattern', help: 'Background texture of the page header', values: [['dots', 'Dots'], ['grid', 'Grid'], ['lines', 'Lines'], ['none', 'None']] },
   { key: 'heroSize', label: 'Header size', help: 'Compact uses less padding and a smaller first number', values: [['comfortable', 'Comfortable'], ['compact', 'Compact']] },
@@ -40,106 +49,121 @@ const GOOGLE_FONT_PREFIX = 'gf:';
 
 export default function PlatformAppearancePage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
   const { data, isLoading } = useQuery({ queryKey: ['admin-appearance'], queryFn: adminAppearanceApi.get });
   const [draft, setDraft] = useState<PlatformAppearance>({});
   useEffect(() => { if (data !== undefined) setDraft(data ?? {}); }, [data]);
 
   const save = useMutation({
     mutationFn: () => adminAppearanceApi.save(draft),
-    onSuccess: (saved) => {
-      qc.setQueryData(['admin-appearance'], saved);
-      toast.success('Platform design saved — applies on next page load');
-    },
+    onSuccess: (saved) => { qc.setQueryData(['admin-appearance'], saved); toast.success('Platform design saved. It applies on the next page load.'); },
     onError: () => toast.error('Could not save'),
   });
 
   const set = <K extends keyof PlatformAppearance>(key: K, value: PlatformAppearance[K] | undefined) =>
     setDraft((d) => {
       const next = { ...d };
-      if (value === undefined || value === '') delete next[key];
-      else next[key] = value;
+      if (value === undefined || value === '') delete next[key]; else next[key] = value;
       return next;
     });
 
+  // Mobile-only fields have their own page; they are kept as they are when saving here.
   const dirty = JSON.stringify(draft) !== JSON.stringify(data ?? {});
+  const chosen = Object.keys(draft).filter((k) => !k.startsWith('mobile')).length;
+  const group = (options: Option[]) => options.map((o) => (
+    <Select key={o.key} label={o.label} hint={o.help} value={(draft[o.key] as string | undefined) ?? ''}
+      onChange={(e) => set(o.key, (e.target.value || undefined) as PlatformAppearance[Field])}
+      options={[{ value: '', label: 'Built-in default' }, ...o.values.map(([value, label]) => ({ value, label }))]} />
+  ));
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-700 p-6 text-white shadow-soft">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium">
-              <Palette className="h-3.5 w-3.5" /> Platform design
-            </div>
-            <h2 className="mt-3 text-3xl font-bold">Default look for every business</h2>
-            <p className="mt-2 max-w-2xl text-sm text-white/80">
-              Owners can override this for their business and each user for themselves. Industry colors stay unless a business picks its own.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => setDraft({})} disabled={!Object.keys(draft).length}>
-              <RotateCcw className="h-4 w-4" /> Built-in defaults
-            </Button>
-            <Button onClick={() => save.mutate()} loading={save.isPending} disabled={!dirty}>
-              <Save className="h-4 w-4" /> Save
-            </Button>
-          </div>
-        </div>
-      </section>
+    <PageShell>
+      <PageHero
+        title="Platform design"
+        chip={dirty ? 'Unsaved changes' : undefined}
+        busy={save.isPending}
+        loading={isLoading}
+        actions={
+          <>
+            <button type="button" className={heroButton} onClick={() => setDraft((d) => Object.fromEntries(Object.entries(d).filter(([k]) => k.startsWith('mobile'))))} disabled={!chosen}><RotateCcw className="h-4 w-4" /> Built-in defaults</button>
+            <button type="button" className={heroPrimaryButton} onClick={() => save.mutate()} disabled={!dirty || save.isPending}><Save className="h-4 w-4" /> Save</button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
+        stats={[
+          { label: 'Mode', value: ({ system: 'System', light: 'Light', dark: 'Dark' } as const)[draft.mode ?? 'system'] },
+          { label: 'Font', value: draft.latinFont?.startsWith(GOOGLE_FONT_PREFIX) ? draft.latinFont.slice(GOOGLE_FONT_PREFIX.length) : (TEXT[0].values.find(([v]) => v === draft.latinFont)?.[1] ?? 'Built-in') },
+          { label: 'Header style', value: HEADER[0].values.find(([v]) => v === draft.heroStyle)?.[1].split(' (')[0] ?? 'Built-in' },
+          { label: 'Fields set', value: num(chosen), hint: 'Others use built-in' },
+        ]}
+      />
 
-      {isLoading ? (
-        <div className="h-64 animate-pulse rounded-3xl bg-slate-100" />
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {OPTIONS.map((o) => (
-            <label key={o.key} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <span className="block text-sm font-semibold text-slate-900">{o.label}</span>
-              <span className="block text-xs text-slate-500">{o.help}</span>
-              <select
-                value={(draft[o.key] as string | undefined) ?? ''}
-                onChange={(e) => set(o.key, (e.target.value || undefined) as PlatformAppearance[Field])}
-                className="mt-3 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
-              >
-                <option value="">Built-in default</option>
-                {o.values.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-              </select>
-            </label>
-          ))}
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <span className="block text-sm font-semibold text-slate-900">Fallback accent color</span>
-            <span className="block text-xs text-slate-500">Used only where no industry or business color applies</span>
-            <div className="mt-3 flex items-center gap-2">
-              <input type="color" value={draft.brandColor ?? '#059669'} onChange={(e) => set('brandColor', e.target.value.toLowerCase())}
-                className="h-10 w-14 cursor-pointer rounded-lg border border-slate-200" aria-label="Accent color" />
-              <code className="text-sm text-slate-700">{draft.brandColor ?? 'Built-in (#059669)'}</code>
-              {draft.brandColor && <button type="button" onClick={() => set('brandColor', undefined)} className="text-xs font-semibold text-slate-500 hover:text-slate-900">Clear</button>}
-            </div>
+      {isLoading ? <Skeleton className="h-64 rounded-3xl" /> : (
+        <div className="grid gap-4 xl:grid-cols-3">
+          <div className="space-y-4 xl:col-span-2">
+            <Card title="Preview" description="The page header with your choices. Colors follow your own appearance settings here.">
+              <PageHero title="Sales today" chip="Preview" look={{ style: draft.heroStyle ?? undefined, pattern: draft.heroPattern ?? undefined, size: draft.heroSize ?? undefined, stats: draft.heroStats ?? undefined }}
+                stats={[{ label: 'Sales', value: 'Rs 128,400', hint: '42 bills' }, { label: 'Profit', value: 'Rs 31,250' }, { label: 'Customers', value: '36' }]} />
+            </Card>
+            <Card title="Page header" description="The colored box at the top of every page" actions={<Layers className="h-4 w-4 text-slate-400" />}>
+              <div className="grid gap-4 sm:grid-cols-2">{group(HEADER)}</div>
+            </Card>
+            <Card title="Colors and mode" actions={<Palette className="h-4 w-4 text-slate-400" />}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {group(COLORS)}
+                <div>
+                  <span className="mb-1.5 block text-[0.75rem] font-medium text-slate-700">Fallback accent color</span>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={draft.brandColor ?? '#059669'} onChange={(e) => set('brandColor', e.target.value.toLowerCase())} className="h-10 w-14 cursor-pointer rounded-lg border border-slate-300" aria-label="Accent color" />
+                    <code className="text-[0.8125rem] text-slate-700">{draft.brandColor ?? 'Built-in (#059669)'}</code>
+                    {draft.brandColor && <button type="button" onClick={() => set('brandColor', undefined)} className="text-[0.75rem] font-semibold text-slate-500 hover:text-slate-900">Clear</button>}
+                  </div>
+                  <p className="mt-1 text-[0.75rem] text-slate-500">Used only where no industry or business color applies.</p>
+                </div>
+              </div>
+            </Card>
           </div>
 
-          <label className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <span className="block text-sm font-semibold text-slate-900">Any Google Font</span>
-            <span className="block text-xs text-slate-500">Overrides the font above, e.g. Montserrat (exact name from fonts.google.com)</span>
-            <input
-              value={draft.latinFont?.startsWith(GOOGLE_FONT_PREFIX) ? draft.latinFont.slice(GOOGLE_FONT_PREFIX.length) : ''}
-              onChange={(e) => {
-                const name = e.target.value.replace(/[^A-Za-z0-9 ]/g, '');
-                set('latinFont', name.trim() ? `${GOOGLE_FONT_PREFIX}${name}` : undefined);
-              }}
-              placeholder="Font name"
-              className="mt-3 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
-            />
-          </label>
-
-          <label className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <span>
-              <span className="block text-sm font-semibold text-slate-900">Reduce motion</span>
-              <span className="block text-xs text-slate-500">Turn animations off by default</span>
-            </span>
-            <input type="checkbox" checked={!!draft.reduceMotion} onChange={(e) => set('reduceMotion', e.target.checked || undefined)} className="h-5 w-5" />
-          </label>
+          <div className="space-y-4">
+            <Card title="Text" actions={<Type className="h-4 w-4 text-slate-400" />}>
+              <div className="space-y-4">
+                {group(TEXT)}
+                <Input label="Any Google Font" hint="Overrides the font above, for example Montserrat (the exact name from fonts.google.com)" placeholder="Font name"
+                  value={draft.latinFont?.startsWith(GOOGLE_FONT_PREFIX) ? draft.latinFont.slice(GOOGLE_FONT_PREFIX.length) : ''}
+                  onChange={(e) => { const name = e.target.value.replace(/[^A-Za-z0-9 ]/g, ''); set('latinFont', name.trim() ? `${GOOGLE_FONT_PREFIX}${name}` : undefined); }} />
+              </div>
+            </Card>
+            <Card title="Layout">
+              <div className="space-y-4">
+                {group(LAYOUT)}
+                <Switch label="Reduce motion" description="Turn animations off by default" checked={!!draft.reduceMotion} onChange={(e) => set('reduceMotion', e.target.checked || undefined)} />
+              </div>
+            </Card>
+          </div>
         </div>
       )}
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Platform design"
+          description="The default look for every shop. Owners can change it for their staff, and each person for themselves."
+          flowTitle="Whose look wins"
+          flow={[
+            { label: 'Built-in', hint: 'Nafaa default', icon: Palette, color: '#64748b' },
+            { label: 'Platform design', hint: 'Set here', icon: Layers, color: '#4f46e5' },
+            { label: 'Shop owner', hint: 'For their staff', icon: Type, color: '#0284c7' },
+            { label: 'Person', hint: 'Final say', icon: Save, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Layers, color: '#4f46e5', title: 'Choose', text: 'Each option can stay on "Built-in default". Only the fields you set are stored.' },
+            { icon: Palette, color: '#d97706', title: 'Check the preview', text: 'The header preview shows style, pattern, size and numbers. Colors follow your own settings here.' },
+            { icon: Save, color: '#059669', title: 'Save', text: 'Changes apply to shops on their next page load. Mobile defaults are on Mobile apps → Appearance.' },
+          ]}
+          tips={['Industry colors stay unless a shop picks its own.', 'Built-in defaults clears every field on this page.']}
+          shortcuts={[['G', 'This guide']]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

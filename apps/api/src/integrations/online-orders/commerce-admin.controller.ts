@@ -15,12 +15,14 @@ import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 import { SuperAdminGuard } from '../../admin/common/super-admin.guard';
 import { CommerceAdminService } from './commerce-admin.service';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
 const num = (v?: string) => (v && Number.isFinite(Number(v)) ? Number(v) : undefined);
 
 @ApiTags('Admin - Online store')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, SuperAdminGuard)
+@AdminArea('online_store')
 @Controller('admin/commerce')
 export class CommerceAdminController {
   constructor(private readonly svc: CommerceAdminService) {}
@@ -73,8 +75,11 @@ export class CommerceAdminController {
   // ─── Catalog jobs ──────────────────────────────────────────
 
   @Get('jobs')
-  jobs(@Query('status') status?: string, @Query('tenantId') tenantId?: string, @Query('kind') kind?: string) {
-    return this.svc.jobList({ status, tenantId: tenantId || undefined, kind: kind || undefined });
+  jobs(
+    @Query('status') status?: string, @Query('tenantId') tenantId?: string, @Query('kind') kind?: string,
+    @Query('page') page?: string, @Query('limit') limit?: string, @Query('search') search?: string,
+  ) {
+    return this.svc.jobList({ status, tenantId: tenantId || undefined, kind: kind || undefined, page: Number(page) || 1, limit: Number(limit) || 25, search });
   }
 
   @Post('jobs/:id/cancel')
@@ -90,13 +95,13 @@ export class CommerceAdminController {
   // ─── Orders monitor (read only) ────────────────────────────
 
   @Get('orders/search')
-  searchOrders(@Query('q') q: string) {
-    return this.svc.searchOrders(q);
+  searchOrders(@Query('q') q: string, @Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.svc.searchOrders(q, Number(page) || 1, Number(limit) || 25);
   }
 
   @Get('orders/stuck')
-  stuckOrders() {
-    return this.svc.stuckOrders();
+  stuckOrders(@Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.svc.stuckOrders(Number(page) || 1, Number(limit) || 25);
   }
 
   @Get('orders/:id')
@@ -107,8 +112,8 @@ export class CommerceAdminController {
   // ─── Couriers, controls, tenant ────────────────────────────
 
   @Get('couriers')
-  couriers(@Query('tenantId') tenantId?: string) {
-    return this.svc.couriers(tenantId || undefined);
+  couriers(@Query('tenantId') tenantId?: string, @Query('search') search?: string, @Query('page') page?: string, @Query('limit') limit?: string) {
+    return this.svc.couriers(tenantId || undefined, { search, page: Number(page) || 1, limit: Number(limit) || 25 });
   }
 
   @Get('controls')

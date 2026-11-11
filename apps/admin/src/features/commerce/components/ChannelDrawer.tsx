@@ -4,17 +4,19 @@
  * action is written to the shop's activity log by the API.
  */
 
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Pause, Play, RefreshCw, RotateCcw, ScanSearch } from 'lucide-react';
 import { adminCommerceApi } from '@/api/admin-commerce.api';
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/lib/cn';
-import { Card, ChannelStatus, dateTime, Drawer, Empty, enumLabel, JobStatus, kindLabel, Pill, Progress, when } from './CommerceUi';
+import { Button, Segmented, confirmDialog } from '@/design-system/components';
+import { errMsg } from '@/features/shared/kit';
+import { Card, ChannelStatus, dateTime, Drawer, Empty, enumLabel, Info, JobStatus, kindLabel, Pill, Progress, when } from './CommerceUi';
 
 type Action = 'pause' | 'resume' | 'rescan' | 'repush' | 'retry-failed';
+
+const ACTION_TITLE: Record<Action, string> = { pause: 'Pause channel', resume: 'Resume channel', rescan: 'Re-scan catalog', repush: 'Re-push stock and price', 'retry-failed': 'Retry failed links' };
 
 const CONFIRM: Record<Action, string> = {
   pause: 'Pause this channel? Orders stop coming in and Nafaa stops pushing until it is resumed.',
@@ -23,8 +25,6 @@ const CONFIRM: Record<Action, string> = {
   repush: 'Push stock and price for every linked product again? It runs as a background job.',
   'retry-failed': 'Retry every failed link (stock, price and listed status)? It runs as a background job.',
 };
-
-const errMsg = (e: any) => e?.response?.data?.message ?? e?.message ?? 'Action failed';
 
 export function ChannelDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
   const qc = useQueryClient();
@@ -42,7 +42,7 @@ export function ChannelDrawer({ id, onClose }: { id: string | null; onClose: () 
     },
     onError: (e) => toast.error(errMsg(e)),
   });
-  const run = (a: Action) => { if (window.confirm(CONFIRM[a])) act.mutate(a); };
+  const run = async (a: Action) => { if (await confirmDialog({ title: ACTION_TITLE[a], text: CONFIRM[a], yes: ACTION_TITLE[a], danger: a === 'pause' })) act.mutate(a); };
 
   return (
     <Drawer open={!!id} onClose={onClose} title={c?.displayName ?? 'Channel'} subtitle={c ? `${kindLabel(c.kind)} · ${c.tenant?.name ?? c.tenantId}` : undefined}>
@@ -54,11 +54,11 @@ export function ChannelDrawer({ id, onClose }: { id: string | null; onClose: () 
               {c.killSwitch && <Pill tone="rose">Kill switch on</Pill>}
               {c.settings.shopifyBilling && <Pill tone="indigo">Billing: {c.settings.shopifyBilling === 'shopify' ? 'Shopify App Store' : 'Direct'}</Pill>}
               {c.settings.shopifyPlan && <Pill tone={c.settings.shopifyPlan.active ? 'emerald' : 'amber'}>Plan: {c.settings.shopifyPlan.name ?? (c.settings.shopifyPlan.active ? 'Active' : 'None')}</Pill>}
-              {c.tenant && <Link to={`/tenants/${c.tenant.id}`} className="ml-auto text-xs font-semibold text-indigo-700 hover:underline">Open shop</Link>}
+              {c.tenant && <Link to={`/tenants/${c.tenant.id}`} className="ml-auto text-xs font-semibold text-brand-700 hover:underline">Open shop</Link>}
             </div>
             {c.settings.channelError && <p className="mt-3 rounded-xl bg-rose-50 px-3 py-2 text-xs text-rose-800">{c.settings.channelError}</p>}
             <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <Info label="Site" value={c.settings.siteUrl ? <a href={c.settings.siteUrl} target="_blank" rel="noreferrer" className="text-indigo-700 hover:underline">{c.settings.siteUrl.replace(/^https?:\/\//, '')}</a> : '—'} />
+              <Info label="Site" value={c.settings.siteUrl ? <a href={c.settings.siteUrl} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">{c.settings.siteUrl.replace(/^https?:\/\//, '')}</a> : '—'} />
               <Info label="Last sync" value={`${when(c.lastSyncAt)}${c.lastSyncStatus ? ` · ${enumLabel(c.lastSyncStatus)}` : ''}`} />
               <Info label="Last order" value={when(c.counts.lastOrderAt)} />
               <Info label="Orders (30 days)" value={c.counts.orders30d} />
@@ -82,14 +82,12 @@ export function ChannelDrawer({ id, onClose }: { id: string | null; onClose: () 
             </div>
           </Card>
 
-          <div className="inline-flex rounded-xl bg-slate-200/70 p-1">
-            {([['sync', `Sync logs (${c.syncLogs.length})`], ['webhooks', `Webhooks (${c.webhookLogs.length})`], ['links', `Failed links (${c.counts.failedLinks})`], ['jobs', `Jobs (${c.jobs.length})`]] as const).map(([k, label]) => (
-              <button key={k} type="button" onClick={() => setTab(k)}
-                className={cn('rounded-lg px-3 py-1.5 text-xs font-semibold transition', tab === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900')}>{label}</button>
-            ))}
-          </div>
+          <Segmented value={tab} onChange={setTab} label="Channel logs" items={[
+            { value: 'sync', label: `Sync logs (${c.syncLogs.length})` }, { value: 'webhooks', label: `Webhooks (${c.webhookLogs.length})` },
+            { value: 'links', label: `Failed links (${c.counts.failedLinks})` }, { value: 'jobs', label: `Jobs (${c.jobs.length})` },
+          ]} />
 
-          <Card className="p-0">
+          <Card flush>
             {tab === 'sync' && (c.syncLogs.length ? (
               <ul className="divide-y divide-slate-100 text-sm">
                 {c.syncLogs.map((l) => (
@@ -153,14 +151,5 @@ export function ChannelDrawer({ id, onClose }: { id: string | null; onClose: () 
         </>
       )}
     </Drawer>
-  );
-}
-
-function Info({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="min-w-0">
-      <dt className="text-xs text-slate-500">{label}</dt>
-      <dd className="mt-0.5 truncate font-medium text-slate-900">{value}</dd>
-    </div>
   );
 }
