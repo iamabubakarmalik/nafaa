@@ -40,6 +40,12 @@ export class AssignPlanDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional({ description: 'Price for this period instead of the plan price (0 = free gift)' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  customAmount?: number;
 }
 
 export class ExtendSubscriptionDto {

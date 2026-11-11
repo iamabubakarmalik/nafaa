@@ -9,6 +9,7 @@ import { AUTO_SYNC_PRESET, DEFAULT_PUSH_CONTENT, WebsiteConfig, assertSafeWebhoo
 import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.service';
 import { normalizeShopifySiteUrl } from './shopify-shop';
 import { apiMessage } from '../../common/i18n/api-message';
+import { CHANNEL_ADDON, EntitlementsService } from '../../modules/billing/entitlements/entitlements.service';
 
 /** Website jaise channels — har ek ki apni key, settings aur safha */
 export const WEBSITE_TYPES: IntegrationType[] = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'FOODPANDA'];
@@ -30,6 +31,7 @@ export class WebsiteSetupService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tzService: TenantTimezoneService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   /** Keys sirf malik/manager dekh sakte hain — cashier nahi */
@@ -169,6 +171,8 @@ export class WebsiteSetupService {
   ): Promise<Integration> {
     this.assertCanManage(user);
     if (!WEBSITE_TYPES.includes(body.type)) throw new BadRequestException('Ye website ka type nahi');
+    const gate = CHANNEL_ADDON[body.type];
+    if (gate) await this.entitlements.assertAddOn(user.tenantId, gate.feature, gate.addOn, gate.label);
 
     const shopId = await this.validShopId(user.tenantId, body.shopId);
     const apiKey = 'nfk_' + crypto.randomBytes(24).toString('hex');
@@ -441,6 +445,8 @@ export class WebsiteSetupService {
   async setActive(user: AuthenticatedUser, id: string, active: boolean) {
     this.assertCanManage(user);
     const integration = await this.requireChannel(user.tenantId, id);
+    const gate = CHANNEL_ADDON[integration.type];
+    if (active && gate) await this.entitlements.assertAddOn(user.tenantId, gate.feature, gate.addOn, gate.label);
     await this.prisma.integration.update({
       where: { id: integration.id },
       data: { isActive: active, status: active ? IntegrationStatus.CONNECTED : IntegrationStatus.DISCONNECTED },

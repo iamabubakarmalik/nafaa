@@ -19,6 +19,7 @@ export interface AdminPayment {
   invoice?: {
     invoiceNumber: string;
     subscription?: { plan: { name: string } } | null;
+    items?: Array<{ id: string; kind: string; description: string; quantity: number; unitPrice: number; amount: number }>;
   } | null;
   upload?: { id: string; url: string; filename: string; mimeType: string } | null;
 }

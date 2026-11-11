@@ -35,6 +35,14 @@ export class AdminAuthController {
     });
   }
 
+  /** New tokens for a signed-in admin, so the panel does not sign out when the short access token ends. */
+  @Public()
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refresh(@Body() body: { refreshToken?: string }, @Req() req: Request) {
+    return this.service.refresh(body?.refreshToken, { userAgent: req.headers['user-agent'], ip: req.ip });
+  }
+
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('me')

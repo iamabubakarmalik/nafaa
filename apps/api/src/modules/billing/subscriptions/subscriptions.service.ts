@@ -12,6 +12,9 @@ import { EmailService } from '../../email/email.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { nextInvoiceNumber } from '../pricing/invoice-number';
+import { AddOnChoice, applyPaidInvoiceAddOns, checkoutLines, resolveChoices, writeInvoiceItems } from '../pricing/pricing-core';
+import { invalidateEntitlements } from '../entitlements/entitlements.service';
 
 /** Months added to the billing period for each interval. */
 const INTERVAL_MONTHS: Record<BillingInterval, number> = {
@@ -166,20 +169,8 @@ export class SubscriptionsService {
    * and `invoiceNumber` is UNIQUE, so two tenants subscribing in the same
    * millisecond-window could crash each other's checkout.
    */
-  private async nextInvoiceNumber(tx: any): Promise<string> {
-    const now = new Date();
-    const ym = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
-      const candidate = `INV-${ym}-${suffix}`;
-      const clash = await tx.invoice.findUnique({
-        where: { invoiceNumber: candidate },
-        select: { id: true },
-      });
-      if (!clash) return candidate;
-    }
-    return `INV-${ym}-${Date.now().toString(36).toUpperCase()}`;
+  private nextInvoiceNumber(tx: Prisma.TransactionClient): Promise<string> {
+    return nextInvoiceNumber(tx);
   }
 
   /** Price + period length for a plan/interval pair. */
@@ -214,9 +205,10 @@ export class SubscriptionsService {
    *  4. Nothing open → create the pending subscription + its invoice.
    */
   async startSubscription(
-    user: AuthenticatedUser,
+    user: Pick<AuthenticatedUser, 'tenantId'>,
     planId: string,
     interval: BillingInterval,
+    addOns?: AddOnChoice[],
   ) {
     const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
     if (!plan) throw new NotFoundException('Plan not found');
@@ -226,8 +218,18 @@ export class SubscriptionsService {
     if (plan.slug === 'free-trial') {
       throw new BadRequestException('Free trial khud activate nahi kar sakte');
     }
+    if (plan.isFree) {
+      throw new BadRequestException('Free plan ke liye "Free plan par jayein" dabayein');
+    }
 
-    const { amount, months } = this.priceFor(plan, interval);
+    const { months } = this.priceFor(plan, interval);
+    // Plan + add-ons on one bill (pricing v2).
+    const picks = await resolveChoices(this.prisma, plan, addOns);
+    // An admin deal price on a shop's add-on is used on every bill, renewals too.
+    const deals = picks.length
+      ? await this.prisma.tenantAddOn.findMany({ where: { tenantId: user.tenantId, addOnId: { in: picks.map((p) => p.addOn.id) }, unitPrice: { not: null } }, select: { addOnId: true, unitPrice: true } })
+      : [];
+    const { lines, total: amount } = checkoutLines(plan, interval, picks, new Map(deals.map((d) => [d.addOnId, d.unitPrice!])));
 
     return this.prisma.$transaction(async (tx) => {
       const now = new Date();
@@ -307,6 +309,7 @@ export class SubscriptionsService {
             invoice.total === amount;
 
           if (unchanged) {
+            await writeInvoiceItems(tx, invoice.id, lines, now, periodEnd);
             this.logger.log(`♻️  Reusing open checkout: ${invoice.invoiceNumber}`);
             return {
               subscription: keeper,
@@ -345,6 +348,7 @@ export class SubscriptionsService {
             },
           });
 
+          await writeInvoiceItems(tx, invoice.id, lines, now, periodEnd);
           this.logger.log(
             `✏️  Re-priced ${invoice.invoiceNumber} → ${plan.name} ${interval} (Rs ${amount})`,
           );
@@ -397,6 +401,7 @@ export class SubscriptionsService {
         },
       });
 
+      await writeInvoiceItems(tx, invoice.id, lines, now, periodEnd);
       this.logger.log(
         `✨ New checkout: ${plan.name} ${interval} → ${invoice.invoiceNumber}`,
       );
@@ -621,6 +626,11 @@ export class SubscriptionsService {
       where: { id: sub.tenantId },
       data: { status: 'ACTIVE' },
     });
+
+    // Add-ons billed on this checkout run for the same period.
+    const paidInvoices = await tx.invoice.findMany({ where: { subscriptionId: sub.id, status: 'PAID' }, select: { id: true } });
+    for (const inv of paidInvoices) await applyPaidInvoiceAddOns(tx, inv.id, periodEnd);
+    invalidateEntitlements(sub.tenantId);
 
     return { sub: updated, stacked: stacks, superseded: others.length };
   }

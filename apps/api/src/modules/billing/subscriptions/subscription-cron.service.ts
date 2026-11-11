@@ -5,6 +5,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { EmailService } from '../../email/email.service';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { apiMessage } from '../../../common/i18n/api-message';
+import { loadBillingSettings } from '../entitlements/billing-settings';
 
 @Injectable()
 export class SubscriptionCronService {
@@ -147,8 +148,9 @@ export class SubscriptionCronService {
         }
       }
 
-      // ─── 3. PAST_DUE longer than 3 days → EXPIRED ───
-      const graceLimit = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+      // ─── 3. PAST_DUE longer than the grace days (admin setting) → EXPIRED ───
+      const { graceDays } = await loadBillingSettings(this.prisma);
+      const graceLimit = new Date(now.getTime() - graceDays * 24 * 60 * 60 * 1000);
       const longOverdue = await this.prisma.subscription.findMany({
         where: {
           status: 'PAST_DUE',
@@ -212,26 +214,8 @@ export class SubscriptionCronService {
         }
       }
 
-      // ─── 6. Active sub expiring in 7 days — reminder ───
-      const sub7Day = await this.prisma.subscription.findMany({
-        where: {
-          status: 'ACTIVE',
-          currentPeriodEnd: {
-            gte: new Date(in7Days.getTime() - 12 * 60 * 60 * 1000),
-            lte: new Date(in7Days.getTime() + 12 * 60 * 60 * 1000),
-          },
-        },
-        include: { tenant: true, plan: true },
-      });
-
-      for (const sub of sub7Day) {
-        try {
-          await this.sendSubscriptionExpiringEmail(sub, 7);
-          stats.subWarnings++;
-        } catch (e) {
-          stats.errors++;
-        }
-      }
+      // Reminders before the plan ends (7, 3, 1 days by default) and during the
+      // grace period are sent by BillingLifecycleService, from the admin settings.
 
       this.logger.log(`✅ Daily check complete: ${JSON.stringify(stats)}`);
     } catch (e) {

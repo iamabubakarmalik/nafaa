@@ -14,6 +14,8 @@ import { SuperAdminGuard } from '../common/super-admin.guard';
 import { AdminPlansService } from './admin-plans.service';
 import { UpsertPlanDto } from './dto/upsert-plan.dto';
 import { AdminArea } from '../access/admin-access.decorators';
+import { GetUser } from '../../modules/auth/decorators/get-user.decorator';
+import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
 
 @ApiTags('Admin - Plans')
 @ApiBearerAuth()
@@ -29,13 +31,13 @@ export class AdminPlansController {
   }
 
   @Post()
-  create(@Body() dto: UpsertPlanDto) {
-    return this.service.create(dto);
+  create(@GetUser() user: AuthenticatedUser, @Body() dto: UpsertPlanDto) {
+    return this.service.create(dto, user.id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpsertPlanDto) {
-    return this.service.update(id, dto);
+  update(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() dto: UpsertPlanDto) {
+    return this.service.update(id, dto, user.id);
   }
 
   @Delete(':id')

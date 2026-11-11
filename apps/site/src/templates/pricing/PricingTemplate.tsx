@@ -15,25 +15,44 @@
 import type { PublicEntry } from '@/lib/cms/contract/cms-contract';
 import { uiStrings } from '@/lib/i18n/ui';
 import { Blocks } from '../core/Blocks';
-import { liveLinks, loadCards, loadPlans } from '../core/data';
+import { liveLinks, loadCards, loadPlans, loadSite } from '../core/data';
 import { PageFrame } from '../core/frame';
 import { LinkSections, NextSteps, relatedGroup } from '../core/parts';
 import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { TrustRibbon } from '../showcase/kit';
+import { loadPricingCatalog } from '@/lib/pricing/catalog';
 import { PlanMatrix } from './PlanMatrix';
+import { AddOnsSection, CalculatorSection, CatalogComparison } from './PricingV2';
+import { missingFaqs } from './pricingV2Strings';
 
-export async function PricingTemplate({ entry }: { entry: PublicEntry }) {
+export async function PricingTemplate({ entry: cmsEntry }: { entry: PublicEntry }) {
+  const catalog = await loadPricingCatalog();
+  // One FAQ: the CMS questions plus the pricing v2 topics they do not cover (the FAQPage schema reads entry.faqs too).
+  const entry: PublicEntry = {
+    ...cmsEntry,
+    faqs: [...cmsEntry.faqs, ...missingFaqs(cmsEntry.faqs, cmsEntry.locale, catalog?.trialDays ?? 7)],
+  };
   const ui = uiStrings(entry.locale);
   const t = ui.pages.pricing;
-  const [plans, products, links] = await Promise.all([
+  const [plans, products, links, site] = await Promise.all([
     loadPlans(),
     loadCards({ type: 'PRODUCT', locale: entry.locale, limit: 6, status: ['live', 'beta'] }),
     liveLinks(['/best/pos-software-pakistan', '/services/hardware', '/demo', '/product', '/contact'], entry.locale),
+    loadSite(entry.locale),
   ]);
   const productHub = links.get('/product');
   const pricingBlock = entry.blocks.find((b) => b.type === 'pricingTable');
   const highlight = pricingBlock?.type === 'pricingTable' ? pricingBlock.highlightPlan : undefined;
-  const matrix = <PlanMatrix plans={plans} highlight={highlight} locale={entry.locale} />;
+  // Catalog (pricing v2) drives the grouped comparison, add-ons and calculator; without it the CMS plan table stays.
+  const matrix = catalog ? (
+    <>
+      <CatalogComparison catalog={catalog} locale={entry.locale} highlight={highlight} />
+      <AddOnsSection catalog={catalog} locale={entry.locale} />
+      <CalculatorSection catalog={catalog} locale={entry.locale} signupUrl={site.signupUrl} highlight={highlight} />
+    </>
+  ) : (
+    <PlanMatrix plans={plans} highlight={highlight} locale={entry.locale} />
+  );
 
   return (
     <PageFrame entry={entry} plans={plans}>

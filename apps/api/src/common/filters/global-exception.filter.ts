@@ -23,6 +23,9 @@ const PRISMA_KNOWN: Record<string, { status: number; message: string }> = {
   P2023: { status: HttpStatus.BAD_REQUEST, message: 'Kisi field ki value ghalat hai' },
 };
 
+/** Extra fields an HttpException body may carry that the apps need (billing codes, limits). */
+const PASS_THROUGH = ['code', 'addOnKey', 'feature', 'limit', 'current', 'max', 'expiredAt', 'daysOverdue'] as const;
+
 const SERVER_ERROR_MESSAGE = 'Server me masla aa gaya. Thori der baad dobara try karein.';
 
 /**
@@ -46,8 +49,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     let error = 'InternalServerError';
     // Set by apiMessage() so the web app can translate messages that carry values.
     let translation: { messageKey?: string; params?: unknown } = {};
-    // Maintenance answers carry the expected end time for the merchant apps.
-    let extra: { until?: unknown } = {};
+    // Fields the apps act on: maintenance end time, plan/add-on codes and limits.
+    let extra: Record<string, unknown> = {};
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -59,6 +62,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message = (r.message as string | string[]) ?? message;
         error = (r.error as string) ?? exception.name;
         if (r.error === 'Maintenance') extra = { until: r.until ?? null };
+        for (const k of PASS_THROUGH) if (r[k] !== undefined) extra[k] = r[k];
         if (typeof r.messageKey === 'string') {
           translation = { messageKey: r.messageKey, params: r.params };
           // Same `error` text Nest gives a plain-string exception ("Bad Request").

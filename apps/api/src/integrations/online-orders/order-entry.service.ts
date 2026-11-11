@@ -13,6 +13,7 @@ import { phoneKey } from './customer-risk';
 import { paidAdvance } from './order-money';
 import { findPhone, parseOrderText } from './order-parse';
 import { MatchIndex, MatchProduct } from './product-matcher';
+import { CHANNEL_ADDON, EntitlementsService } from '../../modules/billing/entitlements/entitlements.service';
 
 /** Where a hand-typed order came from (metadata.source). */
 export const MANUAL_SOURCES = ['MANUAL', 'WHATSAPP', 'INSTAGRAM', 'FACEBOOK', 'PHONE', 'TIKTOK'] as const;
@@ -66,6 +67,7 @@ export class OrderEntryService {
     private readonly tools: OrderToolsService,
     private readonly integrations: IntegrationService,
     private readonly channelSync: OrderChannelSyncService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   private scopeWhere(user: AuthenticatedUser, scope: ShopScope): Prisma.ChannelOrderWhereInput {
@@ -301,6 +303,8 @@ export class OrderEntryService {
   async manualIntegration(tenantId: string): Promise<Integration> {
     const found = await this.prisma.integration.findFirst({ where: { tenantId, type: 'MANUAL' }, orderBy: { createdAt: 'asc' } });
     if (found) return found;
+    const gate = CHANNEL_ADDON.MANUAL;
+    await this.entitlements.assertAddOn(tenantId, gate.feature, gate.addOn, gate.label);
     return this.prisma.integration.create({
       data: {
         tenantId, type: 'MANUAL', category: IntegrationCategory.SALES_CHANNEL, displayName: 'Manual orders',

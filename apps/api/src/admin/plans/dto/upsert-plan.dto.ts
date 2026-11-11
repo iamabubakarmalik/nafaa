@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsInt,
   IsNotEmpty,
@@ -103,4 +105,18 @@ export class UpsertPlanDto {
   @ApiPropertyOptional() @IsOptional() @IsBoolean() featureCustomBranding?: boolean;
   /** Wholesale and distribution module; priced per booker login. */
   @ApiPropertyOptional() @IsOptional() @IsBoolean() featureDistribution?: boolean;
+
+  /** Feature keys from billing/entitlements/feature-catalog.ts; unknown keys are dropped. */
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(100)
+  @IsString({ each: true })
+  features?: string[];
+
+  /** The always-free plan for very small shops (prices are saved as 0). */
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isFree?: boolean;
 }

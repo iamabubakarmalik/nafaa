@@ -35,10 +35,19 @@ export interface AdminPlan {
   featureCustomBranding: boolean;
   /** Wholesale & distribution (booker app, routes, load sheets); priced per booker login. */
   featureDistribution?: boolean;
+  /** Feature keys the plan includes (see the billing feature catalog). */
+  features: string[];
+  /** The always-free plan for very small shops. */
+  isFree: boolean;
   _count?: { subscriptions: number };
+  /** Shops on the plan right now. */
+  subscribers?: { active: number; trial: number; pastDue: number };
 }
 
-export type UpsertPlanPayload = Omit<AdminPlan, 'id' | '_count'>;
+/** What the plan editor sends; the server keeps the old feature columns in step with `features`. */
+export type UpsertPlanPayload = Pick<AdminPlan,
+  'name' | 'slug' | 'priceMonthly' | 'priceQuarterly' | 'priceYearly' | 'trialDays' | 'isActive' | 'isPublic' | 'sortOrder'
+  | 'maxProducts' | 'maxUsers' | 'maxShops' | 'maxSalesPerMonth' | 'features' | 'isFree'> & { description?: string };
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 

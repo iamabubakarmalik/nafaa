@@ -5,12 +5,17 @@ import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { apiMessage } from '../../common/i18n/api-message';
 import { startOfMonthTz } from '../../common/helpers/business-time.helper';
 import { dayRange } from '../common/date-range';
+import { SubscriptionsService } from '../../modules/billing/subscriptions/subscriptions.service';
+import { EntitlementsService } from '../../modules/billing/entitlements/entitlements.service';
+import { applyPaidInvoiceAddOns } from '../../modules/billing/pricing/pricing-core';
 
 @Injectable()
 export class AdminInvoicesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly subscriptions: SubscriptionsService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   /** Headline numbers for the Invoices page. */
@@ -74,6 +79,7 @@ export class AdminInvoicesService {
           tenant: { select: { id: true, name: true, slug: true } },
           subscription: { include: { plan: { select: { name: true } } } },
           payments: true,
+          items: { orderBy: { createdAt: 'asc' } },
         },
       }),
       this.prisma.invoice.count({ where }),
@@ -125,7 +131,9 @@ export class AdminInvoicesService {
       throw new BadRequestException('Already paid');
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    // Same activation as approving a payment: the plan period is re-anchored
+    // by SubscriptionsService, and an add-on bill turns its add-ons on.
+    const { updated, activated } = await this.prisma.$transaction(async (tx) => {
       await tx.payment.create({
         data: {
           tenantId: invoice.tenantId,
@@ -152,19 +160,27 @@ export class AdminInvoicesService {
         },
       });
 
-      if (invoice.subscriptionId) {
-        await tx.subscription.update({
-          where: { id: invoice.subscriptionId },
-          data: { status: 'ACTIVE' },
-        });
-        await tx.tenant.update({
-          where: { id: invoice.tenantId },
-          data: { status: 'ACTIVE' },
-        });
+      let activated: Awaited<ReturnType<SubscriptionsService['activateWithin']>> = null;
+      const sub = invoice.subscriptionId
+        ? await tx.subscription.findUnique({ where: { id: invoice.subscriptionId }, select: { id: true, status: true, currentPeriodEnd: true } })
+        : null;
+      if (sub && sub.status !== 'ACTIVE') {
+        activated = await this.subscriptions.activateWithin(tx, sub.id, invoice.id);
+      } else if (sub) {
+        // Already running: keep its period, only turn on the add-ons this bill paid for.
+        await applyPaidInvoiceAddOns(tx, invoice.id, sub.currentPeriodEnd);
+        await tx.tenant.update({ where: { id: invoice.tenantId }, data: { status: 'ACTIVE' } });
+      } else {
+        await applyPaidInvoiceAddOns(tx, invoice.id);
       }
 
-      return updated;
+      return { updated, activated };
     });
+
+    if (activated) await this.subscriptions.announceActivation(activated);
+    this.entitlements.invalidate(invoice.tenantId);
+    await this.entitlements.syncChannels(invoice.tenantId).catch(() => undefined);
+    return updated;
   }
 
   async voidInvoice(id: string) {

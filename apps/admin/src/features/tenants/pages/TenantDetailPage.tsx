@@ -1,6 +1,6 @@
 /**
  * Shop 360: one shop's full picture — health score, sales trend, team and
- * devices, plan and invoices, the partner who brought it, online store, notes
+ * devices, plan, add-ons and admin billing deals, invoices, the partner who brought it, online store, notes
  * and a timeline of shop and admin activity — with the admin actions (sign in
  * as the shop, suspend or reactivate, delete), each shown only to admins
  * allowed to use it.
@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import {
   Activity, Building2, CheckCircle2, CircleAlert, CreditCard, Gift, Globe, LogIn, LogOut, MessageSquare, Pencil, Package, Phone, Receipt,
-  ShieldCheck, ShoppingCart, Smartphone, Store, Trash2, Truck, UserCog, Users, XCircle,
+  Puzzle, ShieldCheck, ShoppingCart, Smartphone, Store, Trash2, Truck, UserCog, Users, XCircle,
 } from 'lucide-react';
 import {
   Alert, Badge, Button, Card, Checkbox, EmptyState, Input, Select, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, Textarea, ViewTabs, confirmDialog,
@@ -23,6 +23,7 @@ import { adminTenantsApi, type TenantStatus } from '@/api/admin-tenants.api';
 import { adminImpersonateApi } from '@/api/admin-impersonate.api';
 import TenantNotesPanel from '@/features/notes/pages/TenantNotesPanel';
 import TenantCommercePanel from '@/features/commerce/components/TenantCommercePanel';
+import TenantPlanPanel from '../components/TenantPlanPanel';
 import { useCan } from '@/lib/access';
 import { cn } from '@/lib/cn';
 import { formatDate, formatDateTime, formatPKR, formatPKRFull, formatRelative, num } from '@/lib/format';
@@ -33,7 +34,7 @@ import { BUSINESS_MODELS, BusinessModelChips } from '../components/BusinessModel
 import { UserActions } from '@/features/users/components/UserActions';
 import { TenantPartnerCard } from '@/features/partners/components/TenantPartnerCard';
 
-type Tab = 'overview' | 'team' | 'billing' | 'online' | 'notes' | 'timeline';
+type Tab = 'overview' | 'team' | 'plan' | 'billing' | 'online' | 'notes' | 'timeline';
 
 function HealthRing({ score }: { score: number }) {
   const color = score >= 80 ? '#059669' : score >= 40 ? '#d97706' : '#e11d48';
@@ -146,6 +147,7 @@ export default function TenantDetailPage() {
   const tabs = [
     { id: 'overview' as const, label: 'Overview', icon: Activity },
     { id: 'team' as const, label: 'Team & devices', icon: Users, count: tenant._count.users },
+    { id: 'plan' as const, label: 'Plan & add-ons', icon: Puzzle },
     { id: 'billing' as const, label: 'Billing', icon: CreditCard },
     { id: 'online' as const, label: 'Online store', icon: Globe },
     { id: 'notes' as const, label: 'Notes', icon: MessageSquare },
@@ -300,6 +302,8 @@ export default function TenantDetailPage() {
           </div>
         </div>
       )}
+
+      {tab === 'plan' && <TenantPlanPanel tenantId={tenant.id} tenantName={tenant.name} />}
 
       {tab === 'billing' && (
         <div className="grid gap-4 lg:grid-cols-2">

@@ -9,10 +9,10 @@
 
 import type { ComponentType, CSSProperties } from 'react';
 import {
-  Activity, BarChart3, Beaker, Bell, BellRing, Bot, Bug, Building2, Calendar, CircleHelp, CreditCard, Download,
+  Activity, BadgeDollarSign, BarChart3, Beaker, Bell, BellRing, Bot, Bug, Building2, Calendar, CircleHelp, CreditCard, Download,
   ClipboardList, FileText, Gift, Globe, Handshake, HandCoins, Briefcase, HeartPulse, Images, Layers, LayoutDashboard, ListChecks, Mail, MailCheck,
   Megaphone, Menu as MenuIcon, MessageSquare, MessageSquareText, MousePointer2, Package, PackageCheck,
-  PackageSearch, Paintbrush, Palette, Plug, Power, Receipt, Rocket, Search, Send, Settings, Settings2,
+  PackageSearch, Paintbrush, Palette, Plug, Power, Puzzle, SlidersHorizontal, Receipt, Rocket, Search, Send, Settings, Settings2,
   KeyRound, MapPinCheck, Radio, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
   Timer, ToggleRight, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
@@ -166,19 +166,20 @@ export const WORKSPACES: AdminWorkspace[] = [
     id: 'billing',
     label: 'Billing & plans',
     shortLabel: 'Billing',
-    description: 'Payments, subscriptions, plans, invoices and promo codes',
+    description: 'Payments, revenue, subscriptions, plans, add-ons, invoices and promo codes',
     icon: Wallet,
     tone: 'bg-emerald-600 text-white',
     root: '/billing',
-    prefixes: ['/billing', '/subscriptions', '/plans', '/invoices', '/referrals', '/platform-discounts', '/distribution'],
+    prefixes: ['/billing', '/revenue', '/subscriptions', '/plans', '/addons', '/invoices', '/referrals', '/platform-discounts', '/distribution'],
     groups: [
       {
         id: 'payments',
         label: 'Payments',
         icon: CreditCard,
         items: [
-          { to: '/billing', label: 'Payment approvals', icon: CreditCard, keywords: 'pending bank transfer jazzcash easypaisa' },
+          { to: '/billing', label: 'Payment approvals', icon: CreditCard, exact: true, keywords: 'pending bank transfer jazzcash easypaisa' },
           { to: '/invoices', label: 'Invoices', icon: Receipt, keywords: 'bills receipts' },
+          { to: '/revenue', label: 'Revenue', icon: BadgeDollarSign, keywords: 'mrr monthly recurring income by plan add-on grace trial grandfathered' },
         ],
       },
       {
@@ -187,7 +188,9 @@ export const WORKSPACES: AdminWorkspace[] = [
         icon: Sparkles,
         items: [
           { to: '/subscriptions', label: 'Subscriptions', icon: Sparkles, keywords: 'trial renew expire' },
-          { to: '/plans', label: 'Plans & pricing', icon: Tag, keywords: 'packages price limits' },
+          { to: '/plans', label: 'Plans & pricing', icon: Tag, keywords: 'packages price limits features free plan trial' },
+          { to: '/addons', label: 'Add-ons', icon: Puzzle, keywords: 'extras shopify woocommerce daraz courier bundle extra user booker distribution price' },
+          { to: '/billing/settings', label: 'Billing settings', icon: SlidersHorizontal, keywords: 'trial days grace reminders renewal grandfather run billing check' },
           { to: '/distribution', label: 'Distribution usage', icon: Truck, keywords: 'wholesale add-on' },
         ],
       },
@@ -426,7 +429,7 @@ const AREA_BY_PREFIX: Array<[string, string]> = [
   ['/dashboard', 'dashboard'], ['/live', 'users'], ['/analytics', 'dashboard'], ['/notifications', 'notifications'],
   ['/tenants', 'tenants'], ['/users', 'users'], ['/deletion-requests', 'deletion'], ['/partners', 'partners'],
   ['/products', 'merchant_data'], ['/sales', 'merchant_data'], ['/customers', 'merchant_data'], ['/bulk-actions', 'bulk'],
-  ['/billing', 'billing'], ['/invoices', 'billing'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
+  ['/billing/settings', 'plans'], ['/billing', 'billing'], ['/invoices', 'billing'], ['/revenue', 'billing'], ['/addons', 'plans'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
   ['/platform-discounts', 'promos'], ['/referrals', 'promos'],
   ['/commerce', 'online_store'], ['/marketing', 'marketing'],
   ['/broadcast', 'communications'], ['/bulk-communications', 'communications'], ['/email-templates', 'communications'],

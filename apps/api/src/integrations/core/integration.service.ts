@@ -6,6 +6,7 @@ import * as crypto from 'crypto';
 import { mappingKey } from '../online-orders/mapping-key';
 import { apiMessage } from '../../common/i18n/api-message';
 import { attributionColumns } from '../../modules/growth/marketing/attribution';
+import { CHANNEL_ADDON, EntitlementsService } from '../../modules/billing/entitlements/entitlements.service';
 
 type OrderReceivedListener = (order: any, integration: any) => Promise<void> | void;
 
@@ -26,6 +27,7 @@ export class IntegrationService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   // ═══════════════════════════════════════════════════════════
@@ -51,6 +53,8 @@ export class IntegrationService {
     }
     // The "Manual orders" channel is made by the Add order page itself.
     if (dto.type === 'MANUAL') throw new BadRequestException('Ye channel khud banta hai');
+    const gate = CHANNEL_ADDON[dto.type];
+    if (gate) await this.entitlements.assertAddOn(tenantId, gate.feature, gate.addOn, gate.label);
     const existing = await this.prisma.integration.findFirst({
       where: { tenantId, type: dto.type },
     });

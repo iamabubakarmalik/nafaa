@@ -8,6 +8,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { apiMessage } from '../../common/i18n/api-message';
+import { EntitlementsService } from '../billing/entitlements/entitlements.service';
 
 const TTL_MS = 30_000;
 
@@ -21,21 +22,20 @@ export interface DistributionAccess {
 export class DistributionAccessService {
   private readonly cache = new Map<string, { at: number; value: DistributionAccess }>();
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly entitlements: EntitlementsService,
+  ) {}
 
   async read(tenantId: string): Promise<DistributionAccess> {
     const hit = this.cache.get(tenantId);
     if (hit && Date.now() - hit.at < TTL_MS) return hit.value;
-    const [settings, sub] = await Promise.all([
+    // Plan feature, the Distribution add-on, a trial or an admin gift (pricing v2).
+    const [settings, ent] = await Promise.all([
       this.prisma.distributionSettings.findUnique({ where: { tenantId }, select: { enabled: true } }),
-      this.prisma.subscription.findFirst({
-        where: { tenantId, status: { in: ['TRIAL', 'ACTIVE'] } },
-        orderBy: { createdAt: 'desc' },
-        select: { plan: { select: { name: true, featureDistribution: true } } },
-      }),
+      this.entitlements.get(tenantId),
     ]);
-    const plan = sub?.plan ?? (await this.prisma.plan.findUnique({ where: { slug: 'free-trial' }, select: { name: true, featureDistribution: true } }));
-    const value = { enabled: !!settings?.enabled, planAllows: !!plan?.featureDistribution, planName: plan?.name ?? null };
+    const value = { enabled: !!settings?.enabled, planAllows: ent.features.includes('distribution'), planName: ent.plan?.name ?? null };
     this.cache.set(tenantId, { at: Date.now(), value });
     return value;
   }
@@ -48,8 +48,8 @@ export class DistributionAccessService {
   async assertOpen(tenantId: string) {
     const a = await this.read(tenantId);
     if (!a.planAllows) throw new ForbiddenException(a.planName
-      ? apiMessage('Aap ke plan ({{planName}}) me Distribution shamil nahi — plan upgrade karein', { planName: a.planName })
-      : apiMessage('Aap ke plan me Distribution shamil nahi — plan upgrade karein'));
+      ? apiMessage('Distribution ke liye add-on chahiye — "Mera plan" me Distribution add-on jodein', { planName: a.planName })
+      : apiMessage('Distribution ke liye add-on chahiye — "Mera plan" me Distribution add-on jodein'));
     if (!a.enabled) throw new ForbiddenException('Distribution band hai — Settings me Distribution on karein');
   }
 }

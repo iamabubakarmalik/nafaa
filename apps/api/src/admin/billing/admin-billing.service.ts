@@ -14,6 +14,8 @@ import { SubscriptionsService } from '../../modules/billing/subscriptions/subscr
 import { apiMessage } from '../../common/i18n/api-message';
 import { startOfDayTz } from '../../common/helpers/business-time.helper';
 import { dayRange } from '../common/date-range';
+import { applyPaidInvoiceAddOns } from '../../modules/billing/pricing/pricing-core';
+import { EntitlementsService } from '../../modules/billing/entitlements/entitlements.service';
 
 @Injectable()
 export class AdminBillingService {
@@ -24,6 +26,7 @@ export class AdminBillingService {
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
     private readonly subscriptions: SubscriptionsService,
+    private readonly entitlements: EntitlementsService,
   ) {}
 
   async stats() {
@@ -96,6 +99,8 @@ export class AdminBillingService {
           invoice: {
             include: {
               subscription: { include: { plan: { select: { name: true } } } },
+              // Bill lines, so the admin sees "Pro plan + Shopify + 2 extra users".
+              items: { orderBy: { createdAt: 'asc' }, select: { id: true, kind: true, description: true, quantity: true, unitPrice: true, amount: true } },
             },
           },
           upload: true,
@@ -125,7 +130,7 @@ export class AdminBillingService {
 
     // Approving the payment and activating the plan commit together — an
     // approved payment must never be left without the subscription it bought.
-    const { result, activated } = await this.prisma.$transaction(async (tx) => {
+    const { result, activated, addOnsTurnedOn } = await this.prisma.$transaction(async (tx) => {
       const approved = await tx.payment.update({
         where: { id: payment.id },
         data: {
@@ -167,12 +172,31 @@ export class AdminBillingService {
             )
           : null;
 
-      return { result: approved, activated: act };
+      // An add-on bill (no plan attached) turns its add-ons on.
+      const addOnsTurnedOn = fullyPaid && !subscriptionId && payment.invoiceId
+        ? await applyPaidInvoiceAddOns(tx, payment.invoiceId)
+        : 0;
+
+      return { result: approved, activated: act, addOnsTurnedOn };
     });
 
     // Post-commit: notification + email for the newly active plan.
     if (activated) {
       await this.subscriptions.announceActivation(activated);
+    }
+
+    // Paid channels resume at once instead of waiting for the hourly check.
+    this.entitlements.invalidate(payment.tenantId);
+    await this.entitlements.syncChannels(payment.tenantId).catch(() => undefined);
+
+    if (addOnsTurnedOn > 0) {
+      await this.notifications.create({
+        tenantId: payment.tenantId,
+        type: 'PAYMENT_APPROVED',
+        title: 'Payment mil gayi ✅',
+        message: apiMessage('Rs {{amount}} receive ho gaye. Aap ke add-ons chalu hain.', { amount: payment.amount }),
+        link: '/billing',
+      });
     }
 
     if (!fullyPaid) {

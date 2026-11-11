@@ -3,6 +3,7 @@ import { AdminActivityModule } from './activity/admin-activity.module';
 import { AdminAnalyticsModule } from './analytics/admin-analytics.module';
 import { AdminAuthModule } from './auth/admin-auth.module';
 import { AdminBillingModule } from './billing/admin-billing.module';
+import { AdminBillingCatalogModule } from './billing-catalog/admin-billing-catalog.module';
 import { AdminBroadcastModule } from './broadcast/admin-broadcast.module';
 import { AdminBulkModule } from './bulk/admin-bulk.module';
 import { AdminCommunicationsModule } from './communications/admin-communications.module';
@@ -46,6 +47,7 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminSystemControlModule,
     AdminPartnersModule,
     AdminBillingModule,
+    AdminBillingCatalogModule,
     AdminSubscriptionsModule,
     AdminPlansModule,
     AdminReferralsModule,

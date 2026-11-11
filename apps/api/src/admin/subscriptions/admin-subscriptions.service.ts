@@ -13,13 +13,23 @@ import {
 } from './dto/assign-plan.dto';
 import { apiMessage } from '../../common/i18n/api-message';
 import { startOfDayTz } from '../../common/helpers/business-time.helper';
+import { EntitlementsService } from '../../modules/billing/entitlements/entitlements.service';
+import { nextInvoiceNumber } from '../../modules/billing/pricing/invoice-number';
+import { writeInvoiceItems } from '../../modules/billing/pricing/pricing-core';
 
 @Injectable()
 export class AdminSubscriptionsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly entitlements: EntitlementsService,
   ) {}
+
+  /** A plan change shows at once: fresh entitlements and channels paused or resumed. */
+  private async refreshShop(tenantId: string) {
+    this.entitlements.invalidate(tenantId);
+    await this.entitlements.syncChannels(tenantId).catch(() => undefined);
+  }
 
   async list(params: {
     status?: SubscriptionStatus;
@@ -137,26 +147,26 @@ export class AdminSubscriptionsService {
       periodEnd = addDays(new Date(), dto.customDays);
     }
 
-    const existing = await this.prisma.subscription.findFirst({
-      where: {
-        tenantId: dto.tenantId,
-        status: { in: ['ACTIVE', 'TRIAL', 'PENDING_PAYMENT'] },
-      },
-    });
-
-    if (existing) {
-      await this.prisma.subscription.update({
-        where: { id: existing.id },
-        data: { status: 'CANCELLED', cancelledAt: new Date() },
-      });
-    }
+    // An admin deal: a custom price for this period (0 = a free gift).
+    const listPrice = amount;
+    if (dto.customAmount != null) amount = Math.max(0, Math.round(dto.customAmount));
+    const paid = dto.markAsPaid !== false;
 
     const result = await this.prisma.$transaction(async (tx) => {
+      // The new plan replaces every running or waiting one.
+      await tx.subscription.updateMany({
+        where: {
+          tenantId: dto.tenantId,
+          status: { in: ['ACTIVE', 'TRIAL', 'PENDING_PAYMENT', 'PAST_DUE'] },
+        },
+        data: { status: 'CANCELLED', cancelledAt: new Date() },
+      });
+
       const sub = await tx.subscription.create({
         data: {
           tenantId: dto.tenantId,
           planId: plan.id,
-          status: dto.markAsPaid !== false ? 'ACTIVE' : 'PENDING_PAYMENT',
+          status: paid ? 'ACTIVE' : 'PENDING_PAYMENT',
           interval: dto.interval,
           amount,
           currentPeriodStart: new Date(),
@@ -165,27 +175,35 @@ export class AdminSubscriptionsService {
         include: { plan: true },
       });
 
-      const invoiceNumber = `INV-${Date.now().toString().slice(-8)}`;
       const invoice = await tx.invoice.create({
         data: {
           tenantId: dto.tenantId,
           subscriptionId: sub.id,
-          invoiceNumber,
-          status: dto.markAsPaid !== false ? 'PAID' : 'PENDING',
+          invoiceNumber: await nextInvoiceNumber(tx),
+          status: paid ? 'PAID' : 'PENDING',
           subtotal: amount,
           total: amount,
-          amountPaid: dto.markAsPaid !== false ? amount : 0,
-          amountDue: dto.markAsPaid !== false ? 0 : amount,
+          amountPaid: paid ? amount : 0,
+          amountDue: paid ? 0 : amount,
           description: `${plan.name} — ${dto.interval} (assigned by admin)`,
           notes: dto.notes,
           dueDate: addDays(new Date(), 7),
-          paidAt: dto.markAsPaid !== false ? new Date() : null,
+          paidAt: paid ? new Date() : null,
           periodStart: new Date(),
           periodEnd,
         },
       });
+      await writeInvoiceItems(tx, invoice.id, [{
+        kind: 'PLAN',
+        refId: plan.id,
+        description: amount !== listPrice ? `${plan.name} plan (${dto.interval.toLowerCase()}, admin price)` : `${plan.name} plan (${dto.interval.toLowerCase()})`,
+        quantity: 1,
+        unitPrice: amount,
+        amount,
+      }], new Date(), periodEnd);
 
-      if (dto.markAsPaid !== false) {
+      // A free gift records no money received.
+      if (paid && amount > 0) {
         await tx.payment.create({
           data: {
             tenantId: dto.tenantId,
@@ -201,7 +219,8 @@ export class AdminSubscriptionsService {
             paidAt: new Date(),
           },
         });
-
+      }
+      if (paid) {
         await tx.tenant.update({
           where: { id: dto.tenantId },
           data: { status: 'ACTIVE' },
@@ -215,12 +234,13 @@ export class AdminSubscriptionsService {
       tenantId: dto.tenantId,
       type: 'SUCCESS',
       title: 'Plan Assigned 🎉',
-      message: dto.markAsPaid !== false
+      message: paid && amount === 0
         ? apiMessage('Aap ko {{plan}} plan free mein assign kiya gaya hai.', { plan: plan.name })
         : apiMessage('Aap ko {{plan}} plan assign kiya gaya hai.', { plan: plan.name }),
       link: '/billing',
     });
 
+    await this.refreshShop(dto.tenantId);
     return result;
   }
 
@@ -230,14 +250,18 @@ export class AdminSubscriptionsService {
     });
     if (!sub) throw new NotFoundException('Subscription not found');
 
-    const newEnd = addDays(sub.currentPeriodEnd, dto.days);
+    // Days are added from today when the period already ended, so an expired
+    // shop really gets the days. A trial stays a trial (longer), not a paid plan.
+    const now = new Date();
+    const isTrial = sub.status === 'TRIAL' || (sub.status === 'EXPIRED' && !!sub.trialEndsAt && sub.trialEndsAt >= sub.currentPeriodEnd);
+    const base = isTrial ? (sub.trialEndsAt && sub.trialEndsAt > now ? sub.trialEndsAt : now) : (sub.currentPeriodEnd > now ? sub.currentPeriodEnd : now);
+    const newEnd = addDays(base, dto.days);
 
     const updated = await this.prisma.subscription.update({
       where: { id: subscriptionId },
-      data: {
-        currentPeriodEnd: newEnd,
-        status: 'ACTIVE',
-      },
+      data: isTrial
+        ? { trialEndsAt: newEnd, currentPeriodEnd: newEnd, status: 'TRIAL' }
+        : { currentPeriodEnd: newEnd, status: 'ACTIVE' },
     });
 
     await this.notifications.create({
@@ -250,6 +274,7 @@ export class AdminSubscriptionsService {
       link: '/billing',
     });
 
+    await this.refreshShop(sub.tenantId);
     return updated;
   }
 
@@ -271,6 +296,7 @@ export class AdminSubscriptionsService {
       message: reason || 'Aap ki subscription admin ne cancel ki hai.',
     });
 
+    await this.refreshShop(sub.tenantId);
     return updated;
   }
 
@@ -297,6 +323,7 @@ export class AdminSubscriptionsService {
       message: 'Aap ki subscription admin ne activate kar di hai.',
     });
 
+    await this.refreshShop(sub.tenantId);
     return updated;
   }
 }

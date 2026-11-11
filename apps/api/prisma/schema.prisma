@@ -373,25 +373,29 @@ model Plan {
   maxShops         Int @default(1)
   maxSalesPerMonth Int @default(500)
 
-  featurePos             Boolean @default(true)
-  featureBarcodeScanner  Boolean @default(true)
-  featureMultiShop       Boolean @default(false)
-  featureReports         Boolean @default(true)
-  featureProfitReport    Boolean @default(false)
-  featureLoyalty         Boolean @default(false)
-  featureDiscounts       Boolean @default(false)
-  featureKhata           Boolean @default(true)
-  featureExports         Boolean @default(false)
-  featureBackup          Boolean @default(false)
-  featureNotifications   Boolean @default(true)
-  featureCashRegister    Boolean @default(true)
-  featureStockTransfer   Boolean @default(false)
-  featureReturns         Boolean @default(true)
-  featureSupport24x7     Boolean @default(false)
-  featureWhatsappReceipt Boolean @default(false)
-  featureCustomBranding  Boolean @default(false)
+  featurePos             Boolean  @default(true)
+  featureBarcodeScanner  Boolean  @default(true)
+  featureMultiShop       Boolean  @default(false)
+  featureReports         Boolean  @default(true)
+  featureProfitReport    Boolean  @default(false)
+  featureLoyalty         Boolean  @default(false)
+  featureDiscounts       Boolean  @default(false)
+  featureKhata           Boolean  @default(true)
+  featureExports         Boolean  @default(false)
+  featureBackup          Boolean  @default(false)
+  featureNotifications   Boolean  @default(true)
+  featureCashRegister    Boolean  @default(true)
+  featureStockTransfer   Boolean  @default(false)
+  featureReturns         Boolean  @default(true)
+  featureSupport24x7     Boolean  @default(false)
+  featureWhatsappReceipt Boolean  @default(false)
+  featureCustomBranding  Boolean  @default(false)
   /// Wholesale and distribution (routes, bookers, load sheets). Priced per booker login.
-  featureDistribution    Boolean @default(false)
+  featureDistribution    Boolean  @default(false)
+  /// Feature keys this plan includes (see billing/entitlements/feature-catalog.ts). Admin-editable.
+  features               String[] @default([])
+  /// The always-free plan for very small shops.
+  isFree                 Boolean  @default(false)
 
   stripePriceMonthlyId   String?
   stripePriceQuarterlyId String?
@@ -404,23 +408,29 @@ model Plan {
 }
 
 model Tenant {
-  id                  String       @id @default(uuid())
-  name                String
-  slug                String       @unique
-  phone               String?
-  country             String       @default("Pakistan")
-  currency            String       @default("PKR")
-  language            String       @default("en")
-  status              TenantStatus @default(TRIAL)
-  address             String?
-  referralCode        String?      @unique
-  referredById        String?
-  accountCredit       Float        @default(0)
+  id                      String       @id @default(uuid())
+  name                    String
+  slug                    String       @unique
+  phone                   String?
+  country                 String       @default("Pakistan")
+  currency                String       @default("PKR")
+  language                String       @default("en")
+  status                  TenantStatus @default(TRIAL)
+  address                 String?
+  referralCode            String?      @unique
+  referredById            String?
+  accountCredit           Float        @default(0)
   /// Partner who brought this shop (partner portal). Set at signup or by an admin.
-  partnerId           String?
-  partnerAttributedAt DateTime?
+  partnerId               String?
+  partnerAttributedAt     DateTime?
   /// "code", "lead" or "admin"
-  partnerSource       String?
+  partnerSource           String?
+  /// Shops that existed before pricing v2 keep every feature and add-on until this date.
+  billingGrandfatherUntil DateTime?
+  /// Feature keys an admin gave this shop on top of its plan (gifts, deals).
+  extraFeatures           String[]     @default([])
+  /// Admin limit changes, e.g. { "users": 10 }. Replaces the plan's limit.
+  limitOverrides          Json?
 
   // ─── Business Configuration ──────────────────────────────────
   businessType     String? // CARPET, MOBILE, GROCERY, PHARMACY, etc.
@@ -484,6 +494,7 @@ model Tenant {
 
   notificationPreference NotificationPreference?
   referredBy             Tenant?                 @relation("TenantReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  addOns                 TenantAddOn[]
   partner                Partner?                @relation("PartnerTenants", fields: [partnerId], references: [id], onDelete: SetNull)
   referredTenants        Tenant[]                @relation("TenantReferrals")
   referralsGiven         Referral[]              @relation("ReferralReferrer")
@@ -637,6 +648,7 @@ model Invoice {
 
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  items        InvoiceItem[]
   payments     Payment[]
 
   @@index([tenantId])
@@ -26176,4 +26188,108 @@ model PartnerTarget {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, month])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Pricing v2: add-ons on top of plans. See ~/nafaa-backups/wip/pricing-plan.md
+// ═══════════════════════════════════════════════════════════════
+
+enum AddOnKind {
+  /// One price per month.
+  FLAT
+  /// Price per unit per month (extra user, extra shop, booker).
+  PER_UNIT
+  /// Charged once (setup and training).
+  ONE_TIME
+}
+
+enum TenantAddOnStatus {
+  ACTIVE
+  /// Turned on, waiting for its first payment (paymentDueAt).
+  PENDING_PAYMENT
+  /// Payment not made in time; features are off until paid.
+  PAST_DUE
+  CANCELLED
+}
+
+model AddOn {
+  id               String    @id @default(uuid())
+  key              String    @unique
+  name             String
+  description      String?
+  /// "integrations", "sales", "operations", "capacity", "services"
+  category         String
+  kind             AddOnKind @default(FLAT)
+  priceMonthly     Float     @default(0)
+  /// For PER_UNIT: "user", "shop", "booker".
+  unitLabel        String?
+  /// Feature keys this add-on turns on.
+  grantsFeatures   String[]  @default([])
+  /// Extra capacity per unit, e.g. { "users": 1 } or { "shops": 1 } or { "bookers": 1 }.
+  grantsLimits     Json?
+  /// Add-on keys included in this bundle.
+  bundleKeys       String[]  @default([])
+  /// Plan slugs that may buy it; empty = every paid plan.
+  availableOnPlans String[]  @default([])
+  isPublic         Boolean   @default(true)
+  isActive         Boolean   @default(true)
+  /// Shown as "Jald aa raha hai"; cannot be bought.
+  comingSoon       Boolean   @default(false)
+  sortOrder        Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tenantAddOns TenantAddOn[]
+}
+
+model TenantAddOn {
+  id                String            @id @default(uuid())
+  tenantId          String
+  addOnId           String
+  quantity          Int               @default(1)
+  status            TenantAddOnStatus @default(ACTIVE)
+  /// Admin deal: price per unit for this shop; null = catalog price.
+  unitPrice         Float?
+  /// "USER", "ADMIN" or "CHECKOUT"
+  source            String            @default("USER")
+  startedAt         DateTime          @default(now())
+  /// Paid up to; renews with the plan.
+  currentPeriodEnd  DateTime?
+  /// Pay by this time or the add-on goes PAST_DUE.
+  paymentDueAt      DateTime?
+  /// Free (admin gift) until this date.
+  freeUntil         DateTime?
+  cancelAtPeriodEnd Boolean           @default(false)
+  cancelledAt       DateTime?
+  note              String?
+  createdById       String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  addOn  AddOn  @relation(fields: [addOnId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, addOnId])
+  @@index([status])
+  @@index([paymentDueAt])
+}
+
+model InvoiceItem {
+  id          String    @id @default(uuid())
+  invoiceId   String
+  /// "PLAN", "ADDON", "ONE_TIME", "PRORATION", "DISCOUNT"
+  kind        String
+  /// Plan id or add-on id.
+  refId       String?
+  description String
+  quantity    Int       @default(1)
+  unitPrice   Float
+  amount      Float
+  periodStart DateTime?
+  periodEnd   DateTime?
+  createdAt   DateTime  @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
 }

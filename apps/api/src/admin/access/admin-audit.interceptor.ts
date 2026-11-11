@@ -31,7 +31,7 @@ export class AdminAuditInterceptor implements NestInterceptor {
     if (context.getType() !== 'http') return next.handle();
     const req = context.switchToHttp().getRequest();
     const path: string = (req.originalUrl ?? req.url ?? '').split('?')[0];
-    const isAdmin = /\/admin(\/|$)/.test(path) && !/\/admin\/auth\/(login|me)/.test(path);
+    const isAdmin = /\/admin(\/|$)/.test(path) && !/\/admin\/auth\/(login|me|refresh)/.test(path);
     const write = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
     if (!isAdmin || (!write && !/impersonat/.test(path))) return next.handle();
 

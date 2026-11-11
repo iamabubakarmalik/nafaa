@@ -37,6 +37,8 @@ export interface AssignPlanPayload {
   customDays?: number;
   markAsPaid?: boolean;
   notes?: string;
+  /** Price for this period instead of the plan price (0 = free gift). */
+  customAmount?: number;
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;

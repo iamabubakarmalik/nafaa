@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../../../prisma/prisma.service';
+import { loadBillingSettings } from '../../entitlements/billing-settings';
 
 /**
  * SubscriptionGuard — blocks API access when trial/subscription expired.
@@ -68,8 +69,6 @@ export class SubscriptionGuard implements CanActivate {
     );
   }
 
-  // Grace period (days) after PAST_DUE before hard block
-  private readonly GRACE_PERIOD_DAYS = 3;
 
   /**
    * Online store routes that stay open for a store that installed Nafaa from
@@ -236,14 +235,15 @@ export class SubscriptionGuard implements CanActivate {
 
     // 7. PAST_DUE — check grace period
     if (sub.status === 'PAST_DUE') {
+      const { graceDays } = await loadBillingSettings(this.prisma);
       const dueDate = sub.currentPeriodEnd;
       const daysOverdue = Math.floor(
         (now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24),
       );
 
-      if (daysOverdue <= this.GRACE_PERIOD_DAYS) {
+      if (daysOverdue < graceDays) {
         res.setHeader('X-Subscription-Warning', 'GRACE_PERIOD');
-        res.setHeader('X-Grace-Days-Left', String(this.GRACE_PERIOD_DAYS - daysOverdue));
+        res.setHeader('X-Grace-Days-Left', String(graceDays - daysOverdue));
         return true;
       }
 

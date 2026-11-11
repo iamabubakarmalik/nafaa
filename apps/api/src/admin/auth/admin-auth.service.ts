@@ -187,6 +187,36 @@ export class AdminAuthService {
     }).catch(() => undefined);
   }
 
+  /**
+   * Swaps a valid refresh token for new tokens (the old session is replaced).
+   * Only active admin accounts qualify: a disabled staff member or a removed
+   * super admin cannot keep a session alive.
+   */
+  async refresh(refreshToken: string | undefined, meta?: { userAgent?: string; ip?: string }) {
+    if (!refreshToken) throw new UnauthorizedException('Session ended');
+    let payload: JwtPayload;
+    try {
+      payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, { secret: this.configService.get<string>('JWT_REFRESH_SECRET')! });
+    } catch {
+      throw new UnauthorizedException('Session ended');
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { id: true, tenantId: true, email: true, role: true, isActive: true, adminMember: { select: { status: true } } },
+    });
+    const allowed = !!user?.isActive && (user.role === UserRole.SUPER_ADMIN || (user.role === UserRole.ADMIN_STAFF && user.adminMember?.status === 'ACTIVE'));
+    if (!user || !allowed) throw new UnauthorizedException('Session ended');
+    const sessions = await this.prisma.session.findMany({ where: { userId: user.id, expiresAt: { gt: new Date() } } });
+    let match: string | null = null;
+    for (const s of sessions) {
+      if (await comparePassword(refreshToken, s.refreshTokenHash)) { match = s.id; break; }
+    }
+    if (!match) throw new UnauthorizedException('Session ended');
+    await this.prisma.session.delete({ where: { id: match } });
+    if (user.adminMember) await this.prisma.adminMember.update({ where: { userId: user.id }, data: { lastActiveAt: new Date() } }).catch(() => undefined);
+    return this.issueTokens({ sub: user.id, tenantId: user.tenantId, email: user.email, role: user.role }, meta?.userAgent, meta?.ip);
+  }
+
   async logout(userId: string, refreshToken?: string) {
     if (!refreshToken) {
       await this.prisma.session.deleteMany({ where: { userId } });

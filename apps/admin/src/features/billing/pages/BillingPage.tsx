@@ -78,6 +78,7 @@ export default function BillingPage() {
         { label: 'Payer', value: (p) => p.payerName },
         { label: 'Transaction', value: (p) => p.transactionId },
         { label: 'Invoice', value: (p) => p.invoice?.invoiceNumber },
+        { label: 'Bill lines', value: (p) => p.invoice?.items?.map((i) => i.description).join(' + ') },
         { label: 'Rejection reason', value: (p) => p.rejectionReason },
       ]);
       toast.success(`${num(all.length)} payments exported`);
@@ -146,6 +147,13 @@ export default function BillingPage() {
                 <Td>
                   <Link to={`/tenants/${p.tenant.id}`} className="font-semibold text-slate-900 hover:text-brand-700">{p.tenant.name}</Link>
                   <div className="text-[0.75rem] text-slate-500">{p.invoice ? <>Invoice <span className="font-mono">{p.invoice.invoiceNumber}</span>{p.invoice.subscription ? ` · ${p.invoice.subscription.plan.name}` : ''}</> : '—'}</div>
+                  {!!p.invoice?.items?.length && (
+                    <ul className="mt-1 space-y-0.5 text-[0.75rem] text-slate-600">
+                      {p.invoice.items.map((i) => (
+                        <li key={i.id} className="flex justify-between gap-3"><span className="min-w-0 truncate">{i.description}</span><span className="shrink-0 tabular-nums text-slate-500">{formatPKR(i.amount)}</span></li>
+                      ))}
+                    </ul>
+                  )}
                 </Td>
                 <Td align="right" className="whitespace-nowrap font-bold text-slate-900">{formatPKR(p.amount)}</Td>
                 <Td><StatusBadge value={p.provider} variant="default" /></Td>

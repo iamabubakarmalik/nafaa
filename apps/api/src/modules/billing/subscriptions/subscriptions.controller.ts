@@ -28,9 +28,9 @@ export class SubscriptionsController {
   @Post('start')
   start(
     @GetUser() user: AuthenticatedUser,
-    @Body() body: { planId: string; interval: BillingInterval },
+    @Body() body: { planId: string; interval: BillingInterval; addOns?: Array<{ key: string; quantity?: number }> },
   ) {
-    return this.service.startSubscription(user, body.planId, body.interval);
+    return this.service.startSubscription(user, body.planId, body.interval, Array.isArray(body.addOns) ? body.addOns : undefined);
   }
 
   @Post('cleanup-pending')
