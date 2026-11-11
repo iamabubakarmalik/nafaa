@@ -28,6 +28,8 @@ export class AdminTenantsController {
     @Query('search') search?: string,
     @Query('status') status?: TenantStatus,
     @Query('model') model?: string,
+    @Query('industry') industry?: string,
+    @Query('sort') sort?: 'newest' | 'oldest' | 'name',
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -35,9 +37,16 @@ export class AdminTenantsController {
       search,
       status,
       model: model && BUSINESS_MODELS.includes(model.toUpperCase() as never) ? model.toUpperCase() : undefined,
+      industry: industry?.trim() || undefined,
+      sort: sort === 'oldest' || sort === 'name' ? sort : 'newest',
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
     });
+  }
+
+  @Get('stats')
+  stats() {
+    return this.service.stats();
   }
 
   @Get(':id')

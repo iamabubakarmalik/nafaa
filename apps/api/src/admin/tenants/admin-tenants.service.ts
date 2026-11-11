@@ -12,11 +12,14 @@ export class AdminTenantsService {
     status?: TenantStatus;
     /** RETAIL also matches businesses that never answered (empty list). */
     model?: string;
+    /** Tenant.businessType; 'NONE' matches shops that have not chosen one. */
+    industry?: string;
+    sort?: 'newest' | 'oldest' | 'name';
     page?: number;
     limit?: number;
   }) {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? 20;
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
     const skip = (page - 1) * limit;
 
     const where: Prisma.TenantWhereInput = {
@@ -36,12 +39,19 @@ export class AdminTenantsService {
         : params.model
           ? { businessModels: { has: params.model } }
           : {}),
+      ...(params.industry === 'NONE'
+        ? { businessType: null }
+        : params.industry
+          ? { businessType: params.industry }
+          : {}),
     };
+    const orderBy: Prisma.TenantOrderByWithRelationInput =
+      params.sort === 'oldest' ? { createdAt: 'asc' } : params.sort === 'name' ? { name: 'asc' } : { createdAt: 'desc' };
 
     const [items, total] = await Promise.all([
       this.prisma.tenant.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip,
         take: limit,
         include: {
@@ -138,6 +148,27 @@ export class AdminTenantsService {
         totalCogs: salesAgg._sum.costOfGoods ?? 0,
         totalExpenses: expensesAgg._sum.amount ?? 0,
       },
+    };
+  }
+
+  /** Counts for the Shops page header: by status, new this week, and the industries in use. */
+  async stats() {
+    const scope = { slug: { not: 'nafaa-system' } };
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const [byStatus, newThisWeek, industries] = await Promise.all([
+      this.prisma.tenant.groupBy({ by: ['status'], where: scope, _count: { _all: true } }),
+      this.prisma.tenant.count({ where: { ...scope, createdAt: { gte: weekAgo } } }),
+      this.prisma.tenant.groupBy({ by: ['businessType'], where: scope, _count: { _all: true }, orderBy: { _count: { businessType: 'desc' } } }),
+    ]);
+    const count = (s: string) => byStatus.find((x) => x.status === s)?._count._all ?? 0;
+    return {
+      total: byStatus.reduce((n, x) => n + x._count._all, 0),
+      active: count('ACTIVE'),
+      trial: count('TRIAL'),
+      suspended: count('SUSPENDED'),
+      expired: count('EXPIRED'),
+      newThisWeek,
+      industries: industries.map((r) => ({ type: r.businessType ?? 'NONE', count: r._count._all })),
     };
   }
 

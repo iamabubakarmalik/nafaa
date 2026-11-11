@@ -35,13 +35,20 @@ export interface TenantsResponse {
   meta: { page: number; limit: number; total: number; totalPages: number };
 }
 
+export interface TenantStats {
+  total: number; active: number; trial: number; suspended: number; expired: number; newThisWeek: number;
+  industries: Array<{ type: string; count: number }>;
+}
+
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const adminTenantsApi = {
-  list: (params?: { search?: string; status?: TenantStatus; model?: string; page?: number; limit?: number }) =>
+  list: (params?: { search?: string; status?: TenantStatus; model?: string; industry?: string; sort?: 'newest' | 'oldest' | 'name'; page?: number; limit?: number }) =>
     apiClient
       .get<{ data: TenantsResponse }>('/admin/tenants', { params })
       .then(unwrap),
+  stats: () =>
+    apiClient.get<{ data: TenantStats }>('/admin/tenants/stats').then(unwrap),
   getOne: (id: string) =>
     apiClient.get<{ data: any }>(`/admin/tenants/${id}`).then(unwrap),
   updateStatus: (id: string, status: TenantStatus, reason?: string) =>

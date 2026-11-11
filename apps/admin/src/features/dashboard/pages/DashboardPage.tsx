@@ -21,7 +21,7 @@ import { adminDashboardApi, type Compare, type DashboardDays, type DashboardSumm
 import { WORKSPACES } from '@/shell/navigation/nav-config';
 import { WorkspaceMark } from '@/shell/sidebar/WorkspaceMark';
 import { TrendChart } from '../components/TrendChart';
-import { industryForType } from '../lib/industries';
+import { industryForType } from '@/lib/industries';
 
 const RANGES: DashboardDays[] = [7, 14, 30, 90];
 const num = (n: number) => n.toLocaleString('en-PK');
