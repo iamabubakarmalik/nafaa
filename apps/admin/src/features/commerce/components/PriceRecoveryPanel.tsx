@@ -15,6 +15,7 @@ import { adminCommerceApi, type PriceRecoveryChoice, type PriceRecoveryRow, type
 import { Button, confirmDialog } from '@/design-system/components';
 import { cn } from '@/lib/cn';
 import { Empty, kindLabel, Pill, when } from './CommerceUi';
+import { apiError as errMsg } from '@/lib/errors';
 
 const TARGET_LABEL: Record<PriceTarget, string> = {
   PRODUCT: 'Product price',
@@ -29,7 +30,6 @@ const PRICE_FROM_LABEL: Record<string, string> = {
 
 const money = (n: number | null | undefined) => (n === null || n === undefined ? '—' : `Rs ${Math.round(n).toLocaleString('en-PK')}`);
 
-const errMsg = (e: any) => e?.response?.data?.message ?? e?.message ?? 'Action failed';
 
 export function PriceRecoveryPanel({ tenantId }: { tenantId: string }) {
   const [shown, setShown] = useState(false);

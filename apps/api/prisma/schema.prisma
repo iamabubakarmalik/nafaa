@@ -423,6 +423,8 @@ model Tenant {
   businessModels   String[] @default([])
 
   createdAt          DateTime             @default(now())
+  /// Last time anyone in this shop used Nafaa (from User.lastSeenAt), for the admin panel.
+  lastActiveAt       DateTime?
   updatedAt          DateTime             @updatedAt
   onboardingProgress OnboardingProgress[]
 
@@ -532,6 +534,7 @@ model Tenant {
   distCollections      DistCollection[]
   distVisits           DistVisit[]
   distDeliveryReports  DistDeliveryReport[]
+  @@index([lastActiveAt])
 }
 
 model Referral {
@@ -810,6 +813,11 @@ model User {
   platformDiscounts   PlatformDiscount[]      @relation("UserPlatformDiscounts")
   staffProfile        Staff?                  @relation("StaffUser")
   adminMember         AdminMember?            @relation("AdminMemberUser")
+
+  /// Last time this user's app talked to the API (updated at most once a minute).
+  lastSeenAt  DateTime?
+  /// web, desktop or mobile: the app used at lastSeenAt.
+  lastSeenVia String?
 
   commissionRules       CommissionRule[]       @relation("CommissionRuleUser")
   commissionEnrollments CommissionEnrollment[] @relation("CommissionEnrollmentUser")

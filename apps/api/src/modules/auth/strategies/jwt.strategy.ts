@@ -44,6 +44,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       role: user.role,
       shopId: user.shopId,
       permissions: user.permissions ?? [],
+      // Set when a Nafaa admin opened this shop with "sign in as shop".
+      ...(payload.impersonatedBy ? { impersonatedBy: payload.impersonatedBy } : {}),
     };
   }
 }

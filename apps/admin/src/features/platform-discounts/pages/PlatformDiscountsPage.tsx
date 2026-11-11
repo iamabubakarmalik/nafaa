@@ -15,8 +15,8 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminPlatformDiscountsApi, type PlatformDiscount, type UpsertPlatformDiscountPayload } from '@/api/admin-platform-discounts.api';
 import { formatDate, formatPKR } from '@/lib/format';
 import { ListCard, StatusBadge, useListParams } from '@/ui';
+import { num } from '@/lib/format';
 
-const num = (n: number) => n.toLocaleString('en-PK');
 const BLANK: UpsertPlatformDiscountPayload = { code: '', description: '', type: 'PERCENTAGE', value: 0, scope: 'ANY', minPurchase: 0, isActive: true };
 const STATUS = [{ value: 'ALL', label: 'All codes' }, { value: 'active', label: 'Active' }, { value: 'off', label: 'Switched off' }, { value: 'expired', label: 'Expired' }];
 

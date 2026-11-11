@@ -77,6 +77,7 @@ const AcceptInvitePage = lazy(() => import('@/features/auth/pages/AcceptInvitePa
 const StaffPage = lazy(() => import('@/features/staff/pages/StaffPage'));
 const RolesPage = lazy(() => import('@/features/staff/pages/RolesPage'));
 const AuditLogPage = lazy(() => import('@/features/staff/pages/AuditLogPage'));
+const LiveNowPage = lazy(() => import('@/features/live/pages/LiveNowPage'));
 const AiUsagePage = lazy(() => import('@/features/ai-usage/pages/AiUsagePage'));
 const SecurityPage = lazy(() => import('@/features/account/pages/SecurityPage'));
 
@@ -156,6 +157,7 @@ export default function App() {
               <Route path="/staff/audit" element={<AuditLogPage />} />
               <Route path="/account/security" element={<SecurityPage />} />
               <Route path="/ai-usage" element={<AiUsagePage />} />
+              <Route path="/live" element={<LiveNowPage />} />
 
               {/* Marketing site workspace */}
               <Route path="/marketing">

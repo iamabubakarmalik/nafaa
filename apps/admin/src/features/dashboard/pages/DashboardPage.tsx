@@ -20,11 +20,14 @@ import { formatPKR, formatPKRFull } from '@/lib/format';
 import { adminDashboardApi, type Compare, type DashboardDays, type DashboardSummary } from '@/api/admin-dashboard.api';
 import { useVisibleNav } from '@/shell/navigation/useVisibleNav';
 import { WorkspaceMark } from '@/shell/sidebar/WorkspaceMark';
+import { adminPresenceApi } from '@/api/admin-presence.api';
+import { useCan } from '@/lib/access';
+import { OnlineDot } from '@/ui';
 import { TrendChart } from '../components/TrendChart';
 import { industryForType } from '@/lib/industries';
+import { num } from '@/lib/format';
 
 const RANGES: DashboardDays[] = [7, 14, 30, 90];
-const num = (n: number) => n.toLocaleString('en-PK');
 
 /** Change against the previous period, e.g. "+12% vs last 30 days". */
 function Delta({ now, prev, days, invert }: { now: number; prev: number; days: number; invert?: boolean }) {
@@ -182,6 +185,8 @@ export default function DashboardPage() {
     placeholderData: (prev) => prev,
   });
   const k = data?.kpis;
+  const can = useCan();
+  const live = useQuery({ queryKey: ['admin', 'live'], queryFn: adminPresenceApi.live, refetchInterval: 60_000, enabled: can('users.view') });
 
   return (
     <PageShell>
@@ -215,6 +220,15 @@ export default function DashboardPage() {
 
       {isError && (
         <EmptyState icon={<CircleAlert className="h-6 w-6" />} title="Dashboard did not load" description="The server did not answer. Check System health, then try again." action={<button type="button" onClick={() => refetch()} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">Try again</button>} />
+      )}
+
+      {live.data && (
+        <Link to="/live" className="group flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-white px-4 py-3 text-[0.875rem] shadow-sm ring-1 ring-slate-200/80 transition hover:ring-brand-300">
+          <span className="inline-flex items-center gap-2 font-semibold text-slate-900"><OnlineDot online={live.data.counts.onlineUsers > 0} /> {num(live.data.counts.onlineUsers)} people online now</span>
+          <span className="text-slate-500">in {num(live.data.counts.onlineShops)} shops · {num(live.data.counts.web)} web · {num(live.data.counts.desktop)} desktop · {num(live.data.counts.mobile)} mobile</span>
+          <span className="text-slate-500">· {num(live.data.counts.signupsToday)} signed up today</span>
+          <span className="ms-auto inline-flex items-center gap-1 font-semibold text-brand-700">Live now <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" /></span>
+        </Link>
       )}
 
       {k && data ? (

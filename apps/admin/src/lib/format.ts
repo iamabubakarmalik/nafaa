@@ -42,3 +42,10 @@ export const formatNumber = (n: number) => {
   if (!n && n !== 0) return '0';
   return n.toLocaleString('en-PK');
 };
+
+/** Whole number with Pakistani grouping, e.g. 12,500. Empty values show as 0. */
+export const num = (n: number | null | undefined) => (n ?? 0).toLocaleString('en-PK');
+
+/** Date with time, e.g. "11 Nov 2026, 4:05 pm" (Pakistan locale). */
+export const formatDateTime = (date: string | Date) =>
+  new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(typeof date === 'string' ? new Date(date) : date);

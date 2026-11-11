@@ -14,9 +14,9 @@ import { adminSalesApi, type AdminSale } from '@/api/admin-sales.api';
 import { formatDate, formatPKR } from '@/lib/format';
 import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
 import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '../../shared/period';
+import { num } from '@/lib/format';
 
 const METHODS = ['ALL', 'CASH', 'CARD', 'BANK_TRANSFER', 'JAZZCASH', 'EASYPAISA', 'TRADE_IN'];
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function AdminSalesPage() {
   const guide = usePageGuide();

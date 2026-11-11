@@ -13,8 +13,8 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminCustomersApi, type AdminCustomer } from '@/api/admin-customers.api';
 import { formatPKR } from '@/lib/format';
 import { ListCard, StatusBadge, downloadCsv, fetchAllPages, useListParams } from '@/ui';
+import { num } from '@/lib/format';
 
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function AdminCustomersPage() {
   const guide = usePageGuide();

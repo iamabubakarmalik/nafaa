@@ -14,8 +14,8 @@ import { adminAuthApi } from '@/api/admin-auth.api';
 import { useAuthStore } from '@/store/auth.store';
 import { formatRelative } from '@/lib/format';
 import { deviceLabel } from '@/lib/device';
+import { apiError } from '@/lib/errors';
 
-const apiError = (e: unknown) => (e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Something went wrong. Try again.';
 
 function BackupCodes({ codes, onDone }: { codes: string[]; onDone: () => void }) {
   const text = codes.join('\n');

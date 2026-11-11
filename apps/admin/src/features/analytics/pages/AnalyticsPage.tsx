@@ -16,10 +16,10 @@ import { adminAnalyticsApi } from '@/api/admin-analytics.api';
 import { formatPKR, formatPKRFull } from '@/lib/format';
 import { cn } from '@/lib/cn';
 import { useListParams } from '@/ui';
+import { num } from '@/lib/format';
 
 const RANGES = [{ value: '6', label: '6 months' }, { value: '12', label: '12 months' }, { value: '24', label: '24 months' }];
 const MEDAL = ['bg-amber-100 text-amber-700', 'bg-slate-200 text-slate-700', 'bg-orange-100 text-orange-700'];
-const num = (n: number) => n.toLocaleString('en-PK');
 
 /** Reads an "r g b" CSS variable from <html> as an rgb() color. */
 function cssColor(name: string, fallback: string) {

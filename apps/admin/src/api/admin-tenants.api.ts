@@ -14,6 +14,7 @@ export interface AdminTenant {
   referralCode?: string | null;
   accountCredit: number;
   createdAt: string;
+  lastActiveAt?: string | null;
   _count: {
     users: number;
     products: number;
@@ -49,17 +50,20 @@ export interface TenantInsights {
 }
 
 export interface TenantStats {
-  total: number; active: number; trial: number; suspended: number; expired: number; newThisWeek: number;
+  total: number; active: number; trial: number; suspended: number; expired: number; newThisWeek: number; onlineNow: number; activeToday: number; idle7: number;
   industries: Array<{ type: string; count: number }>;
 }
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const adminTenantsApi = {
-  list: (params?: { search?: string; status?: TenantStatus; model?: string; industry?: string; sort?: 'newest' | 'oldest' | 'name'; page?: number; limit?: number }) =>
+  list: (params?: { search?: string; status?: TenantStatus; model?: string; industry?: string; activity?: string; sort?: 'newest' | 'oldest' | 'name' | 'active'; page?: number; limit?: number }) =>
     apiClient
       .get<{ data: TenantsResponse }>('/admin/tenants', { params })
       .then(unwrap),
+  updateProfile: (id: string, dto: { name?: string; phone?: string | null; businessType?: string | null; businessModels?: string[] }) =>
+    apiClient.patch(`/admin/tenants/${id}/profile`, dto).then(unwrap),
+  signOutAll: (id: string) => apiClient.post<{ data: { ended: number } }>(`/admin/tenants/${id}/sign-out-all`).then(unwrap),
   insights: (id: string) =>
     apiClient.get<{ data: TenantInsights }>(`/admin/tenants/${id}/insights`).then(unwrap),
   stats: () =>

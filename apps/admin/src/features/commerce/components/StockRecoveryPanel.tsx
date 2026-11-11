@@ -15,6 +15,7 @@ import { adminCommerceApi, type StockRecoveryRow, type TenantStockRecovery } fro
 import { Button, confirmDialog } from '@/design-system/components';
 import { cn } from '@/lib/cn';
 import { Empty, kindLabel, Pill, when } from './CommerceUi';
+import { apiError as errMsg } from '@/lib/errors';
 
 const SOURCE_LABEL: Record<StockRecoveryRow['source'], string> = {
   'import-zero': 'Imported as 0, then tracking turned on',
@@ -25,7 +26,6 @@ const SOURCE_LABEL: Record<StockRecoveryRow['source'], string> = {
 /** Picked by default: high-confidence untrack rows and every restore row. */
 const defaultPick = (r: StockRecoveryRow) => r.action === 'restore' || r.confidence === 'high';
 
-const errMsg = (e: any) => e?.response?.data?.message ?? e?.message ?? 'Action failed';
 
 export function StockRecoveryPanel({ tenantId }: { tenantId: string }) {
   const [shown, setShown] = useState(false);

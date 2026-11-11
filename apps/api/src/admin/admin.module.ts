@@ -22,10 +22,10 @@ import { AdminReferralsModule } from './referrals/admin-referrals.module';
 import { AdminSalesModule } from './sales/admin-sales.module';
 import { AdminSettingsModule } from './settings/admin-settings.module';
 import { AdminSubscriptionsModule } from './subscriptions/admin-subscriptions.module';
-import { AdminSystemModule } from './system/admin-system.module';
 import { AdminDashboardModule } from './dashboard/admin-dashboard.module';
 import { AdminStaffModule } from './staff/admin-staff.module';
 import { AdminAiUsageModule } from './ai-usage/admin-ai-usage.module';
+import { AdminPresenceModule } from './presence/admin-presence.module';
 import { AdminAuditInterceptor } from './access/admin-audit.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AdminTenantsModule } from './tenants/admin-tenants.module';
@@ -37,10 +37,10 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminNotificationsModule,
     AdminTenantsModule,
     AdminUsersModule,
-    AdminSystemModule,
     AdminDashboardModule,
     AdminStaffModule,
     AdminAiUsageModule,
+    AdminPresenceModule,
     AdminBillingModule,
     AdminSubscriptionsModule,
     AdminPlansModule,

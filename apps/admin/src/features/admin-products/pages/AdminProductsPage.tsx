@@ -13,6 +13,7 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminProductsApi, type AdminProduct } from '@/api/admin-products.api';
 import { formatPKR } from '@/lib/format';
 import { ListCard, StatusBadge, downloadCsv, fetchAllPages, useListParams } from '@/ui';
+import { num } from '@/lib/format';
 
 const STOCK = [
   { value: 'ALL', label: 'All products' },
@@ -21,7 +22,6 @@ const STOCK = [
   { value: 'low', label: 'Low stock' },
   { value: 'out', label: 'Out of stock' },
 ];
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function AdminProductsPage() {
   const guide = usePageGuide();

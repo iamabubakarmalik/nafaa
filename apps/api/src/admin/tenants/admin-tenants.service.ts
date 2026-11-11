@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, TenantStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { apiMessage, notificationText } from '../../common/i18n/api-message';
@@ -15,7 +15,9 @@ export class AdminTenantsService {
     model?: string;
     /** Tenant.businessType; 'NONE' matches shops that have not chosen one. */
     industry?: string;
-    sort?: 'newest' | 'oldest' | 'name';
+    /** online (5 min), today, week, idle7, idle30, never */
+    activity?: string;
+    sort?: 'newest' | 'oldest' | 'name' | 'active';
     page?: number;
     limit?: number;
   }) {
@@ -46,8 +48,13 @@ export class AdminTenantsService {
           ? { businessType: params.industry }
           : {}),
     };
-    const orderBy: Prisma.TenantOrderByWithRelationInput =
-      params.sort === 'oldest' ? { createdAt: 'asc' } : params.sort === 'name' ? { name: 'asc' } : { createdAt: 'desc' };
+    const activity = tenantActivityWhere(params.activity);
+    if (Object.keys(activity).length) where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), activity];
+    const orderBy: Prisma.TenantOrderByWithRelationInput | Prisma.TenantOrderByWithRelationInput[] =
+      params.sort === 'oldest' ? { createdAt: 'asc' }
+        : params.sort === 'name' ? { name: 'asc' }
+          : params.sort === 'active' ? [{ lastActiveAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }]
+            : { createdAt: 'desc' };
 
     const [items, total] = await Promise.all([
       this.prisma.tenant.findMany({
@@ -99,8 +106,11 @@ export class AdminTenantsService {
             role: true,
             isActive: true,
             lastLoginAt: true,
+            lastSeenAt: true,
+            lastSeenVia: true,
             createdAt: true,
           },
+          orderBy: [{ lastSeenAt: { sort: 'desc', nulls: 'last' } }],
         },
         subscriptions: {
           include: { plan: true },
@@ -223,14 +233,41 @@ export class AdminTenantsService {
     };
   }
 
+  /** Shop name, phone, industry and ways of selling. */
+  async updateProfile(id: string, dto: { name?: string; phone?: string | null; businessType?: string | null; businessModels?: string[] }) {
+    const exists = await this.prisma.tenant.findUnique({ where: { id }, select: { id: true, slug: true } });
+    if (!exists) throw new NotFoundException('Tenant not found');
+    if (exists.slug === 'nafaa-system') throw new BadRequestException('The internal Nafaa shop cannot be edited here.');
+    const models = ['RETAIL', 'WHOLESALE', 'DISTRIBUTION', 'ONLINE'];
+    return this.prisma.tenant.update({
+      where: { id },
+      data: {
+        ...(dto.name?.trim() ? { name: dto.name.trim() } : {}),
+        ...(dto.phone !== undefined ? { phone: dto.phone?.trim() || null } : {}),
+        ...(dto.businessType !== undefined ? { businessType: dto.businessType?.trim() || null } : {}),
+        ...(dto.businessModels ? { businessModels: dto.businessModels.filter((m) => models.includes(m)) } : {}),
+      },
+      select: { id: true, name: true, phone: true, businessType: true, businessModels: true },
+    });
+  }
+
+  /** Ends every session of every user in the shop; they all sign in again. */
+  async signOutAll(id: string) {
+    const { count } = await this.prisma.session.deleteMany({ where: { user: { tenantId: id } } });
+    return { ended: count };
+  }
+
   /** Counts for the Shops page header: by status, new this week, and the industries in use. */
   async stats() {
     const scope = { slug: { not: 'nafaa-system' } };
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const [byStatus, newThisWeek, industries] = await Promise.all([
+    const [byStatus, newThisWeek, industries, onlineNow, activeToday, idle7] = await Promise.all([
       this.prisma.tenant.groupBy({ by: ['status'], where: scope, _count: { _all: true } }),
       this.prisma.tenant.count({ where: { ...scope, createdAt: { gte: weekAgo } } }),
       this.prisma.tenant.groupBy({ by: ['businessType'], where: scope, _count: { _all: true }, orderBy: { _count: { businessType: 'desc' } } }),
+      this.prisma.tenant.count({ where: { ...scope, ...tenantActivityWhere('online') } }),
+      this.prisma.tenant.count({ where: { ...scope, ...tenantActivityWhere('today') } }),
+      this.prisma.tenant.count({ where: { ...scope, ...tenantActivityWhere('idle7') } }),
     ]);
     const count = (s: string) => byStatus.find((x) => x.status === s)?._count._all ?? 0;
     return {
@@ -240,6 +277,9 @@ export class AdminTenantsService {
       suspended: count('SUSPENDED'),
       expired: count('EXPIRED'),
       newThisWeek,
+      onlineNow,
+      activeToday,
+      idle7,
       industries: industries.map((r) => ({ type: r.businessType ?? 'NONE', count: r._count._all })),
     };
   }
@@ -275,5 +315,19 @@ export class AdminTenantsService {
     }
     await this.prisma.tenant.delete({ where: { id } });
     return { message: 'Tenant deleted permanently' };
+  }
+}
+
+/** Filter shops by when anyone in them was last active. */
+export function tenantActivityWhere(activity?: string): Prisma.TenantWhereInput {
+  const now = new Date();
+  switch (activity) {
+    case 'online': return { lastActiveAt: { gte: new Date(now.getTime() - 5 * 60_000) } };
+    case 'today': return { lastActiveAt: { gte: startOfDayTz(now) } };
+    case 'week': return { lastActiveAt: { gte: subDaysTz(now, 7) } };
+    case 'idle7': return { OR: [{ lastActiveAt: { lt: subDaysTz(now, 7) } }, { lastActiveAt: null }] };
+    case 'idle30': return { OR: [{ lastActiveAt: { lt: subDaysTz(now, 30) } }, { lastActiveAt: null }] };
+    case 'never': return { lastActiveAt: null };
+    default: return {};
   }
 }

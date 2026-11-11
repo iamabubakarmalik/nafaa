@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TenantStatus } from '@prisma/client';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
@@ -31,7 +22,8 @@ export class AdminTenantsController {
     @Query('status') status?: TenantStatus,
     @Query('model') model?: string,
     @Query('industry') industry?: string,
-    @Query('sort') sort?: 'newest' | 'oldest' | 'name',
+    @Query('sort') sort?: 'newest' | 'oldest' | 'name' | 'active',
+    @Query('activity') activity?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
@@ -40,7 +32,8 @@ export class AdminTenantsController {
       status,
       model: model && BUSINESS_MODELS.includes(model.toUpperCase() as never) ? model.toUpperCase() : undefined,
       industry: industry?.trim() || undefined,
-      sort: sort === 'oldest' || sort === 'name' ? sort : 'newest',
+      sort: sort === 'oldest' || sort === 'name' || sort === 'active' ? sort : 'newest',
+      activity: activity || undefined,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
     });
@@ -49,6 +42,16 @@ export class AdminTenantsController {
   @Get('stats')
   stats() {
     return this.service.stats();
+  }
+
+  @Patch(':id/profile')
+  updateProfile(@Param('id') id: string, @Body() dto: { name?: string; phone?: string | null; businessType?: string | null; businessModels?: string[] }) {
+    return this.service.updateProfile(id, dto);
+  }
+
+  @Post(':id/sign-out-all')
+  signOutAll(@Param('id') id: string) {
+    return this.service.signOutAll(id);
   }
 
   @Get(':id/insights')

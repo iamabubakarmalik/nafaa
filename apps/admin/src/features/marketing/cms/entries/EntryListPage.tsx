@@ -24,6 +24,7 @@ import type { CmsDashboard } from '../contract/cms-contract';
 import { NewEntryDialog } from './NewEntryDialog';
 import { ENTRY_SECTIONS, sectionByKey } from './sections';
 import { ScoreRing, StatusChip } from './StatusChip';
+import { num } from '@/lib/format';
 
 const STATUS_LABEL: Record<CmsStatus, string> = { DRAFT: 'Draft', SCHEDULED: 'Scheduled', PUBLISHED: 'Live', ARCHIVED: 'Archived' };
 const SORTS = [
@@ -31,7 +32,6 @@ const SORTS = [
   { value: 'title', label: 'Title A–Z' },
   { value: 'score', label: 'SEO score' },
 ] as const;
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export function EntryListPage() {
   const { section: sectionKey } = useParams();

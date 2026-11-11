@@ -13,8 +13,8 @@ import { adminDistributionApi } from '@/api/admin-distribution.api';
 import { formatPKR } from '@/lib/format';
 import { industryForType } from '@/lib/industries';
 import { ListCard, StatusBadge, useListParams } from '@/ui';
+import { num } from '@/lib/format';
 
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function DistributionUsagePage() {
   const guide = usePageGuide();

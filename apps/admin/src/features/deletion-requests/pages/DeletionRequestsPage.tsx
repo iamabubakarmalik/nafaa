@@ -15,9 +15,9 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminDeletionRequestsApi, type DeletionRequest } from '@/api/admin-deletion-requests.api';
 import { formatDate } from '@/lib/format';
 import { DetailList, ListCard, StatusBadge, useListParams } from '@/ui';
+import { num } from '@/lib/format';
 
 const daysUntil = (v: string) => Math.ceil((new Date(v).getTime() - Date.now()) / 86_400_000);
-const num = (n: number) => n.toLocaleString('en-PK');
 
 const TABS = ['pending', 'due', 'in_grace', 'processed', 'cancelled', 'all'] as const;
 type Tab = (typeof TABS)[number];

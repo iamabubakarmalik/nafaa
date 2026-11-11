@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  ArrowDownUp, Building2, Download, Factory, Lightbulb, Package, ShoppingCart, Store, Tag, UserPlus, Users,
+  Activity, ArrowDownUp, Building2, Download, Factory, Lightbulb, Package, ShoppingCart, Store, Tag, UserPlus, Users,
 } from 'lucide-react';
 import {
   FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, heroButton,
@@ -17,32 +17,43 @@ import {
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminTenantsApi, type AdminTenant, type TenantStatus } from '@/api/admin-tenants.api';
 import { BUSINESS_TYPES, industryForType } from '@/lib/industries';
-import { formatDate } from '@/lib/format';
-import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
+import { formatDate, formatDateTime } from '@/lib/format';
+import { LastSeen, ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
 import { BUSINESS_MODELS, BusinessModelChips } from '../components/BusinessModelChips';
+import { num } from '@/lib/format';
 
 const STATUSES: Array<TenantStatus | 'ALL'> = ['ALL', 'ACTIVE', 'TRIAL', 'SUSPENDED', 'EXPIRED'];
 const SORTS = [
   { value: 'newest', label: 'Newest first' },
   { value: 'oldest', label: 'Oldest first' },
   { value: 'name', label: 'Name A–Z' },
+  { value: 'active', label: 'Last active' },
 ] as const;
+const ACTIVITY = [
+  { value: 'ALL', label: 'Any activity' },
+  { value: 'online', label: 'Online now' },
+  { value: 'today', label: 'Active today' },
+  { value: 'week', label: 'Active this week' },
+  { value: 'idle7', label: 'Not seen for 7+ days' },
+  { value: 'idle30', label: 'Not seen for 30+ days' },
+  { value: 'never', label: 'Never used' },
+];
 
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function TenantsListPage() {
   const navigate = useNavigate();
   const guide = usePageGuide();
   const [exporting, setExporting] = useState(false);
-  const list = useListParams({ status: 'ALL', industry: 'ALL', model: 'ALL', sort: 'newest' });
-  const { status, industry, model, sort } = list.filters;
+  const list = useListParams({ status: 'ALL', industry: 'ALL', model: 'ALL', activity: 'ALL', sort: 'newest' });
+  const { status, industry, model, activity, sort } = list.filters;
 
   const query = {
     search: list.debouncedSearch || undefined,
     status: status === 'ALL' ? undefined : (status as TenantStatus),
     industry: industry === 'ALL' ? undefined : industry,
     model: model === 'ALL' ? undefined : model,
-    sort: sort as 'newest' | 'oldest' | 'name',
+    activity: activity === 'ALL' ? undefined : activity,
+    sort: sort as 'newest' | 'oldest' | 'name' | 'active',
   };
   const tenants = useQuery({
     queryKey: ['admin', 'tenants', query, list.page, list.limit],
@@ -69,7 +80,8 @@ export default function TenantsListPage() {
         { label: 'Products', value: (t) => t._count.products },
         { label: 'Sales', value: (t) => t._count.sales },
         { label: 'Customers', value: (t) => t._count.customers },
-        { label: 'Joined', value: (t) => t.createdAt.slice(0, 10) },
+        { label: 'Joined', value: (t) => formatDateTime(t.createdAt) },
+        { label: 'Last active', value: (t) => (t.lastActiveAt ? formatDateTime(t.lastActiveAt) : 'Never') },
       ]);
       toast.success(`${num(all.length)} shops exported`);
     } catch {
@@ -87,6 +99,7 @@ export default function TenantsListPage() {
   const chips = [
     status !== 'ALL' && <FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{statusLabel(status)}</FilterChip>,
     industry !== 'ALL' && <FilterChip key="i" onRemove={() => list.setFilter('industry', 'ALL')}>{industryForType(industry).label}</FilterChip>,
+    activity !== 'ALL' && <FilterChip key="a" onRemove={() => list.setFilter('activity', 'ALL')}>{ACTIVITY.find((a) => a.value === activity)?.label}</FilterChip>,
     model !== 'ALL' && <FilterChip key="m" onRemove={() => list.setFilter('model', 'ALL')}>{BUSINESS_MODELS.find((m) => m.id === model)?.label ?? model}</FilterChip>,
   ].filter(Boolean);
 
@@ -106,10 +119,10 @@ export default function TenantsListPage() {
           </>
         }
         stats={s ? [
-          { label: 'Active (paying)', value: num(s.active), hint: `of ${num(s.total)} shops` },
-          { label: 'On trial', value: num(s.trial) },
+          { label: 'Active (paying)', value: num(s.active), hint: `${num(s.trial)} on trial · ${num(s.suspended)} suspended` },
+          { label: 'Online now', value: num(s.onlineNow), hint: `${num(s.activeToday)} active today` },
           { label: 'New this week', value: num(s.newThisWeek) },
-          { label: 'Suspended', value: num(s.suspended), hint: s.expired ? `${num(s.expired)} expired` : undefined },
+          { label: 'Not seen 7+ days', value: num(s.idle7) },
         ] : undefined}
       />
 
@@ -120,6 +133,7 @@ export default function TenantsListPage() {
       >
         <FilterMenu icon={Tag} label="Status" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)}
           options={STATUSES.map((v) => ({ value: v, label: v === 'ALL' ? 'All statuses' : statusLabel(v) }))} />
+        <FilterMenu icon={Activity} label="Activity" value={activity} active={activity !== 'ALL'} onChange={(v) => list.setFilter('activity', v)} options={ACTIVITY} />
         <FilterMenu icon={Factory} label="Industry" value={industry} active={industry !== 'ALL'} onChange={(v) => list.setFilter('industry', v)} options={industryOptions} width="w-72" />
         <FilterMenu icon={Store} label="Sells" value={model} active={model !== 'ALL'} onChange={(v) => list.setFilter('model', v)}
           options={[{ value: 'ALL', label: 'All ways of selling' }, ...BUSINESS_MODELS.map((m) => ({ value: m.id, label: m.id === 'RETAIL' ? 'Retail (incl. not answered)' : m.label }))]} />
@@ -138,7 +152,7 @@ export default function TenantsListPage() {
         onPage={list.setPage}
         onLimit={list.setLimit}
       >
-        <Table minWidth="60rem">
+        <Table minWidth="66rem">
           <THead>
             <Tr>
               <Th>Shop</Th>
@@ -148,6 +162,7 @@ export default function TenantsListPage() {
               <Th align="right">Users</Th>
               <Th align="right">Products</Th>
               <Th align="right">Sales</Th>
+              <Th>Last active</Th>
               <Th align="right">Joined</Th>
             </Tr>
           </THead>
@@ -182,7 +197,8 @@ export default function TenantsListPage() {
                   <Td align="right"><span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5 text-slate-400" />{num(t._count.users)}</span></Td>
                   <Td align="right"><span className="inline-flex items-center gap-1"><Package className="h-3.5 w-3.5 text-slate-400" />{num(t._count.products)}</span></Td>
                   <Td align="right"><span className="inline-flex items-center gap-1"><ShoppingCart className="h-3.5 w-3.5 text-slate-400" />{num(t._count.sales)}</span></Td>
-                  <Td align="right" className="whitespace-nowrap text-slate-500">{formatDate(t.createdAt)}</Td>
+                  <Td><LastSeen at={t.lastActiveAt} compact /></Td>
+                  <Td align="right" className="whitespace-nowrap text-slate-500" title={formatDateTime(t.createdAt)}>{formatDate(t.createdAt)}<div className="text-[0.6875rem] text-slate-400">{new Date(t.createdAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' })}</div></Td>
                 </Tr>
               );
             })}

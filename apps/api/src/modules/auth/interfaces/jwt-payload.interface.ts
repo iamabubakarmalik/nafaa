@@ -1,6 +1,8 @@
 import { UserRole } from '@prisma/client';
 
 export interface JwtPayload {
+  /** Admin user id when the token came from "sign in as shop". */
+  impersonatedBy?: string;
   sub: string;
   tenantId: string;
   email: string;

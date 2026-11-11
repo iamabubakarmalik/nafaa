@@ -17,11 +17,11 @@ import { adminBillingApi, type AdminPayment, type PaymentProvider, type PaymentS
 import { formatDate, formatPKR, formatRelative } from '@/lib/format';
 import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
 import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '../../shared/period';
+import { num } from '@/lib/format';
 
 const TABS = ['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const;
 type Tab = (typeof TABS)[number];
 const PROVIDERS: PaymentProvider[] = ['MANUAL_BANK', 'JAZZCASH', 'EASYPAISA', 'STRIPE', 'CASH'];
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function BillingPage() {
   const qc = useQueryClient();

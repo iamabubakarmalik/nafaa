@@ -13,9 +13,9 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminAiUsageApi } from '@/api/admin-ai-usage.api';
 import { cn } from '@/lib/cn';
 import { ListCard } from '@/ui';
+import { num } from '@/lib/format';
 
 const RANGES = [7, 14, 30, 90];
-const num = (n: number) => n.toLocaleString('en-PK');
 const usd = (n: number) => `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const compact = (n: number) => (n >= 1e6 ? `${+(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${+(n / 1e3).toFixed(1)}K` : String(n));
 const change = (now: number, prev: number) => (!prev ? (now ? 'New' : 'No change') : `${now >= prev ? '+' : ''}${Math.round(((now - prev) / prev) * 100)}% vs prior period`);

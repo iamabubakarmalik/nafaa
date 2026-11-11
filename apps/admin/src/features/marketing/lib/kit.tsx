@@ -13,7 +13,6 @@ import { useAppearanceStore } from '@/design-system';
 import { apiClient } from '@/api/client';
 import { downloadCsv, fetchAllPages, type CsvColumn } from '@/ui';
 
-export const num = (n: number | null | undefined) => (n ?? 0).toLocaleString('en-PK');
 
 /** Lightbulb button that opens the page guide. */
 export function GuideButton({ onClick }: { onClick: () => void }) {
@@ -55,21 +54,10 @@ export async function exportList<T>(
   }
 }
 
-/** Reads an "r g b" CSS variable from <html> as an rgb() color. */
-function cssColor(name: string, fallback: string) {
-  if (typeof document === 'undefined') return fallback;
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v ? `rgb(${v.split(/[\s,]+/).join(' ')})` : fallback;
-}
+import { useChartColors } from '@/ui/chart';
+import { num } from '@/lib/format';
 
-export function useChartColors() {
-  const theme = useAppearanceStore((s) => `${s.resolved.accentHex}|${s.resolved.mode}|${s.systemPrefersDark}`);
-  return useMemo(() => ({
-    line: cssColor('--brand-500', '#6366f1'),
-    grid: cssColor('--bd-slate-200', '#e2e8f0'),
-    text: cssColor('--tx-slate-500', '#64748b'),
-  }), [theme]); // eslint-disable-line react-hooks/exhaustive-deps
-}
+export { useChartColors };
 
 const shortDate = (key: string) => (/^\d{4}-\d{2}-\d{2}/.test(key) ? new Date(`${key.slice(0, 10)}T00:00:00`).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' }) : key);
 
@@ -145,3 +133,5 @@ export async function downloadServerCsv(url: string, filename: string) {
     toast.error(e.response?.data?.message ?? 'Download failed. Try again.');
   }
 }
+
+export { num };

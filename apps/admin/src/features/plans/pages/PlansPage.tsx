@@ -13,8 +13,8 @@ import {
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminPlansApi, type AdminPlan, type UpsertPlanPayload } from '@/api/admin-plans.api';
 import { formatPKR } from '@/lib/format';
+import { num } from '@/lib/format';
 
-const num = (n: number) => n.toLocaleString('en-PK');
 
 const FEATURE_KEYS: Array<keyof UpsertPlanPayload> = [
   'featurePos', 'featureBarcodeScanner', 'featureMultiShop', 'featureReports',

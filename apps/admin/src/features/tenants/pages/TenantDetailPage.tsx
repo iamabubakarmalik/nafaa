@@ -11,11 +11,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import {
-  Activity, Building2, CheckCircle2, CircleAlert, CreditCard, Gift, Globe, LogIn, MessageSquare, Package, Phone, Receipt,
+  Activity, Building2, CheckCircle2, CircleAlert, CreditCard, Gift, Globe, LogIn, LogOut, MessageSquare, Pencil, Package, Phone, Receipt,
   ShieldCheck, ShoppingCart, Smartphone, Store, Trash2, Truck, UserCog, Users, XCircle,
 } from 'lucide-react';
 import {
-  Alert, Badge, Button, Card, EmptyState, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, Textarea, ViewTabs, confirmDialog,
+  Alert, Badge, Button, Card, Checkbox, EmptyState, Input, Select, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, Textarea, ViewTabs, confirmDialog,
   heroButton, heroPrimaryButton,
 } from '@/design-system/components';
 import { adminTenantsApi, type TenantStatus } from '@/api/admin-tenants.api';
@@ -24,14 +24,14 @@ import TenantNotesPanel from '@/features/notes/pages/TenantNotesPanel';
 import TenantCommercePanel from '@/features/commerce/components/TenantCommercePanel';
 import { useCan } from '@/lib/access';
 import { cn } from '@/lib/cn';
-import { formatDate, formatPKR, formatPKRFull, formatRelative } from '@/lib/format';
-import { industryForType } from '@/lib/industries';
-import { DetailList, StatusBadge, statusLabel } from '@/ui';
-import { BusinessModelChips } from '../components/BusinessModelChips';
+import { formatDate, formatDateTime, formatPKR, formatPKRFull, formatRelative, num } from '@/lib/format';
+import { BUSINESS_TYPES, industryForType } from '@/lib/industries';
+import { apiError } from '@/lib/errors';
+import { DetailList, LastSeen, OnlineDot, StatusBadge, isOnline, statusLabel } from '@/ui';
+import { BUSINESS_MODELS, BusinessModelChips } from '../components/BusinessModelChips';
+import { UserActions } from '@/features/users/components/UserActions';
 
 type Tab = 'overview' | 'team' | 'billing' | 'online' | 'notes' | 'timeline';
-const num = (n: number) => n.toLocaleString('en-PK');
-const apiError = (e: unknown) => (e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Something went wrong. Try again.';
 
 function HealthRing({ score }: { score: number }) {
   const color = score >= 80 ? '#059669' : score >= 40 ? '#d97706' : '#e11d48';
@@ -61,6 +61,35 @@ function SuspendModal({ open, onClose, onConfirm, busy }: { open: boolean; onClo
   );
 }
 
+function EditShopModal({ open, onClose, tenant, onSaved }: { open: boolean; onClose: () => void; tenant: { id: string; name: string; phone?: string | null; businessType?: string | null; businessModels?: string[] | null }; onSaved: () => void }) {
+  const [form, setForm] = useState({ name: tenant.name, phone: tenant.phone ?? '', businessType: tenant.businessType ?? '', businessModels: tenant.businessModels ?? [] });
+  const save = useMutation({
+    mutationFn: () => adminTenantsApi.updateProfile(tenant.id, { name: form.name, phone: form.phone || null, businessType: form.businessType || null, businessModels: form.businessModels }),
+    onSuccess: () => { toast.success('Shop updated'); onSaved(); onClose(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const toggleModel = (m: string) => setForm((f) => ({ ...f, businessModels: f.businessModels.includes(m) ? f.businessModels.filter((x) => x !== m) : [...f.businessModels, m] }));
+  return (
+    <Modal open={open} onClose={onClose} title="Edit shop" description="Changes show in the shop's own app right away."
+      footer={<div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button loading={save.isPending} disabled={!form.name.trim()} onClick={() => save.mutate()}>Save</Button></div>}>
+      <div className="space-y-3">
+        <Input label="Shop name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <Input label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+        <Select label="Industry" value={form.businessType} onChange={(e) => setForm({ ...form, businessType: e.target.value })} placeholder="Not chosen"
+          options={BUSINESS_TYPES.map((t) => ({ value: t, label: industryForType(t).label }))} hint="Changes which industry tools the shop sees." />
+        <div>
+          <div className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">How they sell</div>
+          <div className="flex flex-wrap gap-2">
+            {BUSINESS_MODELS.map((m) => (
+              <Checkbox key={m.id} label={m.label} checked={form.businessModels.includes(m.id)} onChange={() => toggleModel(m.id)} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 export default function TenantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -68,6 +97,7 @@ export default function TenantDetailPage() {
   const can = useCan();
   const [tab, setTab] = useState<Tab>('overview');
   const [suspending, setSuspending] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const detail = useQuery({ queryKey: ['admin', 'tenant', id], queryFn: () => adminTenantsApi.getOne(id!), enabled: !!id });
   const insights = useQuery({ queryKey: ['admin', 'tenant', id, 'insights'], queryFn: () => adminTenantsApi.insights(id!), enabled: !!id });
@@ -81,6 +111,11 @@ export default function TenantDetailPage() {
   const remove = useMutation({
     mutationFn: () => adminTenantsApi.remove(id!),
     onSuccess: () => { toast.success('Shop deleted'); navigate('/tenants'); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const signOutAll = useMutation({
+    mutationFn: () => adminTenantsApi.signOutAll(id!),
+    onSuccess: (r) => toast.success(`${r.ended} session${r.ended === 1 ? '' : 's'} ended`),
     onError: (e) => toast.error(apiError(e)),
   });
   const impersonate = useMutation({
@@ -123,13 +158,19 @@ export default function TenantDetailPage() {
         backLabel="Shops"
         chip={statusLabel(tenant.status)}
         busy={detail.isFetching || insights.isFetching}
-        meta={<span className="inline-flex flex-wrap items-center gap-x-2">@{tenant.slug}{tenant.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{tenant.phone}</span>}<span>· {industry.label}</span><span>· joined {formatDate(tenant.createdAt)}</span></span>}
+        meta={<span className="inline-flex flex-wrap items-center gap-x-2">@{tenant.slug}{tenant.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{tenant.phone}</span>}<span>· {industry.label}</span><span>· joined {formatDateTime(tenant.createdAt)}</span></span>}
         actions={
           <>
             {can('tenants.impersonate') && (
               <button type="button" className={heroPrimaryButton} disabled={impersonate.isPending} onClick={async () => {
                 if (await confirmDialog({ title: `Sign in as ${tenant.name}?`, text: 'Opens their merchant app in a new tab with owner access. Anything you do there is real and is logged under your name.', yes: 'Sign in as shop' })) impersonate.mutate();
               }}><LogIn className="h-4 w-4" /> Sign in as shop</button>
+            )}
+            {can('tenants.manage') && <button type="button" className={heroButton} onClick={() => setEditing(true)}><Pencil className="h-4 w-4" /> <span className="hidden sm:inline">Edit</span></button>}
+            {can('tenants.manage') && (
+              <button type="button" className={heroButton} aria-label="Sign everyone out" title="Sign everyone in this shop out" onClick={async () => {
+                if (await confirmDialog({ title: `Sign everyone in ${tenant.name} out?`, text: 'Every user of this shop is signed out on every device and must sign in again. Nothing else changes.', yes: 'Sign everyone out' })) signOutAll.mutate();
+              }}><LogOut className="h-4 w-4" /></button>
             )}
             {can('tenants.manage') && (tenant.status === 'SUSPENDED'
               ? <button type="button" className={heroButton} onClick={() => status.mutate({ s: 'ACTIVE' })}><CheckCircle2 className="h-4 w-4" /> Reactivate</button>
@@ -145,7 +186,7 @@ export default function TenantDetailPage() {
           { label: 'Health', value: ins ? `${ins.health.score}/100` : '—', hint: ins?.health.label },
           { label: 'Sales (7 days)', value: ins ? formatPKR(ins.sales.last7Total) : '—', hint: ins ? `${num(ins.sales.last7Bills)} bills` : undefined },
           { label: 'Plan', value: activeSub ? activeSub.plan.name : 'No plan', hint: activeSub ? `${statusLabel(activeSub.status)} · ends ${formatDate(activeSub.currentPeriodEnd)}` : undefined },
-          { label: 'Last sale', value: ins?.sales.lastSaleAt ? formatRelative(ins.sales.lastSaleAt) : 'Never' },
+          { label: 'Last active', value: isOnline(tenant.lastActiveAt) ? 'Online now' : tenant.lastActiveAt ? formatRelative(tenant.lastActiveAt) : 'Never', hint: `Last sale ${ins?.sales.lastSaleAt ? formatRelative(ins.sales.lastSaleAt) : 'never'}` },
         ]}
       />
 
@@ -212,14 +253,19 @@ export default function TenantDetailPage() {
         <div className="grid gap-4 lg:grid-cols-2">
           <Card title="Team" description={`${tenant.users.length} people can sign in`} flush>
             <ul className="divide-y divide-slate-100">
-              {tenant.users.map((u: { id: string; fullName: string; email: string; role: string; isActive: boolean; lastLoginAt: string | null }) => (
+              {tenant.users.map((u: { id: string; fullName: string; email: string; phone: string | null; role: string; isActive: boolean; lastLoginAt: string | null; lastSeenAt: string | null; lastSeenVia: string | null; createdAt: string }) => (
                 <li key={u.id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[0.8125rem] font-semibold text-slate-600">{u.fullName.charAt(0).toUpperCase()}</span>
+                  <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[0.8125rem] font-semibold text-slate-600">
+                    {u.fullName.charAt(0).toUpperCase()}
+                    <OnlineDot online={isOnline(u.lastSeenAt)} className="absolute -bottom-0.5 -end-0.5 ring-2 ring-white rounded-full" />
+                  </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[0.875rem] font-medium text-slate-900">{u.fullName}{!u.isActive && <span className="ms-2 text-[0.75rem] text-rose-600">disabled</span>}</span>
-                    <span className="block truncate text-[0.75rem] text-slate-500">{u.email} · {u.lastLoginAt ? `seen ${formatRelative(u.lastLoginAt)}` : 'never signed in'}</span>
+                    <span className="block truncate text-[0.875rem] font-medium text-slate-900">{u.fullName}{!u.isActive && <span className="ms-2 text-[0.75rem] text-rose-600">switched off</span>}</span>
+                    <span className="block truncate text-[0.75rem] text-slate-500">{u.email}{u.phone ? ` · ${u.phone}` : ''}</span>
+                    <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.75rem]"><LastSeen at={u.lastSeenAt ?? u.lastLoginAt} via={u.lastSeenVia} never="Never signed in" /><span className="text-slate-400">· added {formatDateTime(u.createdAt)}</span></span>
                   </span>
                   <Badge variant={u.role === 'OWNER' ? 'brand' : 'default'}>{statusLabel(u.role)}</Badge>
+                  <UserActions user={u} />
                 </li>
               ))}
             </ul>
@@ -343,6 +389,7 @@ export default function TenantDetailPage() {
         </Card>
       )}
 
+      <EditShopModal open={editing} onClose={() => setEditing(false)} tenant={tenant} onSaved={refresh} />
       <SuspendModal open={suspending} onClose={() => setSuspending(false)} busy={status.isPending} onConfirm={(reason) => status.mutate({ s: 'SUSPENDED', reason: reason || undefined })} />
     </PageShell>
   );

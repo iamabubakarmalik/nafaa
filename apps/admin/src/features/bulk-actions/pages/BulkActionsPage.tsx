@@ -14,9 +14,9 @@ import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminTenantsApi, type TenantStatus } from '@/api/admin-tenants.api';
 import { adminBulkApi } from '@/api/admin-bulk.api';
 import { ListCard, StatusBadge, fetchAllPages, statusLabel, useListParams } from '@/ui';
+import { num } from '@/lib/format';
 
 const STATUSES: Array<TenantStatus | 'ALL'> = ['ALL', 'ACTIVE', 'TRIAL', 'SUSPENDED', 'EXPIRED'];
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function BulkActionsPage() {
   const guide = usePageGuide();

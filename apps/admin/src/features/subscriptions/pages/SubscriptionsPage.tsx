@@ -18,10 +18,10 @@ import { adminPlansApi } from '@/api/admin-plans.api';
 import { formatDate, formatPKR } from '@/lib/format';
 import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
 import { ShopPicker, type PickedShop } from '../../shared/ShopPicker';
+import { num } from '@/lib/format';
 
 const STATUSES: Array<SubscriptionStatus | 'ALL'> = ['ALL', 'ACTIVE', 'TRIAL', 'PENDING_PAYMENT', 'PAST_DUE', 'CANCELLED', 'EXPIRED'];
 const INTERVALS: BillingInterval[] = ['MONTHLY', 'QUARTERLY', 'YEARLY'];
-const num = (n: number) => n.toLocaleString('en-PK');
 const daysLeft = (v: string) => Math.ceil((new Date(v).getTime() - Date.now()) / 86_400_000);
 
 export default function SubscriptionsPage() {

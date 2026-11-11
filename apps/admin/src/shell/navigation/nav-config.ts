@@ -13,7 +13,7 @@ import {
   FileText, Gift, Globe, Handshake, HeartPulse, Images, Layers, LayoutDashboard, ListChecks, Mail, MailCheck,
   Megaphone, Menu as MenuIcon, MessageSquare, MessageSquareText, MousePointer2, Package, PackageCheck,
   PackageSearch, Paintbrush, Palette, Plug, Power, Receipt, Rocket, Search, Send, Settings, Settings2,
-  KeyRound, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
+  KeyRound, Radio, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
   ToggleRight, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
@@ -66,7 +66,7 @@ export const WORKSPACES: AdminWorkspace[] = [
     icon: LayoutDashboard,
     tone: 'bg-indigo-600 text-white',
     root: '/dashboard',
-    prefixes: ['/dashboard', '/analytics', '/notifications'],
+    prefixes: ['/dashboard', '/live', '/analytics', '/notifications'],
     groups: [
       {
         id: 'overview',
@@ -74,6 +74,7 @@ export const WORKSPACES: AdminWorkspace[] = [
         icon: LayoutDashboard,
         items: [
           { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, keywords: 'home kpi overview' },
+          { to: '/live', label: 'Live now', icon: Radio, keywords: 'online active presence who is using signups today' },
           { to: '/analytics', label: 'Revenue analytics', icon: TrendingUp, keywords: 'mrr arr churn revenue' },
           { to: '/notifications', label: 'Notifications', icon: Bell, keywords: 'alerts inbox' },
         ],
@@ -378,7 +379,7 @@ export const WORKSPACES: AdminWorkspace[] = [
 
 /** Permission area of each page (see apps/api/src/admin/access/admin-permissions.ts). */
 const AREA_BY_PREFIX: Array<[string, string]> = [
-  ['/dashboard', 'dashboard'], ['/analytics', 'dashboard'], ['/notifications', 'notifications'],
+  ['/dashboard', 'dashboard'], ['/live', 'users'], ['/analytics', 'dashboard'], ['/notifications', 'notifications'],
   ['/tenants', 'tenants'], ['/users', 'users'], ['/deletion-requests', 'deletion'],
   ['/products', 'merchant_data'], ['/sales', 'merchant_data'], ['/customers', 'merchant_data'], ['/bulk-actions', 'bulk'],
   ['/billing', 'billing'], ['/invoices', 'billing'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],

@@ -11,6 +11,8 @@ export interface AdminUserItem {
   isActive: boolean;
   emailVerified: boolean;
   lastLoginAt?: string | null;
+  lastSeenAt?: string | null;
+  lastSeenVia?: string | null;
   createdAt: string;
   tenant: { id: string; name: string; slug: string; status: string };
 }
@@ -22,11 +24,15 @@ export interface UsersResponse {
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
-export interface UsersStats { total: number; active: number; inactive: number; newThisWeek: number; neverSignedIn: number }
+export interface UsersStats { total: number; active: number; inactive: number; newThisWeek: number; neverSignedIn: number; onlineNow?: number; activeToday?: number;
+}
 
 export const adminUsersApi = {
+  signOut: (id: string) => apiClient.post<{ data: { ended: number } }>(`/admin/users/${id}/sign-out`).then(unwrap),
+  resetPassword: (id: string) => apiClient.post<{ data: { temporaryPassword: string } }>(`/admin/users/${id}/reset-password`).then(unwrap),
+  update: (id: string, dto: { fullName?: string; phone?: string | null; role?: string }) => apiClient.patch(`/admin/users/${id}`, dto).then(unwrap),
   stats: () => apiClient.get<{ data: UsersStats }>('/admin/users/stats').then(unwrap),
-  list: (params?: { search?: string; role?: UserRole; status?: 'active' | 'inactive'; page?: number; limit?: number }) =>
+  list: (params?: { search?: string; role?: UserRole; status?: 'active' | 'inactive'; activity?: string; via?: string; sort?: string; page?: number; limit?: number }) =>
     apiClient
       .get<{ data: UsersResponse }>('/admin/users', { params })
       .then(unwrap),

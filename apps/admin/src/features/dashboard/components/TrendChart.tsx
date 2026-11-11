@@ -4,10 +4,10 @@
  * theme variables so the chart follows the accent and dark mode.
  */
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Card, Segmented } from '@/design-system/components';
-import { useAppearanceStore } from '@/design-system';
+import { useChartColors } from '@/ui/chart';
 import { formatPKR, formatPKRFull } from '@/lib/format';
 import type { DashboardSummary } from '@/api/admin-dashboard.api';
 
@@ -19,13 +19,6 @@ const METRICS: Array<{ value: Metric; label: string; money: boolean; bar: boolea
   { value: 'signups', label: 'New shops', money: false, bar: true, note: 'Shops that signed up each day.' },
   { value: 'revenue', label: 'Payments', money: true, bar: true, note: 'Plan payments approved each day (Nafaa income).' },
 ];
-
-/** Reads an "r g b" CSS variable from <html> as an rgb() color. */
-function cssColor(name: string, fallback: string) {
-  if (typeof document === 'undefined') return fallback;
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v ? `rgb(${v.split(/[\s,]+/).join(' ')})` : fallback;
-}
 
 /** Short axis label: 1.2Cr, 90L, 30K. */
 function axisValue(v: number) {
@@ -40,13 +33,7 @@ const shortDate = (key: string) => new Date(`${key}T00:00:00`).toLocaleDateStrin
 export function TrendChart({ data }: { data: DashboardSummary['daily'] }) {
   const [metric, setMetric] = useState<Metric>('gmv');
   const m = METRICS.find((x) => x.value === metric)!;
-  // Re-read theme colors when the appearance changes.
-  const theme = useAppearanceStore((s) => `${s.resolved.accentHex}|${s.resolved.mode}|${s.systemPrefersDark}`);
-  const colors = useMemo(() => ({
-    line: cssColor('--brand-500', '#6366f1'),
-    grid: cssColor('--bd-slate-200', '#e2e8f0'),
-    text: cssColor('--tx-slate-500', '#64748b'),
-  }), [theme]); // eslint-disable-line react-hooks/exhaustive-deps
+  const colors = useChartColors();
 
   const total = data.reduce((n, d) => n + d[metric], 0);
   const fmt = (v: number) => (m.money ? formatPKR(v) : v.toLocaleString('en-PK'));

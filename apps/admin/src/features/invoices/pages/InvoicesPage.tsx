@@ -18,10 +18,10 @@ import { formatDate, formatPKR } from '@/lib/format';
 import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
 import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '../../shared/period';
 import { ShopPicker, type PickedShop } from '../../shared/ShopPicker';
+import { num } from '@/lib/format';
 
 const TABS = ['ALL', 'PENDING', 'OVERDUE', 'PAID', 'CANCELLED'] as const;
 type Tab = (typeof TABS)[number];
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function InvoicesPage() {
   const qc = useQueryClient();

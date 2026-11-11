@@ -22,8 +22,8 @@ import { formatRelative } from '@/lib/format';
 import { deviceLabel } from '@/lib/device';
 import { ListCard, StatusBadge, DetailList } from '@/ui';
 import { PermissionPicker } from '../components/PermissionPicker';
+import { apiError } from '@/lib/errors';
 
-const apiError = (e: unknown) => (e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Something went wrong. Try again.';
 
 function copy(text: string) {
   navigator.clipboard?.writeText(text).then(() => toast.success('Link copied'), () => toast.error('Copy failed. Select the link and copy it.'));

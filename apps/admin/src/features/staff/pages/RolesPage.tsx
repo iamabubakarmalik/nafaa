@@ -14,8 +14,8 @@ import { adminStaffApi, type AdminRole } from '@/api/admin-staff.api';
 import { useCan } from '@/lib/access';
 import { cn } from '@/lib/cn';
 import { PermissionPicker } from '../components/PermissionPicker';
+import { apiError } from '@/lib/errors';
 
-const apiError = (e: unknown) => (e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Something went wrong. Try again.';
 const NEW = '__new__';
 
 export default function RolesPage() {

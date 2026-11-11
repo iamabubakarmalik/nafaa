@@ -17,9 +17,9 @@ import { formatDate, formatPKR } from '@/lib/format';
 import { cn } from '@/lib/cn';
 import { ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
 import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '../../shared/period';
+import { num } from '@/lib/format';
 
 const STATUSES = ['ALL', 'PENDING', 'CONVERTED', 'PAID', 'EXPIRED'];
-const num = (n: number) => n.toLocaleString('en-PK');
 const MEDAL = ['bg-amber-100 text-amber-700', 'bg-slate-200 text-slate-700', 'bg-orange-100 text-orange-700'];
 
 export default function ReferralsPage() {

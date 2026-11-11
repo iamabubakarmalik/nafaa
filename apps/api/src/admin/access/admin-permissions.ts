@@ -47,7 +47,9 @@ export const ADMIN_AREAS: AdminAreaDef[] = [
     { key: 'tenants.impersonate', label: 'Sign in as a shop', hint: 'Opens the merchant app as that shop. Every use is logged.', sensitive: true },
     { key: 'tenants.delete', label: 'Delete shops', hint: 'Permanently removes a shop and all its data.', sensitive: true },
   ], 'Suspend, reactivate, notes, limits.'),
-  area('users', 'Merchant users', 'Merchants'),
+  area('users', 'Merchant users', 'Merchants', [
+    { key: 'users.reset_password', label: 'Give a temporary password', hint: 'Sets a new password for a shop user and signs them out everywhere.', sensitive: true },
+  ], 'Edit name, phone and role; switch off; sign out of all devices.'),
   area('merchant_data', 'Merchant products, sales and customers', 'Merchants', [], 'Edit or remove records inside a shop.'),
   area('deletion', 'Deletion requests', 'Merchants'),
   area('bulk', 'Bulk actions', 'Merchants', [], 'Run actions on many shops at once.'),

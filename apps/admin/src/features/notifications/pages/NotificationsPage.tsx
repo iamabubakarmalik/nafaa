@@ -19,6 +19,7 @@ import { formatRelative } from '@/lib/format';
 import { cn } from '@/lib/cn';
 import { ListCard, statusLabel, useListParams } from '@/ui';
 import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '../../shared/period';
+import { num } from '@/lib/format';
 
 const ICONS: Record<AdminNotificationType, LucideIcon> = {
   NEW_TENANT: Building2, NEW_PAYMENT: CreditCard, PAYMENT_APPROVED: CheckCircle2, PAYMENT_REJECTED: XCircle,
@@ -28,7 +29,6 @@ const ICONS: Record<AdminNotificationType, LucideIcon> = {
 const PRIORITY_TONE: Record<AdminNotificationPriority, 'danger' | 'warning' | 'default'> = { URGENT: 'danger', HIGH: 'warning', NORMAL: 'default', LOW: 'default' };
 const TABS = ['all', 'unread', 'urgent'] as const;
 type Tab = (typeof TABS)[number];
-const num = (n: number) => n.toLocaleString('en-PK');
 
 export default function NotificationsPage() {
   const qc = useQueryClient();
