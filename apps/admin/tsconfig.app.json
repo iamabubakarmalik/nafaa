@@ -9,6 +9,7 @@
     "skipLibCheck": true,
 
     "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
@@ -22,7 +23,19 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/design-system": ["./src/design/ds-entry.ts"],
+      "@/design-system/*": ["../web/src/design-system/*"],
+      "@web-shell/*": ["../web/src/app/shell/*"],
+      "@core/i18n": ["./src/design/i18n-bridge.ts"],
+      "@core/components/PageGuide": ["../web/src/core/components/PageGuide.tsx"],
+      "@core/lib/cn": ["./src/lib/cn.ts"],
+      "@core/lib/shortcuts": ["../web/src/core/lib/shortcuts.ts"],
+      "@core/lib/dateRange": ["../web/src/core/lib/dateRange.ts"],
+      "@core/lib/business-day": ["../web/src/core/lib/business-day.ts"],
+      "@modules/organization/settings/api/settings.api": ["./src/design/settings-api-bridge.ts"],
+      "@/*": ["./src/*"],
+      "@nafaa/shared-utils": ["../../packages/shared-utils/src"],
+      "@nafaa/shared-types": ["../../packages/shared-types/src"]
     }
   },
   "include": ["src"]

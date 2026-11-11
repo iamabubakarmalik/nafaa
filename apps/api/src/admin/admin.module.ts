@@ -23,6 +23,7 @@ import { AdminSalesModule } from './sales/admin-sales.module';
 import { AdminSettingsModule } from './settings/admin-settings.module';
 import { AdminSubscriptionsModule } from './subscriptions/admin-subscriptions.module';
 import { AdminSystemModule } from './system/admin-system.module';
+import { AdminDashboardModule } from './dashboard/admin-dashboard.module';
 import { AdminTenantsModule } from './tenants/admin-tenants.module';
 import { AdminUsersModule } from './users/admin-users.module';
 
@@ -33,6 +34,7 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminTenantsModule,
     AdminUsersModule,
     AdminSystemModule,
+    AdminDashboardModule,
     AdminBillingModule,
     AdminSubscriptionsModule,
     AdminPlansModule,

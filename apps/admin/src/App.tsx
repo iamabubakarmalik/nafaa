@@ -1,72 +1,77 @@
+import { lazy } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import LoginPage from '@/features/auth/pages/LoginPage';
-import DashboardPage from '@/features/dashboard/pages/DashboardPage';
-import TenantsListPage from '@/features/tenants/pages/TenantsListPage';
-import TenantDetailPage from '@/features/tenants/pages/TenantDetailPage';
-import UsersPage from '@/features/users/pages/UsersPage';
-import BillingPage from '@/features/billing/pages/BillingPage';
-import SubscriptionsPage from '@/features/subscriptions/pages/SubscriptionsPage';
-import PlansPage from '@/features/plans/pages/PlansPage';
-import ReferralsPage from '@/features/referrals/pages/ReferralsPage';
-import ActivityPage from '@/features/activity/pages/ActivityPage';
-import AnalyticsPage from '@/features/analytics/pages/AnalyticsPage';
-import AdminProductsPage from '@/features/admin-products/pages/AdminProductsPage';
-import AdminSalesPage from '@/features/admin-sales/pages/AdminSalesPage';
-import DeletionRequestsPage from '@/features/deletion-requests/pages/DeletionRequestsPage';
-import AdminCustomersPage from '@/features/admin-customers/pages/AdminCustomersPage';
-import InvoicesPage from '@/features/invoices/pages/InvoicesPage';
-import BroadcastPage from '@/features/broadcast/pages/BroadcastPage';
-import PlatformDiscountsPage from '@/features/platform-discounts/pages/PlatformDiscountsPage';
-import EmailTemplatesPage from '@/features/email-templates/pages/EmailTemplatesPage';
-import SettingsPage from '@/features/settings/pages/SettingsPage';
-import PlatformAppearancePage from '@/features/appearance/pages/PlatformAppearancePage';
-import HealthPage from '@/features/health/pages/HealthPage';
-import BulkActionsPage from '@/features/bulk-actions/pages/BulkActionsPage';
-import AdminExportsPage from '@/features/admin-exports/pages/AdminExportsPage';
-import NotificationsPage from '@/features/notifications/pages/NotificationsPage';
-import DistributionUsagePage from '@/features/distribution/pages/DistributionUsagePage';
-import CommerceOverviewPage from '@/features/commerce/pages/CommerceOverviewPage';
-import CommerceChannelsPage from '@/features/commerce/pages/CommerceChannelsPage';
-import CommerceJobsPage from '@/features/commerce/pages/CommerceJobsPage';
-import CommerceOrdersPage from '@/features/commerce/pages/CommerceOrdersPage';
-import CommerceCouriersPage from '@/features/commerce/pages/CommerceCouriersPage';
-import CommerceControlsPage from '@/features/commerce/pages/CommerceControlsPage';
-import MobileOverviewPage from '@/features/mobile/pages/MobileOverviewPage';
-import MobileDevicesPage from '@/features/mobile/pages/MobileDevicesPage';
-import MobileDeviceDetailPage from '@/features/mobile/pages/MobileDeviceDetailPage';
-import MobileReleasesPage from '@/features/mobile/pages/MobileReleasesPage';
-import MobileAnnouncementsPage from '@/features/mobile/pages/MobileAnnouncementsPage';
-import MobileFlagsPage from '@/features/mobile/pages/MobileFlagsPage';
-import MobileAppearancePage from '@/features/mobile/pages/MobileAppearancePage';
-import MobilePushPage from '@/features/mobile/pages/MobilePushPage';
+const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
+const TenantsListPage = lazy(() => import('@/features/tenants/pages/TenantsListPage'));
+const TenantDetailPage = lazy(() => import('@/features/tenants/pages/TenantDetailPage'));
+const UsersPage = lazy(() => import('@/features/users/pages/UsersPage'));
+const BillingPage = lazy(() => import('@/features/billing/pages/BillingPage'));
+const SubscriptionsPage = lazy(() => import('@/features/subscriptions/pages/SubscriptionsPage'));
+const PlansPage = lazy(() => import('@/features/plans/pages/PlansPage'));
+const ReferralsPage = lazy(() => import('@/features/referrals/pages/ReferralsPage'));
+const ActivityPage = lazy(() => import('@/features/activity/pages/ActivityPage'));
+const AnalyticsPage = lazy(() => import('@/features/analytics/pages/AnalyticsPage'));
+const AdminProductsPage = lazy(() => import('@/features/admin-products/pages/AdminProductsPage'));
+const AdminSalesPage = lazy(() => import('@/features/admin-sales/pages/AdminSalesPage'));
+const DeletionRequestsPage = lazy(() => import('@/features/deletion-requests/pages/DeletionRequestsPage'));
+const AdminCustomersPage = lazy(() => import('@/features/admin-customers/pages/AdminCustomersPage'));
+const InvoicesPage = lazy(() => import('@/features/invoices/pages/InvoicesPage'));
+const BroadcastPage = lazy(() => import('@/features/broadcast/pages/BroadcastPage'));
+const PlatformDiscountsPage = lazy(() => import('@/features/platform-discounts/pages/PlatformDiscountsPage'));
+const EmailTemplatesPage = lazy(() => import('@/features/email-templates/pages/EmailTemplatesPage'));
+const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage'));
+const PlatformAppearancePage = lazy(() => import('@/features/appearance/pages/PlatformAppearancePage'));
+const HealthPage = lazy(() => import('@/features/health/pages/HealthPage'));
+const BulkActionsPage = lazy(() => import('@/features/bulk-actions/pages/BulkActionsPage'));
+const AdminExportsPage = lazy(() => import('@/features/admin-exports/pages/AdminExportsPage'));
+const NotificationsPage = lazy(() => import('@/features/notifications/pages/NotificationsPage'));
+const DistributionUsagePage = lazy(() => import('@/features/distribution/pages/DistributionUsagePage'));
+const CommerceOverviewPage = lazy(() => import('@/features/commerce/pages/CommerceOverviewPage'));
+const CommerceChannelsPage = lazy(() => import('@/features/commerce/pages/CommerceChannelsPage'));
+const CommerceJobsPage = lazy(() => import('@/features/commerce/pages/CommerceJobsPage'));
+const CommerceOrdersPage = lazy(() => import('@/features/commerce/pages/CommerceOrdersPage'));
+const CommerceCouriersPage = lazy(() => import('@/features/commerce/pages/CommerceCouriersPage'));
+const CommerceControlsPage = lazy(() => import('@/features/commerce/pages/CommerceControlsPage'));
+const MobileOverviewPage = lazy(() => import('@/features/mobile/pages/MobileOverviewPage'));
+const MobileDevicesPage = lazy(() => import('@/features/mobile/pages/MobileDevicesPage'));
+const MobileDeviceDetailPage = lazy(() => import('@/features/mobile/pages/MobileDeviceDetailPage'));
+const MobileReleasesPage = lazy(() => import('@/features/mobile/pages/MobileReleasesPage'));
+const MobileAnnouncementsPage = lazy(() => import('@/features/mobile/pages/MobileAnnouncementsPage'));
+const MobileFlagsPage = lazy(() => import('@/features/mobile/pages/MobileFlagsPage'));
+const MobileAppearancePage = lazy(() => import('@/features/mobile/pages/MobileAppearancePage'));
+const MobilePushPage = lazy(() => import('@/features/mobile/pages/MobilePushPage'));
 import { ProtectedRoute, PublicOnlyRoute } from '@/routes/ProtectedRoute';
-import AdminShell from '@/components/layout/AdminShell';
+import AdminShell from '@/shell/AdminShell';
+import { useAdminTheme } from '@/design/theme';
+const EmailLogsPage = lazy(() => import('@/features/email-logs/pages/EmailLogsPage'));
+const SmsLogsPage = lazy(() => import('@/features/sms-logs/pages/SmsLogsPage'));
+const SmsTemplatesPage = lazy(() => import('@/features/sms-templates/pages/SmsTemplatesPage'));
+const BulkCommunicationsPage = lazy(() => import('@/features/bulk-communications/pages/BulkCommunicationsPage'));
 
 // ─── Marketing Hub ────────────────────────────────────────
-import { MarketingLayout } from '@/features/marketing/layout/MarketingLayout';
-import { MarketingDashboardPage } from '@/features/marketing/dashboard/pages/MarketingDashboardPage';
-import { SubscribersListPage } from '@/features/marketing/newsletter/pages/SubscribersListPage';
-import { SendNewsletterPage } from '@/features/marketing/newsletter/pages/SendNewsletterPage';
-import { ContactFormsListPage } from '@/features/marketing/contact-forms/pages/ContactFormsListPage';
-import { ContactFormDetailPage } from '@/features/marketing/contact-forms/pages/ContactFormDetailPage';
-import { DemoBookingsListPage } from '@/features/marketing/demo-bookings/pages/DemoBookingsListPage';
-import { DemoBookingDetailPage } from '@/features/marketing/demo-bookings/pages/DemoBookingDetailPage';
-import { LeadsListPage } from '@/features/marketing/leads/pages/LeadsListPage';
-import { LeadDetailPage } from '@/features/marketing/leads/pages/LeadDetailPage';
-import { ChatbotConversationsPage } from '@/features/marketing/chatbot/pages/ChatbotConversationsPage';
-import { ChatbotConversationDetailPage } from '@/features/marketing/chatbot/pages/ChatbotConversationDetailPage';
-import { CampaignsListPage } from '@/features/marketing/campaigns/pages/CampaignsListPage';
-import { CampaignBuilderPage } from '@/features/marketing/campaigns/pages/CampaignBuilderPage';
-import { TrafficOverviewPage } from '@/features/marketing/analytics/pages/TrafficOverviewPage';
-import { SeoPagesPage } from '@/features/marketing/seo/pages/SeoPagesPage';
-import { AbTestsListPage } from '@/features/marketing/ab-tests/pages/AbTestsListPage';
-import { HeatmapsPage } from '@/features/marketing/heatmaps/pages/HeatmapsPage';
-import { BlogAnalyticsPage } from '@/features/marketing/blog-analytics/pages/BlogAnalyticsPage';
-import { FunnelPage } from '@/features/marketing/conversions/pages/FunnelPage';
-import { ExportsPage as MarketingExportsPage } from '@/features/marketing/exports/pages/ExportsPage';
-import { CmsRoutes } from '@/features/marketing/cms/routes';
+const MarketingDashboardPage = lazy(() => import('@/features/marketing/dashboard/pages/MarketingDashboardPage').then((m) => ({ default: m.MarketingDashboardPage })));
+const SubscribersListPage = lazy(() => import('@/features/marketing/newsletter/pages/SubscribersListPage').then((m) => ({ default: m.SubscribersListPage })));
+const SendNewsletterPage = lazy(() => import('@/features/marketing/newsletter/pages/SendNewsletterPage').then((m) => ({ default: m.SendNewsletterPage })));
+const ContactFormsListPage = lazy(() => import('@/features/marketing/contact-forms/pages/ContactFormsListPage').then((m) => ({ default: m.ContactFormsListPage })));
+const ContactFormDetailPage = lazy(() => import('@/features/marketing/contact-forms/pages/ContactFormDetailPage').then((m) => ({ default: m.ContactFormDetailPage })));
+const DemoBookingsListPage = lazy(() => import('@/features/marketing/demo-bookings/pages/DemoBookingsListPage').then((m) => ({ default: m.DemoBookingsListPage })));
+const DemoBookingDetailPage = lazy(() => import('@/features/marketing/demo-bookings/pages/DemoBookingDetailPage').then((m) => ({ default: m.DemoBookingDetailPage })));
+const LeadsListPage = lazy(() => import('@/features/marketing/leads/pages/LeadsListPage').then((m) => ({ default: m.LeadsListPage })));
+const LeadDetailPage = lazy(() => import('@/features/marketing/leads/pages/LeadDetailPage').then((m) => ({ default: m.LeadDetailPage })));
+const ChatbotConversationsPage = lazy(() => import('@/features/marketing/chatbot/pages/ChatbotConversationsPage').then((m) => ({ default: m.ChatbotConversationsPage })));
+const ChatbotConversationDetailPage = lazy(() => import('@/features/marketing/chatbot/pages/ChatbotConversationDetailPage').then((m) => ({ default: m.ChatbotConversationDetailPage })));
+const CampaignsListPage = lazy(() => import('@/features/marketing/campaigns/pages/CampaignsListPage').then((m) => ({ default: m.CampaignsListPage })));
+const CampaignBuilderPage = lazy(() => import('@/features/marketing/campaigns/pages/CampaignBuilderPage').then((m) => ({ default: m.CampaignBuilderPage })));
+const TrafficOverviewPage = lazy(() => import('@/features/marketing/analytics/pages/TrafficOverviewPage').then((m) => ({ default: m.TrafficOverviewPage })));
+const SeoPagesPage = lazy(() => import('@/features/marketing/seo/pages/SeoPagesPage').then((m) => ({ default: m.SeoPagesPage })));
+const AbTestsListPage = lazy(() => import('@/features/marketing/ab-tests/pages/AbTestsListPage').then((m) => ({ default: m.AbTestsListPage })));
+const HeatmapsPage = lazy(() => import('@/features/marketing/heatmaps/pages/HeatmapsPage').then((m) => ({ default: m.HeatmapsPage })));
+const BlogAnalyticsPage = lazy(() => import('@/features/marketing/blog-analytics/pages/BlogAnalyticsPage').then((m) => ({ default: m.BlogAnalyticsPage })));
+const FunnelPage = lazy(() => import('@/features/marketing/conversions/pages/FunnelPage').then((m) => ({ default: m.FunnelPage })));
+const MarketingExportsPage = lazy(() => import('@/features/marketing/exports/pages/ExportsPage').then((m) => ({ default: m.ExportsPage })));
+const CmsRoutes = lazy(() => import('@/features/marketing/cms/routes').then((m) => ({ default: m.CmsRoutes })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +80,7 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  useAdminTheme();
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -84,7 +90,7 @@ export default function App() {
           </Route>
 
           <Route element={<ProtectedRoute />}>
-            {/* Main admin (uses AdminShell) */}
+            {/* Every signed-in page renders inside the admin shell */}
             <Route element={<AdminShell />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
@@ -126,46 +132,50 @@ export default function App() {
 
               <Route path="/broadcast" element={<BroadcastPage />} />
               <Route path="/email-templates" element={<EmailTemplatesPage />} />
+              <Route path="/email-logs" element={<EmailLogsPage />} />
+              <Route path="/sms-templates" element={<SmsTemplatesPage />} />
+              <Route path="/sms-logs" element={<SmsLogsPage />} />
+              <Route path="/bulk-communications" element={<BulkCommunicationsPage />} />
 
               <Route path="/activity" element={<ActivityPage />} />
               <Route path="/bulk-actions" element={<BulkActionsPage />} />
               <Route path="/exports" element={<AdminExportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/appearance" element={<PlatformAppearancePage />} />
-            </Route>
 
-            {/* Marketing Hub — dedicated layout with its own sidebar */}
-            <Route path="/marketing" element={<MarketingLayout />}>
-              <Route index element={<MarketingDashboardPage />} />
+              {/* Marketing site workspace */}
+              <Route path="/marketing">
+                <Route index element={<MarketingDashboardPage />} />
 
-              <Route path="newsletter" element={<SubscribersListPage />} />
-              <Route path="newsletter/send" element={<SendNewsletterPage />} />
+                <Route path="newsletter" element={<SubscribersListPage />} />
+                <Route path="newsletter/send" element={<SendNewsletterPage />} />
 
-              <Route path="contact-forms" element={<ContactFormsListPage />} />
-              <Route path="contact-forms/:id" element={<ContactFormDetailPage />} />
+                <Route path="contact-forms" element={<ContactFormsListPage />} />
+                <Route path="contact-forms/:id" element={<ContactFormDetailPage />} />
 
-              <Route path="demos" element={<DemoBookingsListPage />} />
-              <Route path="demos/:id" element={<DemoBookingDetailPage />} />
+                <Route path="demos" element={<DemoBookingsListPage />} />
+                <Route path="demos/:id" element={<DemoBookingDetailPage />} />
 
-              <Route path="leads" element={<LeadsListPage />} />
-              <Route path="leads/:id" element={<LeadDetailPage />} />
+                <Route path="leads" element={<LeadsListPage />} />
+                <Route path="leads/:id" element={<LeadDetailPage />} />
 
-              <Route path="chatbot" element={<ChatbotConversationsPage />} />
-              <Route path="chatbot/:id" element={<ChatbotConversationDetailPage />} />
+                <Route path="chatbot" element={<ChatbotConversationsPage />} />
+                <Route path="chatbot/:id" element={<ChatbotConversationDetailPage />} />
 
-              <Route path="campaigns" element={<CampaignsListPage />} />
-              <Route path="campaigns/new" element={<CampaignBuilderPage />} />
+                <Route path="campaigns" element={<CampaignsListPage />} />
+                <Route path="campaigns/new" element={<CampaignBuilderPage />} />
 
-              <Route path="analytics" element={<TrafficOverviewPage />} />
-              <Route path="seo" element={<SeoPagesPage />} />
-              <Route path="ab-tests" element={<AbTestsListPage />} />
-              <Route path="heatmaps" element={<HeatmapsPage />} />
-              <Route path="blog" element={<BlogAnalyticsPage />} />
-              <Route path="conversions" element={<FunnelPage />} />
-              <Route path="exports" element={<MarketingExportsPage />} />
+                <Route path="analytics" element={<TrafficOverviewPage />} />
+                <Route path="seo" element={<SeoPagesPage />} />
+                <Route path="ab-tests" element={<AbTestsListPage />} />
+                <Route path="heatmaps" element={<HeatmapsPage />} />
+                <Route path="blog" element={<BlogAnalyticsPage />} />
+                <Route path="conversions" element={<FunnelPage />} />
+                <Route path="exports" element={<MarketingExportsPage />} />
 
-              {/* Website CMS (/marketing/website) */}
-              <Route path="website/*" element={<CmsRoutes />} />
+                {/* Website CMS (/marketing/website) */}
+                <Route path="website/*" element={<CmsRoutes />} />
+              </Route>
             </Route>
           </Route>
 
