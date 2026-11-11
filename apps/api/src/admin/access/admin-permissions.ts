@@ -53,6 +53,9 @@ export const ADMIN_AREAS: AdminAreaDef[] = [
   area('merchant_data', 'Merchant products, sales and customers', 'Merchants', [], 'Edit or remove records inside a shop.'),
   area('deletion', 'Deletion requests', 'Merchants'),
   area('bulk', 'Bulk actions', 'Merchants', [], 'Run actions on many shops at once.'),
+  area('partners', 'Partners and field team', 'Partners', [
+    { key: 'partners.payouts', label: 'Approve and pay partner payouts', hint: 'Approve payout requests, mark them paid with the transfer reference, or reject them.', sensitive: true },
+  ], 'Approve applications, edit partners, plans, targets and the marketing kit; review visits; adjust earnings.'),
   area('billing', 'Payments and invoices', 'Billing', [
     { key: 'billing.approve', label: 'Approve or reject payments', hint: 'Starts or stops a shop’s plan.', sensitive: true },
   ]),
@@ -93,8 +96,8 @@ export const SYSTEM_ROLES: Array<{ key: string; name: string; description: strin
     name: 'Operations',
     description: 'Runs shops, billing and the online store day to day. Cannot manage staff or delete shops.',
     permissions: [
-      ...views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'marketplace', 'communications', 'mobile', 'system', 'audit'),
-      ...manages('notifications', 'tenants', 'users', 'deletion', 'billing', 'plans', 'online_store', 'marketplace', 'communications'),
+      ...views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'marketplace', 'communications', 'mobile', 'system', 'audit', 'partners'),
+      ...manages('notifications', 'tenants', 'users', 'deletion', 'billing', 'plans', 'online_store', 'marketplace', 'communications', 'partners'),
       'billing.approve',
     ],
   },
@@ -134,6 +137,6 @@ export const SYSTEM_ROLES: Array<{ key: string; name: string; description: strin
     key: 'readonly',
     name: 'Read only',
     description: 'Can look at everything except staff and the audit log. Cannot change anything.',
-    permissions: views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'marketplace', 'marketing', 'communications', 'mobile', 'system', 'settings', 'exports'),
+    permissions: views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'marketplace', 'marketing', 'communications', 'mobile', 'system', 'settings', 'exports', 'partners'),
   },
 ];

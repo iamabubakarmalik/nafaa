@@ -29,6 +29,8 @@ enum UserRole {
   SUPER_ADMIN
   /// Nafaa team member who uses the admin panel with an AdminRole. Cannot sign in to the merchant app.
   ADMIN_STAFF
+  /// Nafaa partner or field employee. Signs in only to the partner portal.
+  PARTNER
 }
 
 enum PaymentMethod {
@@ -402,18 +404,23 @@ model Plan {
 }
 
 model Tenant {
-  id            String       @id @default(uuid())
-  name          String
-  slug          String       @unique
-  phone         String?
-  country       String       @default("Pakistan")
-  currency      String       @default("PKR")
-  language      String       @default("en")
-  status        TenantStatus @default(TRIAL)
-  address       String?
-  referralCode  String?      @unique
-  referredById  String?
-  accountCredit Float        @default(0)
+  id                  String       @id @default(uuid())
+  name                String
+  slug                String       @unique
+  phone               String?
+  country             String       @default("Pakistan")
+  currency            String       @default("PKR")
+  language            String       @default("en")
+  status              TenantStatus @default(TRIAL)
+  address             String?
+  referralCode        String?      @unique
+  referredById        String?
+  accountCredit       Float        @default(0)
+  /// Partner who brought this shop (partner portal). Set at signup or by an admin.
+  partnerId           String?
+  partnerAttributedAt DateTime?
+  /// "code", "lead" or "admin"
+  partnerSource       String?
 
   // ─── Business Configuration ──────────────────────────────────
   businessType     String? // CARPET, MOBILE, GROCERY, PHARMACY, etc.
@@ -477,6 +484,7 @@ model Tenant {
 
   notificationPreference NotificationPreference?
   referredBy             Tenant?                 @relation("TenantReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  partner                Partner?                @relation("PartnerTenants", fields: [partnerId], references: [id], onDelete: SetNull)
   referredTenants        Tenant[]                @relation("TenantReferrals")
   referralsGiven         Referral[]              @relation("ReferralReferrer")
   referralsReceived      Referral[]              @relation("ReferralReferee")
@@ -536,6 +544,7 @@ model Tenant {
   distDeliveryReports  DistDeliveryReport[]
 
   @@index([lastActiveAt])
+  @@index([partnerId])
 }
 
 model Referral {
@@ -814,6 +823,7 @@ model User {
   platformDiscounts   PlatformDiscount[]      @relation("UserPlatformDiscounts")
   staffProfile        Staff?                  @relation("StaffUser")
   adminMember         AdminMember?            @relation("AdminMemberUser")
+  partnerProfile      Partner?                @relation("PartnerUser")
 
   /// Last time this user's app talked to the API (updated at most once a minute).
   lastSeenAt  DateTime?
@@ -25911,4 +25921,259 @@ model ServerError {
 
   @@index([lastSeenAt])
   @@index([resolvedAt, lastSeenAt])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Partner portal (partner.nafaa.pk): referral partners, field agents,
+// resellers, trainers and Nafaa field employees. See
+// ~/nafaa-backups/wip/partner-plan.md for the rules.
+// ═══════════════════════════════════════════════════════════════
+
+enum PartnerType {
+  REFERRAL
+  FIELD_AGENT
+  RESELLER
+  TRAINER
+  EMPLOYEE
+}
+
+enum PartnerStatus {
+  APPLIED
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum PartnerLeadStage {
+  VISITED
+  DEMO
+  SIGNED_UP
+  ACTIVATED
+  PAID
+  LOST
+}
+
+enum PartnerEarningKind {
+  SIGNUP_BONUS
+  ACTIVATION_BONUS
+  RECURRING
+  OVERRIDE
+  SLAB_BONUS
+  ADJUSTMENT
+}
+
+enum PartnerEarningStatus {
+  PENDING
+  PAYABLE
+  PAID
+  REVERSED
+}
+
+enum PartnerPayoutStatus {
+  REQUESTED
+  APPROVED
+  PAID
+  REJECTED
+}
+
+model Partner {
+  id            String        @id @default(uuid())
+  userId        String        @unique
+  /// Code shops enter at signup; also the referral link.
+  code          String        @unique
+  type          PartnerType   @default(REFERRAL)
+  status        PartnerStatus @default(APPLIED)
+  fullName      String
+  phone         String        @unique
+  email         String?
+  cnic          String?
+  city          String?
+  territory     String?
+  isManager     Boolean       @default(false)
+  managerId     String?
+  planId        String?
+  /// Monthly salary for EMPLOYEE partners (display only; paid outside Nafaa).
+  salary        Float?
+  /// Employees earn commission only when this is on.
+  incentivesOn  Boolean       @default(true)
+  payoutMethod  String?
+  payoutAccount String?
+  payoutTitle   String?
+  bankName      String?
+  notes         String?
+  rejectReason  String?
+  appliedAt     DateTime      @default(now())
+  approvedAt    DateTime?
+  approvedById  String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user     User             @relation("PartnerUser", fields: [userId], references: [id], onDelete: Cascade)
+  manager  Partner?         @relation("PartnerTeam", fields: [managerId], references: [id], onDelete: SetNull)
+  team     Partner[]        @relation("PartnerTeam")
+  plan     PartnerPlan?     @relation(fields: [planId], references: [id], onDelete: SetNull)
+  tenants  Tenant[]         @relation("PartnerTenants")
+  leads    PartnerLead[]
+  visits   PartnerVisit[]
+  earnings PartnerEarning[]
+  payouts  PartnerPayout[]
+  targets  PartnerTarget[]
+
+  @@index([status])
+  @@index([type])
+  @@index([managerId])
+  @@index([city])
+}
+
+model PartnerPlan {
+  id                     String   @id @default(uuid())
+  name                   String
+  description            String?
+  isDefault              Boolean  @default(false)
+  active                 Boolean  @default(true)
+  /// Paid once, on the shop's first approved payment.
+  signupBonus            Float    @default(0)
+  /// Paid once, when the shop reaches activationSales sales within activationDays of signup.
+  activationBonus        Float    @default(0)
+  activationSales        Int      @default(20)
+  activationDays         Int      @default(30)
+  /// Share of each approved payment, for recurringMonths from the first payment.
+  recurringPercent       Float    @default(0)
+  recurringMonths        Int      @default(0)
+  /// Manager's share of each earning of the agents under them.
+  managerOverridePercent Float    @default(0)
+  /// Earnings wait this many days before they can be paid out.
+  clawbackDays           Int      @default(30)
+  /// Monthly target bonuses: [{ "signups": 10, "bonus": 5000 }]
+  slabs                  Json?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  partners Partner[]
+}
+
+model PartnerLead {
+  id          String           @id @default(uuid())
+  partnerId   String
+  shopName    String
+  ownerName   String?
+  /// Normalised 03xxxxxxxxx form.
+  phone       String
+  category    String?
+  city        String?
+  address     String?
+  lat         Float?
+  lng         Float?
+  interest    String?
+  stage       PartnerLeadStage @default(VISITED)
+  lostReason  String?
+  followUpAt  DateTime?
+  notes       String?
+  tenantId    String?
+  lockedUntil DateTime
+  signedUpAt  DateTime?
+  activatedAt DateTime?
+  paidAt      DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  partner Partner        @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  visits  PartnerVisit[]
+
+  @@index([partnerId, stage])
+  @@index([phone])
+  @@index([tenantId])
+  @@index([followUpAt])
+}
+
+model PartnerVisit {
+  id           String    @id @default(uuid())
+  partnerId    String
+  leadId       String
+  /// Client-made id so an offline visit sent twice is saved once.
+  clientId     String?   @unique
+  lat          Float?
+  lng          Float?
+  accuracy     Float?
+  photoUrl     String?
+  note         String?
+  visitedAt    DateTime
+  /// NO_GPS, LOW_ACCURACY, FAR_FROM_LEAD, FAST_TRAVEL, OUT_OF_HOURS, TOO_MANY
+  flags        String[]  @default([])
+  /// "ok" (flags cleared by an admin) or "fake"; null while not reviewed.
+  review       String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  partner Partner     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  lead    PartnerLead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId, visitedAt])
+  @@index([leadId])
+  @@index([visitedAt])
+}
+
+model PartnerEarning {
+  id             String               @id @default(uuid())
+  partnerId      String
+  tenantId       String?
+  kind           PartnerEarningKind
+  status         PartnerEarningStatus @default(PENDING)
+  amount         Float
+  description    String?
+  /// Makes the commission job idempotent, e.g. "signup:<tenantId>", "recurring:<paymentId>".
+  sourceRef      String?              @unique
+  availableAt    DateTime
+  reversedReason String?
+  payoutId       String?
+  createdById    String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  partner Partner        @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  payout  PartnerPayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  @@index([partnerId, status])
+  @@index([status, availableAt])
+  @@index([tenantId])
+}
+
+model PartnerPayout {
+  id           String              @id @default(uuid())
+  partnerId    String
+  amount       Float
+  status       PartnerPayoutStatus @default(REQUESTED)
+  method       String?
+  account      String?
+  accountTitle String?
+  reference    String?
+  note         String?
+  rejectReason String?
+  requestedAt  DateTime            @default(now())
+  decidedAt    DateTime?
+  decidedById  String?
+  paidAt       DateTime?
+
+  partner  Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  earnings PartnerEarning[]
+
+  @@index([partnerId, status])
+  @@index([status])
+}
+
+model PartnerTarget {
+  id          String   @id @default(uuid())
+  partnerId   String
+  /// "2026-11"
+  month       String
+  visits      Int      @default(0)
+  signups     Int      @default(0)
+  activations Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, month])
 }

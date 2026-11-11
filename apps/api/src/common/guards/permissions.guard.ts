@@ -48,6 +48,12 @@ export class PermissionsGuard implements CanActivate {
     /* Login se pehle wale raaste — JwtAuthGuard khud sambhalta hai */
     if (!user) return true;
 
+    // Partner portal routes are checked by PartnerGuard; shop permissions do not apply.
+    if (user.role === 'PARTNER') {
+      const path: string = (request.originalUrl ?? request.url ?? '').split('?')[0];
+      if (/^(\/api)?\/partner(\/|$)/.test(path)) return true;
+    }
+
     const explicit =
       this.reflector.getAllAndOverride<PermissionKey[]>(PERMISSIONS_KEY, [
         context.getHandler(),

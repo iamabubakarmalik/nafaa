@@ -112,6 +112,7 @@ import { IndustriesModule } from './industries/industries.module';
 import { AdminModule } from './admin/admin.module';
 import { PresenceModule } from './modules/presence/presence.module';
 import { SystemControlModule } from './core/system-control/system-control.module';
+import { PartnersModule } from './modules/partners/partners.module';
 import { AdminMarketingModule } from './admin-marketing/admin-marketing.module';
 
 // ─── Marketplace ──────────────────────────────────────────
@@ -263,6 +264,7 @@ import { SyncModule } from './modules/sync/sync.module';
     AdminModule,
     PresenceModule,
     SystemControlModule,
+    PartnersModule,
     AdminMarketingModule,
     PublishingModule,
     MarketplaceModule,

@@ -88,6 +88,7 @@ async function bootstrap() {
     'https://www.nafaa.pk',
     'https://app.nafaa.pk',
     'https://admin.nafaa.pk',
+    'https://partner.nafaa.pk',
     'https://marketing.nafaa.pk',
     'https://bazaar.nafaa.pk',
     'https://api.nafaa.pk',

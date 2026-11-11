@@ -1,0 +1,23 @@
+/*
+ * Global stylesheet entry.
+ *
+ * Tokens and base element styles come from the shared design system
+ * (apps/web/src/design-system/styles), the same files the merchant app uses.
+ */
+
+@import '../../web/src/design-system/styles/tokens.css';
+@import '../../web/src/design-system/styles/base.css';
+@import '../../web/src/design-system/styles/hero.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Room for the bottom tab bar and the phone's home indicator. */
+.pb-tabbar { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff !important; }
+}

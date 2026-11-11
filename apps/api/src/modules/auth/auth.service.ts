@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -26,6 +27,7 @@ import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { DEFAULT_ROLE_PERMISSIONS } from '../../common/constants/permissions.constants';
 import { apiMessage, notificationText } from '../../common/i18n/api-message';
 import { DEFAULT_APP_LANGUAGE, isAppLanguage } from '../../common/i18n/app-language';
+import { PartnerAttributionService } from '../partners/attribution/partner-attribution.service';
 
 function makeReferralCode(seed: string): string {
   const clean = seed.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 6);
@@ -50,6 +52,7 @@ export class AuthService {
     private readonly smsService: SmsService,
     private readonly adminNotifications: AdminNotificationsService,
     private readonly appleIdentity: AppleIdentityService,
+    @Optional() private readonly partnerAttribution?: PartnerAttributionService,
   ) {}
 
   // ═══════════════════════════════════════════════════════════
@@ -69,12 +72,14 @@ export class AuthService {
     }
 
     let referrer: { id: string } | null = null;
+    // A code is either another shop's referral code or a Nafaa partner's code.
+    let partnerCode: string | null = null;
     if (dto.referralCode) {
-      const found = await this.prisma.tenant.findUnique({
-        where: { referralCode: dto.referralCode.trim().toUpperCase() },
-      });
-      if (!found) throw new BadRequestException('Invalid referral code');
-      referrer = { id: found.id };
+      const code = dto.referralCode.trim().toUpperCase();
+      const found = await this.prisma.tenant.findUnique({ where: { referralCode: code } });
+      if (found) referrer = { id: found.id };
+      else if (this.partnerAttribution && (await this.partnerAttribution.isActiveCode(code))) partnerCode = code;
+      else throw new BadRequestException('Invalid referral code');
     }
 
     const passwordHash = await hashPassword(dto.password);
@@ -186,6 +191,7 @@ export class AuthService {
       return { tenant, user, mainShop };
     });
 
+    await this.partnerAttribution?.attachAtSignup({ tenantId: result.tenant.id, code: partnerCode, phone: dto.phone, email: dto.email });
     this.notifyAdminNewSignup(result.tenant, result.user, 'EMAIL', dto.referralCode);
     this.sendWelcomeEmail(result.tenant, result.user);
 
@@ -1255,6 +1261,7 @@ export class AuthService {
   private async issueTokens(payload: JwtPayload, userAgent?: string, ip?: string) {
     // Admin staff work only in the admin panel; they have no merchant access.
     if (payload.role === UserRole.ADMIN_STAFF) throw new UnauthorizedException('This is an admin panel account. Sign in at the Nafaa admin panel.');
+    if (payload.role === UserRole.PARTNER) throw new UnauthorizedException('Ye partner account hai. partner.nafaa.pk par sign in karein.');
     const accessSecret = this.configService.get<string>('JWT_ACCESS_SECRET')!;
     const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET')!;
     const accessExpires = this.configService.get<string>('JWT_ACCESS_EXPIRES_IN')!;

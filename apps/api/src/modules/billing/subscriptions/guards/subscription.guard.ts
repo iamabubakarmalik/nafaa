@@ -41,6 +41,8 @@ export class SubscriptionGuard implements CanActivate {
   private readonly BYPASS_PATHS = [
     '/api/auth',
     '/api/admin',
+    // Partner portal accounts have no shop subscription.
+    '/api/partner',
     '/api/subscriptions',
     '/api/plans',
     '/api/billing',

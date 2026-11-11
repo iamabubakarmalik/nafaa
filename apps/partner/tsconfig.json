@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["vite/client"],
+
+    "paths": {
+      "@/design-system": ["./src/design/ds-entry.ts"],
+      "@/design-system/*": ["../web/src/design-system/*"],
+      "@core/i18n": ["./src/design/i18n-bridge.ts"],
+      "@core/lib/cn": ["./src/lib/cn.ts"],
+      "@core/lib/shortcuts": ["../web/src/core/lib/shortcuts.ts"],
+      "@core/lib/dateRange": ["../web/src/core/lib/dateRange.ts"],
+      "@core/lib/business-day": ["../web/src/core/lib/business-day.ts"],
+      "@modules/organization/settings/api/settings.api": ["./src/design/settings-api-bridge.ts"],
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}

@@ -26,6 +26,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       const path: string = (req.originalUrl ?? req.url ?? '').split('?')[0];
       if (!/^(\/api)?\/admin(\/|$)/.test(path)) throw new ForbiddenException('Admin panel accounts cannot use the merchant app.');
     }
+    if ((result as { role?: string } | undefined)?.role === 'PARTNER') {
+      const req = context.switchToHttp().getRequest();
+      const path: string = (req.originalUrl ?? req.url ?? '').split('?')[0];
+      if (!/^(\/api)?\/partner(\/|$)/.test(path)) throw new ForbiddenException('Partner accounts can only use the partner portal.');
+    }
     return result;
   }
 }

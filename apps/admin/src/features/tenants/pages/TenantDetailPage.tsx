@@ -1,8 +1,9 @@
 /**
  * Shop 360: one shop's full picture — health score, sales trend, team and
- * devices, plan and invoices, online store, notes and a timeline of shop and
- * admin activity — with the admin actions (sign in as the shop, suspend or
- * reactivate, delete), each shown only to admins allowed to use it.
+ * devices, plan and invoices, the partner who brought it, online store, notes
+ * and a timeline of shop and admin activity — with the admin actions (sign in
+ * as the shop, suspend or reactivate, delete), each shown only to admins
+ * allowed to use it.
  */
 
 import { useState } from 'react';
@@ -30,6 +31,7 @@ import { apiError } from '@/lib/errors';
 import { DetailList, LastSeen, OnlineDot, StatusBadge, isOnline, statusLabel } from '@/ui';
 import { BUSINESS_MODELS, BusinessModelChips } from '../components/BusinessModelChips';
 import { UserActions } from '@/features/users/components/UserActions';
+import { TenantPartnerCard } from '@/features/partners/components/TenantPartnerCard';
 
 type Tab = 'overview' | 'team' | 'billing' | 'online' | 'notes' | 'timeline';
 
@@ -246,6 +248,7 @@ export default function TenantDetailPage() {
               { label: 'Shop id', value: <code className="break-all text-[0.75rem]">{tenant.id}</code> },
             ]} />
           </Card>
+          <TenantPartnerCard tenantId={tenant.id} tenantName={tenant.name} />
         </div>
       )}
 

@@ -83,6 +83,14 @@ const AuditLogPage = lazy(() => import('@/features/staff/pages/AuditLogPage'));
 const LiveNowPage = lazy(() => import('@/features/live/pages/LiveNowPage'));
 const AiUsagePage = lazy(() => import('@/features/ai-usage/pages/AiUsagePage'));
 const SecurityPage = lazy(() => import('@/features/account/pages/SecurityPage'));
+const PartnersListPage = lazy(() => import('@/features/partners/pages/PartnersListPage'));
+const PartnerDetailPage = lazy(() => import('@/features/partners/pages/PartnerDetailPage'));
+const PartnerLeadsPage = lazy(() => import('@/features/partners/pages/PartnerLeadsPage'));
+const PartnerVisitAuditPage = lazy(() => import('@/features/partners/pages/VisitAuditPage'));
+const PartnerPayoutsPage = lazy(() => import('@/features/partners/pages/PayoutsPage'));
+const PartnerPlansPage = lazy(() => import('@/features/partners/pages/PlansPage'));
+const PartnerPerformancePage = lazy(() => import('@/features/partners/pages/PerformancePage'));
+const PartnerKitPage = lazy(() => import('@/features/partners/pages/KitPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -117,6 +125,17 @@ export default function App() {
               <Route path="/users" element={<UsersPage />} />
               <Route path="/customers" element={<AdminCustomersPage />} />
               <Route path="/deletion-requests" element={<DeletionRequestsPage />} />
+
+              {/* Partner programme: fixed paths are listed before /partners/:id */}
+              <Route path="/partners" element={<PartnersListPage />} />
+              <Route path="/partners/applications" element={<PartnersListPage key="applications" applications />} />
+              <Route path="/partners/leads" element={<PartnerLeadsPage />} />
+              <Route path="/partners/visits" element={<PartnerVisitAuditPage />} />
+              <Route path="/partners/payouts" element={<PartnerPayoutsPage />} />
+              <Route path="/partners/plans" element={<PartnerPlansPage />} />
+              <Route path="/partners/performance" element={<PartnerPerformancePage />} />
+              <Route path="/partners/kit" element={<PartnerKitPage />} />
+              <Route path="/partners/:id" element={<PartnerDetailPage />} />
 
               <Route path="/products" element={<AdminProductsPage />} />
               <Route path="/sales" element={<AdminSalesPage />} />

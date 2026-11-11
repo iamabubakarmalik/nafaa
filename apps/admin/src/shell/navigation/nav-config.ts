@@ -10,10 +10,10 @@
 import type { ComponentType, CSSProperties } from 'react';
 import {
   Activity, BarChart3, Beaker, Bell, BellRing, Bot, Bug, Building2, Calendar, CircleHelp, CreditCard, Download,
-  FileText, Gift, Globe, Handshake, HeartPulse, Images, Layers, LayoutDashboard, ListChecks, Mail, MailCheck,
+  ClipboardList, FileText, Gift, Globe, Handshake, HandCoins, Briefcase, HeartPulse, Images, Layers, LayoutDashboard, ListChecks, Mail, MailCheck,
   Megaphone, Menu as MenuIcon, MessageSquare, MessageSquareText, MousePointer2, Package, PackageCheck,
   PackageSearch, Paintbrush, Palette, Plug, Power, Receipt, Rocket, Search, Send, Settings, Settings2,
-  KeyRound, Radio, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
+  KeyRound, MapPinCheck, Radio, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
   Timer, ToggleRight, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
@@ -40,7 +40,7 @@ export interface AdminNavGroup {
 }
 
 export type WorkspaceId =
-  | 'platform' | 'merchants' | 'billing' | 'online-store' | 'marketing' | 'communications' | 'mobile' | 'system' | 'staff';
+  | 'platform' | 'merchants' | 'partners' | 'billing' | 'online-store' | 'marketing' | 'communications' | 'mobile' | 'system' | 'staff';
 
 export interface AdminWorkspace {
   id: WorkspaceId;
@@ -117,6 +117,47 @@ export const WORKSPACES: AdminWorkspace[] = [
         icon: Layers,
         items: [
           { to: '/bulk-actions', label: 'Bulk actions', icon: Layers, keywords: 'mass suspend extend' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'partners',
+    label: 'Partners',
+    shortLabel: 'Partners',
+    description: 'Referral partners, field agents and Nafaa field staff: leads, visits, commission and payouts',
+    icon: Handshake,
+    tone: 'bg-orange-600 text-white',
+    root: '/partners',
+    prefixes: ['/partners'],
+    groups: [
+      {
+        id: 'partner-people',
+        label: 'People',
+        icon: Handshake,
+        items: [
+          { to: '/partners', label: 'Partners', icon: Handshake, exact: true, keywords: 'agents resellers employees field team referral' },
+          { to: '/partners/applications', label: 'Applications', icon: ClipboardList, keywords: 'approve new partner signup review' },
+        ],
+      },
+      {
+        id: 'partner-field',
+        label: 'Field work',
+        icon: MapPinCheck,
+        items: [
+          { to: '/partners/leads', label: 'Leads', icon: Briefcase, keywords: 'shops prospects pipeline stages' },
+          { to: '/partners/visits', label: 'Visit audit', icon: MapPinCheck, keywords: 'fake visits gps location photos flags fraud' },
+          { to: '/partners/performance', label: 'Performance', icon: TrendingUp, keywords: 'roi revenue signups city leaderboard' },
+        ],
+      },
+      {
+        id: 'partner-money',
+        label: 'Money',
+        icon: HandCoins,
+        items: [
+          { to: '/partners/payouts', label: 'Payouts', icon: HandCoins, keywords: 'pay partner commission jazzcash easypaisa bank' },
+          { to: '/partners/plans', label: 'Commission plans', icon: Tag, keywords: 'bonus percent slabs override' },
+          { to: '/partners/kit', label: 'Marketing kit', icon: Megaphone, keywords: 'videos pdf demo account material' },
         ],
       },
     ],
@@ -383,7 +424,7 @@ export const WORKSPACES: AdminWorkspace[] = [
 /** Permission area of each page (see apps/api/src/admin/access/admin-permissions.ts). */
 const AREA_BY_PREFIX: Array<[string, string]> = [
   ['/dashboard', 'dashboard'], ['/live', 'users'], ['/analytics', 'dashboard'], ['/notifications', 'notifications'],
-  ['/tenants', 'tenants'], ['/users', 'users'], ['/deletion-requests', 'deletion'],
+  ['/tenants', 'tenants'], ['/users', 'users'], ['/deletion-requests', 'deletion'], ['/partners', 'partners'],
   ['/products', 'merchant_data'], ['/sales', 'merchant_data'], ['/customers', 'merchant_data'], ['/bulk-actions', 'bulk'],
   ['/billing', 'billing'], ['/invoices', 'billing'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
   ['/platform-discounts', 'promos'], ['/referrals', 'promos'],
