@@ -46,7 +46,7 @@ and `src/features/tenants/pages/TenantsListPage.tsx` (list).
   - Popover/Menu, Tabs, Segmented, Badge, Card, Alert, EmptyState, Skeleton;
   - plus the admin kit in `@/ui`.
 - Do not use `@/components/ui/Button` or `Input` (old; being removed). No hand-rolled modals or dropdowns.
-- Destructive actions (delete, suspend, refund) must ask first: `await confirmDialog({ title, description, confirmLabel, tone: 'danger' })`. Check the exact props in `apps/web/src/design-system/components/ConfirmDialog.tsx`.
+- Destructive actions (delete, suspend, refund) must ask first: `await confirmDialog({ title, text, yes: 'Suspend', danger: true })`.
 - Use `toast` from `sonner` for results.
 
 ## Style
