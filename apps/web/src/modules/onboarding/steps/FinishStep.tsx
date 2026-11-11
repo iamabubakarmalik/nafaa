@@ -1,9 +1,10 @@
-/** Last screen: what is set up, what was left for later, and two preferences. */
+/** Last screen: what is set up, what was left for later, optional add-ons and two preferences. */
 
 import { CheckCircle2, CircleDashed } from 'lucide-react';
 import { Switch } from '@/design-system/components';
 import type { OnboardingProgress } from '../api/onboarding.api';
 import { WIZARD_STEPS, isStepDone, type WizardStepId } from '../constants/wizard-steps';
+import { ExtrasSection } from './ExtrasSection';
 import { t } from '@core/i18n';
 
 export interface FinishForm {
@@ -47,6 +48,8 @@ export function FinishStep({ value, onChange, progress, onJump }: Props) {
           );
         })}
       </ul>
+
+      <ExtrasSection />
 
       <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
         <Switch

@@ -9,7 +9,7 @@
  */
 
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { AddOnKind, TenantAddOnStatus } from '@prisma/client';
+import { AddOn, AddOnKind, BillingInterval, TenantAddOnStatus } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { TenantTimezoneService } from '../../../common/helpers/tenant-timezone.service';
 import { businessDayKey, startOfBusinessMonthTz } from '../../../common/helpers/business-time.helper';
@@ -17,7 +17,7 @@ import { EntitlementsService } from '../entitlements/entitlements.service';
 import { FEATURES, UNLIMITED } from '../entitlements/feature-catalog';
 import { loadBillingSettings } from '../entitlements/billing-settings';
 import { nextInvoiceNumber } from './invoice-number';
-import { addOnAllowedOn, proratedLine, writeInvoiceItems } from './pricing-core';
+import { SETUP_KEY, addOnAllowedOn, applyPaidInvoiceAddOns, proratedLine, writeInvoiceItems } from './pricing-core';
 import { BillingNotifier } from './billing-notifier';
 
 const DAY = 86_400_000;
@@ -51,6 +51,8 @@ export class BillingPricingService {
       })),
       features: FEATURES,
       trialDays: settings.trialDays,
+      // Yearly plans: Assisted setup free and its price off Full activation.
+      offers: { yearlyFreeSetup: settings.yearlyFreeSetup, setupKey: 'setup', fullActivationKey: 'full_activation' },
       unlimited: UNLIMITED,
     };
   }
@@ -88,9 +90,12 @@ export class BillingPricingService {
     const existing = await this.prisma.tenantAddOn.findUnique({ where: { tenantId_addOnId: { tenantId, addOnId: addOn.id } } });
     const now = new Date();
 
+    // A one-time service (setup, activation) can be bought on any plan, trial included.
+    if (addOn.kind === AddOnKind.ONE_TIME) return this.buyService(tenantId, addOn, ent.interval as BillingInterval | null);
+
     // Trial or grandfather period: on now, free until that period ends.
     const freeUntil = ent.state === 'trial' ? ent.trialEndsAt : ent.grandfatheredUntil;
-    if (freeUntil && freeUntil > now && addOn.kind !== AddOnKind.ONE_TIME) {
+    if (freeUntil && freeUntil > now) {
       await this.prisma.tenantAddOn.upsert({
         where: { tenantId_addOnId: { tenantId, addOnId: addOn.id } },
         create: { tenantId, addOnId: addOn.id, quantity: qty, status: TenantAddOnStatus.ACTIVE, source: ent.state === 'trial' ? 'TRIAL' : 'GRANDFATHER', freeUntil, createdById: userId },
@@ -118,7 +123,7 @@ export class BillingPricingService {
     const paidQty = existing?.status === TenantAddOnStatus.ACTIVE ? existing.quantity : 0;
     const billQty = addOn.kind === AddOnKind.PER_UNIT ? qty - paidQty : 1;
     const settings = await loadBillingSettings(this.prisma);
-    const line = proratedLine(addOn, billQty, ent.periodEnd, existing?.unitPrice);
+    const line = proratedLine(addOn, billQty, ent.periodEnd, existing?.unitPrice, ent.interval as BillingInterval | null);
     const dueAt = new Date(now.getTime() + settings.addOnPayDays * DAY);
 
     const invoice = await this.prisma.$transaction(async (tx) => {
@@ -141,6 +146,37 @@ export class BillingPricingService {
     this.entitlements.invalidate(tenantId);
     await this.entitlements.syncChannels(tenantId);
     await this.notifier.addOnTurnedOn(tenantId, addOn.name, line.amount, dueAt, invoice.invoiceNumber);
+    return { mode: 'invoice' as const, invoice, overview: await this.overview(tenantId) };
+  }
+
+  /** Bill for a one-time service; it is recorded for delivery once paid. */
+  private async buyService(tenantId: string, addOn: AddOn, interval: BillingInterval | null) {
+    const settings = await loadBillingSettings(this.prisma);
+    const setup = settings.yearlyFreeSetup ? await this.prisma.addOn.findUnique({ where: { key: SETUP_KEY }, select: { priceMonthly: true, isActive: true } }) : null;
+    const line = proratedLine(addOn, 1, new Date(), null, interval, setup?.isActive ? setup.priceMonthly : 0);
+    const now = new Date();
+    if (line.amount <= 0) {
+      // Free with the yearly plan: record it for delivery straight away.
+      const inv = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.invoice.create({
+          data: { tenantId, invoiceNumber: await nextInvoiceNumber(tx), status: 'PAID', subtotal: 0, total: 0, amountDue: 0, amountPaid: 0, paidAt: now, description: addOn.name, dueDate: now },
+        });
+        await writeInvoiceItems(tx, created.id, [line]);
+        await applyPaidInvoiceAddOns(tx, created.id);
+        return created;
+      });
+      return { mode: 'free' as const, invoice: inv, overview: await this.overview(tenantId) };
+    }
+    const invoice = await this.prisma.$transaction(async (tx) => {
+      const inv = await tx.invoice.create({
+        data: {
+          tenantId, invoiceNumber: await nextInvoiceNumber(tx), status: 'PENDING', subtotal: line.amount, total: line.amount, amountDue: line.amount,
+          description: addOn.name, dueDate: new Date(now.getTime() + 7 * DAY),
+        },
+      });
+      await writeInvoiceItems(tx, inv.id, [line]);
+      return inv;
+    });
     return { mode: 'invoice' as const, invoice, overview: await this.overview(tenantId) };
   }
 

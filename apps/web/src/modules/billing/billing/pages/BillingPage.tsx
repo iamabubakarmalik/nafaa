@@ -1,39 +1,38 @@
 /**
- * Billing centre: the plan in use with renewal and owner actions, usage
- * against plan limits, Nafaa bills with pay and print, payments sent, and
- * the plan comparison. /billing, /plans and /plan-usage open it on their tab.
+ * "Mera plan" (/billing): the plan and its state, usage against the limits,
+ * add-ons and bills to pay (MyPlanOverview), then every Nafaa bill with pay
+ * and print, and the payments sent. Choosing or changing a plan is /plans;
+ * the add-on store is /apps. /plan-usage opens the first tab.
  *
- * Keys: 1-5 tabs · / search bills · M Q Y price period · R refresh · G guide.
+ * Keys: 1-3 tabs · / search bills · R refresh · G guide.
  */
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  BarChart3, CalendarClock, CheckCircle2, Clock, CreditCard, FileText, Gauge, GraduationCap, Layers, ListFilter,
+  Clock, CreditCard, GraduationCap, LayoutGrid, Layers, ListFilter,
   Receipt, RefreshCw, Sparkles, Wallet,
 } from 'lucide-react';
 import {
-  Button, EmptyState, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
+  Button, EmptyState, FilterBar, FilterChip, FilterMenu, Kbd, PageHero, PageShell, SearchField, Skeleton, ViewTabs,
   heroButton, heroIconButton, heroPrimaryButton, type FilterOption, type ViewTab,
 } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { PrintButton } from '@core/print';
-import { formatPKR } from '@core/lib/format';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
-import type { BillingInterval } from '@modules/billing/subscriptions/api/subscriptions.api';
 import type { Invoice, InvoiceStatus, Payment, PaymentStatus } from '../api/billing.api';
 import { useBilling } from '../hooks/useBilling';
-import { INVOICE_STATUS, PAYMENT_STATUS, SUBSCRIPTION_STATUS, daysText, formatDate } from '../components/helpers';
+import { INVOICE_STATUS, PAYMENT_STATUS } from '../components/helpers';
 import { InvoiceList, InvoiceModal } from '../components/InvoiceList';
 import { PaymentList, PaymentModal } from '../components/PaymentList';
-import { PlanCompare } from '../components/PlanCompare';
-import { PlanSummary } from '../components/PlanSummary';
-import { UsageMeters, usedPercent } from '../components/UsageMeters';
+import { MyPlanOverview } from '@modules/billing/pricing/components/MyPlanOverview';
+import { useBillingOverview, usePricingCatalog, useRefreshBilling } from '@modules/billing/pricing/hooks/usePricing';
+import { addOnState, daysLeft, fmtDate, rs } from '@modules/billing/pricing/lib/catalog-meta';
 import { billingDoc } from '../components/print';
 import { t as tr } from '@core/i18n';
 
-export type BillingTab = 'overview' | 'usage' | 'invoices' | 'payments' | 'plans';
-const ORDER: BillingTab[] = ['overview', 'usage', 'invoices', 'payments', 'plans'];
+export type BillingTab = 'overview' | 'invoices' | 'payments';
+const ORDER: BillingTab[] = ['overview', 'invoices', 'payments'];
 
 type InvoiceFilter = 'all' | 'open' | InvoiceStatus;
 type PaymentFilter = 'all' | PaymentStatus;
@@ -50,23 +49,27 @@ const PAYMENT_FILTERS: Array<FilterOption<PaymentFilter>> = [
 
 export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: BillingTab }) {
   const b = useBilling();
+  const overviewQ = useBillingOverview();
+  const catalogQ = usePricingCatalog();
+  const refreshPlan = useRefreshBilling();
+  const navigate = useNavigate();
+  const ov = overviewQ.data;
   const guide = usePageGuide();
   const searchRef = useRef<HTMLInputElement>(null);
   const [params, setParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [invoiceFilter, setInvoiceFilter] = useState<InvoiceFilter>('all');
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all');
-  const [interval, setInterval] = useState<BillingInterval>('MONTHLY');
   const [openInvoice, setOpenInvoice] = useState<Invoice | null>(null);
   const [openPayment, setOpenPayment] = useState<Payment | null>(null);
 
-  const allowed = useMemo(() => ORDER.filter((t) => (t === 'usage' ? b.can.usage : t === 'plans' ? b.can.plans : b.can.billing)), [b.can.usage, b.can.plans, b.can.billing]);
+  const allowed = useMemo(() => ORDER.filter(() => b.can.billing), [b.can.billing]);
   const asked = params.get('tab') as BillingTab | null;
   const tab: BillingTab = asked && allowed.includes(asked) ? asked : allowed.includes(defaultTab) ? defaultTab : allowed[0] ?? defaultTab;
   const setTab = (t: BillingTab) => setParams((x) => { const n = new URLSearchParams(x); n.set('tab', t); return n; }, { replace: true });
 
-  /** Plans tab, on the current interval when the plan needs renewing. */
-  const goPlans = () => { if (b.needsRenewal && b.sub?.interval) setInterval(b.sub.interval); setTab('plans'); };
+  const goPlans = () => navigate('/plans');
+  const refreshAll = () => { b.refresh(); refreshPlan(); };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -79,8 +82,7 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
         if (tab !== 'invoices' && tab !== 'payments') setTab('invoices');
         setTimeout(() => searchRef.current?.focus(), 30);
       }
-      if (k === 'r') b.refresh();
-      if (tab === 'plans' && (k === 'm' || k === 'q' || k === 'y')) setInterval(k === 'm' ? 'MONTHLY' : k === 'q' ? 'QUARTERLY' : 'YEARLY');
+      if (k === 'r') refreshAll();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -95,16 +97,14 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
     && (!q || [p.transactionId, p.invoice?.invoiceNumber, p.payerName, p.provider].some((v) => v?.toLowerCase().includes(q)))), [b.payments, paymentFilter, q]);
 
   const sub = b.sub;
-  const st = sub ? SUBSCRIPTION_STATUS[sub.status] : null;
-  const products = b.usage ? b.usage.usage.products : null;
-  const productPct = products ? usedPercent(products.current, products.limit, 999_999) : null;
   const tabs: ViewTab<BillingTab>[] = ([
     { id: 'overview', label: tr('Mera plan'), icon: Layers },
-    { id: 'usage', label: tr('Istemaal'), icon: Gauge },
     { id: 'invoices', label: tr('Bill'), icon: Receipt, count: b.invoices.length || null },
     { id: 'payments', label: tr('Payments'), icon: Wallet, count: b.payments.length || null },
-    { id: 'plans', label: tr('Plans'), icon: Sparkles },
   ] as ViewTab<BillingTab>[]).filter((t) => allowed.includes(t.id));
+  const STATE_LABEL: Record<string, string> = { trial: tr('Free trial'), active: tr('Chalu'), free: tr('Free plan'), grace: tr('Payment baqi'), expired: tr('Khatam') };
+  const endDate = ov?.state === 'trial' ? ov.trialEndsAt : ov?.periodEnd ?? null;
+  const activeAddOns = ov && catalogQ.data ? catalogQ.data.addOns.filter((a) => addOnState(a, ov, ov, catalogQ.data.addOns).active).length : 0;
 
   const listTab = tab === 'invoices' || tab === 'payments';
   const filterActive = tab === 'invoices' ? invoiceFilter !== 'all' : paymentFilter !== 'all';
@@ -116,47 +116,29 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
       {guide.isOpen && <BillingGuide onClose={guide.close} />}
 
       <PageHero
-        title={tr('Billing aur plan')}
-        chip={st ? <><st.icon />{st.label}</> : <><Layers />{tr('Nafaa subscription')}</>}
-        meta={tr('Nafaa ka bill, payment aur plan ki had')}
-        busy={b.fetching && !b.loading.sub}
-        loading={b.loading.sub && b.can.billing}
+        title={tr('Mera plan')}
+        chip={ov ? <><Sparkles />{STATE_LABEL[ov.state]}</> : <><Layers />{tr('Nafaa plan')}</>}
+        meta={tr('Plan, istemaal, add-ons aur Nafaa ke bill')}
+        busy={(b.fetching || overviewQ.isFetching) && !overviewQ.isLoading}
+        loading={overviewQ.isLoading && b.can.billing}
         actions={<>
-          <button type="button" onClick={b.refresh} title={tr('Taaza karein (R)')} aria-label={tr('Taaza karein')} className={heroIconButton}><RefreshCw className="h-4 w-4" /></button>
+          <button type="button" onClick={refreshAll} title={tr('Taaza karein (R)')} aria-label={tr('Taaza karein')} className={heroIconButton}><RefreshCw className="h-4 w-4" /></button>
           {b.can.billing && (
             <span className="[&_button]:border-white/25 [&_button]:bg-white [&_button]:text-slate-800">
               <PrintButton doc={() => billingDoc(b.invoices, b.payments, b.totals, sub?.plan?.name)} disabled={!b.invoices.length} label={tr('Record')} />
             </span>
           )}
           <button type="button" onClick={guide.open} title={tr('Guide (G)')} aria-label={tr('Guide')} className={heroIconButton}><GraduationCap className="h-4 w-4" /></button>
-          {b.can.plans && tab !== 'plans' && <button type="button" onClick={goPlans} className={heroPrimaryButton}><Sparkles className="h-4 w-4" />{sub?.status === 'TRIAL' ? tr('Plan lein') : b.needsRenewal ? tr('Renew') : tr('Plans')}</button>}
-          {tab === 'plans' && b.can.billing && <button type="button" onClick={() => setTab('overview')} className={heroButton}><Layers className="h-4 w-4" />{tr('Mera plan')}</button>}
+          <Link to="/apps" className={heroButton}><LayoutGrid className="h-4 w-4" />{tr('Apps & add-ons')}</Link>
+          {b.can.plans && <button type="button" onClick={goPlans} className={heroPrimaryButton}><Sparkles className="h-4 w-4" />{ov?.state === 'trial' || ov?.state === 'free' ? tr('Plan chunein') : tr('Plan badlein')}</button>}
         </>}
         stats={b.can.billing ? [
-          { label: tr('Aap ka plan'), value: sub?.plan?.name ?? '—', hint: sub?.amount ? formatPKR(sub.amount) : undefined },
-          { label: sub?.status === 'TRIAL' ? tr('Trial khatam') : tr('Plan khatam'), value: formatDate(b.endsAt), hint: b.daysLeft != null ? daysText(b.daysLeft) : undefined },
-          { label: tr('Dena hai'), value: formatPKR(b.totals.due), hint: b.totals.open.length ? tr('{{count}} bill', { count: b.totals.open.length }) : tr('kuch nahi') },
-          { label: tr('Ab tak ada kiya'), value: formatPKR(b.totals.paidTotal) },
+          { label: tr('Aap ka plan'), value: ov?.plan?.name ?? sub?.plan?.name ?? '—', hint: ov ? STATE_LABEL[ov.state] : undefined },
+          { label: ov?.state === 'trial' ? tr('Trial khatam') : tr('Plan ki tareekh'), value: ov?.state === 'free' ? tr('Hamesha') : fmtDate(endDate), hint: endDate && ov?.state !== 'free' ? tr('{{days}} din baqi', { days: daysLeft(endDate) }) : undefined },
+          { label: tr('Dena hai'), value: rs(b.totals.due), hint: b.totals.open.length ? tr('{{count}} bill', { count: b.totals.open.length }) : tr('kuch nahi') },
+          { label: tr('Add-ons'), value: String(activeAddOns), hint: tr('chalu') },
         ] : undefined}
       />
-
-      {b.can.billing && (
-        <KpiRow>
-          {b.loading.invoices ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
-            <>
-              <KpiCard icon={Clock} color="#d97706" label={tr('Khule bill')} value={formatPKR(b.totals.due)} hint={b.totals.overdue ? tr('{{overdue}} der wale · dabayein', { overdue: b.totals.overdue }) : tr('{{count}} bill · dabayein', { count: b.totals.open.length })}
-                onClick={() => { setInvoiceFilter('open'); setTab('invoices'); }} active={tab === 'invoices' && invoiceFilter === 'open'} />
-              <KpiCard icon={FileText} color="#7c3aed" label={tr('Check ho rahi')} value={String(b.totals.reviewing)} hint={tr('Payments · 24 ghante me')}
-                onClick={() => { setPaymentFilter('PENDING'); setTab('payments'); }} active={tab === 'payments' && paymentFilter === 'PENDING'} />
-              <KpiCard icon={CheckCircle2} color="#16a34a" label={tr('Ada kiya')} value={formatPKR(b.totals.paidTotal)} hint={tr('{{paidCount}} bill', { paidCount: b.totals.paidCount })} />
-              <KpiCard icon={BarChart3} color="#2563eb" label={tr('Products')} value={products ? products.current.toLocaleString('en-PK') : '—'}
-                hint={productPct != null ? tr('{{productPct}}% had istemaal', { productPct }) : products ? tr('Koi had nahi') : undefined}
-                onClick={b.can.usage ? () => setTab('usage') : undefined} active={tab === 'usage'} />
-              <KpiCard icon={CalendarClock} color={b.needsRenewal ? '#e11d48' : '#0891b2'} label={tr('Renew')} value={b.daysLeft != null ? daysText(b.daysLeft) : '—'} hint={formatDate(b.endsAt)} />
-            </>
-          )}
-        </KpiRow>
-      )}
 
       <ViewTabs value={tab} onChange={setTab} tabs={tabs} hint={<><Kbd>1</Kbd>–<Kbd>{String(tabs.length)}</Kbd> {' '}{tr('se badlein')}</>} />
 
@@ -177,8 +159,7 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
 
       {tab === 'overview' && (
         <div className="space-y-4">
-          <PlanSummary b={b} onPlans={goPlans} />
-          {b.can.usage && <UsageMeters usage={b.usage} loading={b.loading.usage} error={b.usageError} onUpgrade={b.can.plans ? goPlans : undefined} />}
+          <MyPlanOverview overview={ov} catalog={catalogQ.data} loading={overviewQ.isLoading} />
           {b.invoices.length > 0 && (
             <section className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80">
               <header className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5 sm:px-5">
@@ -190,8 +171,6 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
           )}
         </div>
       )}
-
-      {tab === 'usage' && <UsageMeters usage={b.usage} loading={b.loading.usage} error={b.usageError} full onUpgrade={b.can.plans ? goPlans : undefined} />}
 
       {tab === 'invoices' && (
         <ListBox loading={b.loading.invoices} empty={!invoices.length}
@@ -211,7 +190,6 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
         </ListBox>
       )}
 
-      {tab === 'plans' && <PlanCompare b={b} interval={interval} setInterval={setInterval} />}
     </PageShell>
   );
 }
@@ -228,9 +206,9 @@ function BillingGuide({ onClose }: { onClose: () => void }) {
   return (
     <PageGuide title={tr('Billing — aasaan tareeqa')} onClose={onClose}
       steps={[
-        { icon: Layers, color: '#2563eb', title: tr('Mera plan'), text: tr('Kaunsa plan chal raha hai, kab khatam hoga aur kitne ka hai. Plan band ya wapas chalu bhi yahin se.') },
-        { icon: Gauge, color: '#7c3aed', title: tr('Istemaal'), text: tr('Products, team, branches aur is mahine ke bill — plan ki had ke muqable me. 75% par peela, 90% par laal.') },
-        { icon: Sparkles, color: '#db2777', title: tr('Plan chunein'), text: tr('Plans tab me mahana, 3 mahine ya saalana qeemat dekhein. Lambi period me bachat hai.') },
+        { icon: Layers, color: '#2563eb', title: tr('Mera plan'), text: tr('Kaunsa plan chal raha hai, kab khatam hoga, istemaal kitna hua aur kaun se add-ons chalu hain.') },
+        { icon: LayoutGrid, color: '#7c3aed', title: tr('Apps & add-ons'), text: tr('Online store, Shopify, Daraz, distribution, FBR — sirf jo chahiye woh chalu karein. Menu saaf rehta hai.') },
+        { icon: Sparkles, color: '#db2777', title: tr('Plan chunein'), text: tr('Plan aur add-ons chunein, mahana, 3 mahine ya saalana. Lambi period me bachat hai.') },
         { icon: Receipt, color: '#d97706', title: tr('Bill ada karein'), text: tr('Khula bill kholein, "Payment karein" dabayein, bank ya wallet se bhej kar screenshot upload karein.') },
         { icon: Wallet, color: '#16a34a', title: tr('Payment ka haal'), text: tr('Payments tab me dekhein: check ho rahi, approve ya wapas. Wapas hui ho to wajah parh kar dobara bhejein.') },
         { icon: CreditCard, color: '#0891b2', title: tr('Print'), text: tr('Har bill ka A4 ya PDF print — apne record ya accountant ke liye.') },
@@ -240,7 +218,7 @@ function BillingGuide({ onClose }: { onClose: () => void }) {
         tr('Plan lena, badalna ya band karna sirf malik ya billing ki permission wala kar sakta hai.'),
         tr('Ek hi bill rakhein — doosra plan chunne par wohi khula bill update ho jata hai.'),
       ]}
-      shortcuts={[['1-5', tr('tabs')], ['/', tr('bill search')], ['M Q Y', tr('muddat')], ['R', tr('taaza')], ['G', tr('guide')]]}
+      shortcuts={[['1-3', tr('tabs')], ['/', tr('bill search')], ['R', tr('taaza')], ['G', tr('guide')]]}
       footer={<Link to="/help" onClick={onClose} className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{tr('Madad chahiye? →')}</Link>}
     />
   );

@@ -114,6 +114,7 @@
   "Amount QR me daalein": "Put amount in QR",
   "analytics": "analytics",
   "Analytics": "Analytics",
+  "Andaazan {{time}} tak": "Until about {{time}}",
   "Andhere kamre ya raat ki dukaan me \"Kaala\" aankhon ko nahi chubhta.": "In a dark room or a night shop, \"Black\" is easy on the eyes.",
   "Apna account password likhein": "Enter your account password",
   "Apna message": "Your own message",
@@ -607,6 +608,7 @@
   "Nafaa desktop app se": "From the Nafaa desktop app",
   "Nafaa Marketplace": "Nafaa Marketplace",
   "Nafaa network": "Nafaa network",
+  "Nafaa par maintenance chal rahi hai": "Nafaa is under maintenance",
   "Nafaa POS": "Nafaa POS",
   "Nahi gaya": "Not sent",
   "Nahi gaye": "Not sent",
@@ -1051,7 +1053,5 @@
   "Yeh pending sale delete kar dein?": "Delete this pending sale?",
   "Zabaan": "Language",
   "اردو / Urdu": "اردو / Urdu",
-  "نفع — آپ کا کاروبار": "Nafaa — your business",
-  "Nafaa par maintenance chal rahi hai": "Nafaa is under maintenance",
-  "Andaazan {{time}} tak": "Until about {{time}}"
+  "نفع — آپ کا کاروبار": "Nafaa — your business"
 }

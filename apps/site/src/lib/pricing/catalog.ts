@@ -42,11 +42,20 @@ export interface CatalogFeature {
   group: string;
 }
 
+/** One-time setup packages and the yearly-plan offer on them. */
+export interface CatalogOffers {
+  yearlyFreeSetup: boolean;
+  setupKey: string;
+  fullActivationKey: string;
+}
+
 export interface PricingCatalog {
   plans: CatalogPlan[];
   addOns: CatalogAddOn[];
   features: CatalogFeature[];
   trialDays: number;
+  /** Null when the API does not send offers (older API). */
+  offers: CatalogOffers | null;
   /** Limits at or above this value mean "unlimited". */
   unlimited: number;
 }
@@ -110,7 +119,12 @@ function parse(body: unknown): PricingCatalog | null {
   });
 
   if (!plans.length) return null;
-  return { plans, addOns, features, trialDays: num(r.trialDays, 7), unlimited: num(r.unlimited, 999_999) };
+  const o = r.offers && typeof r.offers === 'object' ? (r.offers as Record<string, unknown>) : null;
+  const offers: CatalogOffers | null =
+    o && str(o.setupKey) && str(o.fullActivationKey)
+      ? { yearlyFreeSetup: o.yearlyFreeSetup === true, setupKey: str(o.setupKey)!, fullActivationKey: str(o.fullActivationKey)! }
+      : null;
+  return { plans, addOns, features, trialDays: num(r.trialDays, 7), offers, unlimited: num(r.unlimited, 999_999) };
 }
 
 /** The catalog, or null when it cannot be read. Cached for an hour. */

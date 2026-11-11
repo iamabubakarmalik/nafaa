@@ -13,7 +13,7 @@ import { BillCalculator } from '@/components/islands/BillCalculator';
 import { formatCount } from '@/components/blocks/lib/format';
 import { cx } from '@/components/ui/cx';
 import { CmsIcon } from '@/lib/icons';
-import type { CatalogAddOn, CatalogPlan, PricingCatalog } from '@/lib/pricing/catalog';
+import type { CatalogAddOn, CatalogOffers, CatalogPlan, PricingCatalog } from '@/lib/pricing/catalog';
 import { fill, pricingV2Strings, type PricingV2Strings } from './pricingV2Strings';
 
 const GROUP_ORDER = ['Core', 'Business', 'Growth', 'Advanced'];
@@ -137,7 +137,13 @@ export function AddOnsSection({ catalog, locale }: { catalog: PricingCatalog; lo
   const t = pricingV2Strings(locale);
   if (!catalog.addOns.length) return null;
   const byKey = new Map(catalog.addOns.map((a) => [a.key, a]));
-  const categories = [...new Set(catalog.addOns.map((a) => a.category))];
+  const { offers } = catalog;
+  const setup = offers ? byKey.get(offers.setupKey) : undefined;
+  const activation = offers ? byKey.get(offers.fullActivationKey) : undefined;
+  const packages = offers && setup && activation ? [setup, activation] : [];
+  const packageKeys = new Set(packages.map((a) => a.key));
+  const listed = catalog.addOns.filter((a) => !packageKeys.has(a.key));
+  const categories = [...new Set(listed.map((a) => a.category))];
 
   return (
     <section aria-labelledby="addons" className="py-section">
@@ -148,7 +154,7 @@ export function AddOnsSection({ catalog, locale }: { catalog: PricingCatalog; lo
             <div key={category}>
               <h3 className="mb-4 text-h4 text-fg-strong">{t.categories[category] ?? category}</h3>
               <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {catalog.addOns
+                {listed
                   .filter((a) => a.category === category)
                   .map((a) => {
                     const members = a.bundleKeys.map((k) => byKey.get(k)).filter((m): m is CatalogAddOn => Boolean(m));
@@ -171,9 +177,32 @@ export function AddOnsSection({ catalog, locale }: { catalog: PricingCatalog; lo
               </ul>
             </div>
           ))}
+          {packages.length ? <SetupPackages packages={packages} offers={offers!} setupPrice={setup!.priceMonthly} t={t} /> : null}
         </div>
       </div>
     </section>
+  );
+}
+
+/** The two one-time setup packages side by side, with the yearly-plan offer. */
+function SetupPackages({ packages, offers, setupPrice, t }: { packages: CatalogAddOn[]; offers: CatalogOffers; setupPrice: number; t: PricingV2Strings }) {
+  return (
+    <div>
+      <h3 className="mb-4 text-h4 text-fg-strong">{t.packagesHeading}</h3>
+      <ul className="grid gap-4 md:grid-cols-2">
+        {packages.map((a) => {
+          const yearly = a.key === offers.setupKey ? t.packagesYearly : fill(t.packagesYearlyPrice, { price: formatCount(Math.max(0, a.priceMonthly - setupPrice)) });
+          return (
+            <li key={a.key} className="flex flex-col rounded-xl border border-line bg-surface p-5 shadow-e1 ink:shadow-none">
+              <h4 className="text-body font-semibold text-fg-strong">{a.name}</h4>
+              {a.description ? <p className="mt-2 text-small text-fg-muted">{a.description}</p> : null}
+              <p className="mt-auto pt-4 text-body font-semibold text-fg-strong tabular-nums">{fill(t.oneTime, { price: formatCount(a.priceMonthly) })}</p>
+              {offers.yearlyFreeSetup ? <p className="mt-1 text-xs font-medium text-link">{yearly}</p> : null}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
@@ -184,7 +213,7 @@ export function CalculatorSection({ catalog, locale, signupUrl, highlight }: { c
       <div className="mx-auto box-content max-w-container px-gutter">
         <Heading id="bill-calculator" kicker={t.calcKicker} title={t.calcHeading} intro={t.calcIntro} />
         <div className="mt-10">
-          <BillCalculator plans={catalog.plans} addOns={catalog.addOns} t={t} signupUrl={signupUrl} trialDays={catalog.trialDays} defaultPlan={highlight} />
+          <BillCalculator plans={catalog.plans} addOns={catalog.addOns} t={t} signupUrl={signupUrl} trialDays={catalog.trialDays} defaultPlan={highlight} offers={catalog.offers} />
         </div>
       </div>
     </section>

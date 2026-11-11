@@ -105,7 +105,7 @@ export function DistributionSettingsSection() {
             <p className="font-semibold text-slate-900">{t('Aap ke plan{{value}} me Distribution shamil nahi', { value: access.planName ? ` (${access.planName})` : '' })}</p>
             <p className="text-[0.8125rem] text-slate-600">{t('Order booker app, routes, price lists, schemes, load sheet, settlement aur recovery — plan upgrade karke chalu karein.')}</p>
           </div>
-          <Link to="/plans"><Button rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}>{t('Plans dekhein')}</Button></Link>
+          <Link to="/apps?add=distribution"><Button rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}>{t('Distribution chalu karein')}</Button></Link>
         </div>
       )}
 

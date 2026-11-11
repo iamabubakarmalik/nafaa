@@ -77,7 +77,7 @@ export function DistributionGate({ children }: { children: ReactNode }) {
           </ul>
         )}
         <div className="mt-5 flex justify-center gap-2">
-          {plan && canBilling && <Link to="/plans"><Button>{tr('See plans')}</Button></Link>}
+          {plan && canBilling && <Link to="/apps?add=distribution"><Button>{tr('Distribution chalu karein')}</Button></Link>}
           {!plan && canSettings && <Link to="/settings/distribution"><Button leftIcon={<Settings className="h-4 w-4" />}>{tr('Settings kholein')}</Button></Link>}
           {!(plan ? canBilling : canSettings) && <p className="text-[0.8125rem] text-slate-500">{tr('Dukaan ke malik se kahein.')}</p>}
         </div>

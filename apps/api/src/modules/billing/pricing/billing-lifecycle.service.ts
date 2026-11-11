@@ -90,6 +90,8 @@ export class BillingLifecycleService {
       where: {
         status: TenantAddOnStatus.ACTIVE,
         paymentDueAt: null,
+        // One-time services are tracked on the admin "Setup requests" list instead.
+        addOn: { kind: { not: 'ONE_TIME' } },
         OR: [
           { currentPeriodEnd: { lt: paidEnd } },
           { currentPeriodEnd: null, freeUntil: { lt: now } },

@@ -3,6 +3,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { SHOP_HEADER } from '@core/lib/shopScope';
 import { hasServerTranslation, translateServerMessage, translateServerText } from '@core/i18n/serverMessage';
 import { noteMaintenanceResponse, setMaintenanceNotice } from './maintenance';
+import { noteBillingResponse } from './billing-notice';
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
@@ -60,6 +61,8 @@ apiClient.interceptors.response.use(
     const original = error.config;
     const status = error.response?.status;
     noteMaintenanceResponse(status, error.response?.data);
+    // Locked feature, full limit or ended plan: one app-wide prompt (never a logout).
+    if (status === 402 || status === 403) noteBillingResponse(status, error.response?.data);
 
     if (status === 401 && !original._retry) {
       original._retry = true;

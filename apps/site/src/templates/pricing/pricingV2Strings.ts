@@ -47,6 +47,11 @@ export interface PricingV2Strings {
   planLine: string;
   includedInBundle: string;
   oneTimeLine: string;
+  yearlySetupNote: string;
+  freeLabel: string;
+  packagesHeading: string;
+  packagesYearly: string;
+  packagesYearlyPrice: string;
   perMonthTotal: string;
   periodTotal: string;
   oneTimeTotal: string;
@@ -108,7 +113,12 @@ const en: PricingV2Strings = {
   yourBill: 'Your bill',
   planLine: 'Plan',
   includedInBundle: 'in bundle',
-  oneTimeLine: 'One-time',
+  oneTimeLine: 'Ek dafa',
+  yearlySetupNote: 'Saal ke plan ke saath setup muft',
+  freeLabel: 'Free',
+  packagesHeading: 'Setup packages',
+  packagesYearly: 'Free with a yearly plan',
+  packagesYearlyPrice: 'Rs {price} with a yearly plan',
   perMonthTotal: 'Per month',
   periodTotal: 'Total for the period',
   oneTimeTotal: 'One-time charges',
@@ -184,7 +194,12 @@ const ur: PricingV2Strings = {
   yourBill: 'آپ کا بل',
   planLine: 'پلان',
   includedInBundle: 'بنڈل میں شامل',
-  oneTimeLine: 'ایک بار',
+  oneTimeLine: 'ایک دفعہ',
+  yearlySetupNote: 'سالانہ پلان کے ساتھ سیٹ اپ مفت',
+  freeLabel: 'مفت',
+  packagesHeading: 'سیٹ اپ پیکجز',
+  packagesYearly: 'سالانہ پلان کے ساتھ مفت',
+  packagesYearlyPrice: 'سالانہ پلان کے ساتھ Rs {price}',
   perMonthTotal: 'ہر ماہ',
   periodTotal: 'مدت کا کل',
   oneTimeTotal: 'ایک بار کے چارجز',

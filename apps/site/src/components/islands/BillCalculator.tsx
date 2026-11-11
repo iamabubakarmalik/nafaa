@@ -15,7 +15,7 @@ import { useMemo, useState } from 'react';
 import { cx } from '@/components/ui/cx';
 import { formatCount } from '@/components/blocks/lib/format';
 import { track } from '@/lib/analytics/track';
-import type { CatalogAddOn, CatalogPlan } from '@/lib/pricing/catalog';
+import type { CatalogAddOn, CatalogOffers, CatalogPlan } from '@/lib/pricing/catalog';
 import { fill, type PricingV2Strings } from '@/templates/pricing/pricingV2Strings';
 
 type Period = 'monthly' | 'quarterly' | 'yearly';
@@ -35,9 +35,10 @@ export interface BillCalculatorProps {
   signupUrl: string;
   trialDays: number;
   defaultPlan?: string;
+  offers?: CatalogOffers | null;
 }
 
-export function BillCalculator({ plans, addOns, t, signupUrl, trialDays, defaultPlan }: BillCalculatorProps) {
+export function BillCalculator({ plans, addOns, t, signupUrl, trialDays, defaultPlan, offers }: BillCalculatorProps) {
   const [planSlug, setPlanSlug] = useState(defaultPlan ?? plans.find((p) => !p.isFree)?.slug ?? plans[0]?.slug ?? '');
   const [period, setPeriod] = useState<Period>('monthly');
   const [selected, setSelected] = useState<Record<string, number>>({});
@@ -52,20 +53,25 @@ export function BillCalculator({ plans, addOns, t, signupUrl, trialDays, default
     const months = MONTHS[activePeriod];
     const planTotal = paid ? planPrice(plan, activePeriod) : 0;
     const ratio = paid && plan.priceMonthly > 0 ? planTotal / (plan.priceMonthly * months) : 1;
-    const chosen = paid ? addOns.filter((a) => selected[a.key] && !a.comingSoon && (!a.availableOnPlans.length || a.availableOnPlans.includes(plan.slug))) : [];
+    const yearlyFree = Boolean(offers?.yearlyFreeSetup && activePeriod === 'yearly');
+    const setupAddOn = offers ? addOns.find((a) => a.key === offers.setupKey) : undefined;
+    const chosen = paid ? addOns.filter((a) => (selected[a.key] || (yearlyFree && a.key === setupAddOn?.key)) && !a.comingSoon && (!a.availableOnPlans.length || a.availableOnPlans.includes(plan.slug))) : [];
     const covered = new Set(chosen.flatMap((a) => a.bundleKeys));
     const lines = chosen.map((a) => {
       const qty = a.kind === 'PER_UNIT' ? Math.min(MAX_UNITS, Math.max(1, selected[a.key] ?? 1)) : 1;
       const inBundle = covered.has(a.key);
       const monthly = a.kind === 'ONE_TIME' || inBundle ? 0 : a.priceMonthly * qty;
-      const oneTime = a.kind === 'ONE_TIME' && !inBundle ? a.priceMonthly : 0;
-      return { addOn: a, qty, inBundle, monthly, oneTime };
+      // One-time items are charged once. With a yearly plan Assisted setup is free and Full activation is net of it.
+      let oneTime = a.kind === 'ONE_TIME' && !inBundle ? a.priceMonthly : 0;
+      if (yearlyFree && a.key === offers?.setupKey) oneTime = 0;
+      if (yearlyFree && a.key === offers?.fullActivationKey && setupAddOn) oneTime = Math.max(0, a.priceMonthly - setupAddOn.priceMonthly);
+      return { addOn: a, qty, inBundle, monthly, oneTime, freeSetup: yearlyFree && a.key === offers?.setupKey };
     });
     const addOnMonthly = lines.reduce((sum, l) => sum + l.monthly, 0);
     const oneTime = lines.reduce((sum, l) => sum + l.oneTime, 0);
     const periodTotal = planTotal + Math.round((addOnMonthly * months * ratio) / 10) * 10;
     return { months, planTotal, lines, periodTotal, perMonth: periodTotal / months, oneTime };
-  }, [plan, paid, activePeriod, addOns, selected]);
+  }, [plan, paid, activePeriod, addOns, selected, offers]);
 
   if (!plan || !bill) return null;
 
@@ -181,7 +187,7 @@ export function BillCalculator({ plans, addOns, t, signupUrl, trialDays, default
                 {l.addOn.kind === 'PER_UNIT' && l.qty > 1 ? ` × ${l.qty}` : ''}
               </dt>
               <dd className="tabular-nums text-fg-strong">
-                {l.inBundle ? t.includedInBundle : l.addOn.kind === 'ONE_TIME' ? `${rs(l.oneTime)} (${t.oneTimeLine})` : rs(l.monthly)}
+                {l.freeSetup ? t.freeLabel : l.inBundle ? t.includedInBundle : l.addOn.kind === 'ONE_TIME' ? `${rs(l.oneTime)} (${t.oneTimeLine})` : rs(l.monthly)}
               </dd>
             </div>
           ))}
@@ -201,7 +207,7 @@ export function BillCalculator({ plans, addOns, t, signupUrl, trialDays, default
               ) : null}
               {bill.oneTime > 0 ? (
                 <p className="mt-2 flex justify-between gap-3 text-small">
-                  <span className="text-fg-muted">{t.oneTimeTotal}</span>
+                  <span className="text-fg-muted">{t.oneTimeTotal} ({t.oneTimeLine})</span>
                   <span className="tabular-nums text-fg-strong">{rs(bill.oneTime)}</span>
                 </p>
               ) : null}
@@ -210,6 +216,7 @@ export function BillCalculator({ plans, addOns, t, signupUrl, trialDays, default
             <p className="text-[1.75rem] font-650 leading-none text-fg-strong">{t.free}</p>
           )}
         </div>
+        {paid && offers?.yearlyFreeSetup ? <p className="mt-4 text-center text-xs font-medium text-link">{t.yearlySetupNote}</p> : null}
         <a
           href={signupUrl}
           onClick={() => track('cta_click', { area: 'pricing', label: `calculator:${plan.slug}` })}

@@ -28,6 +28,7 @@ import { useManufacturingEnabled } from '@modules/manufacturing/hooks';
 import { useDistributionState } from '@modules/distribution/hooks/useDistribution';
 import { useBusinessModels } from '@core/lib/business-models';
 import { cn } from '@core/lib/cn';
+import { hasApp, hasFeature, useEntitlements } from '@modules/billing/pricing/hooks/usePricing';
 import { allShopsNavGroups, canSeeSettingsItem, commerceNavGroups, isCommercePath, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
 import { t } from '@core/i18n';
 
@@ -52,6 +53,9 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const hiddenNav = commerceSetup?.hiddenNav;
   // A wholesaler whose plan lacks distribution (or who switched it off) keeps one entry that explains the next step.
   const distributionTeaser = (sellsToShops || industry?.id === 'distribution') && (dist.state === 'plan' || dist.state === 'off');
+  // Plan and add-ons: optional modules show only once turned on; plan features
+  // the shop lacks stay with a lock. Unknown (loading, older API) hides nothing.
+  const { data: entitlements } = useEntitlements();
 
   const { groups, searchGroups } = useMemo(() => {
     const pos = posNavGroups.map((g) => {
@@ -78,6 +82,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
           if (it.feature === 'manufacturing' && !manufacturing) return false;
           if (it.feature === 'distribution-full' && !fullDistribution) return false;
           if (it.feature === 'distribution' && !distribution && !(distributionTeaser && it.to === '/distribution')) return false;
+          if (it.app && !hasApp(entitlements, it.app) && !(distributionTeaser && it.to === '/distribution')) return false;
           if (!owner && isOwnerOnlyPath(it.to)) return false;
           // Setup screens live in Settings, not in the everyday menu.
           // (The commerce workspace lists its channels even though their setup pages open in Settings.)
@@ -89,6 +94,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
           return needs ? hasPermission(role as never, permissions, needs) : true;
         }),
       }))
+      .map((g) => ({ ...g, items: g.items.map((it) => (it.planFeature && !hasFeature(entitlements, it.planFeature) ? { ...it, locked: true } : it)) }))
       .map((g) => (distributionTeaser && g.id === 'distribution'
         ? { ...g, items: g.items.map((it) => (it.to === '/distribution' ? { ...it, badge: dist.state === 'plan' ? t('Plan') : t('Band') } : it)) }
         : g))
@@ -105,7 +111,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
       ? shownCommerce.map((g) => ({ ...g, items: g.items.filter((it) => !hidden.has(it.to)) })).filter((g) => g.items.length > 0)
       : shownCommerce;
     return { groups: commerce ? commerceMenu : shownMain, searchGroups: all };
-  }, [industry, isMarketplace, isAllShops, role, permissions, channels, comingSoon, manufacturing, distribution, fullDistribution, distributionTeaser, dist.state, sellsOnline, sellsToShops, commerce, hiddenNav]);
+  }, [industry, isMarketplace, isAllShops, role, permissions, channels, comingSoon, manufacturing, distribution, fullDistribution, distributionTeaser, dist.state, sellsOnline, sellsToShops, commerce, hiddenNav, entitlements]);
 
   const settingsItems = useMemo(() => SETTINGS_ITEMS.filter((i) => canSeeSettingsItem(i, role, permissions)), [role, permissions]);
 

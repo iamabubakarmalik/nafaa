@@ -158,11 +158,11 @@ import PayrollPage from '@modules/hr/payroll/pages/PayrollPage';
 import CommissionPage from '@modules/hr/commission/pages/CommissionPage';
 
 // ─── Billing ───────────────────────────────────────────────────
-import PlansPage from '@/modules/billing/billing/pages/PlansPage';
+import PlanChooserPage from '@modules/billing/pricing/pages/PlanChooserPage';
+import AppsPage from '@modules/billing/pricing/pages/AppsPage';
 import BillingPage from '@modules/billing/billing/pages/BillingPage';
 import PayInvoicePage from '@modules/billing/billing/pages/PayInvoicePage';
 import ReferralsPage from '@modules/customers/referrals/pages/ReferralsPage';
-import PlanUsagePage from '@modules/billing/plan-usage/pages/PlanUsagePage';
 
 // ─── User ──────────────────────────────────────────────────────
 import ProfilePage from '@modules/profile/pages/ProfilePage';
@@ -588,11 +588,12 @@ export default function App() {
                   <Route path="/appointments" element={secure(PERMISSIONS.SERVICE_BOOKINGS_VIEW, <AppointmentsPage />)} />
 
                   {/* ── Billing ────────────────────────────────── */}
-                  <Route path="/plans" element={secure(PERMISSIONS.PLANS_VIEW, <PlansPage />)} />
+                  <Route path="/plans" element={secure(PERMISSIONS.PLANS_VIEW, <PlanChooserPage />)} />
+                  <Route path="/apps" element={secure(PERMISSIONS.PLANS_VIEW, <AppsPage />)} />
                   <Route path="/billing/invoice/:id/pay" element={secure(PERMISSIONS.BILLING_VIEW, <PayInvoicePage />)} />
                   <Route path="/billing" element={secure(PERMISSIONS.BILLING_VIEW, <BillingPage />)} />
                   <Route path="/referrals" element={secure(PERMISSIONS.REFERRALS_VIEW, <ReferralsPage />)} />
-                  <Route path="/plan-usage" element={secure(PERMISSIONS.PLAN_USAGE_VIEW, <PlanUsagePage />)} />
+                  <Route path="/plan-usage" element={<Navigate to="/billing" replace />} />
 
                   {/* ── User ───────────────────────────────────── */}
                   <Route path="/profile" element={<ProfilePage />} />

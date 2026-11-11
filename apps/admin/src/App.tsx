@@ -12,6 +12,7 @@ const SubscriptionsPage = lazy(() => import('@/features/subscriptions/pages/Subs
 const PlansPage = lazy(() => import('@/features/plans/pages/PlansPage'));
 const AddOnsPage = lazy(() => import('@/features/addons/pages/AddOnsPage'));
 const BillingSettingsPage = lazy(() => import('@/features/billing/pages/BillingSettingsPage'));
+const SetupRequestsPage = lazy(() => import('@/features/billing/pages/SetupRequestsPage'));
 const RevenuePage = lazy(() => import('@/features/revenue/pages/RevenuePage'));
 const ReferralsPage = lazy(() => import('@/features/referrals/pages/ReferralsPage'));
 const ActivityPage = lazy(() => import('@/features/activity/pages/ActivityPage'));
@@ -146,6 +147,7 @@ export default function App() {
               <Route path="/billing" element={<BillingPage />} />
               <Route path="/subscriptions" element={<SubscriptionsPage />} />
               <Route path="/billing/settings" element={<BillingSettingsPage />} />
+              <Route path="/setups" element={<SetupRequestsPage />} />
               <Route path="/plans" element={<PlansPage />} />
               <Route path="/addons" element={<AddOnsPage />} />
               <Route path="/revenue" element={<RevenuePage />} />

@@ -8,6 +8,11 @@ import { BadRequestException } from '@nestjs/common';
 import { AddOn, AddOnKind, BillingInterval, Plan, Prisma, TenantAddOnStatus } from '@prisma/client';
 import { invalidateEntitlements } from '../entitlements/entitlements.service';
 
+/** Note prefix on a paid one-time service that is not delivered yet. */
+export const SETUP_PENDING = 'Setup: pending';
+/** Note prefix once an admin marks it delivered. */
+export const SETUP_DONE = 'Setup: done';
+
 export const INTERVAL_MONTHS: Record<BillingInterval, number> = { MONTHLY: 1, QUARTERLY: 3, YEARLY: 12 };
 const DAY = 86_400_000;
 
@@ -66,8 +71,23 @@ export async function resolveChoices(tx: Prisma.TransactionClient, plan: Plan, c
   return out;
 }
 
+export const SETUP_KEY = 'setup';
+export const FULL_ACTIVATION_KEY = 'full_activation';
+
+/**
+ * Yearly plans get Assisted setup free; Full activation then costs its price
+ * minus the Assisted setup price. `setupCredit` is that price, or 0 when the
+ * admin turned the offer off.
+ */
+export function oneTimePrice(addOn: AddOn, unit: number, interval: BillingInterval | null, setupCredit: number): { amount: number; note: string | null } {
+  if (interval !== 'YEARLY' || setupCredit <= 0) return { amount: money(unit), note: null };
+  if (addOn.key === SETUP_KEY) return { amount: 0, note: 'saal ke plan ke saath muft' };
+  if (addOn.key === FULL_ACTIVATION_KEY) return { amount: money(Math.max(0, unit - setupCredit)), note: `saal ke plan par Rs ${setupCredit.toLocaleString('en-PK')} kam` };
+  return { amount: money(unit), note: null };
+}
+
 /** Bill lines for a plan period with its add-ons. */
-export function checkoutLines(plan: Plan, interval: BillingInterval, picks: Array<{ addOn: AddOn; quantity: number }>, unitPrices: Map<string, number> = new Map()): { lines: InvoiceLine[]; total: number } {
+export function checkoutLines(plan: Plan, interval: BillingInterval, picks: Array<{ addOn: AddOn; quantity: number }>, unitPrices: Map<string, number> = new Map(), setupCredit = 0): { lines: InvoiceLine[]; total: number } {
   const months = INTERVAL_MONTHS[interval];
   const factor = intervalFactor(plan, interval);
   const lines: InvoiceLine[] = [{
@@ -77,7 +97,8 @@ export function checkoutLines(plan: Plan, interval: BillingInterval, picks: Arra
   for (const { addOn, quantity } of picks) {
     const unit = unitPrices.get(addOn.id) ?? addOn.priceMonthly;
     if (addOn.kind === AddOnKind.ONE_TIME) {
-      lines.push({ kind: 'ONE_TIME', refId: addOn.id, description: addOn.name, quantity: 1, unitPrice: unit, amount: money(unit) });
+      const p = oneTimePrice(addOn, unit, interval, setupCredit);
+      lines.push({ kind: 'ONE_TIME', refId: addOn.id, description: p.note ? `${addOn.name} (${p.note})` : addOn.name, quantity: 1, unitPrice: p.amount, amount: p.amount });
       continue;
     }
     const each = money(unit * months * factor);
@@ -91,9 +112,12 @@ export function checkoutLines(plan: Plan, interval: BillingInterval, picks: Arra
 }
 
 /** Price of an add-on from now to the end of the paid period. */
-export function proratedLine(addOn: AddOn, quantity: number, periodEnd: Date, unitPrice?: number | null): InvoiceLine {
+export function proratedLine(addOn: AddOn, quantity: number, periodEnd: Date, unitPrice?: number | null, interval: BillingInterval | null = null, setupCredit = 0): InvoiceLine {
   const unit = unitPrice ?? addOn.priceMonthly;
-  if (addOn.kind === AddOnKind.ONE_TIME) return { kind: 'ONE_TIME', refId: addOn.id, description: addOn.name, quantity: 1, unitPrice: unit, amount: money(unit) };
+  if (addOn.kind === AddOnKind.ONE_TIME) {
+    const p = oneTimePrice(addOn, unit, interval, setupCredit);
+    return { kind: 'ONE_TIME', refId: addOn.id, description: p.note ? `${addOn.name} (${p.note})` : addOn.name, quantity: 1, unitPrice: p.amount, amount: p.amount };
+  }
   const days = Math.max(1, Math.ceil((periodEnd.getTime() - Date.now()) / DAY));
   const each = money((unit * days) / 30);
   return {
@@ -132,18 +156,33 @@ export async function applyPaidInvoiceAddOns(tx: Prisma.TransactionClient, invoi
   }
   const now = new Date();
   for (const item of items) {
-    const done = item.kind === 'ONE_TIME';
+    if (item.kind === 'ONE_TIME') {
+      // A service to deliver: it stays on the admin "Setup requests" list until marked done.
+      // Its features (e.g. priority support) run for 30 days.
+      const extraDays = new Date(now.getTime() + 30 * DAY);
+      await tx.tenantAddOn.upsert({
+        where: { tenantId_addOnId: { tenantId: invoice.tenantId, addOnId: item.refId! } },
+        create: { tenantId: invoice.tenantId, addOnId: item.refId!, quantity: 1, source: 'CHECKOUT', status: TenantAddOnStatus.ACTIVE, freeUntil: extraDays, note: `${SETUP_PENDING} ${invoiceId}` },
+        update: { quantity: 1, status: TenantAddOnStatus.ACTIVE, freeUntil: extraDays, paymentDueAt: null, cancelledAt: null, note: `${SETUP_PENDING} ${invoiceId}` },
+      });
+      const [shop, service] = await Promise.all([
+        tx.tenant.findUnique({ where: { id: invoice.tenantId }, select: { name: true, phone: true } }),
+        tx.addOn.findUnique({ where: { id: item.refId! }, select: { name: true } }),
+      ]);
+      await tx.adminNotification.create({
+        data: {
+          type: 'USER_ACTION', priority: 'HIGH',
+          title: `Setup karna hai: ${service?.name ?? 'Service'} — ${shop?.name ?? ''}`,
+          message: `${shop?.name ?? 'Shop'} ne ${service?.name ?? 'service'} li hai${item.amount > 0 ? ` (Rs ${Math.round(item.amount).toLocaleString('en-PK')})` : ' (saal ke plan ke saath muft)'}. Phone: ${shop?.phone ?? '—'}. Kaam mukammal hone par Setup requests me "Done" karein.`,
+          link: '/setups', tenantId: invoice.tenantId, entityType: 'Invoice', entityId: invoiceId,
+        },
+      });
+      continue;
+    }
     await tx.tenantAddOn.upsert({
       where: { tenantId_addOnId: { tenantId: invoice.tenantId, addOnId: item.refId! } },
-      create: {
-        tenantId: invoice.tenantId, addOnId: item.refId!, quantity: item.quantity, source: 'CHECKOUT',
-        status: done ? TenantAddOnStatus.CANCELLED : TenantAddOnStatus.ACTIVE,
-        currentPeriodEnd: done ? now : end, cancelledAt: done ? now : null, note: done ? 'One-time service paid' : null,
-      },
-      update: {
-        quantity: item.quantity, status: done ? TenantAddOnStatus.CANCELLED : TenantAddOnStatus.ACTIVE,
-        currentPeriodEnd: done ? now : end, paymentDueAt: null, cancelAtPeriodEnd: false, cancelledAt: done ? now : null,
-      },
+      create: { tenantId: invoice.tenantId, addOnId: item.refId!, quantity: item.quantity, source: 'CHECKOUT', status: TenantAddOnStatus.ACTIVE, currentPeriodEnd: end },
+      update: { quantity: item.quantity, status: TenantAddOnStatus.ACTIVE, currentPeriodEnd: end, paymentDueAt: null, cancelAtPeriodEnd: false, cancelledAt: null },
     });
   }
   invalidateEntitlements(invoice.tenantId);

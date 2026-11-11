@@ -14,7 +14,7 @@ import {
   Megaphone, Menu as MenuIcon, MessageSquare, MessageSquareText, MousePointer2, Package, PackageCheck,
   PackageSearch, Paintbrush, Palette, Plug, Power, Puzzle, SlidersHorizontal, Receipt, Rocket, Search, Send, Settings, Settings2,
   KeyRound, MapPinCheck, Radio, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
-  Timer, ToggleRight, TrendingUp, Truck, UserX, Users, Wallet,
+  Timer, ToggleRight, Wrench, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
 
@@ -170,7 +170,7 @@ export const WORKSPACES: AdminWorkspace[] = [
     icon: Wallet,
     tone: 'bg-emerald-600 text-white',
     root: '/billing',
-    prefixes: ['/billing', '/revenue', '/subscriptions', '/plans', '/addons', '/invoices', '/referrals', '/platform-discounts', '/distribution'],
+    prefixes: ['/billing', '/revenue', '/subscriptions', '/plans', '/addons', '/setups', '/invoices', '/referrals', '/platform-discounts', '/distribution'],
     groups: [
       {
         id: 'payments',
@@ -191,6 +191,7 @@ export const WORKSPACES: AdminWorkspace[] = [
           { to: '/plans', label: 'Plans & pricing', icon: Tag, keywords: 'packages price limits features free plan trial' },
           { to: '/addons', label: 'Add-ons', icon: Puzzle, keywords: 'extras shopify woocommerce daraz courier bundle extra user booker distribution price' },
           { to: '/billing/settings', label: 'Billing settings', icon: SlidersHorizontal, keywords: 'trial days grace reminders renewal grandfather run billing check' },
+          { to: '/setups', label: 'Setup requests', icon: Wrench, keywords: 'activation setup training onboarding visit' },
           { to: '/distribution', label: 'Distribution usage', icon: Truck, keywords: 'wholesale add-on' },
         ],
       },
@@ -429,7 +430,7 @@ const AREA_BY_PREFIX: Array<[string, string]> = [
   ['/dashboard', 'dashboard'], ['/live', 'users'], ['/analytics', 'dashboard'], ['/notifications', 'notifications'],
   ['/tenants', 'tenants'], ['/users', 'users'], ['/deletion-requests', 'deletion'], ['/partners', 'partners'],
   ['/products', 'merchant_data'], ['/sales', 'merchant_data'], ['/customers', 'merchant_data'], ['/bulk-actions', 'bulk'],
-  ['/billing/settings', 'plans'], ['/billing', 'billing'], ['/invoices', 'billing'], ['/revenue', 'billing'], ['/addons', 'plans'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
+  ['/billing/settings', 'plans'], ['/billing', 'billing'], ['/invoices', 'billing'], ['/revenue', 'billing'], ['/setups', 'tenants'], ['/addons', 'plans'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
   ['/platform-discounts', 'promos'], ['/referrals', 'promos'],
   ['/commerce', 'online_store'], ['/marketing', 'marketing'],
   ['/broadcast', 'communications'], ['/bulk-communications', 'communications'], ['/email-templates', 'communications'],

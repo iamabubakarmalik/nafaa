@@ -12,6 +12,7 @@ import { hasPermission, isOwner } from '@/core/permissions';
 import { t } from '@/core/i18n';
 import { useModuleFlags } from '../appControl';
 import { useIndustry } from '../hooks/useIndustry';
+import { hasApp, useEntitlements } from '@/modules/billing/lib/useEntitlements';
 import { NAV_GROUPS, SETTINGS_GROUPS, type NavGroup, type NavItem, type SettingsGroup, type SettingsItem } from './nav-config';
 
 export function useNavFilter() {
@@ -20,11 +21,13 @@ export function useNavFilter() {
   const allShops = useAuthStore((s) => isAllShops(s.currentShopId));
   const { id: industryId } = useIndustry();
   const moduleOn = useModuleFlags();
+  const { data: entitlements } = useEntitlements();
   return useMemo(() => {
     const owner = isOwner(role);
     return (it: NavItem) => {
       if (!it.href) return false;
       if (it.module && !moduleOn(it.module)) return false;
+      if (it.app && !hasApp(entitlements, it.app)) return false;
       if (it.ownerOnly && !owner) return false;
       if (allShops && it.needsShop) return false;
       if (it.industries && !(industryId && it.industries.includes(industryId))) return false;
@@ -32,7 +35,7 @@ export function useNavFilter() {
       if (it.alsoNeeds && !hasPermission(role, permissions, it.alsoNeeds)) return false;
       return true;
     };
-  }, [role, permissions, allShops, industryId, moduleOn]);
+  }, [role, permissions, allShops, industryId, moduleOn, entitlements]);
 }
 
 export function useVisibleNav() {

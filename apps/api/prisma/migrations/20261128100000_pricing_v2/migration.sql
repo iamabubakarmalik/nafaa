@@ -124,7 +124,8 @@ INSERT INTO "AddOn" ("id", "key", "name", "description", "category", "kind", "pr
   ('addon_extra_shop', 'extra_shop', 'Extra dukaan / branch', 'Plan se zyada dukaan.', 'capacity', 'PER_UNIT', 1000, 'shop', ARRAY['multi_shop'], '{"shops":1}'::jsonb, ARRAY[]::TEXT[], true, false, 40, CURRENT_TIMESTAMP),
   ('addon_extra_user', 'extra_user', 'Extra user', 'Plan se zyada staff login.', 'capacity', 'PER_UNIT', 300, 'user', ARRAY[]::TEXT[], '{"users":1}'::jsonb, ARRAY[]::TEXT[], true, false, 41, CURRENT_TIMESTAMP),
   ('addon_ai_plus', 'ai_plus', 'Nafaa AI Plus', 'Nafaa AI se zyada sawal aur reports.', 'capacity', 'FLAT', 1000, NULL, ARRAY['ai','ai_plus'], NULL, ARRAY[]::TEXT[], true, false, 42, CURRENT_TIMESTAMP),
-  ('addon_setup', 'setup', 'Setup aur training', 'Hamari team products daalti hai aur staff ko sikhati hai. Ek dafa.', 'services', 'ONE_TIME', 5000, NULL, ARRAY[]::TEXT[], NULL, ARRAY[]::TEXT[], true, false, 50, CURRENT_TIMESTAMP)
+  ('addon_setup', 'setup', 'Assisted setup', 'Online call par hamari team setup karti hai: 500 tak products daalna, settings aur staff training. Ek dafa. Saal ke plan ke saath muft.', 'services', 'ONE_TIME', 5000, NULL, ARRAY[]::TEXT[], NULL, ARRAY[]::TEXT[], true, false, 50, CURRENT_TIMESTAMP),
+  ('addon_full_activation', 'full_activation', 'Full activation', 'Hamari team dukaan par aati hai: saare products aur purana data, printer/scanner setup, staff training aur 1 mahina priority support. Ek dafa.', 'services', 'ONE_TIME', 15000, NULL, ARRAY['priority_support'], NULL, ARRAY[]::TEXT[], true, false, 51, CURRENT_TIMESTAMP)
 ON CONFLICT ("key") DO NOTHING;
 
 -- Add-ons are for paid plans only (not Free).

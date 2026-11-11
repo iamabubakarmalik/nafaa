@@ -9,13 +9,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, HelpCircle, PanelLeftOpen, Settings } from 'lucide-react';
+import { ArrowLeft, HelpCircle, LayoutGrid, Lock, PanelLeftOpen, Settings } from 'lucide-react';
 import { cn } from '@core/lib/cn';
+import { hasPermission, PERMISSIONS } from '@core/lib/permissions';
 import { isActivePath, isSettingsPath, lastMainPath, type NavGroup, type NavItem } from '../navigation/nav-config';
 import { useVisibleNav } from '../navigation/useVisibleNav';
 import { useFavorites, useRecentPaths } from '../navigation/useNavMemory';
 import { BrandMark } from './BrandMark';
 import { CountPill, ItemBadge, OnlineOrdersCount } from './NavBadges';
+import { openLockedItem } from './NavParts';
 import type { SidebarProps } from './Sidebar';
 import { t } from '@core/i18n';
 
@@ -160,6 +162,10 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
           onMouseEnter={(e) => show('settings', e.currentTarget, t('Settings'))} onMouseLeave={hideSoon}>
           <Settings className="h-[1.125rem] w-[1.125rem]" />
         </NavLink>
+        {!isMarketplace && hasPermission(role as never, permissions, PERMISSIONS.PLANS_VIEW) && <NavLink to="/apps" aria-label={t('Apps & add-ons')} className={railButton(isActivePath(location.pathname, '/apps'))}
+          onMouseEnter={(e) => show('apps', e.currentTarget, t('Apps & add-ons'))} onMouseLeave={hideSoon}>
+          <LayoutGrid className="h-[1.125rem] w-[1.125rem]" />
+        </NavLink>}
         <NavLink to="/help" aria-label={t('Help center')} className={railButton(isActivePath(location.pathname, '/help'))}
           onMouseEnter={(e) => show('help', e.currentTarget, t('Help center'))} onMouseLeave={hideSoon}>
           <HelpCircle className="h-[1.125rem] w-[1.125rem]" />
@@ -192,7 +198,7 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
                     <button
                       type="button"
                       key={it.to}
-                      onClick={() => { navigate(it.to); setFly(null); }}
+                      onClick={() => { if (it.locked) openLockedItem(it); else navigate(it.to); setFly(null); }}
                       className={cn(
                         'flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-start text-[0.84375rem] transition-colors',
                         active
@@ -205,6 +211,7 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
                       {it.liveCount === 'online-orders' && <OnlineOrdersCount />}
                       {!!it.count && <CountPill n={it.count} />}
                       {it.badge && <ItemBadge text={it.badge} />}
+                      {it.locked && <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" aria-label={t('Plan me nahi')} />}
                     </button>
                   );
                 })}

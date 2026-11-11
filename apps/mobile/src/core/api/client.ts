@@ -9,6 +9,7 @@
  *    refresh). The session ends only when the refresh itself is refused; a
  *    network failure keeps the user signed in.
  *  - 402 (trial or plan ended) raises `subscription:required`; it never logs out.
+ *    A 402 PLAN_LIMIT (a full plan limit) does not: the screen shows the error.
  */
 
 import axios, { type AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
@@ -110,7 +111,7 @@ apiClient.interceptors.response.use(
         return apiClient(original);
       }
     }
-    if (status === 402) {
+    if (status === 402 && (error.response?.data as { code?: string } | undefined)?.code !== 'PLAN_LIMIT') {
       const message = (error.response?.data as { message?: string } | undefined)?.message;
       emit('subscription:required', { message });
     }

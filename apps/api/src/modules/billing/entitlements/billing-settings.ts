@@ -18,6 +18,8 @@ export interface BillingSettings {
   reminderDays: number[];
   /** Days before the grandfather period ends that owners are told. */
   grandfatherNoticeDays: number[];
+  /** Yearly plans get Assisted setup free (and its price off Full activation). */
+  yearlyFreeSetup: boolean;
 }
 
 export const BILLING_SETTINGS_KEY = 'billing.settings';
@@ -29,6 +31,7 @@ export const DEFAULT_BILLING_SETTINGS: BillingSettings = {
   renewalLeadDays: 7,
   reminderDays: [7, 3, 1],
   grandfatherNoticeDays: [14, 3],
+  yearlyFreeSetup: true,
 };
 
 const intIn = (v: unknown, min: number, max: number, fallback: number) => {
@@ -48,6 +51,7 @@ export function cleanBillingSettings(raw: Partial<BillingSettings> | null | unde
     renewalLeadDays: intIn(r.renewalLeadDays, 1, 30, d.renewalLeadDays),
     reminderDays: days(r.reminderDays, d.reminderDays),
     grandfatherNoticeDays: days(r.grandfatherNoticeDays, d.grandfatherNoticeDays),
+    yearlyFreeSetup: typeof r.yearlyFreeSetup === 'boolean' ? r.yearlyFreeSetup : d.yearlyFreeSetup,
   };
 }
 

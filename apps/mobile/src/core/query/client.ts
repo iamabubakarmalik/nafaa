@@ -5,7 +5,7 @@
  */
 
 import { MutationCache, QueryClient } from '@tanstack/react-query';
-import { apiErrorMessage, statusOf } from '../api/errors';
+import { apiErrorMessage, codeOf, statusOf } from '../api/errors';
 import { showToast } from '../toast';
 
 export const queryClient = new QueryClient({
@@ -25,7 +25,8 @@ export const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (err, _vars, _ctx, mutation) => {
       if (mutation.meta?.silentError) return;
-      if (statusOf(err) === 402) return; // handled by the subscription gate
+      // Plan ended: the subscription gate explains it. A full plan limit is shown here.
+      if (statusOf(err) === 402 && codeOf(err) !== 'PLAN_LIMIT') return;
       showToast({ tone: 'danger', title: apiErrorMessage(err) });
     },
   }),

@@ -5,7 +5,8 @@
 
 import type { ComponentType, CSSProperties, MouseEvent, ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { ChevronDown, Star } from 'lucide-react';
+import { ChevronDown, Lock, Star } from 'lucide-react';
+import { openUpsell } from '@core/api/billing-notice';
 import { cn } from '@core/lib/cn';
 import type { NavItem } from '../navigation/nav-config';
 import { CountPill, ItemBadge, OnlineOrdersCount } from './NavBadges';
@@ -19,6 +20,11 @@ export const EXACT_MATCH_PATHS = new Set(['/staff', '/products', '/fbr', '/sales
 const ROW = 'group/item relative flex h-9 items-center gap-2.5 rounded-lg ps-2.5 pe-1 text-[0.84375rem] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-500';
 const ROW_ACTIVE = 'bg-white font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:bg-ink-white/[0.07] dark:text-ink-white dark:ring-ink-white/10';
 const ROW_IDLE = 'font-medium text-slate-600 hover:bg-white/70 hover:text-slate-900 dark:text-ink-400 dark:hover:bg-ink-white/[0.05] dark:hover:text-ink-white';
+
+/** A locked item (plan feature the shop lacks) opens the upgrade dialog instead of its page. */
+export function openLockedItem(item: NavItem) {
+  openUpsell({ kind: item.addOn ? 'addon' : 'feature', feature: item.planFeature?.[0] ?? null, addOnKey: item.addOn ?? null });
+}
 
 /** Brand-colored bar on the left edge of the active row. */
 function ActiveBar() {
@@ -64,8 +70,12 @@ export function NavRow({ item, fav, muted, hideStar, onToggleFav, onItemClick }:
     <NavLink
       to={item.to}
       end={EXACT_MATCH_PATHS.has(item.to)}
-      onClick={onItemClick}
-      className={({ isActive }) => cn(ROW, isActive ? ROW_ACTIVE : muted ? cn(ROW_IDLE, 'text-slate-500 dark:text-ink-500') : ROW_IDLE)}
+      onClick={(e) => {
+        if (item.locked) { e.preventDefault(); openLockedItem(item); }
+        onItemClick?.();
+      }}
+      title={item.locked ? t('Aap ke plan me nahi — dabayein aur dekhein') : undefined}
+      className={({ isActive }) => cn(ROW, isActive ? ROW_ACTIVE : muted || item.locked ? cn(ROW_IDLE, 'text-slate-500 dark:text-ink-500') : ROW_IDLE)}
     >
       {({ isActive }) => (
         <>
@@ -77,6 +87,7 @@ export function NavRow({ item, fav, muted, hideStar, onToggleFav, onItemClick }:
           {!!item.count && <CountPill n={item.count} />}
           {item.dim && <span className="shrink-0 text-[0.6875rem] font-medium text-slate-400">{t('off')}</span>}
           {item.badge && <ItemBadge text={item.badge} />}
+          {item.locked && <Lock className="h-3.5 w-3.5 shrink-0 text-amber-500" aria-label={t('Plan me nahi')} />}
           {!hideStar && onToggleFav && (
             <button
               type="button"

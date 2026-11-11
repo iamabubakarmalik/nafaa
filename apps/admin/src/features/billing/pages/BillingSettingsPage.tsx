@@ -8,8 +8,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Bell, CalendarClock, Clock, Hourglass, Lightbulb, Lock, Play, Plus, Receipt, Save, ShieldCheck, X } from 'lucide-react';
-import { Alert, Button, Card, Input, PageHero, PageShell, Skeleton, confirmDialog, heroButton, heroPrimaryButton } from '@/design-system/components';
+import { Wrench, Bell, CalendarClock, Clock, Hourglass, Lightbulb, Lock, Play, Plus, Receipt, Save, ShieldCheck, X } from 'lucide-react';
+import { Alert, Button, Card, Input, PageHero, PageShell, Skeleton, Switch, confirmDialog, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminBillingCatalogApi, type BillingSettings } from '@/api/admin-billing-catalog.api';
 import { useCan } from '@/lib/access';
@@ -136,6 +136,11 @@ export default function BillingSettingsPage() {
                 {field('addOnPayDays', 'Add-on pay days', 'An add-on a shop turns on works at once. If its bill is not paid in this many days, it switches off by itself.', 30)}
                 {field('renewalLeadDays', 'Renewal bill lead', 'The renewal bill for the plan and its add-ons is made and sent this many days before the period ends.', 30, 1)}
               </div>
+            </Card>
+            <Card title={<span className="inline-flex items-center gap-2"><Wrench className="h-4 w-4 text-slate-500" /> Setup offer</span>} description="One-time setup packages: Assisted setup and Full activation (prices in Add-ons).">
+              <Switch checked={form.yearlyFreeSetup} disabled={!canManage} onChange={(e) => set({ yearlyFreeSetup: e.target.checked })}
+                label="Free Assisted setup with yearly plans"
+                description="A shop that pays for a year gets Assisted setup free, or its price taken off Full activation. Turn off to charge setup on yearly plans too." />
             </Card>
             <Card title={<span className="inline-flex items-center gap-2"><Bell className="h-4 w-4 text-slate-500" /> Reminders</span>} description="Email and in-app messages to the shop owner. Each one is sent once.">
               <div className="space-y-5">

@@ -137,7 +137,7 @@ function WholesalePanel({ distributor }: { distributor: boolean }) {
           </div>
         </div>
         <div className="flex justify-end">
-          {plan && canPlans && <Link to="/plans"><Button size="sm" rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}>{tr('See plans')}</Button></Link>}
+          {plan && canPlans && <Link to="/apps?add=distribution"><Button size="sm" rightIcon={<ArrowRight className="h-4 w-4 rtl-flip" />}>{tr('Distribution chalu karein')}</Button></Link>}
           {!plan && canSettings && <Link to="/settings/distribution"><Button size="sm" leftIcon={<Power className="h-4 w-4" />}>{tr('Turn on')}</Button></Link>}
         </div>
       </section>

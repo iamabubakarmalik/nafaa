@@ -11,7 +11,8 @@
 
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowLeft, ChevronsDownUp, ChevronsUpDown, Clock, Globe, HelpCircle, PanelLeftClose, Search, Settings, Star, X } from 'lucide-react';
+import { ArrowLeft, ChevronsDownUp, ChevronsUpDown, Clock, Globe, HelpCircle, LayoutGrid, PanelLeftClose, Search, Settings, Star, X } from 'lucide-react';
+import { hasPermission, PERMISSIONS } from '@core/lib/permissions';
 import { industryIdentity } from '@/design-system';
 import { cn } from '@core/lib/cn';
 import { isActivePath, isSettingsPath, lastMainPath, loadGroupState, MAX_RECENT, saveGroupState, type NavGroup, type NavItem } from '../navigation/nav-config';
@@ -264,6 +265,9 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
       {/* Footer */}
       <div className="shrink-0 space-y-0.5 border-t border-shell-line px-2 py-2">
         <FooterLink to={settingsHome} icon={Settings} label={t('Settings')} active={isSettingsPath(location.pathname)} onClick={onItemClick} />
+        {!isMarketplace && hasPermission(role as never, permissions, PERMISSIONS.PLANS_VIEW) && (
+          <FooterLink to="/apps" icon={LayoutGrid} label={t('Apps & add-ons')} active={isActivePath(location.pathname, '/apps')} onClick={onItemClick} />
+        )}
         <FooterLink to="/help" icon={HelpCircle} label={t('Help center')} active={isActivePath(location.pathname, '/help')} onClick={onItemClick} />
         <div className="flex items-center justify-between px-2.5 pt-1.5 text-[0.6875rem] text-slate-400">
           <span className="flex items-center gap-1.5">

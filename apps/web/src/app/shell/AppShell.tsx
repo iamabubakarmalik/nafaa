@@ -41,6 +41,9 @@ import { ShortcutsHelp, useShortcutsHelp } from './keyboard/ShortcutsHelp';
 import { GO_TO, useGlobalKeys } from './keyboard/useGlobalKeys';
 import { useSidebarState } from './useSidebarState';
 import { AiDrawer, AiLauncher } from '@modules/ai-assistant';
+import { BillingBanner } from '@modules/billing/pricing/components/BillingBanner';
+import { PlanGate } from '@modules/billing/pricing/components/PlanGate';
+import { UpsellHost } from '@modules/billing/pricing/components/UpsellHost';
 import { t } from '@core/i18n';
 
 const SKIP_LINK = 'pointer-events-auto -translate-y-16 rounded-xl bg-brand-600 px-4 py-2 text-[0.875rem] font-semibold text-brand-fg shadow-lg transition focus:translate-y-0';
@@ -143,6 +146,7 @@ export default function AppShell() {
         <div className="flex h-screen-dvh min-w-0 overflow-hidden">
         <div className="flex h-screen-dvh min-w-0 flex-1 flex-col overflow-hidden">
           <Topbar user={user} tenant={tenant} onOpenMobileSidebar={() => setMobileOpen(true)} onLogout={handleLogout} />
+          <BillingBanner />
 
           <main
             ref={mainRef}
@@ -176,6 +180,9 @@ export default function AppShell() {
       </div>
 
       <GlobalSearchDialog />
+      {/* Plan prompts: upgrade dialog on locked features, full-screen notice once the plan has ended. */}
+      <UpsellHost />
+      <PlanGate onLogout={handleLogout} />
       <ShortcutsHelp />
       {chord && (
         <div role="status" className="fixed bottom-4 left-1/2 z-[100] flex -translate-x-1/2 flex-wrap items-center justify-center gap-1.5 rounded-2xl bg-slate-900 px-3 py-2 text-[0.75rem] text-white shadow-xl print:hidden">

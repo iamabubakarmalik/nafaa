@@ -3,6 +3,8 @@ import { AdminBillingCatalogController } from './admin-billing-catalog.controlle
 import { AdminBillingCatalogService } from './admin-billing-catalog.service';
 import { AdminShopBillingController } from './admin-shop-billing.controller';
 import { AdminShopBillingService } from './admin-shop-billing.service';
+import { AdminSetupsController } from './admin-setups.controller';
+import { AdminSetupsService } from './admin-setups.service';
 
 /**
  * Pricing v2 admin: add-on catalog, billing rules, revenue and per-shop deals.
@@ -10,7 +12,7 @@ import { AdminShopBillingService } from './admin-shop-billing.service';
  * BillingPricingModule.
  */
 @Module({
-  controllers: [AdminBillingCatalogController, AdminShopBillingController],
-  providers: [AdminBillingCatalogService, AdminShopBillingService],
+  controllers: [AdminBillingCatalogController, AdminShopBillingController, AdminSetupsController],
+  providers: [AdminBillingCatalogService, AdminShopBillingService, AdminSetupsService],
 })
 export class AdminBillingCatalogModule {}

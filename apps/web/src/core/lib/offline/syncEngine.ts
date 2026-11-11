@@ -307,6 +307,12 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
       }
 
       failed++;
+      // Plan ended or a plan limit: keep it queued without using up its retries.
+      if (error?.response?.status === 402) {
+        await db.syncQueue.update(item.id, { status: 'pending', syncError: msg });
+        tick();
+        continue;
+      }
       const permanent = isPermanentFailure(msg);
       await db.syncQueue.update(item.id, {
         status: 'failed',
@@ -382,6 +388,13 @@ export async function uploadPendingChanges(): Promise<{ salesSynced: number; que
     } catch (error: any) {
       failed++;
       const msg = error?.response?.data?.message || error?.message || tr('Unknown error');
+      // Plan ended or a plan limit: keep the sale queued without using up its
+      // retries; it goes through once the plan is renewed.
+      if (error?.response?.status === 402) {
+        await db.pendingSales.update(sale.id, { status: 'pending', syncError: msg });
+        tick();
+        continue;
+      }
       if (isPermanentFailure(msg)) {
         await db.pendingSales.update(sale.id, {
           status: 'failed',

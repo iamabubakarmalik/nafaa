@@ -1,4 +1,4 @@
-import { apiClient } from '@core/api/client';
+/** The plan row as GET /subscriptions/current returns it. */
 
 export interface Plan {
   id: string;
@@ -31,9 +31,3 @@ export interface Plan {
   featureWhatsappReceipt: boolean;
   featureCustomBranding: boolean;
 }
-
-const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
-
-export const plansApi = {
-  list: () => apiClient.get<{ data: Plan[] }>('/plans').then(unwrap),
-};

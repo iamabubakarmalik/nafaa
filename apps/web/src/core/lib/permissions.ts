@@ -377,7 +377,7 @@ export function isShopLocked(userRole: string | undefined): boolean {
 
 export const OWNER_ONLY_PATHS = new Set<string>([
   '/shops', '/shops/overview', '/team', '/staff/salary/new',
-  '/billing', '/plans', '/referrals', '/backup', '/settings',
+  '/billing', '/plans', '/apps', '/referrals', '/backup', '/settings',
   '/activity-log', '/fbr', '/fbr/invoices', '/fbr/reports', '/fbr/analytics',
 ]);
 

@@ -38,6 +38,20 @@ export interface BillingSettings {
   renewalLeadDays: number;
   reminderDays: number[];
   grandfatherNoticeDays: number[];
+  /** Yearly plans get Assisted setup free and its price off Full activation. */
+  yearlyFreeSetup: boolean;
+}
+
+export interface SetupRequest {
+  id: string;
+  service: { key: string; name: string; priceMonthly: number };
+  shop: { id: string; name: string; phone: string | null; businessType: string | null; owner: { fullName: string; email: string; phone: string | null } | null };
+  paidAmount: number | null;
+  invoiceNumber: string | null;
+  boughtAt: string;
+  status: 'pending' | 'done';
+  doneNote: string | null;
+  updatedAt: string;
 }
 
 export interface RevenueSummary {
@@ -126,6 +140,9 @@ export const adminBillingCatalogApi = {
   addOns: () => apiClient.get<{ data: AdminAddOn[] }>('/admin/billing-catalog/addons').then(unwrap),
   createAddOn: (payload: AddOnInput) => apiClient.post<{ data: AdminAddOn }>('/admin/billing-catalog/addons', payload).then(unwrap),
   updateAddOn: (id: string, payload: Omit<AddOnInput, 'key'>) => apiClient.patch<{ data: AdminAddOn }>(`/admin/billing-catalog/addons/${id}`, payload).then(unwrap),
+  setups: (params: { status?: string; page?: number; limit?: number }) =>
+    apiClient.get<{ data: { items: SetupRequest[]; meta: { page: number; limit: number; total: number; totalPages: number }; stats: { open: number } } }>('/admin/setups', { params }).then(unwrap),
+  markSetupDone: (id: string, note?: string) => apiClient.post(`/admin/setups/${id}/done`, { note }).then(unwrap),
   settings: () => apiClient.get<{ data: BillingSettings }>('/admin/billing-catalog/settings').then(unwrap),
   saveSettings: (payload: BillingSettings) => apiClient.put<{ data: BillingSettings }>('/admin/billing-catalog/settings', payload).then(unwrap),
   runLifecycle: () => apiClient.post<{ data: { ran: boolean; result: Record<string, number> } }>('/admin/billing-catalog/run-lifecycle').then(unwrap),

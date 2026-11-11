@@ -6,7 +6,7 @@ import {
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
   PhoneCall, Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck, Calculator, BadgePercent, Network, Target, Undo2,
-  Workflow, Settings2, Share2, UsersRound, Radar,
+  Workflow, Settings2, Share2, UsersRound, Radar, LayoutGrid,
   MessagesSquare as InboxIcon, ThumbsUp as FacebookIcon,
 } from 'lucide-react';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
@@ -42,7 +42,24 @@ export type NavItem = {
   count?: number;
   /** Channel ki halat: band ho to halka dikhe */
   dim?: boolean;
+  /**
+   * Optional module: shown only while one of these add-on keys is turned on
+   * or in use (GET /plan-usage/entitlements → apps). Discovered in /apps.
+   */
+  app?: string[];
+  /**
+   * Plan feature: without it the item stays in the menu with a lock and opens
+   * the upgrade dialog instead of the page.
+   */
+  planFeature?: string[];
+  /** Add-on that unlocks `planFeature`, for the upgrade dialog. */
+  addOn?: string;
+  /** Set by useVisibleNav when the shop lacks `planFeature`. */
+  locked?: boolean;
 };
+
+/** Add-on keys that open the online store workspace (any sales channel). */
+export const ONLINE_APPS = ['online_store', 'shopify', 'woocommerce', 'daraz', 'website', 'foodpanda', 'online_seller_bundle', 'courier'];
 
 export type NavGroup = {
   id: string;
@@ -96,15 +113,15 @@ export const commerceNavGroups: NavGroup[] = [
   {
     id: 'c-shipping', label: t('Shipping'), icon: Truck, color: '#ea580c', defaultOpen: true, order: 3,
     items: [
-      { to: '/online-store/couriers', label: t('Couriers'), icon: Truck, permission: P.SALES_VIEW, keywords: 'courier postex leopards tcs trax booking label cn tracking connect' },
-      { to: '/online-store/couriers/rules', label: t('Auto booking'), icon: Zap, permission: P.SALES_VIEW, keywords: 'courier rules auto booking best courier city' },
+      { to: '/online-store/couriers', label: t('Couriers'), icon: Truck, permission: P.SALES_VIEW, planFeature: ['courier'], addOn: 'courier', keywords: 'courier postex leopards tcs trax booking label cn tracking connect' },
+      { to: '/online-store/couriers/rules', label: t('Auto booking'), icon: Zap, permission: P.SALES_VIEW, planFeature: ['courier'], addOn: 'courier', keywords: 'courier rules auto booking best courier city' },
       { to: '/online-orders/cod', label: t('COD & payments'), icon: Wallet, permission: P.SALES_VIEW, keywords: 'cod courier settlement paisa cpr' },
       { to: '/online-orders/cod/reconcile', label: t('COD statement match'), icon: FileSpreadsheet, permission: P.SALES_VIEW, keywords: 'cod reconcile statement cpr audit match' },
-      { to: '/online-orders/dispatch', label: t('Dispatch & airway bills'), icon: Printer, permission: P.SALES_VIEW, keywords: 'dispatch loadsheet airway bill awb thermal label bulk booking rate compare cancel booking cpr cod audit' },
+      { to: '/online-orders/dispatch', label: t('Dispatch & airway bills'), icon: Printer, permission: P.SALES_VIEW, planFeature: ['courier'], addOn: 'courier', keywords: 'dispatch loadsheet airway bill awb thermal label bulk booking rate compare cancel booking cpr cod audit' },
       { to: '/online-orders/dispatch-scan', label: t('Dispatch scan'), icon: ScanLine, permission: P.SALES_VIEW, keywords: 'dispatch scan rider handover cn barcode bhej diya dispatched' },
       { to: '/online-orders/dispatch-report', label: t('Dispatch report'), icon: BarChart3, permission: P.SALES_VIEW, keywords: 'dispatch report delivered returned rto stuck claims redispatch courier success rate' },
       { to: '/online-orders/tracking', label: t('Parcel map'), icon: Navigation, permission: P.SALES_VIEW, keywords: 'map naqsha tracking live parcel city shehar stuck rider journey safar' },
-      { to: '/online-orders/couriers-score', label: t('Courier scorecard'), icon: Trophy, permission: P.SALES_VIEW, keywords: 'courier scorecard compare best courier city delivery rto first attempt cod' },
+      { to: '/online-orders/couriers-score', label: t('Courier scorecard'), icon: Trophy, permission: P.SALES_VIEW, planFeature: ['courier'], addOn: 'courier', keywords: 'courier scorecard compare best courier city delivery rto first attempt cod' },
       { to: '/online-orders/post-office', label: t('Post office'), icon: Send, permission: P.SALES_VIEW, keywords: 'pakistan post post office vpp article number ep.gov.pk' },
     ],
   },
@@ -119,10 +136,10 @@ export const commerceNavGroups: NavGroup[] = [
     id: 'c-customers', label: t('Customers'), icon: Users, color: '#0d9488', defaultOpen: true, order: 5,
     items: [
       { to: '/online-orders/customers', label: t('Customers'), icon: Users, permission: P.SALES_VIEW, keywords: 'customer repeat vip inactive gayab at risk lost rfm clv segment remarketing' },
-      { to: '/online-store/inbox', label: t('Inbox'), icon: InboxIcon, permission: P.SALES_VIEW, keywords: 'inbox messenger instagram dm message comment jawab reply facebook social' },
+      { to: '/online-store/inbox', label: t('Inbox'), icon: InboxIcon, permission: P.SALES_VIEW, app: ['meta'], keywords: 'inbox messenger instagram dm message comment jawab reply facebook social' },
       { to: '/online-store/campaigns', label: t('WhatsApp campaigns'), icon: Send, permission: P.SALES_VIEW, keywords: 'campaign whatsapp broadcast win back wapas bulao new arrival restock birthday salgirah ek ek wa.me' },
       { to: '/online-store/reviews', label: t('Reviews'), icon: Star, permission: P.SALES_VIEW, keywords: 'review rating star feedback google review delivered rai' },
-      { to: '/online-store/loyalty', label: t('Loyalty & referral'), icon: Award, permission: P.SALES_VIEW, keywords: 'loyalty points referral code dost refer inaam online' },
+      { to: '/online-store/loyalty', label: t('Loyalty & referral'), icon: Award, permission: P.SALES_VIEW, planFeature: ['loyalty'], keywords: 'loyalty points referral code dost refer inaam online' },
       { to: '/online-store/affiliates', label: t('Influencers & affiliates'), icon: UsersRound, permission: P.SALES_VIEW, keywords: 'influencer affiliate commission code utm partner payout expense roi' },
       { to: '/online-store/blocklist', label: t('Report scammer'), icon: ShieldAlert, permission: P.SALES_VIEW, keywords: 'block list fake order scammer fraud rto number' },
       { to: '/online-store/whatsapp-templates', label: t('WhatsApp messages'), icon: MessageCircle, permission: P.SALES_VIEW, keywords: 'whatsapp template message confirm address advance dispatched tracking review wa.me' },
@@ -151,7 +168,7 @@ export const posNavGroups: NavGroup[] = [
     id: 'overview', label: t('Overview'), icon: LayoutDashboard, color: '#10b981', defaultOpen: true, order: 0,
     items: [
       { to: '/dashboard', label: t('Dashboard'), icon: LayoutDashboard, keywords: 'home' },
-      { to: '/ai', label: t('Nafaa AI'), icon: Sparkles, permission: P.AI_USE, keywords: 'ai assistant sawal poochein question chat bot' },
+      { to: '/ai', label: t('Nafaa AI'), icon: Sparkles, permission: P.AI_USE, planFeature: ['ai', 'ai_plus'], addOn: 'ai_plus', keywords: 'ai assistant sawal poochein question chat bot' },
       { to: '/day-report', label: t('Day report'), icon: FileText, permission: P.DASHBOARD_VIEW, keywords: 'din ka hisaab daily report closing opening z report' },
       { to: '/reports', label: t('Reports'), icon: BarChart3, permission: P.REPORTS_VIEW },
       { to: '/profit-loss', label: t('Profit-loss (P&L)'), icon: Scale, permission: P.PROFIT_REPORT_VIEW, keywords: 'p&l profit loss profit-loss profit statement break even cash flow' },
@@ -177,26 +194,26 @@ export const posNavGroups: NavGroup[] = [
     // The online store has its own workspace (commerceNavGroups); the main menu only opens it.
     id: 'online', label: t('Online store'), icon: Globe, color: '#0ea5e9', defaultOpen: true, order: 6,
     items: [
-      { to: COMMERCE_HOME, label: t('Online store'), icon: Store, permission: P.SALES_VIEW, keywords: 'online store ecommerce e-commerce daraz shopify woocommerce website commerce dukaan' },
-      { to: '/online-orders', label: t('Online orders'), icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', keywords: 'website cod delivery foodpanda daraz shopify order' },
+      { to: COMMERCE_HOME, label: t('Online store'), icon: Store, permission: P.SALES_VIEW, app: ONLINE_APPS, keywords: 'online store ecommerce e-commerce daraz shopify woocommerce website commerce dukaan' },
+      { to: '/online-orders', label: t('Online orders'), icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', app: ONLINE_APPS, keywords: 'website cod delivery foodpanda daraz shopify order' },
     ],
   },
   {
     id: 'distribution', label: t('Distribution'), icon: Truck, color: '#ea580c', defaultOpen: true, order: 6.5,
     items: [
-      { to: '/distribution', label: t('Distribution'), icon: Gauge, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'wholesale distributor dashboard booker supply' },
-      { to: '/distribution/orders', label: t('Orders'), icon: ClipboardCheck, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'sales order booking approve invoice booker wholesale' },
-      { to: '/distribution/load-sheets', label: t('Load sheets'), icon: Truck, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution-full', keywords: 'load sheet gaari van dispatch delivery settle settlement' },
-      { to: '/distribution/recoveries', label: t('Recoveries'), icon: HandCoins, permission: P.KHATA_VIEW, feature: 'distribution', keywords: 'recovery wasooli udhaar collection verify ageing' },
-      { to: '/distribution/price-lists', label: t('Price lists'), icon: Tag, permission: P.DISTRIBUTION_PRICELISTS_VIEW, feature: 'distribution', keywords: 'price list rate wholesale retailer key account excel import' },
-      { to: '/distribution/routes', label: t('Routes'), icon: MapPin, permission: P.DISTRIBUTION_ROUTES_MANAGE, feature: 'distribution-full', keywords: 'route beat area booker delivery visit day sequence' },
-      { to: '/distribution/schemes', label: t('Schemes'), icon: BadgePercent, permission: P.DISTRIBUTION_SCHEMES_MANAGE, feature: 'distribution', keywords: 'scheme trade offer 10+1 free slab percent principal company' },
-      { to: '/distribution/vans', label: t('Vans'), icon: Truck, permission: P.DISTRIBUTION_VANS_MANAGE, feature: 'distribution-full', keywords: 'van stock spot sale salesman load unload count gaari' },
-      { to: '/distribution/returns', label: t('Market returns'), icon: Undo2, permission: P.DISTRIBUTION_RETURNS_APPROVE, feature: 'distribution', keywords: 'market return expiry kharab damaged wapas retailer credit' },
-      { to: '/distribution/claims', label: t('Claims'), icon: FileText, permission: P.DISTRIBUTION_CLAIMS_MANAGE, feature: 'distribution', keywords: 'claim principal company scheme free goods expiry reimbursement' },
-      { to: '/distribution/targets', label: t('Targets'), icon: Target, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', keywords: 'target achievement booker brand principal commission monthly' },
-      { to: '/distribution/cheques', label: t('Cheques'), icon: Landmark, permission: P.DISTRIBUTION_CHEQUES_MANAGE, feature: 'distribution', keywords: 'cheque pdc post dated bounce deposit clear bank' },
-      { to: '/network/customers', label: t('Network'), icon: Network, permission: P.TRADE_SELL, feature: 'distribution', keywords: 'network nafaa dukaan retailer link request invite code customer order online' },
+      { to: '/distribution', label: t('Distribution'), icon: Gauge, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', app: ['distribution'], keywords: 'wholesale distributor dashboard booker supply' },
+      { to: '/distribution/orders', label: t('Orders'), icon: ClipboardCheck, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', app: ['distribution'], keywords: 'sales order booking approve invoice booker wholesale' },
+      { to: '/distribution/load-sheets', label: t('Load sheets'), icon: Truck, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution-full', app: ['distribution'], keywords: 'load sheet gaari van dispatch delivery settle settlement' },
+      { to: '/distribution/recoveries', label: t('Recoveries'), icon: HandCoins, permission: P.KHATA_VIEW, feature: 'distribution', app: ['distribution'], keywords: 'recovery wasooli udhaar collection verify ageing' },
+      { to: '/distribution/price-lists', label: t('Price lists'), icon: Tag, permission: P.DISTRIBUTION_PRICELISTS_VIEW, feature: 'distribution', app: ['distribution'], keywords: 'price list rate wholesale retailer key account excel import' },
+      { to: '/distribution/routes', label: t('Routes'), icon: MapPin, permission: P.DISTRIBUTION_ROUTES_MANAGE, feature: 'distribution-full', app: ['distribution'], keywords: 'route beat area booker delivery visit day sequence' },
+      { to: '/distribution/schemes', label: t('Schemes'), icon: BadgePercent, permission: P.DISTRIBUTION_SCHEMES_MANAGE, feature: 'distribution', app: ['distribution'], keywords: 'scheme trade offer 10+1 free slab percent principal company' },
+      { to: '/distribution/vans', label: t('Vans'), icon: Truck, permission: P.DISTRIBUTION_VANS_MANAGE, feature: 'distribution-full', app: ['distribution'], keywords: 'van stock spot sale salesman load unload count gaari' },
+      { to: '/distribution/returns', label: t('Market returns'), icon: Undo2, permission: P.DISTRIBUTION_RETURNS_APPROVE, feature: 'distribution', app: ['distribution'], keywords: 'market return expiry kharab damaged wapas retailer credit' },
+      { to: '/distribution/claims', label: t('Claims'), icon: FileText, permission: P.DISTRIBUTION_CLAIMS_MANAGE, feature: 'distribution', app: ['distribution'], keywords: 'claim principal company scheme free goods expiry reimbursement' },
+      { to: '/distribution/targets', label: t('Targets'), icon: Target, permission: P.DISTRIBUTION_ORDERS_VIEW, feature: 'distribution', app: ['distribution'], keywords: 'target achievement booker brand principal commission monthly' },
+      { to: '/distribution/cheques', label: t('Cheques'), icon: Landmark, permission: P.DISTRIBUTION_CHEQUES_MANAGE, feature: 'distribution', app: ['distribution'], keywords: 'cheque pdc post dated bounce deposit clear bank' },
+      { to: '/network/customers', label: t('Network'), icon: Network, permission: P.TRADE_SELL, feature: 'distribution', app: ['distribution'], keywords: 'network nafaa dukaan retailer link request invite code customer order online' },
     ],
   },
   {
@@ -212,8 +229,8 @@ export const posNavGroups: NavGroup[] = [
     items: [
       { to: '/customers', label: t('Customers'), icon: Users, permission: P.CUSTOMERS_VIEW },
       { to: '/khata', label: t('Customer credit'), icon: BookOpen, permission: P.KHATA_VIEW, keywords: 'udhaar credit ledger' },
-      { to: '/loyalty', label: t('Loyalty'), icon: Award, permission: P.LOYALTY_VIEW, keywords: 'points rewards' },
-      { to: '/discounts', label: t('Discounts'), icon: Percent, permission: P.DISCOUNTS_VIEW, keywords: 'offers coupons' },
+      { to: '/loyalty', label: t('Loyalty'), icon: Award, permission: P.LOYALTY_VIEW, planFeature: ['loyalty'], keywords: 'points rewards' },
+      { to: '/discounts', label: t('Discounts'), icon: Percent, permission: P.DISCOUNTS_VIEW, planFeature: ['discount_rules'], keywords: 'offers coupons' },
     ],
   },
   {
@@ -228,7 +245,7 @@ export const posNavGroups: NavGroup[] = [
       { to: '/damage', label: t('Damaged stock'), icon: PackageX, permission: P.PRODUCTS_VIEW, keywords: 'kharab maal damage wastage expiry toota report approve' },
       { to: '/stock-adjustments', label: t('Adjustments'), icon: ClipboardCheck, permission: P.STOCK_ADJUSTMENTS_MANAGE, needsShop: true, keywords: 'count correction' },
       { to: '/manufacturing', label: t('Manufacturing'), icon: Factory, permission: P.MANUFACTURING_VIEW, feature: 'manufacturing', keywords: 'banayein manufacturing production recipe bom mix pack raw maal banana' },
-      { to: '/transfers', label: t('Transfers'), icon: ArrowRightLeft, permission: P.STOCK_TRANSFERS_MANAGE, keywords: 'branch move' },
+      { to: '/transfers', label: t('Transfers'), icon: ArrowRightLeft, permission: P.STOCK_TRANSFERS_MANAGE, planFeature: ['stock_transfer'], keywords: 'branch move' },
       { to: '/stock-movements', label: t('Stock movements'), icon: Activity, permission: P.STOCK_MOVEMENTS_VIEW },
       { to: '/barcode-labels', label: t('Barcode labels'), icon: ScanLine, permission: P.BARCODE_LABELS_VIEW, keywords: 'print sticker' },
     ],
@@ -259,19 +276,19 @@ export const posNavGroups: NavGroup[] = [
   {
     id: 'staff', label: t('Staff'), icon: UserCog, color: '#8b5cf6', order: 93,
     items: [
-      { to: '/staff', label: t('All staff'), icon: UserCog, permission: P.STAFF_VIEW, keywords: 'employees' },
-      { to: '/staff/attendance', label: t('Attendance'), icon: CheckCircle2, permission: P.STAFF_VIEW },
-      { to: '/staff/salary/new', label: t('Payroll'), icon: Wallet2, permission: P.STAFF_MANAGE, keywords: 'salary' },
-      { to: '/staff/commission', label: t('Commission'), icon: HandCoins, permission: P.COMMISSION_OWN, keywords: 'commission hissa sale incentive bonus target' },
+      { to: '/staff', label: t('All staff'), icon: UserCog, permission: P.STAFF_VIEW, planFeature: ['hr'], keywords: 'employees' },
+      { to: '/staff/attendance', label: t('Attendance'), icon: CheckCircle2, permission: P.STAFF_VIEW, planFeature: ['hr'] },
+      { to: '/staff/salary/new', label: t('Payroll'), icon: Wallet2, permission: P.STAFF_MANAGE, planFeature: ['hr'], keywords: 'salary' },
+      { to: '/staff/commission', label: t('Commission'), icon: HandCoins, permission: P.COMMISSION_OWN, planFeature: ['hr'], keywords: 'commission hissa sale incentive bonus target' },
     ],
   },
   {
     id: 'tax', label: t('Tax'), icon: Landmark, color: '#64748b', order: 96,
     items: [
-      { to: '/tax', label: t('Overview'), icon: BarChart3, permission: P.SETTINGS_VIEW, keywords: 'tax fbr pra srb kpra analytics' },
-      { to: '/tax/invoices', label: t('Tax invoices'), icon: FileText, permission: P.SETTINGS_VIEW, keywords: 'fbr pra srb kpra fiscal invoice' },
-      { to: '/tax/reports', label: t('Monthly reports'), icon: TrendingUp, permission: P.SETTINGS_VIEW, keywords: 'tax return filing report' },
-      { to: '/tax/settings', label: t('Tax settings'), icon: Settings, permission: P.SETTINGS_VIEW, keywords: 'fbr pra srb kpra pos id token' },
+      { to: '/tax', label: t('Overview'), icon: BarChart3, permission: P.SETTINGS_VIEW, app: ['fbr'], keywords: 'tax fbr pra srb kpra analytics' },
+      { to: '/tax/invoices', label: t('Tax invoices'), icon: FileText, permission: P.SETTINGS_VIEW, app: ['fbr'], keywords: 'fbr pra srb kpra fiscal invoice' },
+      { to: '/tax/reports', label: t('Monthly reports'), icon: TrendingUp, permission: P.SETTINGS_VIEW, app: ['fbr'], keywords: 'tax return filing report' },
+      { to: '/tax/settings', label: t('Tax settings'), icon: Settings, permission: P.SETTINGS_VIEW, app: ['fbr'], keywords: 'fbr pra srb kpra pos id token' },
     ],
   },
 ];
@@ -283,7 +300,7 @@ export const allShopsNavGroups: NavGroup[] = [
     items: [
       { to: '/dashboard', label: t('Overview'), icon: LayoutDashboard },
       { to: '/shops/overview', label: t('Branch analytics'), icon: BarChart3, permission: P.SHOPS_VIEW },
-      { to: '/online-orders', label: t('Online orders'), icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders' },
+      { to: '/online-orders', label: t('Online orders'), icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', app: ONLINE_APPS },
     ],
   },
   {
@@ -318,7 +335,7 @@ export const allShopsNavGroups: NavGroup[] = [
       { to: '/products', label: t('Products'), icon: Package, permission: P.PRODUCTS_VIEW },
       { to: '/low-stock', label: t('Low stock'), icon: AlertTriangle, permission: P.LOW_STOCK_VIEW },
       { to: '/inventory/forecast', label: t('Stock forecast'), icon: TrendingUp, permission: P.LOW_STOCK_VIEW },
-      { to: '/transfers', label: t('Transfers'), icon: ArrowRightLeft, permission: P.STOCK_TRANSFERS_MANAGE },
+      { to: '/transfers', label: t('Transfers'), icon: ArrowRightLeft, permission: P.STOCK_TRANSFERS_MANAGE, planFeature: ['stock_transfer'] },
       { to: '/purchases', label: t('Purchases'), icon: PackagePlus, permission: P.PURCHASES_VIEW },
       { to: '/suppliers', label: t('Suppliers'), icon: Truck, permission: P.SUPPLIERS_VIEW },
     ],
@@ -326,7 +343,7 @@ export const allShopsNavGroups: NavGroup[] = [
   {
     id: 'team', label: t('Team'), icon: UserCog, color: '#64748b', order: 50,
     items: [
-      { to: '/staff', label: t('All staff'), icon: UserCog, permission: P.STAFF_VIEW },
+      { to: '/staff', label: t('All staff'), icon: UserCog, permission: P.STAFF_VIEW, planFeature: ['hr'] },
     ],
   },
 ];
@@ -491,9 +508,9 @@ export const SETTINGS_SECTIONS: SettingsGroup[] = [
   {
     id: 'billing', title: t('Plan & billing'), icon: CreditCard, desc: t('Plan, invoices, limits aur referrals'),
     items: [
-      { to: '/plans', label: t('Plan'), icon: Sparkles, permission: P.PLANS_VIEW, desc: t('Aap ki subscription aur upgrade'), keywords: 'subscription upgrade' },
-      { to: '/billing', label: t('Billing'), icon: CreditCard, permission: P.BILLING_VIEW, desc: t('Invoices aur Payment ka tareeqa'), keywords: 'invoice pay' },
-      { to: '/plan-usage', label: t('Usage'), icon: Gauge, permission: P.PLAN_USAGE_VIEW, desc: t('Limits aur kitna istemal hua'), keywords: 'limits quota usage' },
+      { to: '/billing', label: t('Mera plan'), icon: CreditCard, permission: P.BILLING_VIEW, external: true, desc: t('Plan, istemaal, add-ons aur bill'), keywords: 'subscription plan invoice pay usage limits billing' },
+      { to: '/plans', label: t('Plan badlein'), icon: Sparkles, permission: P.PLANS_VIEW, external: true, desc: t('Plans ka muqabla, add-ons aur qeemat'), keywords: 'subscription upgrade plans pricing' },
+      { to: '/apps', label: t('Apps & add-ons'), icon: LayoutGrid, permission: P.PLANS_VIEW, external: true, desc: t('Online store, distribution, FBR aur baqi — jo chahiye chalu karein'), keywords: 'apps add-ons addons store integrations shopify daraz distribution fbr courier extra user shop' },
       { to: '/referrals', label: t('Referrals'), icon: Gift, permission: P.REFERRALS_VIEW, desc: t('Doosre stores ko bulayein, inaam paayein'), keywords: 'invite refer reward' },
     ],
   },

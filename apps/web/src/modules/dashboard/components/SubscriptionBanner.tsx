@@ -1,14 +1,15 @@
 /**
- * Subscription notice on the dashboard: payment under review, expired or
- * past due, trial ending soon, active trial, or renewal within 7 days.
+ * Subscription notice on the dashboard: payment under review, active trial,
+ * or renewal within 7 days. Ended plans, grace days and the last trial days
+ * are shown app-wide by modules/billing/pricing (banner and plan screen).
  * Renders nothing when there is nothing to say.
  */
 
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Sparkles, AlertTriangle, Clock, XCircle, ArrowRight,
-  CheckCircle2, Crown, Zap,
+  Sparkles, Clock, ArrowRight,
+  CheckCircle2, Crown,
 } from 'lucide-react';
 import { useSubscriptionStatus } from '@core/hooks/useSubscriptionStatus';
 import { formatPKR } from '@core/lib/format';
@@ -86,23 +87,7 @@ export function SubscriptionBanner() {
     );
   }
 
-  if (isExpired || isPastDue) {
-    return (
-      <Banner tone="danger" icon={<XCircle />} tagIcon={<AlertTriangle />} tag={tr('Action Required')}
-        title={isExpired ? tr('Your subscription has expired') : tr('Payment is past due')}
-        text={tr('Renew now to continue using all features — sales, POS, inventory access pe restrictions lag sakti hain')}
-        to="/plans" cta={tr('Renew Now')} />
-    );
-  }
-
-  if (isTrial && isTrialExpiringSoon) {
-    return (
-      <Banner tone="warning" icon={<Zap />} tagIcon={<Clock />} tag={tr('Trial Expiring')}
-        title={trialDaysLeft === 0 ? tr('Last day of your trial!') : tr('Only {{count}} days left in your trial', { count: trialDaysLeft })}
-        text={tr('Upgrade now to continue using {{value}} features — koi data loss nahi hoga', { value: subscription.plan?.name || 'Premium' })}
-        to="/plans" cta={tr('Upgrade Now')} />
-    );
-  }
+  if (isExpired || isPastDue || isTrialExpiringSoon) return null;
 
   if (isTrial) {
     return (

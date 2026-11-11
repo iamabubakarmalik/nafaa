@@ -13,7 +13,8 @@ import { NotificationsService } from '../../notifications/notifications.service'
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { apiMessage } from '../../../common/i18n/api-message';
 import { nextInvoiceNumber } from '../pricing/invoice-number';
-import { AddOnChoice, applyPaidInvoiceAddOns, checkoutLines, resolveChoices, writeInvoiceItems } from '../pricing/pricing-core';
+import { AddOnChoice, FULL_ACTIVATION_KEY, SETUP_KEY, applyPaidInvoiceAddOns, checkoutLines, resolveChoices, writeInvoiceItems } from '../pricing/pricing-core';
+import { loadBillingSettings } from '../entitlements/billing-settings';
 import { invalidateEntitlements } from '../entitlements/entitlements.service';
 
 /** Months added to the billing period for each interval. */
@@ -229,7 +230,14 @@ export class SubscriptionsService {
     const deals = picks.length
       ? await this.prisma.tenantAddOn.findMany({ where: { tenantId: user.tenantId, addOnId: { in: picks.map((p) => p.addOn.id) }, unitPrice: { not: null } }, select: { addOnId: true, unitPrice: true } })
       : [];
-    const { lines, total: amount } = checkoutLines(plan, interval, picks, new Map(deals.map((d) => [d.addOnId, d.unitPrice!])));
+    // Yearly plans: Assisted setup is free (added by itself) and Full activation costs less.
+    const settings = await loadBillingSettings(this.prisma);
+    const setupAddOn = settings.yearlyFreeSetup ? await this.prisma.addOn.findUnique({ where: { key: SETUP_KEY } }) : null;
+    const setupCredit = setupAddOn?.isActive ? setupAddOn.priceMonthly : 0;
+    if (interval === 'YEARLY' && setupAddOn?.isActive && setupCredit > 0 && !picks.some((p) => p.addOn.key === SETUP_KEY || p.addOn.key === FULL_ACTIVATION_KEY)) {
+      picks.push({ addOn: setupAddOn, quantity: 1 });
+    }
+    const { lines, total: amount } = checkoutLines(plan, interval, picks, new Map(deals.map((d) => [d.addOnId, d.unitPrice!])), setupCredit);
 
     return this.prisma.$transaction(async (tx) => {
       const now = new Date();
