@@ -3,10 +3,12 @@
  */
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { FileText, Film, Grid3x3, Image as ImageIcon, List } from 'lucide-react';
+import { FileText, Film, Grid3x3, Image as ImageIcon, Layers, List } from 'lucide-react';
+import { FilterMenu, SearchField } from '@/design-system/components';
+import { Pagination } from '@/ui';
 import { CMS_MEDIA_KINDS, type AdminMedia, type CmsMediaKind } from '../contract/cms-contract';
 import { formatPkt } from '../dashboard/shared/cms-http';
-import { Chip, Pager, SearchInput, Spinner, Toggle, btn, formatBytes, inputCls, selectCls, thumbUrl, useDebounced } from '../dashboard/shared/ui';
+import { Chip, Spinner, Toggle, btn, formatBytes, inputCls, thumbUrl, useDebounced } from '../dashboard/shared/ui';
 import { cn } from '../../../../lib/cn';
 import { mediaApi } from './media.api';
 
@@ -16,7 +18,7 @@ export function MediaThumb({ media, className }: { media: Pick<AdminMedia, 'url'
   }
   const Icon = media.kind === 'VIDEO' ? Film : media.kind === 'DOCUMENT' ? FileText : ImageIcon;
   return (
-    <div className={cn('grid h-full w-full place-items-center bg-neutral-100 text-neutral-400', className)}>
+    <div className={cn('grid h-full w-full place-items-center bg-slate-100 text-slate-400', className)}>
       <Icon className="h-8 w-8" />
     </div>
   );
@@ -50,18 +52,16 @@ export function MediaBrowser({ onSelect, selectedId, fixedKinds, pageSize = 24, 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <SearchInput value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Alt text ya file ka naam…" />
-        <select className={selectCls} value={kind} onChange={(e) => { setKind(e.target.value as CmsMediaKind | ''); setPage(1); }}>
-          {kinds.length > 1 && <option value="">Sab kism</option>}
-          {kinds.map((k) => <option key={k} value={k}>{k}</option>)}
-        </select>
-        <input className={cn(inputCls, 'w-44')} value={tag} placeholder="Tag (industry:…)" onChange={(e) => { setTag(e.target.value); setPage(1); }} />
-        <Toggle checked={unused} onChange={(v) => { setUnused(v); setPage(1); }} label="Sirf ghair-istemal" />
+        <div className="min-w-[14rem] flex-1"><SearchField value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search alt text or file name" /></div>
+        <FilterMenu icon={Layers} label="Kind" value={kind} active={kind !== ''} onChange={(v) => { setKind(v as CmsMediaKind | ''); setPage(1); }}
+          options={[...(kinds.length > 1 ? [{ value: '', label: 'All kinds' }] : []), ...kinds.map((k) => ({ value: k as string, label: k }))]} />
+        <input className={cn(inputCls, 'w-44')} value={tag} placeholder="Tag (industry:…)" aria-label="Tag" onChange={(e) => { setTag(e.target.value); setPage(1); }} />
+        <Toggle checked={unused} onChange={(v) => { setUnused(v); setPage(1); }} label="Unused only" />
         <div className="ml-auto flex gap-1">
-          <button className={cn(btn.icon, view === 'grid' && 'bg-neutral-100 text-neutral-900')} onClick={() => setView('grid')} aria-label="Grid">
+          <button className={cn(btn.icon, view === 'grid' && 'bg-slate-100 text-slate-900')} onClick={() => setView('grid')} aria-label="Grid">
             <Grid3x3 className="h-4 w-4" />
           </button>
-          <button className={cn(btn.icon, view === 'list' && 'bg-neutral-100 text-neutral-900')} onClick={() => setView('list')} aria-label="List">
+          <button className={cn(btn.icon, view === 'list' && 'bg-slate-100 text-slate-900')} onClick={() => setView('list')} aria-label="List">
             <List className="h-4 w-4" />
           </button>
         </div>
@@ -70,9 +70,9 @@ export function MediaBrowser({ onSelect, selectedId, fixedKinds, pageSize = 24, 
       {isLoading ? (
         <Spinner />
       ) : isError ? (
-        <p className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">Media load nahi hua. API chal rahi hai?</p>
+        <p className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">Media did not load. Try again in a moment.</p>
       ) : !items.length ? (
-        <p className="rounded-xl border border-dashed border-neutral-300 p-8 text-center text-sm text-neutral-500">Koi media nahi mila.</p>
+        <p className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">No media found.</p>
       ) : view === 'grid' ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
           {items.map((m) => (
@@ -81,15 +81,15 @@ export function MediaBrowser({ onSelect, selectedId, fixedKinds, pageSize = 24, 
               type="button"
               onClick={() => onSelect(m)}
               className={cn(
-                'group overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:border-emerald-400',
-                selectedId === m.id ? 'border-emerald-500 ring-2 ring-emerald-500/30' : 'border-neutral-200',
+                'group overflow-hidden rounded-xl border bg-white text-left shadow-sm transition hover:border-brand-400',
+                selectedId === m.id ? 'border-brand-500 ring-2 ring-brand-500/30' : 'border-slate-200',
               )}
             >
-              <div className="aspect-[4/3] overflow-hidden bg-neutral-100">
+              <div className="aspect-[4/3] overflow-hidden bg-slate-100">
                 <MediaThumb media={m} />
               </div>
               <div className="space-y-1 p-2">
-                <p className="line-clamp-2 text-xs text-neutral-700">{m.alt}</p>
+                <p className="line-clamp-2 text-xs text-slate-700">{m.alt}</p>
                 <div className="flex flex-wrap gap-1">
                   <Chip>{m.kind}</Chip>
                   {m.tags.slice(0, 2).map((t) => <Chip key={t} tone="blue">{t}</Chip>)}
@@ -99,30 +99,30 @@ export function MediaBrowser({ onSelect, selectedId, fixedKinds, pageSize = 24, 
           ))}
         </div>
       ) : (
-        <div className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white">
           {items.map((m) => (
             <button
               key={m.id}
               type="button"
               onClick={() => onSelect(m)}
-              className={cn('flex w-full items-center gap-3 p-2 text-left hover:bg-neutral-50', selectedId === m.id && 'bg-emerald-50')}
+              className={cn('flex w-full items-center gap-3 p-2 text-left hover:bg-slate-50', selectedId === m.id && 'bg-brand-50')}
             >
-              <div className="h-12 w-16 shrink-0 overflow-hidden rounded-md bg-neutral-100">
+              <div className="h-12 w-16 shrink-0 overflow-hidden rounded-md bg-slate-100">
                 <MediaThumb media={m} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-neutral-900">{m.alt}</p>
-                <p className="truncate text-xs text-neutral-500">{m.fileName}</p>
+                <p className="truncate text-sm font-medium text-slate-900">{m.alt}</p>
+                <p className="truncate text-xs text-slate-500">{m.fileName}</p>
               </div>
-              <span className="hidden text-xs text-neutral-500 sm:block">{m.width && m.height ? `${m.width}×${m.height}` : ''}</span>
-              <span className="hidden text-xs text-neutral-500 sm:block">{formatBytes(m.bytes)}</span>
+              <span className="hidden text-xs text-slate-500 sm:block">{m.width && m.height ? `${m.width}×${m.height}` : ''}</span>
+              <span className="hidden text-xs text-slate-500 sm:block">{formatBytes(m.bytes)}</span>
               <Chip>{m.kind}</Chip>
-              <span className="hidden text-xs text-neutral-500 md:block">{formatPkt(m.createdAt, false)}</span>
+              <span className="hidden text-xs text-slate-500 md:block">{formatPkt(m.createdAt, false)}</span>
             </button>
           ))}
         </div>
       )}
-      <Pager meta={data?.meta} onPage={setPage} />
+      {data?.meta && data.meta.total > 0 && <Pagination page={page} limit={pageSize} total={data.meta.total} onPage={setPage} />}
     </div>
   );
 }

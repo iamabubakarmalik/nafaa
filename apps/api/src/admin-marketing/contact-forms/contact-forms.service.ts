@@ -12,6 +12,7 @@ import { parsePagination, paginated } from '../_shared/helpers/pagination.helper
 import { ListFormsDto } from './dto/list-forms.dto';
 import { ReplyFormDto } from './dto/reply-form.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
+import { dayRange } from '../_shared/helpers/day-range.helper';
 
 @Injectable()
 export class ContactFormsService {
@@ -42,11 +43,8 @@ export class ContactFormsService {
         
       ];
     }
-    if (dto.from || dto.to) {
-      where.createdAt = {};
-      if (dto.from) (where.createdAt as any).gte = new Date(dto.from);
-      if (dto.to) (where.createdAt as any).lte = new Date(dto.to);
-    }
+    const range = dayRange(dto.from, dto.to);
+    if (range) where.createdAt = range;
 
     const [items, total] = await Promise.all([
       this.prisma.contactFormSubmission.findMany({

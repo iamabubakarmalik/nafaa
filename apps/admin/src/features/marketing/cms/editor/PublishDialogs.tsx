@@ -50,7 +50,7 @@ export function PublishDialog({
     queryKey: ['cms', 'validate', entry.id, entry.version],
     queryFn: async () => {
       const saved = await flush();
-      if (!saved) throw new Error('Draft save nahi hua; pehle save ka masla hal karein');
+      if (!saved) throw new Error('The draft was not saved. Fix the save problem first.');
       return cmsApi.validate(entry.id);
     },
     enabled: open,
@@ -64,7 +64,7 @@ export function PublishDialog({
   const act = useMutation({
     mutationFn: async () => {
       const saved = await flush();
-      if (!saved) throw new Error('Draft save nahi hua');
+      if (!saved) throw new Error('The draft was not saved');
       const fresh = await cmsApi.entry(entry.id);
       if (mode === 'now') return { kind: 'publish' as const, res: await cmsApi.publish(entry.id, { version: fresh.version, note: note || undefined, contentUpdated, publishFaqs }) };
       return { kind: 'schedule' as const, res: await cmsApi.schedule(entry.id, { version: fresh.version, publishAt: publishAt as string, note: note || undefined, contentUpdated }) };
@@ -72,12 +72,12 @@ export function PublishDialog({
     onSuccess: (r) => {
       if (r.kind === 'publish') {
         const rv = r.res.revalidation;
-        if (rv.ok) toast.success('Publish ho gaya. Site update ho gayi.');
-        else toast.warning(`Publish ho gaya, magar site update fail: ${rv.error ?? ''}. Dobara try hoga.`);
+        if (rv.ok) toast.success('Published. The site is updated.');
+        else toast.warning(`Published, but the site update failed: ${rv.error ?? ''}. It will be retried.`);
         if (r.res.redirectCreated) toast.info(`Redirect bana: ${r.res.redirectCreated.from} → ${r.res.redirectCreated.to ?? ''}`);
         onDone(r.res.entry, r.res);
       } else {
-        toast.success(`Schedule ho gaya: ${formatPkt(publishAt)} (PKT)`);
+        toast.success(`Scheduled for ${formatPkt(publishAt)} (Pakistan time)`);
         onDone(r.res.entry);
       }
       onClose();
@@ -86,7 +86,7 @@ export function PublishDialog({
       const issues = apiErrorBody(e)?.issues;
       if (issues?.length) setServerIssues(issues);
       else void check.refetch();
-      toast.error(e instanceof Error && !('response' in e) ? e.message : apiErrorMessage(e, 'Publish nahi hua'));
+      toast.error(e instanceof Error && !('response' in e) ? e.message : apiErrorMessage(e, 'Could not publish'));
     },
   });
 
@@ -101,7 +101,7 @@ export function PublishDialog({
       open={open}
       onClose={onClose}
       width="md"
-      title={mode === 'now' ? 'Publish karein' : 'Schedule karein'}
+      title={mode === 'now' ? 'Publish' : 'Schedule'}
       description={`${entry.title} · ${entry.path}`}
       footer={
         <>
@@ -110,7 +110,7 @@ export function PublishDialog({
           </Btn>
           <Btn variant="primary" disabled={!canPublish || (mode === 'schedule' && !future)} loading={act.isPending} onClick={() => act.mutate()}>
             {mode === 'now' ? <Rocket className="h-4 w-4" /> : <CalendarClock className="h-4 w-4" />}
-            {mode === 'now' ? 'Abhi publish' : 'Schedule'}
+            {mode === 'now' ? 'Publish now' : 'Schedule'}
           </Btn>
         </>
       }
@@ -120,25 +120,25 @@ export function PublishDialog({
           value={mode}
           onChange={setMode}
           options={[
-            { value: 'now', label: 'Abhi' },
-            { value: 'schedule', label: 'Baad me (schedule)' },
+            { value: 'now', label: 'Now' },
+            { value: 'schedule', label: 'Later (schedule)' },
           ]}
         />
         {mode === 'schedule' && (
-          <Field label="Kab (Pakistan time)" error={when && !future ? 'Aane wala waqt chunein' : undefined} hint={publishAt ? `UTC: ${new Date(publishAt).toISOString().slice(0, 16).replace('T', ' ')}` : undefined}>
-            <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="h-9 w-full rounded-lg border border-neutral-300 px-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+          <Field label="When (Pakistan time)" error={when && !future ? 'Pick a time in the future' : undefined} hint={publishAt ? `UTC: ${new Date(publishAt).toISOString().slice(0, 16).replace('T', ' ')}` : undefined}>
+            <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="h-9 w-full rounded-lg border border-slate-300 px-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
           </Field>
         )}
 
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-neutral-700">Checks</p>
+          <p className="text-xs font-semibold text-slate-700">Checks</p>
           {check.isLoading || check.isFetching ? (
-            <p className="rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-500">Save aur checks chal rahe hain…</p>
+            <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">Saving and running checks…</p>
           ) : check.isError ? (
-            <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">{check.error instanceof Error && !('response' in check.error) ? check.error.message : apiErrorMessage(check.error, 'Validate nahi hua')}</p>
+            <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">{check.error instanceof Error && !('response' in check.error) ? check.error.message : apiErrorMessage(check.error, 'Could not check')}</p>
           ) : errors.length === 0 && warnings.length === 0 ? (
-            <p className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-              <CircleCheck className="h-3.5 w-3.5" /> Sab theek hai
+            <p className="flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-800">
+              <CircleCheck className="h-3.5 w-3.5" /> All checks passed
             </p>
           ) : (
             <ul className="max-h-56 space-y-1.5 overflow-y-auto">
@@ -154,14 +154,14 @@ export function PublishDialog({
               ))}
             </ul>
           )}
-          {errors.length > 0 && <p className="text-xs font-medium text-rose-700">{errors.length} error(s) publish rok rahe hain.</p>}
+          {errors.length > 0 && <p className="text-xs font-medium text-rose-700">{errors.length} error(s) block publishing.</p>}
           {check.data && <GateBar words={check.data.seo.gate.words} required={check.data.seo.gate.required} />}
-          {robots && !robots.index && <p className="text-xs text-violet-700">Ye page noindex publish hoga ({robots.reason ?? 'editor'}).</p>}
+          {robots && !robots.index && <p className="text-xs text-violet-700">This page will be published as noindex ({robots.reason ?? 'editor'}).</p>}
         </div>
 
-        <TextArea label="Note (history me)" value={note} onChange={setNote} rows={2} placeholder="Kya badla?" maxLength={500} />
-        <Toggle checked={contentUpdated} onChange={setContentUpdated} label="Content asal me update hua" hint="'Updated' date aaj ki ho jayegi. Sirf typo theek kiya ho to band rakhein." />
-        {mode === 'now' && entry.faqIds.length > 0 && <Toggle checked={publishFaqs} onChange={setPublishFaqs} label="Jure hue draft FAQs bhi publish karein" />}
+        <TextArea label="Note (kept in history)" value={note} onChange={setNote} rows={2} placeholder="What changed?" maxLength={500} />
+        <Toggle checked={contentUpdated} onChange={setContentUpdated} label="Content was really updated" hint="The 'Updated' date becomes today. Keep this off if you only fixed a typo." />
+        {mode === 'now' && entry.faqIds.length > 0 && <Toggle checked={publishFaqs} onChange={setPublishFaqs} label="Also publish the linked draft FAQs" />}
       </div>
     </Modal>
   );
@@ -194,7 +194,7 @@ export function UnpublishDialog({
         ? cmsApi.unpublish(entry.id, { redirectTo: statusCode === 410 ? undefined : redirectTo, statusCode: wasLive ? statusCode : undefined, note: note || undefined }).then((r) => r.entry)
         : cmsApi.archive(entry.id, { redirectTo: wasLive ? redirectTo : undefined, note: note || undefined }).then((r) => r.entry),
     onSuccess: (e) => {
-      toast.success(action === 'unpublish' ? 'Unpublish ho gaya' : 'Archive ho gaya');
+      toast.success(action === 'unpublish' ? 'Unpublished' : 'Archived');
       onDone(e);
       onClose();
     },
@@ -205,8 +205,8 @@ export function UnpublishDialog({
     <Modal
       open={open}
       onClose={onClose}
-      title={action === 'unpublish' ? 'Unpublish karein' : 'Archive karein'}
-      description={wasLive ? `${entry.publishedPath} site se hat jayega. Purane link ka kya ho?` : 'Ye entry live nahi hai.'}
+      title={action === 'unpublish' ? 'Unpublish' : 'Archive'}
+      description={wasLive ? `${entry.publishedPath} will be removed from the site. What should happen to the old link?` : 'This entry is not live.'}
       footer={
         <>
           <Btn variant="ghost" onClick={onClose}>
@@ -223,21 +223,21 @@ export function UnpublishDialog({
           <>
             {action === 'unpublish' && (
               <Segmented
-                label="Purana URL"
+                label="Old URL"
                 value={statusCode}
                 onChange={setStatusCode}
                 options={[
                   { value: 301, label: '301 redirect' },
-                  { value: 302, label: '302 (thori der)' },
-                  { value: 410, label: '410 (khatam)' },
+                  { value: 302, label: '302 (temporary)' },
+                  { value: 410, label: '410 (gone)' },
                 ]}
               />
             )}
-            {statusCode !== 410 && <HrefField label="Kahan bhejein" keywords={false} value={redirectTo} onChange={setRedirectTo} hint={`Mashwara: ${suggestion} (parent hub)`} />}
+            {statusCode !== 410 && <HrefField label="Send visitors to" keywords={false} value={redirectTo} onChange={setRedirectTo} hint={`Suggestion: ${suggestion} (parent hub)`} />}
           </>
         )}
         <TextArea label="Note" value={note} onChange={setNote} rows={2} maxLength={500} />
-        <p className={cn('rounded-lg px-3 py-2 text-xs', 'bg-amber-50 text-amber-800')}>Draft mehfooz rehta hai; dobara publish kar sakte hain.</p>
+        <p className={cn('rounded-lg px-3 py-2 text-xs', 'bg-amber-50 text-amber-800')}>The draft is kept. You can publish again later.</p>
       </div>
     </Modal>
   );

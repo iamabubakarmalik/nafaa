@@ -26,5 +26,5 @@ export const FRAME_OPTIONS = [
   { value: 'tablet', label: 'Tablet' },
   { value: 'desktop', label: 'Desktop' },
   { value: 'receipt', label: 'Receipt' },
-  { value: 'none', label: 'Frame nahi' },
+  { value: 'none', label: 'No frame' },
 ] as const;

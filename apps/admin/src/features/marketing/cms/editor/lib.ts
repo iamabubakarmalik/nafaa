@@ -34,12 +34,12 @@ export function relativeTime(iso: string | null | undefined): string {
   if (!iso) return '—';
   const diff = Date.now() - new Date(iso).getTime();
   const min = Math.round(diff / 60_000);
-  if (min < 1) return 'abhi';
-  if (min < 60) return `${min} min pehle`;
+  if (min < 1) return 'just now';
+  if (min < 60) return `${min} min ago`;
   const h = Math.round(min / 60);
-  if (h < 24) return `${h} ghante pehle`;
+  if (h < 24) return `${h} hours ago`;
   const d = Math.round(h / 24);
-  if (d < 30) return `${d} din pehle`;
+  if (d < 30) return `${d} days ago`;
   return formatPkt(iso, false);
 }
 
@@ -92,9 +92,9 @@ export interface StatusView {
 
 const ROBOTS_REASON_LABEL: Record<RobotsReason, string> = {
   editor: 'noindex (editor)',
-  quality_gate: 'noindex (kam alfaaz)',
+  quality_gate: 'noindex (too few words)',
   coming: 'noindex (coming soon)',
-  similarity: 'noindex (milta julta)',
+  similarity: 'noindex (too similar)',
   site_not_indexable: 'noindex (staging)',
 };
 
@@ -119,7 +119,7 @@ export function statusView(item: { status: CmsStatus; hasUnpublishedChanges: boo
 }
 
 export const TONE_CLASSES: Record<StatusTone, string> = {
-  neutral: 'bg-neutral-100 text-neutral-700 ring-neutral-500/20',
+  neutral: 'bg-slate-100 text-slate-700 ring-slate-500/20',
   blue: 'bg-blue-50 text-blue-700 ring-blue-600/20',
   emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
   amber: 'bg-amber-50 text-amber-800 ring-amber-600/25',
@@ -128,7 +128,7 @@ export const TONE_CLASSES: Record<StatusTone, string> = {
 };
 
 export const TONE_DOT: Record<StatusTone, string> = {
-  neutral: 'bg-neutral-400',
+  neutral: 'bg-slate-400',
   blue: 'bg-blue-500',
   emerald: 'bg-emerald-500',
   amber: 'bg-amber-500',

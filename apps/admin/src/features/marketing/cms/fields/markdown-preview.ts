@@ -113,9 +113,9 @@ export function headingProblems(md: string): string[] {
     if (!m) continue;
     const level = m[1]?.length ?? 2;
     const text = (m[2] ?? '').slice(0, 40);
-    if (level === 1) problems.push(`H1 "${text}" — H1 page ka title hai, yahan H2 use karein`);
-    else if (level > 3) problems.push(`H${level} "${text}" — sirf H2 aur H3 allowed hain`);
-    else if (level > prev + 1) problems.push(`"${text}" — H${prev} ke baad seedha H${level}`);
+    if (level === 1) problems.push(`H1 "${text}" — H1 is the page title, so use H2 here`);
+    else if (level > 3) problems.push(`H${level} "${text}" — only H2 and H3 are allowed`);
+    else if (level > prev + 1) problems.push(`"${text}" — H${level} directly after H${prev}`);
     prev = level;
   }
   return problems;

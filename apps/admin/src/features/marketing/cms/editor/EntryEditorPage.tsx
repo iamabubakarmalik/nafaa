@@ -1,10 +1,10 @@
 /**
- * Entry editor (/marketing/website/entries/:id, ARCH 13.3): top bar with
- * status, autosave state, Preview, Validate and Publish; block outline on the
+ * Entry editor (/marketing/website/entries/:id): a header with status,
+ * autosave state, Preview, Validate and Publish; the block outline on the
  * left; the selected block's typed form in the centre; Details, SEO, Links,
  * FAQ and History tabs on the right.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -28,7 +28,13 @@ import {
   Trash2,
   Undo2,
   EyeOff,
+  Lightbulb,
+  PenLine,
+  Save,
+  Globe,
 } from 'lucide-react';
+import { Alert, Menu, MenuItem as DsMenuItem, MenuSeparator, PageHero, PageShell, confirmDialog, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { cn } from '@/lib/cn';
 import { apiErrorMessage, cmsApi, cmsKeys } from '@/api/marketing/marketing-cms.api';
 import { ALLOWED_BLOCKS, ENTRY_TYPE_META, type AdminEntry, type BlockType, type CmsConfig, type DraftBlock } from '../contract/cms-contract';
@@ -37,10 +43,10 @@ import { cloneBlock, createBlock } from '../blocks/registry';
 import { StatusChip, ScoreRing } from '../entries/StatusChip';
 import { sectionForType } from '../entries/sections';
 import { TypeTag } from '../fields/EntryPicker';
-import { Btn, Modal, useOutsideClick } from '../fields/ui';
+import { Btn } from '../fields/ui';
 import { BlockOutline } from './BlockOutline';
 import { EditorContext, type EditorContextValue } from './EditorContext';
-import { blockErrors, formatPkt, relativeTime } from './lib';
+import { blockErrors, formatPkt, relativeTime, statusView } from './lib';
 import { PreviewDrawer } from './PreviewDrawer';
 import { PublishDialog, UnpublishDialog } from './PublishDialogs';
 import { DetailsPanel } from './panels/DetailsPanel';
@@ -57,21 +63,25 @@ export function EntryEditorPage() {
 
   if (entry.isLoading) {
     return (
-      <div className="grid h-[60vh] place-items-center text-sm text-neutral-500">
-        <Loader2 className="h-5 w-5 animate-spin" />
-      </div>
+      <PageShell>
+        <PageHero title="Entry" back="/marketing/website/pages" loading />
+        <div className="grid h-[40vh] place-items-center text-sm text-slate-500"><Loader2 className="h-5 w-5 animate-spin" /></div>
+      </PageShell>
     );
   }
   if (entry.isError || !entry.data) {
     return (
-      <div className="mx-auto mt-16 max-w-md rounded-2xl border border-neutral-200 bg-white p-8 text-center">
-        <CircleAlert className="mx-auto h-8 w-8 text-rose-500" />
-        <p className="mt-3 font-semibold text-neutral-900">Entry nahi khuli</p>
-        <p className="mt-1 text-sm text-neutral-500">{apiErrorMessage(entry.error, 'Entry nahi mili')}</p>
-        <Link to="/marketing/website/pages" className="mt-4 inline-block text-sm font-medium text-emerald-700 hover:underline">
-          Wapas list par
-        </Link>
-      </div>
+      <PageShell>
+        <PageHero title="Entry" back="/marketing/website/pages" />
+        <div className="mx-auto mt-6 max-w-md rounded-3xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200/80">
+          <CircleAlert className="mx-auto h-8 w-8 text-rose-500" />
+          <p className="mt-3 font-semibold text-slate-900">The entry did not open</p>
+          <p className="mt-1 text-sm text-slate-500">{apiErrorMessage(entry.error, 'Entry not found')}</p>
+          <Link to="/marketing/website/pages" className="mt-4 inline-block text-sm font-medium text-brand-700 hover:underline">
+            Back to the list
+          </Link>
+        </div>
+      </PageShell>
     );
   }
   return <Editor key={entry.data.id} initial={entry.data} config={config.data} />;
@@ -81,6 +91,7 @@ type Tab = 'details' | 'seo' | 'links' | 'faq' | 'history';
 
 function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | undefined }) {
   const nav = useNavigate();
+  const guide = usePageGuide();
   const draft = useEntryDraft(initial);
   const { entry, seo, setSeo, state, update, flush, replace } = draft;
   const blocks = entry.blocks ?? [];
@@ -131,7 +142,7 @@ function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | 
   const validate = useMutation({
     mutationFn: async () => {
       const ok = await flush();
-      if (!ok) throw new Error('Pehle save ka masla hal karein');
+      if (!ok) throw new Error('The draft was not saved. Fix the save problem first.');
       return cmsApi.validate(entry.id);
     },
     onSuccess: (r) => {
@@ -139,8 +150,8 @@ function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | 
       setTab('seo');
       const errors = r.seo.issues.filter((i) => i.severity === 'error').length;
       const warnings = r.seo.issues.filter((i) => i.severity === 'warning').length;
-      if (errors) toast.error(`${errors} error(s) publish rok rahe hain, ${warnings} warning(s)`);
-      else toast.success(warnings ? `Publish ho sakta hai · ${warnings} warning(s)` : 'Sab theek hai, publish ho sakta hai');
+      if (errors) toast.error(`${errors} error(s) block publishing, ${warnings} warning(s)`);
+      else toast.success(warnings ? `Ready to publish · ${warnings} warning(s)` : 'All checks passed. Ready to publish.');
     },
     onError: (e) => toast.error(e instanceof Error && !('response' in e) ? e.message : apiErrorMessage(e)),
   });
@@ -149,7 +160,7 @@ function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | 
 
   return (
     <EditorContext.Provider value={ctx}>
-      <div className="-mx-4 -my-6 flex flex-col lg:-mx-8 lg:-my-8 lg:h-screen">
+      <PageShell>
         <TopBar
           draft={draft}
           sectionPath={`/marketing/website/${section.key}`}
@@ -161,23 +172,26 @@ function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | 
           onUnpublish={(a) => setUnpublish(a)}
           locales={config?.locales ?? ['en']}
           onNavigate={(path) => nav(path)}
+          onGuide={guide.open}
         />
 
         {state === 'conflict' && (
-          <div className="flex flex-wrap items-center gap-3 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-900 lg:px-6">
-            <CircleAlert className="h-4 w-4" />
-            <span className="flex-1">Ye entry kisi aur ne aap ke kholne ke baad badal di. Aap ki tabdeeliyan abhi save nahi huin.</span>
-            <Btn size="sm" onClick={() => void draft.reloadFromServer()}>
-              Unki copy load karein
-            </Btn>
-            <Btn size="sm" variant="dark" onClick={() => void draft.overwrite()}>
-              Meri tabdeeliyan rakhein
-            </Btn>
-          </div>
+          <Alert
+            tone="warning"
+            title="Someone else changed this entry"
+            action={
+              <div className="flex flex-wrap gap-2">
+                <Btn size="sm" onClick={() => void draft.reloadFromServer()}>Load their copy</Btn>
+                <Btn size="sm" variant="dark" onClick={() => void draft.overwrite()}>Keep my changes</Btn>
+              </div>
+            }
+          >
+            It was changed after you opened it. Your edits are not saved yet.
+          </Alert>
         )}
 
-        <div className="grid grid-cols-1 lg:min-h-0 lg:flex-1 lg:grid-cols-[248px_minmax(0,1fr)_380px]">
-          <aside className="border-r border-neutral-200 bg-white lg:min-h-0">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[248px_minmax(0,1fr)_380px] lg:items-start">
+          <aside className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80 lg:sticky lg:top-3 lg:max-h-[calc(100dvh-1.5rem)] lg:overflow-y-auto">
             <BlockOutline
               blocks={blocks}
               selectedId={selectedId}
@@ -207,7 +221,7 @@ function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | 
                 const next = blocks.filter((b) => b.id !== id);
                 setBlocks(next);
                 if (selectedId === id) setSelectedId(next[Math.min(i, next.length - 1)]?.id ?? null);
-                toast('Block hata diya', { action: { label: 'Wapas', onClick: () => setBlocks(blocks) } });
+                toast('Block removed', { action: { label: 'Undo', onClick: () => setBlocks(blocks) } });
               }}
               onAdd={(type, at) => {
                 const b = createBlock(type, entry.type);
@@ -219,10 +233,10 @@ function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | 
             />
           </aside>
 
-          <main className="min-w-0 bg-neutral-50 px-4 py-6 lg:min-h-0 lg:overflow-y-auto lg:px-8">
-            <div className="mx-auto max-w-3xl">
+          <main className="min-w-0">
+            <div>
               {selected ? (
-                <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm lg:p-6">
+                <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80 lg:p-6">
                   <BlockForm
                     key={selected.id}
                     block={selected}
@@ -235,20 +249,20 @@ function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | 
                   />
                 </div>
               ) : (
-                <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center">
-                  <LayoutList className="h-8 w-8 text-neutral-300" />
-                  <p className="font-semibold text-neutral-800">Koi block nahi chuna</p>
-                  <p className="max-w-sm text-sm text-neutral-500">Left se block chunein ya naya block shamil karein. Page title, SEO aur links right panel me hain.</p>
+                <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
+                  <LayoutList className="h-8 w-8 text-slate-300" />
+                  <p className="font-semibold text-slate-800">No block selected</p>
+                  <p className="max-w-sm text-sm text-slate-500">Pick a block on the left or add a new one. The page title, SEO and links are in the right panel.</p>
                 </div>
               )}
-              <p className="mt-4 text-center text-[11px] text-neutral-400">
-                Har tabdeeli 2 second baad khud save hoti hai (⌘S abhi save) · Live site tab badalti hai jab Publish karein
+              <p className="mt-4 text-center text-[11px] text-slate-400">
+                Every change saves itself after 2 seconds (⌘S saves now) · The live site changes only when you publish
               </p>
             </div>
           </main>
 
-          <aside className="border-l border-neutral-200 bg-white lg:min-h-0 lg:overflow-y-auto">
-            <div className="sticky top-0 z-10 flex gap-0.5 border-b border-neutral-200 bg-white px-2 pt-2">
+          <aside className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80 lg:sticky lg:top-3 lg:max-h-[calc(100dvh-1.5rem)] lg:overflow-y-auto">
+            <div className="sticky top-0 z-10 flex gap-0.5 border-b border-slate-200 bg-white px-2 pt-2">
               {(
                 [
                   ['details', 'Details'],
@@ -262,7 +276,7 @@ function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | 
                   key={k}
                   type="button"
                   onClick={() => setTab(k)}
-                  className={cn('relative inline-flex items-center gap-1.5 rounded-t-lg px-2.5 pb-2.5 pt-1.5 text-xs font-semibold transition', tab === k ? 'text-emerald-700 after:absolute after:inset-x-1 after:bottom-0 after:h-0.5 after:rounded after:bg-emerald-600' : 'text-neutral-500 hover:text-neutral-800')}
+                  className={cn('relative inline-flex items-center gap-1.5 rounded-t-lg px-2.5 pb-2.5 pt-1.5 text-xs font-semibold transition', tab === k ? 'text-brand-700 after:absolute after:inset-x-1 after:bottom-0 after:h-0.5 after:rounded after:bg-brand-600' : 'text-slate-500 hover:text-slate-800')}
                 >
                   {label}
                   {k === 'seo' && <ScoreRing score={seo?.score ?? entry.seoScore} size={20} />}
@@ -287,7 +301,31 @@ function Editor({ initial, config }: { initial: AdminEntry; config: CmsConfig | 
             </div>
           </aside>
         </div>
-      </div>
+
+        {guide.isOpen && (
+          <PageGuide
+            title="Entry editor"
+            description="Edit one page of the website from first draft to live."
+            flowTitle="From draft to live"
+            flow={[
+              { label: 'Edit blocks', hint: 'Left outline, centre form', icon: PenLine, color: '#4f46e5' },
+              { label: 'Autosave', hint: 'Every 2 seconds', icon: Save, color: '#64748b' },
+              { label: 'Validate', hint: 'Errors and SEO', icon: ShieldCheck, color: '#d97706' },
+              { label: 'Publish', hint: 'Now or scheduled', icon: Rocket, color: '#0284c7' },
+              { label: 'Live', hint: 'On nafaa.pk', icon: Globe, color: '#059669' },
+            ]}
+            steps={[
+              { icon: LayoutList, color: '#4f46e5', title: 'Blocks', text: 'The page is a list of blocks. Add, drag, hide or duplicate them in the left outline, and edit the selected one in the centre.' },
+              { icon: ShieldCheck, color: '#d97706', title: 'Validate', text: 'Checks every block and the SEO report. Errors block publishing; warnings do not.' },
+              { icon: CalendarClock, color: '#0284c7', title: 'Publish or schedule', text: 'Use the arrow next to Publish to schedule in Pakistan time, cancel a schedule, or unpublish.' },
+              { icon: Eye, color: '#059669', title: 'Preview', text: 'See the page as visitors will, including unpublished changes.' },
+            ]}
+            tips={['Press ⌘S (Ctrl+S) to save right now.', 'The History tab lets you restore an older version.']}
+            shortcuts={[['⌘ S', 'Save now'], ['G', 'This guide']]}
+            onClose={guide.close}
+          />
+        )}
+      </PageShell>
 
       <PreviewDrawer open={previewOpen} onClose={() => setPreviewOpen(false)} entryId={entry.id} version={draft.server.version} flush={flush} />
       {publishMode && (
@@ -318,21 +356,21 @@ function SaveIndicator({ draft }: { draft: EntryDraft }) {
   }, []);
   if (state === 'saving')
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-neutral-500">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Save ho raha hai…
+      <span className="inline-flex items-center gap-1.5 text-xs">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…
       </span>
     );
-  if (state === 'dirty') return <span className="inline-flex items-center gap-1.5 text-xs text-amber-700"><span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Tabdeeliyan</span>;
+  if (state === 'dirty') return <span className="inline-flex items-center gap-1.5 text-xs"><span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> Unsaved changes</span>;
   if (state === 'error')
     return (
-      <button type="button" onClick={() => void flush()} className="inline-flex items-center gap-1.5 text-xs font-medium text-rose-600 hover:underline" title={error ?? ''}>
-        <CircleAlert className="h-3.5 w-3.5" /> Save fail · dobara
+      <button type="button" onClick={() => void flush()} className="inline-flex items-center gap-1.5 text-xs font-semibold underline" title={error ?? ''}>
+        <CircleAlert className="h-3.5 w-3.5" /> Save failed · retry
       </button>
     );
-  if (state === 'conflict') return <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-700"><CircleAlert className="h-3.5 w-3.5" /> Conflict</span>;
+  if (state === 'conflict') return <span className="inline-flex items-center gap-1.5 text-xs font-semibold"><CircleAlert className="h-3.5 w-3.5" /> Conflict</span>;
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs text-neutral-500" title={savedAt ? formatPkt(savedAt) : undefined}>
-      <CloudCheck className="h-3.5 w-3.5 text-emerald-600" /> Saved{savedAt ? ` · ${relativeTime(savedAt)}` : ''}
+    <span className="inline-flex items-center gap-1.5 text-xs" title={savedAt ? formatPkt(savedAt) : undefined}>
+      <CloudCheck className="h-3.5 w-3.5" /> Saved{savedAt ? ` · ${relativeTime(savedAt)}` : ''}
     </span>
   );
 }
@@ -348,6 +386,7 @@ function TopBar({
   onUnpublish,
   locales,
   onNavigate,
+  onGuide,
 }: {
   draft: EntryDraft;
   sectionPath: string;
@@ -359,16 +398,17 @@ function TopBar({
   onUnpublish: (a: 'unpublish' | 'archive') => void;
   locales: string[];
   onNavigate: (path: string) => void;
+  onGuide: () => void;
 }) {
   const { entry, seo, replace } = draft;
   const [menu, setMenu] = useState(false);
   const [publishMenu, setPublishMenu] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const menuRef = useOutsideClick<HTMLDivElement>(menu, () => setMenu(false));
-  const pubRef = useOutsideClick<HTMLDivElement>(publishMenu, () => setPublishMenu(false));
+  const menuRef = useRef<HTMLButtonElement>(null);
+  const pubRef = useRef<HTMLButtonElement>(null);
   const live = entry.status === 'PUBLISHED';
   const neverPublished = !entry.firstPublishedAt;
   const otherLocales = locales.filter((l) => l !== entry.locale);
+  const view = statusView({ status: entry.status, hasUnpublishedChanges: entry.hasUnpublishedChanges, noindexReason: seo?.robots.index === false ? seo.robots.reason ?? 'editor' : null });
 
   const act = useMutation({
     mutationFn: async (kind: 'duplicate' | 'cancel-schedule' | 'restore-archive' | 'delete' | `translate:${string}`) => {
@@ -385,123 +425,98 @@ function TopBar({
     onSuccess: (r) => {
       setMenu(false);
       if (r.kind === 'duplicate' && r.entry) {
-        toast.success('Copy ban gayi (draft)');
+        toast.success('Copy created (draft)');
         onNavigate(`/marketing/website/entries/${r.entry.id}`);
       } else if (r.kind.startsWith('translate:') && r.entry) {
-        toast.success('Tarjume ka draft ban gaya');
+        toast.success('Translation draft created');
         onNavigate(`/marketing/website/entries/${r.entry.id}`);
       } else if (r.kind === 'delete') {
-        toast.success('Entry mita di');
+        toast.success('Entry deleted');
         onNavigate(sectionPath);
       } else if (r.entry) {
         replace(r.entry, { keepEdits: true });
-        toast.success(r.kind === 'cancel-schedule' ? 'Schedule cancel ho gaya' : 'Archive se wapas draft me');
+        toast.success(r.kind === 'cancel-schedule' ? 'Schedule cancelled' : 'Restored from archive as a draft');
       }
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
-  return (
-    <div className="relative z-30 flex h-[57px] shrink-0 items-center gap-3 border-b border-neutral-200 bg-white px-4 lg:px-6">
-      <Link to={sectionPath} className="inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-xs font-medium text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800" title={`Wapas: ${sectionLabel}`}>
-        <ChevronLeft className="h-4 w-4" />
-        <span className="hidden xl:inline">{sectionLabel}</span>
-      </Link>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <h1 className="truncate text-[15px] font-semibold text-neutral-900">{entry.title || 'Bina title'}</h1>
-          <TypeTag type={entry.type} />
-          <StatusChip status={entry.status} hasUnpublishedChanges={entry.hasUnpublishedChanges} noindexReason={seo?.robots.index === false ? seo.robots.reason ?? 'editor' : null} />
-          {entry.status === 'SCHEDULED' && entry.publishAt && <span className="hidden text-xs text-blue-700 md:inline">{formatPkt(entry.publishAt)} PKT</span>}
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="truncate font-mono text-[11px] text-neutral-500">{entry.path}</span>
-          <SaveIndicator draft={draft} />
-        </div>
-      </div>
+  const askDelete = async () => {
+    setMenu(false);
+    const ok = await confirmDialog({
+      title: 'Delete this entry?',
+      text: `${entry.title} (${ENTRY_TYPE_META[entry.type].label}) was never published, so it is deleted completely and cannot be restored.`,
+      yes: 'Delete',
+      danger: true,
+    });
+    if (ok) act.mutate('delete');
+  };
 
-      <div className="flex items-center gap-1.5">
-        {entry.liveUrl && (
-          <a href={entry.liveUrl} target="_blank" rel="noreferrer" className="hidden h-9 items-center gap-1 rounded-lg px-2.5 text-sm text-neutral-600 hover:bg-neutral-100 md:inline-flex" title="Live page">
-            <ExternalLink className="h-4 w-4" />
-          </a>
-        )}
-        <Btn variant="ghost" onClick={onPreview}>
-          <Eye className="h-4 w-4" /> <span className="hidden sm:inline">Preview</span>
-        </Btn>
-        <Btn variant="secondary" onClick={onValidate} loading={validating}>
-          <ShieldCheck className="h-4 w-4" /> <span className="hidden sm:inline">Validate</span>
-        </Btn>
-        <div ref={pubRef} className="relative flex">
-          <Btn variant="primary" className="rounded-r-none" onClick={() => onPublish('now')}>
-            <Rocket className="h-4 w-4" /> {live ? (entry.hasUnpublishedChanges ? 'Update publish' : 'Publish') : 'Publish'}
-          </Btn>
-          <button type="button" onClick={() => setPublishMenu((o) => !o)} className="grid h-9 w-8 place-items-center rounded-r-lg border-l border-emerald-700 bg-emerald-600 text-white hover:bg-emerald-700" aria-label="Publish options">
-            <ChevronDown className="h-4 w-4" />
-          </button>
-          {publishMenu && (
-            <div className="absolute right-0 top-full z-40 mt-1 w-56 rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
-              <MenuItem icon={CalendarClock} label="Schedule (PKT)" onClick={() => { setPublishMenu(false); onPublish('schedule'); }} />
-              {entry.status === 'SCHEDULED' && <MenuItem icon={Undo2} label="Schedule cancel" onClick={() => act.mutate('cancel-schedule')} />}
-              {live && <MenuItem icon={EyeOff} label="Unpublish" danger onClick={() => { setPublishMenu(false); onUnpublish('unpublish'); }} />}
-            </div>
+  const words = entry.wordCount ?? 0;
+
+  return (
+    <PageHero
+      title={entry.title || 'Untitled'}
+      back={sectionPath}
+      backLabel={sectionLabel}
+      chip={view.label}
+      meta={entry.path}
+      actions={
+        <>
+          <span className="nafaa-hero-subtle mr-1 hidden md:inline-flex"><SaveIndicator draft={draft} /></span>
+          {entry.liveUrl && (
+            <a href={entry.liveUrl} target="_blank" rel="noreferrer" className={heroIconButton} title="Open the live page" aria-label="Open the live page">
+              <ExternalLink className="h-4 w-4" />
+            </a>
           )}
-        </div>
-        <div ref={menuRef} className="relative">
-          <button type="button" onClick={() => setMenu((o) => !o)} className="grid h-9 w-9 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100" aria-label="Aur">
+          <button type="button" className={heroButton} onClick={onPreview}><Eye className="h-4 w-4" /> <span className="hidden sm:inline">Preview</span></button>
+          <button type="button" className={heroButton} onClick={onValidate} disabled={validating}>
+            {validating ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} <span className="hidden sm:inline">Validate</span>
+          </button>
+          <span className="inline-flex">
+            <button type="button" className={cn(heroPrimaryButton, 'rounded-r-none')} onClick={() => onPublish('now')}>
+              <Rocket className="h-4 w-4" /> {live && entry.hasUnpublishedChanges ? 'Update live page' : 'Publish'}
+            </button>
+            <button ref={pubRef} type="button" onClick={() => setPublishMenu((o) => !o)} className={cn(heroPrimaryButton, 'rounded-l-none border-l border-black/10 px-2')} aria-label="Publish options" aria-haspopup="menu">
+              <ChevronDown className="h-4 w-4" />
+            </button>
+          </span>
+          <Menu open={publishMenu} onClose={() => setPublishMenu(false)} anchorRef={pubRef} width="w-56">
+            <DsMenuItem icon={<CalendarClock />} onClick={() => { setPublishMenu(false); onPublish('schedule'); }}>Schedule (Pakistan time)</DsMenuItem>
+            {entry.status === 'SCHEDULED' && <DsMenuItem icon={<Undo2 />} onClick={() => { setPublishMenu(false); act.mutate('cancel-schedule'); }}>Cancel schedule</DsMenuItem>}
+            {live && <DsMenuItem icon={<EyeOff />} tone="danger" onClick={() => { setPublishMenu(false); onUnpublish('unpublish'); }}>Unpublish</DsMenuItem>}
+          </Menu>
+          <button ref={menuRef} type="button" onClick={() => setMenu((o) => !o)} className={heroIconButton} aria-label="More actions" aria-haspopup="menu">
             <Ellipsis className="h-4 w-4" />
           </button>
-          {menu && (
-            <div className="absolute right-0 top-full z-40 mt-1 w-60 rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
-              <MenuItem icon={Copy} label="Copy banayein" onClick={() => act.mutate('duplicate')} />
-              {otherLocales.map((l) => (
-                <MenuItem key={l} icon={Languages} label={`${l.toUpperCase()} tarjuma banayein`} onClick={() => act.mutate(`translate:${l}`)} />
-              ))}
-              {entry.status === 'ARCHIVED' ? (
-                <MenuItem icon={ArchiveRestore} label="Archive se wapas" onClick={() => act.mutate('restore-archive')} />
-              ) : (
-                <MenuItem icon={Archive} label="Archive" onClick={() => { setMenu(false); onUnpublish('archive'); }} />
-              )}
-              {neverPublished && (entry.status === 'DRAFT' || entry.status === 'ARCHIVED') && (
-                <MenuItem icon={Trash2} label="Hamesha ke liye mitayein" danger onClick={() => { setMenu(false); setConfirmDelete(true); }} />
-              )}
-              <div className="mt-1 border-t border-neutral-100 px-2.5 py-1.5 text-[11px] text-neutral-400">
-                v{entry.version} · bana {formatPkt(entry.createdAt, false)}
-                {entry.publishedAt && <> · live {formatPkt(entry.publishedAt, false)}</>}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      <Modal
-        open={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        title="Entry mitayein?"
-        description="Ye kabhi publish nahi hui, is liye poori tarah mit jayegi. Wapas nahi aayegi."
-        width="sm"
-        footer={
-          <>
-            <Btn variant="ghost" onClick={() => setConfirmDelete(false)}>
-              Cancel
-            </Btn>
-            <Btn variant="danger" loading={act.isPending} onClick={() => act.mutate('delete')}>
-              Mitayein
-            </Btn>
-          </>
-        }
-      >
-        <p className="text-sm text-neutral-700">
-          <b>{entry.title}</b> ({ENTRY_TYPE_META[entry.type].label})
-        </p>
-      </Modal>
-    </div>
-  );
-}
-
-function MenuItem({ icon: Icon, label, onClick, danger }: { icon: typeof Copy; label: string; onClick: () => void; danger?: boolean }) {
-  return (
-    <button type="button" onClick={onClick} className={cn('flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm', danger ? 'text-rose-600 hover:bg-rose-50' : 'text-neutral-700 hover:bg-neutral-100')}>
-      <Icon className="h-4 w-4" /> {label}
-    </button>
+          <Menu open={menu} onClose={() => setMenu(false)} anchorRef={menuRef} width="w-64">
+            <DsMenuItem icon={<Copy />} onClick={() => act.mutate('duplicate')}>Make a copy</DsMenuItem>
+            {otherLocales.map((l) => (
+              <DsMenuItem key={l} icon={<Languages />} onClick={() => act.mutate(`translate:${l}`)}>{`Create ${l.toUpperCase()} translation`}</DsMenuItem>
+            ))}
+            {entry.status === 'ARCHIVED' ? (
+              <DsMenuItem icon={<ArchiveRestore />} onClick={() => act.mutate('restore-archive')}>Restore from archive</DsMenuItem>
+            ) : (
+              <DsMenuItem icon={<Archive />} onClick={() => { setMenu(false); onUnpublish('archive'); }}>Archive</DsMenuItem>
+            )}
+            {neverPublished && (entry.status === 'DRAFT' || entry.status === 'ARCHIVED') && (
+              <DsMenuItem icon={<Trash2 />} tone="danger" onClick={askDelete}>Delete forever</DsMenuItem>
+            )}
+            <MenuSeparator />
+            <p className="px-2.5 py-1.5 text-[11px] text-slate-400">
+              v{entry.version} · created {formatPkt(entry.createdAt, false)}
+              {entry.publishedAt && <> · live {formatPkt(entry.publishedAt, false)}</>}
+            </p>
+          </Menu>
+          <button type="button" className={heroButton} onClick={onGuide} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+        </>
+      }
+      stats={[
+        { label: 'SEO score', value: seo?.score ?? entry.seoScore ?? '—', hint: seo ? `${seo.issues.filter((i) => i.severity === 'error').length} errors` : undefined },
+        { label: 'Words', value: words.toLocaleString('en-PK') },
+        { label: 'Blocks', value: entry.blocks?.length ?? 0 },
+        { label: 'Status', value: view.label, hint: entry.status === 'SCHEDULED' && entry.publishAt ? `${formatPkt(entry.publishAt)} PKT` : undefined },
+      ]}
+    />
   );
 }

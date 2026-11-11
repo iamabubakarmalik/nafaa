@@ -1,21 +1,22 @@
 /**
- * Website → Overview (ARCH 13 screen 1): counts by type and status, the
- * scheduled queue (PKT), last revalidation, the "needs attention" list from
- * GET /dashboard/health, the live roadmap (features shown as beta / coming)
- * and "Revalidate everything".
+ * Website overview: counts by type and status, the scheduled queue (Pakistan
+ * time), last site refresh, the "needs attention" list from
+ * GET /dashboard/health, the roadmap (features shown as beta or coming soon)
+ * and "Refresh whole site".
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { AlertTriangle, CalendarClock, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CheckCircle, FileText, Globe, Lightbulb, PenLine, RefreshCw, Rocket } from 'lucide-react';
+import { PageHero, PageShell, heroButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import {
   ENTRY_TYPE_META, FEATURE_STATUS_TYPES, PUBLIC_SITE_ENDPOINTS,
   type CmsDashboard, type CmsHealthReport, type PublicEntriesResponse,
 } from '../contract/cms-contract';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { StatCard } from '../../_shared/components/StatCard';
+import { confirmDialog } from '@/design-system/components';
 import { CMS_BASE, cmsHttp, errorMessage, formatPkt, unwrap } from './shared/cms-http';
-import { Card, Chip, IssueList, Spinner, btn } from './shared/ui';
+import { Card, Chip, IssueList, Spinner } from './shared/ui';
 import { FeatureStatusBadge } from './FeatureStatusBadge';
 
 /** Base path of the Website section; M1's routes.tsx mounts the pages under it. */
@@ -30,6 +31,7 @@ const dashboardApi = {
 };
 
 export function CmsDashboardPage() {
+  const guide = usePageGuide();
   const summary = useQuery({ queryKey: ['cms-dashboard'], queryFn: dashboardApi.summary });
   const health = useQuery({ queryKey: ['cms-dashboard-health'], queryFn: dashboardApi.health });
   const roadmap = useQuery({
@@ -38,7 +40,7 @@ export function CmsDashboardPage() {
   });
   const revalidate = useMutation({
     mutationFn: dashboardApi.revalidateAll,
-    onSuccess: (r) => (r.ok ? toast.success('Poori site refresh ho rahi hai') : toast.error(`Site refresh nahi hui: ${r.error ?? ''}`)),
+    onSuccess: (r) => (r.ok ? toast.success('The whole site is refreshing') : toast.error(`Site refresh failed: ${r.error ?? ''}`)),
     onError: (e) => toast.error(errorMessage(e)),
   });
 
@@ -49,71 +51,77 @@ export function CmsDashboardPage() {
   const last = summary.data?.lastRevalidation;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <PageShell>
+      <PageHero
         title="Website"
-        subtitle="nafaa.pk ka content: kya live hai, kya baqi hai, kis cheez par dhyan chahiye."
+        chip="nafaa.pk content"
+        busy={summary.isFetching}
+        loading={summary.isLoading}
         actions={
-          <button className={btn.secondary} disabled={revalidate.isPending} onClick={() => confirm('Poori site ka cache refresh karein?') && revalidate.mutate()}>
-            <RefreshCw className={revalidate.isPending ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} /> Sab refresh karein
-          </button>
+          <>
+            <button type="button" className={heroButton} disabled={revalidate.isPending} onClick={async () => {
+              if (await confirmDialog({ title: 'Refresh the whole site?', text: 'The site cache is cleared and every page is rebuilt.', yes: 'Refresh site' })) revalidate.mutate();
+            }}>
+              <RefreshCw className={revalidate.isPending ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} /> Refresh whole site
+            </button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
         }
+        stats={summary.data ? [
+          { label: 'Live pages', value: totals.published },
+          { label: 'Drafts', value: totals.draft },
+          { label: 'Scheduled', value: totals.scheduled },
+          { label: 'Live but noindex', value: totals.noindex, hint: 'Below the quality gate, or switched off by an editor' },
+        ] : undefined}
       />
 
-      {summary.isError ? (
-        <p className="rounded-xl bg-rose-50 p-4 text-sm text-rose-700">{errorMessage(summary.error)}</p>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Live pages" value={totals.published} />
-          <StatCard label="Draft" value={totals.draft} />
-          <StatCard label="Scheduled" value={totals.scheduled} />
-          <StatCard label="Live magar noindex" value={totals.noindex} hint="Quality gate se neeche ya editor ne band kiya" />
-        </div>
-      )}
+      {summary.isError && <p className="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">{errorMessage(summary.error)}</p>}
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Type ke hisaab se">
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card title="By type">
           {summary.isLoading ? (
             <Spinner />
           ) : (
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-neutral-500"><th className="py-1">Type</th><th>Live</th><th>Draft</th><th>Scheduled</th><th>Noindex</th></tr>
-              </thead>
-              <tbody>
-                {summary.data?.byType.filter((t) => t.draft + t.published + t.scheduled > 0).map((t) => (
-                  <tr key={t.type} className="border-t border-neutral-100">
-                    <td className="py-1.5 text-neutral-800">{ENTRY_TYPE_META[t.type].label}</td>
-                    <td>{t.published}</td><td>{t.draft}</td><td>{t.scheduled}</td>
-                    <td>{t.noindex ? <Chip tone="amber">{t.noindex}</Chip> : 0}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-slate-500"><th className="py-1 font-medium">Type</th><th className="font-medium">Live</th><th className="font-medium">Draft</th><th className="font-medium">Scheduled</th><th className="font-medium">Noindex</th></tr>
+                </thead>
+                <tbody>
+                  {summary.data?.byType.filter((t) => t.draft + t.published + t.scheduled > 0).map((t) => (
+                    <tr key={t.type} className="border-t border-slate-100">
+                      <td className="py-1.5 text-slate-800">{ENTRY_TYPE_META[t.type].label}</td>
+                      <td>{t.published}</td><td>{t.draft}</td><td>{t.scheduled}</td>
+                      <td>{t.noindex ? <Chip tone="amber">{t.noindex}</Chip> : 0}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </Card>
 
-        <div className="space-y-6">
-          <Card title={<span className="flex items-center gap-2"><CalendarClock className="h-4 w-4 text-blue-600" /> Scheduled (PKT)</span>}>
+        <div className="space-y-4">
+          <Card title={<span className="flex items-center gap-2"><CalendarClock className="h-4 w-4 text-blue-600" /> Scheduled (Pakistan time)</span>}>
             {!summary.data?.scheduled.length ? (
-              <p className="text-sm text-neutral-500">Kuch scheduled nahi.</p>
+              <p className="text-sm text-slate-500">Nothing is scheduled.</p>
             ) : (
               <ul className="space-y-1 text-sm">
                 {summary.data.scheduled.map((s) => (
                   <li key={s.id} className="flex justify-between gap-2">
-                    <Link to={`${WEBSITE_BASE}/entries/${s.id}`} className="truncate text-neutral-800 hover:text-emerald-700">{s.title}</Link>
-                    <span className="shrink-0 text-xs text-neutral-500">{formatPkt(s.publishAt)}</span>
+                    <Link to={`${WEBSITE_BASE}/entries/${s.id}`} className="truncate text-slate-800 hover:text-brand-700">{s.title}</Link>
+                    <span className="shrink-0 text-xs text-slate-500">{formatPkt(s.publishAt)}</span>
                   </li>
                 ))}
               </ul>
             )}
           </Card>
-          <Card title="Site refresh (revalidation)">
+          <Card title="Site refresh">
             {!last ? (
-              <p className="text-sm text-neutral-500">Abhi tak koi refresh nahi.</p>
+              <p className="text-sm text-slate-500">No refresh yet.</p>
             ) : (
               <p className="text-sm">
-                {last.ok ? <Chip tone="emerald">Kamyab</Chip> : <Chip tone="rose">Fail</Chip>} <span className="text-neutral-600">{formatPkt(last.at)}</span>
+                {last.ok ? <Chip tone="emerald">Succeeded</Chip> : <Chip tone="rose">Failed</Chip>} <span className="text-slate-600">{formatPkt(last.at)}</span>
                 {last.error && <span className="mt-1 block text-xs text-rose-700">{last.error}</span>}
               </p>
             )}
@@ -121,19 +129,19 @@ export function CmsDashboardPage() {
         </div>
       </div>
 
-      <Card title={<span className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" /> Dhyan chahiye {health.data ? `(${health.data.items.length})` : ''}</span>}>
+      <Card title={<span className="flex items-center gap-2"><AlertTriangle className="h-4 w-4 text-amber-600" /> Needs attention {health.data ? `(${health.data.items.length})` : ''}</span>}>
         {health.isLoading ? (
           <Spinner />
         ) : health.isError ? (
-          <p className="text-sm text-neutral-500">{errorMessage(health.error)}</p>
+          <p className="text-sm text-slate-500">{errorMessage(health.error)}</p>
         ) : !health.data?.items.length ? (
-          <p className="text-sm text-emerald-700">Sab theek hai.</p>
+          <p className="text-sm text-brand-700">All clear.</p>
         ) : (
-          <ul className="divide-y divide-neutral-100">
+          <ul className="divide-y divide-slate-100">
             {health.data.items.map((item) => (
               <li key={item.entryId} className="py-3">
-                <Link to={`${WEBSITE_BASE}/entries/${item.entryId}`} className="font-medium text-neutral-900 hover:text-emerald-700">{item.title}</Link>
-                <span className="ml-2 text-xs text-neutral-500">{item.path}</span>
+                <Link to={`${WEBSITE_BASE}/entries/${item.entryId}`} className="font-medium text-slate-900 hover:text-brand-700">{item.title}</Link>
+                <span className="ml-2 text-xs text-slate-500">{item.path}</span>
                 <div className="mt-1.5"><IssueList issues={item.issues} /></div>
               </li>
             ))}
@@ -141,23 +149,44 @@ export function CmsDashboardPage() {
         )}
       </Card>
 
-      <Card title="Roadmap: site par Beta / Jald aa raha hai">
-        <p className="-mt-2 mb-3 text-xs text-neutral-500">Jo features abhi bane nahi, woh site par sirf badge ke sath aur roadmap par dikhte hain, live ke taur par kabhi nahi.</p>
+      <Card title="Roadmap: Beta and coming soon on the site">
+        <p className="-mt-2 mb-3 text-xs text-slate-500">Features that are not built yet appear on the site only with a badge and on the roadmap, never as live.</p>
         {roadmap.isLoading ? (
           <Spinner />
         ) : !roadmap.data?.length ? (
-          <p className="text-sm text-neutral-500">Live site par koi beta ya aane wala feature nahi.</p>
+          <p className="text-sm text-slate-500">No beta or upcoming features on the live site.</p>
         ) : (
           <ul className="grid gap-2 sm:grid-cols-2">
             {roadmap.data.map((e) => (
-              <li key={e.id} className="flex items-center justify-between gap-2 rounded-lg border border-neutral-200 px-3 py-2 text-sm">
-                <Link to={`${WEBSITE_BASE}/entries/${e.id}`} className="truncate hover:text-emerald-700">{e.title}</Link>
+              <li key={e.id} className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm">
+                <Link to={`${WEBSITE_BASE}/entries/${e.id}`} className="truncate hover:text-brand-700">{e.title}</Link>
                 <span className="flex shrink-0 items-center gap-1"><Chip>{ENTRY_TYPE_META[e.type].label}</Chip><FeatureStatusBadge status={e.status} /></span>
               </li>
             ))}
           </ul>
         )}
       </Card>
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Website"
+          description="The content of the public Nafaa website, edited here."
+          flowTitle="From edit to live"
+          flow={[
+            { label: 'Edit an entry', hint: 'Pages, blog, cities…', icon: PenLine, color: '#4f46e5' },
+            { label: 'Check quality', hint: 'Issues and SEO', icon: CheckCircle, color: '#d97706' },
+            { label: 'Publish or schedule', hint: 'Pakistan time', icon: Rocket, color: '#0284c7' },
+            { label: 'Site refreshes', hint: 'Live on nafaa.pk', icon: Globe, color: '#059669' },
+          ]}
+          steps={[
+            { icon: AlertTriangle, color: '#d97706', title: 'Needs attention', text: 'Entries with problems are listed here with the exact issue. Open one to fix it.' },
+            { icon: CalendarClock, color: '#0284c7', title: 'Scheduled', text: 'Entries waiting for their publish time, shown in Pakistan time.' },
+            { icon: FileText, color: '#4f46e5', title: 'Sections', text: 'Use the Website menu on the left to open pages, industries, cities, blog and more.' },
+            { icon: RefreshCw, color: '#059669', title: 'Refresh whole site', text: 'Use it only when the site looks out of date. Normal publishing refreshes by itself.' },
+          ]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

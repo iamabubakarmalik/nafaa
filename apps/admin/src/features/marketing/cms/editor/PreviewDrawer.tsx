@@ -41,21 +41,21 @@ export function PreviewDrawer({ open, onClose, entryId, version, flush }: { open
   if (!open) return null;
   const url = link.data?.url;
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-neutral-900/30 backdrop-blur-[1px]" onMouseDown={onClose}>
-      <div className="flex h-full w-full max-w-[min(1200px,92vw)] flex-col bg-neutral-100 shadow-2xl" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-2 border-b border-neutral-200 bg-white px-4 py-2.5">
-          <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">Preview · live nahi</span>
-          <div className="ml-2 inline-flex rounded-lg bg-neutral-100 p-0.5">
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/30 backdrop-blur-[1px]" onMouseDown={onClose}>
+      <div className="flex h-full w-full max-w-[min(1200px,92vw)] flex-col bg-slate-100 shadow-2xl" onMouseDown={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 border-b border-slate-200 bg-white px-4 py-2.5">
+          <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-800">Preview · not live</span>
+          <div className="ml-2 inline-flex rounded-lg bg-slate-100 p-0.5">
             {(['desktop', 'mobile'] as const).map((d) => (
-              <button key={d} type="button" onClick={() => setDevice(d)} className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium', device === d ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500')}>
+              <button key={d} type="button" onClick={() => setDevice(d)} className={cn('inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium', device === d ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500')}>
                 {d === 'desktop' ? <Monitor className="h-3.5 w-3.5" /> : <Smartphone className="h-3.5 w-3.5" />}
                 {d === 'desktop' ? 'Desktop' : 'Mobile'}
               </button>
             ))}
           </div>
           <div className="ml-auto flex items-center gap-1">
-            {link.data && <span className="mr-2 hidden text-[11px] text-neutral-500 md:inline">Link {formatPkt(link.data.expiresAt)} tak chalega</span>}
-            <IconBtn label="Dobara load" onClick={() => setReload((n) => n + 1)}>
+            {link.data && <span className="mr-2 hidden text-[11px] text-slate-500 md:inline">Link works until {formatPkt(link.data.expiresAt)}</span>}
+            <IconBtn label="Reload" onClick={() => setReload((n) => n + 1)}>
               <RefreshCw className="h-4 w-4" />
             </IconBtn>
             <IconBtn
@@ -63,28 +63,28 @@ export function PreviewDrawer({ open, onClose, entryId, version, flush }: { open
               disabled={!url}
               onClick={() => {
                 if (!url) return;
-                void navigator.clipboard.writeText(url).then(() => toast.success('Preview link copy ho gaya (bina login ke khulta hai)'));
+                void navigator.clipboard.writeText(url).then(() => toast.success('Preview link copied (it opens without signing in)'));
               }}
             >
               <Copy className="h-4 w-4" />
             </IconBtn>
-            <IconBtn label="Naye tab me" disabled={!url} onClick={() => url && window.open(url, '_blank', 'noopener')}>
+            <IconBtn label="Open in a new tab" disabled={!url} onClick={() => url && window.open(url, '_blank', 'noopener')}>
               <ExternalLink className="h-4 w-4" />
             </IconBtn>
-            <IconBtn label="Band karein" onClick={onClose}>
+            <IconBtn label="Close" onClick={onClose}>
               <X className="h-4 w-4" />
             </IconBtn>
           </div>
         </div>
         <div className="flex flex-1 items-start justify-center overflow-auto p-4">
-          {link.isLoading && <p className="mt-20 text-sm text-neutral-500">Preview link ban raha hai…</p>}
-          {link.isError && <p className="mt-20 max-w-md text-center text-sm text-rose-600">{apiErrorMessage(link.error, 'Preview link nahi bana')}</p>}
+          {link.isLoading && <p className="mt-20 text-sm text-slate-500">Creating the preview link…</p>}
+          {link.isError && <p className="mt-20 max-w-md text-center text-sm text-rose-600">{apiErrorMessage(link.error, 'Could not create the preview link')}</p>}
           {url && (
             <iframe
               key={reload}
               src={url}
               title="Site preview"
-              className={cn('h-full rounded-xl border border-neutral-200 bg-white shadow-sm transition-all', device === 'mobile' ? 'w-[390px]' : 'w-full')}
+              className={cn('h-full rounded-xl border border-slate-200 bg-white shadow-sm transition-all', device === 'mobile' ? 'w-[390px]' : 'w-full')}
             />
           )}
         </div>

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { resolveAdminAccess } from '../../../admin/access/admin-access';
 
 @Injectable()
 export class MarketingAdminGuard implements CanActivate {
@@ -19,6 +20,17 @@ export class MarketingAdminGuard implements CanActivate {
 
     // SUPER_ADMIN gets everything
     if (user.role === UserRole.SUPER_ADMIN) {
+      request.marketingRole = 'SUPER';
+      request.marketingPermissions = [];
+      return true;
+    }
+
+    // Admin panel staff: their admin role decides (marketing.view to read, marketing.manage to change).
+    if (user.role === UserRole.ADMIN_STAFF) {
+      const access = await resolveAdminAccess(this.prisma, user.id, user.role);
+      const needed = ['GET', 'HEAD', 'OPTIONS'].includes(request.method) ? 'marketing.view' : 'marketing.manage';
+      if (!access?.permissions.includes(needed)) throw new ForbiddenException(`Your admin role does not include "${needed}".`);
+      request.adminPermission = needed;
       request.marketingRole = 'SUPER';
       request.marketingPermissions = [];
       return true;

@@ -86,7 +86,7 @@ export function DataForm({ type, data, onChange, required }: { type: CmsEntryTyp
       return (
         <Grid>
           <SelectField label="Template" value={s('template') ?? 'default'} onChange={(v) => set({ template: v })} options={opts(PAGE_TEMPLATES, (t) => PAGE_TEMPLATE_LABEL[t] ?? t)} error={err('template')} />
-          <SelectField<CmsEntryType> label="Hub kis ka" value={s('hubOf') as CmsEntryType | undefined} onChange={(v) => set({ hubOf: v })} emptyLabel="—" options={CMS_ENTRY_TYPES.map((t) => ({ value: t, label: ENTRY_TYPE_META[t].labelPlural }))} />
+          <SelectField<CmsEntryType> label="Hub of" value={s('hubOf') as CmsEntryType | undefined} onChange={(v) => set({ hubOf: v })} emptyLabel="—" options={CMS_ENTRY_TYPES.map((t) => ({ value: t, label: ENTRY_TYPE_META[t].labelPlural }))} />
         </Grid>
       );
     case 'PRODUCT':
@@ -97,11 +97,11 @@ export function DataForm({ type, data, onChange, required }: { type: CmsEntryTyp
             {status()}
           </Grid>
           <Grid>
-            {text('shortName', 'Chhota naam', { max: 40, placeholder: 'Offline POS' })}
-            {text('benefit', 'Fayda (title me)', { max: 60 })}
+            {text('shortName', 'Short name', { max: 40, placeholder: 'Offline POS' })}
+            {text('benefit', 'Benefit (in the title)', { max: 60 })}
           </Grid>
           <Grid>
-            <SelectField label="Plan feature" value={s('planFeature')} onChange={(v) => set({ planFeature: v })} emptyLabel="—" options={opts(PLAN_FEATURE_KEYS)} hint="Kis plan flag se juda hai" />
+            <SelectField label="Plan feature" value={s('planFeature')} onChange={(v) => set({ planFeature: v })} emptyLabel="—" options={opts(PLAN_FEATURE_KEYS)} hint="Which plan flag it is tied to" />
             {text('appRoute', 'App route', { mono: true, placeholder: '/pos' })}
           </Grid>
         </div>
@@ -116,8 +116,8 @@ export function DataForm({ type, data, onChange, required }: { type: CmsEntryTyp
             {status()}
           </Grid>
           <Grid>
-            {text('shortName', 'Chhota naam', { max: 40 })}
-            {text('outcome', 'Natija (title me)', { max: 60 })}
+            {text('shortName', 'Short name', { max: 40 })}
+            {text('outcome', 'Outcome (in the title)', { max: 60 })}
           </Grid>
           {text('segment', 'Segment', { max: 60, placeholder: 'Multi-branch retail' })}
         </div>
@@ -130,10 +130,10 @@ export function DataForm({ type, data, onChange, required }: { type: CmsEntryTyp
             {status()}
           </Grid>
           <Grid>
-            {text('shortName', 'Chhota naam', { max: 40 })}
+            {text('shortName', 'Short name', { max: 40 })}
             <SelectField label="Kahan" required value={s('areaServed') as 'PK' | 'worldwide' | undefined} onChange={(v) => set({ areaServed: v })} options={[{ value: 'PK', label: 'Pakistan' }, { value: 'worldwide', label: 'Worldwide' }]} error={err('areaServed')} hint={s('areaServed') === 'worldwide' ? 'Title "for Businesses Worldwide" pattern lega' : undefined} />
           </Grid>
-          {text('pricingModel', 'Pricing model', { max: 200, placeholder: 'Fixed quote, PKR ya USD', hint: 'Rate khud na likhein jab tak tay na ho' })}
+          {text('pricingModel', 'Pricing model', { max: 200, placeholder: 'Fixed quote, PKR or USD', hint: 'Do not write a rate unless it is agreed' })}
           {text('timeline', 'Timeline', { max: 200 })}
         </div>
       );
@@ -146,7 +146,7 @@ export function DataForm({ type, data, onChange, required }: { type: CmsEntryTyp
           </Grid>
           <Grid>
             {icon()}
-            {text('verifiedAt', 'Verify kiya (date)', { type: 'date', hint: 'Live ke liye zaroori' })}
+            {text('verifiedAt', 'Verified on (date)', { type: 'date', hint: 'Required to go live' })}
           </Grid>
           {text('vendorUrl', 'Vendor URL', { type: 'url', mono: true })}
           <MediaField label="Logo" kinds={['LOGO', 'IMAGE']} value={s('logoMediaId')} onChange={(v) => set({ logoMediaId: v })} />
@@ -168,8 +168,8 @@ export function DataForm({ type, data, onChange, required }: { type: CmsEntryTyp
     case 'CITY_INDUSTRY':
       return (
         <div className="space-y-4">
-          <EntryPicker label="Industry" required types={['INDUSTRY']} value={s('industryId')} onChange={(v) => set({ industryId: v ?? undefined })} error={err('industryId')} hint="Parent (Details me) CITY hona chahiye" />
-          <TextArea label="Saboot (evidence)" required value={s('evidence')} onChange={(v) => set({ evidence: v || undefined })} chars={{ max: 1000 }} rows={3} hint="Case study ya '5+ asal customers' ka note" error={err('evidence')} />
+          <EntryPicker label="Industry" required types={['INDUSTRY']} value={s('industryId')} onChange={(v) => set({ industryId: v ?? undefined })} error={err('industryId')} hint="The parent (in Details) must be a CITY" />
+          <TextArea label="Evidence" required value={s('evidence')} onChange={(v) => set({ evidence: v || undefined })} chars={{ max: 1000 }} rows={3} hint="A case study, or a note like '5+ real customers'" error={err('evidence')} />
         </div>
       );
     case 'BEST_OF':
@@ -183,8 +183,8 @@ export function DataForm({ type, data, onChange, required }: { type: CmsEntryTyp
             {text('competitorUrl', 'Competitor URL', { type: 'url', mono: true })}
           </Grid>
           <MarkdownEditor label="Faisla (verdict)" required inline rows={3} value={s('verdict')} onChange={(v) => set({ verdict: v || undefined })} error={err('verdict')} />
-          {text('competitorPrice', 'Competitor price', { max: 120, hint: 'Sirf source ke saath' })}
-          <OptionalSource label="Price ka source" value={data.priceSource as Partial<Source> | undefined} onChange={(v) => set({ priceSource: v })} err={(p) => err(`priceSource.${p}`)} />
+          {text('competitorPrice', 'Competitor price', { max: 120, hint: 'Only with a source' })}
+          <OptionalSource label="Price source" value={data.priceSource as Partial<Source> | undefined} onChange={(v) => set({ priceSource: v })} err={(p) => err(`priceSource.${p}`)} />
         </div>
       );
     case 'BLOG_POST':
@@ -192,7 +192,7 @@ export function DataForm({ type, data, onChange, required }: { type: CmsEntryTyp
       return (
         <div className="space-y-3">
           <Toggle checked={data.toc !== false} onChange={(toc) => set({ toc })} label="Table of contents" />
-          {typeof data.readingMinutes === 'number' && <p className="text-xs text-neutral-500">Parhne ka waqt: {data.readingMinutes} min (API hisaab lagati hai)</p>}
+          {typeof data.readingMinutes === 'number' && <p className="text-xs text-slate-500">Reading time: {data.readingMinutes} min (calculated by the server)</p>}
         </div>
       );
     case 'BLOG_CATEGORY':
@@ -204,14 +204,14 @@ export function DataForm({ type, data, onChange, required }: { type: CmsEntryTyp
           <TextArea label="Definition (1 jumla)" required value={s('definition')} onChange={(v) => set({ definition: v || undefined })} chars={{ max: 400 }} rows={2} error={err('definition')} />
           <TextArea label="Definition (Roman Urdu)" required value={s('definitionRomanUrdu')} onChange={(v) => set({ definitionRomanUrdu: v || undefined })} chars={{ max: 400 }} rows={2} error={err('definitionRomanUrdu')} />
           <MarkdownEditor label="Misaal" rows={4} value={s('example')} onChange={(v) => set({ example: v || undefined })} />
-          <StringListField label="Doosre naam" value={data.alsoKnownAs as string[] | undefined} onChange={(v) => set({ alsoKnownAs: v })} max={12} />
+          <StringListField label="Other names" value={data.alsoKnownAs as string[] | undefined} onChange={(v) => set({ alsoKnownAs: v })} max={12} />
         </div>
       );
     case 'TOOL':
       return (
         <Grid>
           <SelectField label="Tool" required value={s('toolKey')} onChange={(v) => set({ toolKey: v })} options={opts(TOOL_KEYS)} error={err('toolKey')} />
-          {text('kind', 'Kism (title me)', { max: 40, placeholder: 'GST' })}
+          {text('kind', 'Kind (in the title)', { max: 40, placeholder: 'GST' })}
         </Grid>
       );
     case 'TEMPLATE':
@@ -270,10 +270,10 @@ function IndustryData({ data, set, err, req, icon, text }: { data: Data; set: (p
     <div className="space-y-4">
       <Grid>
         {icon()}
-        <Field label="Rang" required={req('color')} error={err('color')} hint={ratio !== null ? `Safed text ke saath contrast ${ratio.toFixed(2)}:1 (kam az kam ${MIN_CONTRAST_WITH_WHITE})` : undefined}>
+        <Field label="Colour" required={req('color')} error={err('color')} hint={ratio !== null ? `Contrast with white text ${ratio.toFixed(2)}:1 (at least ${MIN_CONTRAST_WITH_WHITE})` : undefined}>
           <div className="flex items-center gap-2">
-            <input type="color" value={valid ? color : '#047857'} onChange={(e) => set({ color: e.target.value })} className="h-9 w-12 cursor-pointer rounded-lg border border-neutral-300 bg-white p-1" />
-            <input value={color} onChange={(e) => set({ color: e.target.value || undefined })} placeholder="#047857" className="h-9 w-28 rounded-lg border border-neutral-300 px-2 font-mono text-xs" />
+            <input type="color" value={valid ? color : '#047857'} onChange={(e) => set({ color: e.target.value })} className="h-9 w-12 cursor-pointer rounded-lg border border-slate-300 bg-white p-1" />
+            <input value={color} onChange={(e) => set({ color: e.target.value || undefined })} placeholder="#047857" className="h-9 w-28 rounded-lg border border-slate-300 px-2 font-mono text-xs" />
             {valid && (
               <span className={cn('rounded-md px-2 py-1 text-xs font-semibold text-white', ratio !== null && ratio < MIN_CONTRAST_WITH_WHITE && 'ring-2 ring-rose-400')} style={{ backgroundColor: color }}>
                 Aa
@@ -286,13 +286,13 @@ function IndustryData({ data, set, err, req, icon, text }: { data: Data; set: (p
         {groups.length ? (
           <SelectField label="Group" required value={data.group as string | undefined} onChange={(v) => set({ group: v })} options={groups.map((g) => ({ value: g.key, label: g.label }))} error={err('group')} />
         ) : (
-          text('group', 'Group key', { mono: true, hint: 'Settings → Industry groups ka key' })
+          text('group', 'Group key', { mono: true, hint: 'A key from Settings → Industry groups' })
         )}
-        {text('shortName', 'Chhota naam', { max: 40, placeholder: 'Pharmacy' })}
+        {text('shortName', 'Short name', { max: 40, placeholder: 'Pharmacy' })}
       </Grid>
       <Grid>
-        {text('shopNoun', 'Dukanon ka naam (plural)', { max: 40, placeholder: 'pharmacies' })}
-        {text('romanUrduName', 'Roman Urdu naam', { max: 60, placeholder: 'Dawakhana' })}
+        {text('shopNoun', 'Name of the shops (plural)', { max: 40, placeholder: 'pharmacies' })}
+        {text('romanUrduName', 'Roman Urdu name', { max: 60, placeholder: 'Dawakhana' })}
       </Grid>
       <Grid>
         {text('appIndustryKey', 'App industry key', { mono: true })}
@@ -323,20 +323,20 @@ function CityData({ data, set, err, req, text }: { data: Data; set: (p: Data) =>
         <NumberField label="Latitude" value={geo?.lat} step={0.0001} onChange={(lat) => set({ geo: lat === undefined && geo?.lng === undefined ? undefined : { ...geo, lat } })} error={err('geo.lat')} />
         <NumberField label="Longitude" value={geo?.lng} step={0.0001} onChange={(lng) => set({ geo: lng === undefined && geo?.lat === undefined ? undefined : { ...geo, lng } })} error={err('geo.lng')} />
       </Grid>
-      <Field label="Services tax" hint="Sirf official source ke saath">
+      <Field label="Services tax" hint="Only with an official source">
         {tax ? (
-          <div className="space-y-3 rounded-xl border border-neutral-200 p-3">
+          <div className="space-y-3 rounded-xl border border-slate-200 p-3">
             <Grid>
               <TextField label="Rate" value={tax.rate} onChange={(rate) => set({ servicesTax: { ...tax, rate } })} chars={{ max: 40 }} error={err('servicesTax.rate')} />
-              <TextField label="Kis par" value={tax.appliesTo} onChange={(appliesTo) => set({ servicesTax: { ...tax, appliesTo } })} chars={{ max: 300 }} error={err('servicesTax.appliesTo')} />
+              <TextField label="Applies to" value={tax.appliesTo} onChange={(appliesTo) => set({ servicesTax: { ...tax, appliesTo } })} chars={{ max: 300 }} error={err('servicesTax.appliesTo')} />
             </Grid>
             <SourceFields value={tax.source ?? emptySource()} onChange={(source) => set({ servicesTax: { ...tax, source } })} errors={(p) => err(`servicesTax.source.${p}`)} />
-            <button type="button" onClick={() => set({ servicesTax: undefined })} className="text-xs text-neutral-500 hover:text-rose-600">
-              Hatayein
+            <button type="button" onClick={() => set({ servicesTax: undefined })} className="text-xs text-slate-500 hover:text-rose-600">
+              Remove
             </button>
           </div>
         ) : (
-          <button type="button" onClick={() => set({ servicesTax: { rate: '', appliesTo: '', source: emptySource() } })} className="w-full rounded-lg border border-dashed border-neutral-300 py-2 text-xs text-neutral-600 hover:border-emerald-400">
+          <button type="button" onClick={() => set({ servicesTax: { rate: '', appliesTo: '', source: emptySource() } })} className="w-full rounded-lg border border-dashed border-slate-300 py-2 text-xs text-slate-600 hover:border-brand-400">
             + Services tax shamil karein
           </button>
         )}
@@ -361,7 +361,7 @@ function CityData({ data, set, err, req, text }: { data: Data; set: (p: Data) =>
         )}
       />
       <ListEditor<Area>
-        label="Areas (H3, URL nahi)"
+        label="Areas (H3 headings, not URLs)"
         items={data.areas as Area[] | undefined}
         onChange={(areas) => set({ areas })}
         max={40}
@@ -376,12 +376,12 @@ function CityData({ data, set, err, req, text }: { data: Data; set: (p: Data) =>
         )}
       />
       <Field label="Support">
-        <div className="space-y-3 rounded-xl border border-neutral-200 p-3">
-          <Toggle checked={support.onsite} onChange={(onsite) => set({ support: { ...support, onsite, note: support.note ?? '' } })} label="Onsite support milta hai" />
-          <TextArea value={support.note} onChange={(note) => set({ support: { onsite: support.onsite ?? false, note } })} chars={{ max: 600 }} rows={2} placeholder="Setup aur training kaise hoti hai" />
+        <div className="space-y-3 rounded-xl border border-slate-200 p-3">
+          <Toggle checked={support.onsite} onChange={(onsite) => set({ support: { ...support, onsite, note: support.note ?? '' } })} label="Onsite support is available" />
+          <TextArea value={support.note} onChange={(note) => set({ support: { onsite: support.onsite ?? false, note } })} chars={{ max: 600 }} rows={2} placeholder="How setup and training work" />
         </div>
       </Field>
-      <EntryMultiPicker label="Qareebi shehar" hint="3 behtar hain" types={['CITY']} value={data.nearbyCityIds as string[] | undefined} onChange={(nearbyCityIds) => set({ nearbyCityIds })} max={8} />
+      <EntryMultiPicker label="Nearby cities" hint="3 is best" types={['CITY']} value={data.nearbyCityIds as string[] | undefined} onChange={(nearbyCityIds) => set({ nearbyCityIds })} max={8} />
       <MediaField label="Static map" kinds={['IMAGE', 'ILLUSTRATION']} value={data.staticMapMediaId as string | undefined} onChange={(v) => set({ staticMapMediaId: v })} />
     </div>
   );
@@ -409,12 +409,12 @@ function BestOfData({ data, set, err, text }: { data: Data; set: (p: Data) => vo
               <TextField label="Naam" required value={it.name} onChange={(name) => update({ ...it, name })} chars={{ max: 80 }} error={err(`items[${i}].name`)} />
               <TextField label="URL" type="url" mono value={it.url} onChange={(url) => update({ ...it, url: url || undefined })} error={err(`items[${i}].url`)} />
             </Grid>
-            <Toggle checked={it.isNafaa} onChange={(isNafaa) => update({ ...it, isNafaa })} label="Ye Nafaa hai" />
-            <TextField label="Behtar kis ke liye" required value={it.bestFor} onChange={(bestFor) => update({ ...it, bestFor })} chars={{ max: 200 }} error={err(`items[${i}].bestFor`)} />
+            <Toggle checked={it.isNafaa} onChange={(isNafaa) => update({ ...it, isNafaa })} label="This is Nafaa" />
+            <TextField label="Best for" required value={it.bestFor} onChange={(bestFor) => update({ ...it, bestFor })} chars={{ max: 200 }} error={err(`items[${i}].bestFor`)} />
             <StringListField label="Khoobiyan" value={it.strengths} onChange={(strengths) => update({ ...it, strengths })} max={12} />
             <StringListField label="Kamzoriyan" value={it.weaknesses} onChange={(weaknesses) => update({ ...it, weaknesses })} max={12} />
-            <TextField label="Price" value={it.price} onChange={(price) => update({ ...it, price: price || undefined })} chars={{ max: 120 }} hint={it.isNafaa ? 'Nafaa ki price token se: {{price:…}}' : 'Competitor price ke saath source zaroori'} />
-            {!it.isNafaa && <OptionalSource label="Price ka source" value={it.priceSource} onChange={(priceSource) => update({ ...it, priceSource })} err={(p) => err(`items[${i}].priceSource.${p}`)} />}
+            <TextField label="Price" value={it.price} onChange={(price) => update({ ...it, price: price || undefined })} chars={{ max: 120 }} hint={it.isNafaa ? 'Nafaa prices use the token: {{price:…}}' : 'A competitor price needs a source'} />
+            {!it.isNafaa && <OptionalSource label="Price source" value={it.priceSource} onChange={(priceSource) => update({ ...it, priceSource })} err={(p) => err(`items[${i}].priceSource.${p}`)} />}
           </>
         )}
       />
@@ -436,12 +436,12 @@ function CaseStudyData({ data, set, err }: { data: Data; set: (p: Data) => void;
         value={data.customerId as string | undefined}
         onChange={(v) => set({ customerId: v })}
         emptyLabel="Chunein"
-        options={list.map((c) => ({ value: c.id, label: `${c.name}${c.consentScope.includes('CASE_STUDY') ? '' : ' (CASE_STUDY consent nahi)'}` }))}
-        error={err('customerId') ?? (picked && !picked.consentScope.includes('CASE_STUDY') ? 'Is customer ki case study consent nahi; publish nahi hoga' : undefined)}
+        options={list.map((c) => ({ value: c.id, label: `${c.name}${c.consentScope.includes('CASE_STUDY') ? '' : ' (no CASE_STUDY consent)'}` }))}
+        error={err('customerId') ?? (picked && !picked.consentScope.includes('CASE_STUDY') ? 'This customer has not given case study consent, so it cannot be published' : undefined)}
       />
       <ListEditor<Result>
         label="Natije"
-        hint="Har number ke saath batayein kahan se aaya"
+        hint="For every number, say where it came from"
         items={data.results as Result[] | undefined}
         onChange={(results) => set({ results })}
         max={12}
@@ -465,14 +465,14 @@ function CaseStudyData({ data, set, err }: { data: Data; set: (p: Data) => void;
 function OptionalSource({ label, value, onChange, err }: { label: string; value: Partial<Source> | undefined; onChange: (v: Partial<Source> | undefined) => void; err: Err }) {
   if (!value) {
     return (
-      <button type="button" onClick={() => onChange(emptySource())} className="w-full rounded-lg border border-dashed border-neutral-300 py-2 text-xs text-neutral-600 hover:border-emerald-400">
+      <button type="button" onClick={() => onChange(emptySource())} className="w-full rounded-lg border border-dashed border-slate-300 py-2 text-xs text-slate-600 hover:border-brand-400">
         + {label}
       </button>
     );
   }
   return (
-    <Field label={label} aside={<button type="button" onClick={() => onChange(undefined)} className="text-xs text-neutral-500 hover:text-rose-600">Hatayein</button>}>
-      <div className="rounded-xl border border-neutral-200 p-3">
+    <Field label={label} aside={<button type="button" onClick={() => onChange(undefined)} className="text-xs text-slate-500 hover:text-rose-600">Remove</button>}>
+      <div className="rounded-xl border border-slate-200 p-3">
         <SourceFields value={value} onChange={onChange} errors={err} />
       </div>
     </Field>

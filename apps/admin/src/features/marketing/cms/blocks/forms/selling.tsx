@@ -30,9 +30,9 @@ export function FeaturesGridForm({ block, set, err }: BlockFormProps<'featuresGr
       <TextField label="Heading" required value={block.heading} onChange={(heading) => set({ heading })} chars={{ max: 120 }} error={err('heading')} />
       <MarkdownEditor label="Intro" inline rows={2} value={block.intro} onChange={(intro) => set({ intro: intro || undefined })} />
       <Field label="Columns" error={err('columns')}>
-        <div className="inline-flex gap-1 rounded-lg bg-neutral-100 p-1">
+        <div className="inline-flex gap-1 rounded-lg bg-slate-100 p-1">
           {([2, 3, 4] as const).map((c) => (
-            <button key={c} type="button" onClick={() => set({ columns: c })} className={cn('rounded-md px-3 py-1 text-xs font-medium', block.columns === c ? 'bg-white text-emerald-700 shadow-sm' : 'text-neutral-600')}>
+            <button key={c} type="button" onClick={() => set({ columns: c })} className={cn('rounded-md px-3 py-1 text-xs font-medium', block.columns === c ? 'bg-white text-brand-700 shadow-sm' : 'text-slate-600')}>
               {c}
             </button>
           ))}
@@ -46,7 +46,7 @@ export function FeaturesGridForm({ block, set, err }: BlockFormProps<'featuresGr
         max={BLOCK_LIMITS.featureItems.max}
         create={() => ({ icon: 'check', title: '', body: '' })}
         itemTitle={(f, i) => f.title || `Feature ${i + 1}`}
-        addLabel="Feature shamil karein"
+        addLabel="Add a feature"
         error={err('items')}
         render={(f, update, i) => (
           <>
@@ -81,7 +81,7 @@ export function ComparisonTableForm({ block, set, err, entryType }: BlockFormPro
     <div className="space-y-5">
       <Grid>
         <TextField label="Heading" required value={block.heading} onChange={(heading) => set({ heading })} chars={{ max: 120 }} error={err('heading')} />
-        <TextField label="Caption" required value={block.caption} onChange={(caption) => set({ caption })} chars={{ max: 300 }} hint="Table ka <caption>" error={err('caption')} />
+        <TextField label="Caption" required value={block.caption} onChange={(caption) => set({ caption })} chars={{ max: 300 }} hint="The table <caption>" error={err('caption')} />
       </Grid>
       <ListEditor<Column>
         label="Columns"
@@ -91,7 +91,7 @@ export function ComparisonTableForm({ block, set, err, entryType }: BlockFormPro
         max={BLOCK_LIMITS.comparisonColumns.max}
         create={() => ({ key: `col-${columns.length + 1}`, label: '' })}
         itemTitle={(c, i) => c.label || `Column ${i + 1}`}
-        addLabel="Column shamil karein"
+        addLabel="Add a column"
         error={err('columns')}
         compact
         render={(c, update, i) => (
@@ -106,20 +106,20 @@ export function ComparisonTableForm({ block, set, err, entryType }: BlockFormPro
       />
 
       <Field label={`Rows (${rows.length})`} error={err('rows')}>
-        <div className="overflow-x-auto rounded-xl border border-neutral-200">
+        <div className="overflow-x-auto rounded-xl border border-slate-200">
           <table className="min-w-full text-xs">
-            <thead className="bg-neutral-50">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-2 py-2 text-left font-semibold text-neutral-600">Row</th>
+                <th className="px-2 py-2 text-left font-semibold text-slate-600">Row</th>
                 {columns.map((c) => (
-                  <th key={c.key} className={cn('px-2 py-2 text-left font-semibold', c.highlight ? 'text-emerald-700' : 'text-neutral-600')}>
+                  <th key={c.key} className={cn('px-2 py-2 text-left font-semibold', c.highlight ? 'text-brand-700' : 'text-slate-600')}>
                     {c.label || c.key}
                   </th>
                 ))}
                 <th />
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-100">
+            <tbody className="divide-y divide-slate-100">
               {rows.map((r, ri) => (
                 <tr key={ri} className="align-top">
                   <td className="min-w-[160px] p-1.5">
@@ -139,18 +139,18 @@ export function ComparisonTableForm({ block, set, err, entryType }: BlockFormPro
                       <td key={key} className="min-w-[150px] space-y-1 p-1.5">
                         <div className="flex gap-1">
                           {COMPARISON_CELL_MARKS.map((m) => (
-                            <button key={m} type="button" title={MARK_LABEL[m]} onClick={() => setCell(cell.value === m ? undefined : { ...cell, value: m })} className={cn('h-6 flex-1 rounded border text-[11px]', cell.value === m ? 'border-emerald-400 bg-emerald-50 text-emerald-800' : 'border-neutral-200 text-neutral-500 hover:border-neutral-300')}>
+                            <button key={m} type="button" title={MARK_LABEL[m]} onClick={() => setCell(cell.value === m ? undefined : { ...cell, value: m })} className={cn('h-6 flex-1 rounded border text-[11px]', cell.value === m ? 'border-brand-400 bg-brand-50 text-brand-800' : 'border-slate-200 text-slate-500 hover:border-slate-300')}>
                               {m === 'yes' ? '✓' : m === 'no' ? '✕' : '◐'}
                             </button>
                           ))}
                         </div>
-                        <input value={isMark ? '' : cell.value ?? ''} onChange={(e) => setCell({ ...cell, value: e.target.value })} placeholder={isMark ? MARK_LABEL[cell.value ?? ''] : 'ya text'} className={cn(inputClass, 'py-1 text-xs')} />
+                        <input value={isMark ? '' : cell.value ?? ''} onChange={(e) => setCell({ ...cell, value: e.target.value })} placeholder={isMark ? MARK_LABEL[cell.value ?? ''] : 'or text'} className={cn(inputClass, 'py-1 text-xs')} />
                         <input value={cell.note ?? ''} onChange={(e) => cell.value && setCell({ ...cell, note: e.target.value || undefined })} placeholder="Note" disabled={!cell.value} className={cn(inputClass, 'py-1 text-[11px]')} />
                       </td>
                     );
                   })}
                   <td className="p-1.5">
-                    <button type="button" onClick={() => setRows(rows.filter((_, j) => j !== ri))} className="text-neutral-400 hover:text-rose-600" aria-label="Row hatayein">
+                    <button type="button" onClick={() => setRows(rows.filter((_, j) => j !== ri))} className="text-slate-400 hover:text-rose-600" aria-label="Remove row">
                       ✕
                     </button>
                   </td>
@@ -160,13 +160,13 @@ export function ComparisonTableForm({ block, set, err, entryType }: BlockFormPro
           </table>
         </div>
         {rows.length < BLOCK_LIMITS.comparisonRowsMax && (
-          <button type="button" onClick={() => setRows([...rows, { label: '', cells: {} }])} className="mt-2 w-full rounded-xl border border-dashed border-neutral-300 py-2 text-xs font-medium text-neutral-600 hover:border-emerald-400 hover:text-emerald-700">
+          <button type="button" onClick={() => setRows([...rows, { label: '', cells: {} }])} className="mt-2 w-full rounded-xl border border-dashed border-slate-300 py-2 text-xs font-medium text-slate-600 hover:border-brand-400 hover:text-brand-700">
             + Row shamil karein
           </button>
         )}
       </Field>
 
-      <Section title="Sources aur check date" description={competitorType ? 'Competitor column ho to check date aur kam az kam 1 source zaroori hai' : undefined}>
+      <Section title="Sources and check date" description={competitorType ? 'With a competitor column, a check date and at least 1 source are required' : undefined}>
         <TextField label="Check kiya (date)" type="date" value={block.checkedAt?.slice(0, 10)} onChange={(checkedAt) => set({ checkedAt: checkedAt || undefined })} error={err('checkedAt')} />
         <ListEditor<Partial<Source>>
           items={block.sources as Partial<Source>[] | undefined}
@@ -174,7 +174,7 @@ export function ComparisonTableForm({ block, set, err, entryType }: BlockFormPro
           max={BLOCK_LIMITS.sourcesMax}
           create={emptySource}
           itemTitle={(s, i) => s.title || `Source ${i + 1}`}
-          addLabel="Source shamil karein"
+          addLabel="Add a source"
           compact
           render={(s, update, i) => <SourceFields value={s} onChange={update} errors={(p) => err(`sources[${i}].${p}`)} />}
         />
@@ -195,7 +195,7 @@ export function FeatureStatusField({ value, onChange, label = 'Status' }: { valu
         { value: 'beta', label: `Beta (badge: ${FEATURE_STATUS_BADGES.beta.en})` },
         { value: 'coming', label: `Coming (badge: ${FEATURE_STATUS_BADGES.coming.en} / ${FEATURE_STATUS_BADGES.coming.ur})` },
       ]}
-      hint={value && value !== 'live' ? 'Site par badge ke saath dikhega, live nahi kaha jayega' : undefined}
+      hint={value && value !== 'live' ? 'Shown on the site with a badge, never described as live' : undefined}
     />
   );
 }
@@ -208,29 +208,29 @@ export function PricingTableForm({ block, set, err }: BlockFormProps<'pricingTab
   const picked = block.planSlugs ?? [];
   return (
     <div className="space-y-5">
-      <div className="flex items-start gap-2 rounded-xl bg-emerald-50/70 p-3 text-xs text-emerald-900 ring-1 ring-emerald-200">
+      <div className="flex items-start gap-2 rounded-xl bg-brand-50/70 p-3 text-xs text-brand-900 ring-1 ring-brand-200">
         <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        <p>Prices yahan nahi likhe jate. Site hamesha Admin → Plans se parhti hai, aur har plan me kya shamil hai woh bhi wahin se aata hai.</p>
+        <p>Prices are never typed here. The site always reads them from Admin → Plans, and what each plan includes comes from there too.</p>
       </div>
       <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} />
-      <Field label="Plans" hint="Kuch na chunein to sab active public plans dikhenge" error={err('planSlugs')}>
-        {isError && <p className="text-xs text-rose-600">Plans load nahi huay</p>}
+      <Field label="Plans" hint="If you choose none, all active public plans are shown" error={err('planSlugs')}>
+        {isError && <p className="text-xs text-rose-600">Could not load the plans</p>}
         <div className="space-y-1.5">
           {publicPlans.map((p) => {
             const on = picked.includes(p.slug);
             return (
-              <label key={p.id} className={cn('flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 transition', on ? 'border-emerald-300 bg-emerald-50/60' : 'border-neutral-200 hover:border-neutral-300')}>
-                <input type="checkbox" checked={on} onChange={() => set({ planSlugs: on ? picked.filter((s) => s !== p.slug) : [...picked, p.slug] })} className="accent-emerald-600" />
-                <span className="flex-1 text-sm font-medium text-neutral-800">{p.name}</span>
-                <span className="font-mono text-[11px] text-neutral-500">{p.slug}</span>
-                <span className="text-xs tabular-nums text-neutral-600">{p.priceMonthly === 0 && p.trialDays > 0 ? `${p.trialDays} din Free Trial` : `${formatPKRFull(p.priceMonthly)}/mo`}</span>
+              <label key={p.id} className={cn('flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 transition', on ? 'border-brand-300 bg-brand-50/60' : 'border-slate-200 hover:border-slate-300')}>
+                <input type="checkbox" checked={on} onChange={() => set({ planSlugs: on ? picked.filter((s) => s !== p.slug) : [...picked, p.slug] })} className="accent-brand-600" />
+                <span className="flex-1 text-sm font-medium text-slate-800">{p.name}</span>
+                <span className="font-mono text-[11px] text-slate-500">{p.slug}</span>
+                <span className="text-xs tabular-nums text-slate-600">{p.priceMonthly === 0 && p.trialDays > 0 ? `${p.trialDays} day free trial` : `${formatPKRFull(p.priceMonthly)}/mo`}</span>
               </label>
             );
           })}
         </div>
       </Field>
       <Grid>
-        <SelectField label="Highlight plan" value={block.highlightPlan} onChange={(highlightPlan) => set({ highlightPlan })} emptyLabel="Koi nahi" options={publicPlans.map((p) => ({ value: p.slug, label: p.name }))} error={err('highlightPlan')} />
+        <SelectField label="Highlight plan" value={block.highlightPlan} onChange={(highlightPlan) => set({ highlightPlan })} emptyLabel="None" options={publicPlans.map((p) => ({ value: p.slug, label: p.name }))} error={err('highlightPlan')} />
         <div className="space-y-3 pt-6">
           <Toggle checked={block.showToggle} onChange={(showToggle) => set({ showToggle })} label="Monthly / yearly toggle" />
           <Toggle checked={block.compact} onChange={(compact) => set({ compact: compact || undefined })} label="Compact" />
@@ -238,7 +238,7 @@ export function PricingTableForm({ block, set, err }: BlockFormProps<'pricingTab
       </Grid>
       <ChipMultiSelect<PlanFeatureKey>
         label="Feature rows"
-        hint="Plan table ke feature flags; label Settings → Pricing se aate hain"
+        hint="The plan table feature flags; labels come from Settings → Pricing"
         value={block.featureKeys}
         onChange={(featureKeys) => set({ featureKeys: featureKeys.length ? featureKeys : undefined })}
         options={PLAN_FEATURE_KEYS.map((k) => ({ value: k, label: featureLabel(k) }))}
@@ -256,15 +256,15 @@ const METRIC_LABEL: Record<StatMetric, string> = {
   'glossary.count': 'Glossary terms',
   'posts.count': 'Blog posts',
   'plans.count': 'Public plans',
-  'plans.minPaid.monthly': 'Sab se kam paid price / month',
-  'platform.bills30d': 'Bills, pichle 30 din (platform)',
-  'platform.activeShops30d': 'Active shops, 30 din (platform)',
+  'plans.minPaid.monthly': 'Lowest paid price / month',
+  'platform.bills30d': 'Bills, last 30 days (platform)',
+  'platform.activeShops30d': 'Active shops, 30 days (platform)',
 };
 
 export function StatsForm({ block, set, err }: BlockFormProps<'stats'>) {
   return (
     <div className="space-y-5">
-      <div className="rounded-xl bg-neutral-50 p-3 text-xs text-neutral-600 ring-1 ring-neutral-200">
+      <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600 ring-1 ring-slate-200">
         Numbers API khud ginta hai. Platform metrics sirf tab dikhte hain jab Settings → Analytics me ijazat ho.
       </div>
       <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} />
@@ -276,7 +276,7 @@ export function StatsForm({ block, set, err }: BlockFormProps<'stats'>) {
         max={BLOCK_LIMITS.statsItems.max}
         create={() => ({ metric: 'industries.count', label: '' })}
         itemTitle={(s, i) => s.label || (s.metric ? METRIC_LABEL[s.metric] : `Metric ${i + 1}`)}
-        addLabel="Metric shamil karein"
+        addLabel="Add a metric"
         error={err('items')}
         compact
         render={(s, update, i) => (
@@ -286,7 +286,7 @@ export function StatsForm({ block, set, err }: BlockFormProps<'stats'>) {
               required
               value={s.metric}
               onChange={(metric) => update({ ...s, metric })}
-              options={STAT_METRICS.map((m) => ({ value: m, label: `${METRIC_LABEL[m]}${PLATFORM_STAT_METRICS.includes(m) ? ' — ijazat chahiye' : ''}` }))}
+              options={STAT_METRICS.map((m) => ({ value: m, label: `${METRIC_LABEL[m]}${PLATFORM_STAT_METRICS.includes(m) ? ' — needs permission' : ''}` }))}
               error={err(`items[${i}].metric`)}
             />
             <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">

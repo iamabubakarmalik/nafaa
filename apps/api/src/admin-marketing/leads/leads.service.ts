@@ -9,6 +9,7 @@ import {
 import { ListLeadsDto } from './dto/list-leads.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
 import { LogActivityDto } from './dto/log-activity.dto';
+import { dayRange } from '../_shared/helpers/day-range.helper';
 
 @Injectable()
 export class LeadsService {
@@ -40,6 +41,8 @@ export class LeadsService {
       if (dto.minScore !== undefined) (where.score as any).gte = dto.minScore;
       if (dto.maxScore !== undefined) (where.score as any).lte = dto.maxScore;
     }
+    const range = dayRange(dto.from, dto.to);
+    if (range) where.createdAt = range;
     if (dto.search) {
       where.OR = [
         { fullName: { contains: dto.search, mode: 'insensitive' } },

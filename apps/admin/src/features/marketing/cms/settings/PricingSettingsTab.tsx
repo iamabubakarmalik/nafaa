@@ -45,14 +45,14 @@ export function PricingSettingsTab({ value }: { value: PricingSettings | null })
       title="Pricing display"
       description={
         <>
-          Qeematein, trial aur plan me kya shamil hai, sab <Link to="/plans" className="text-emerald-700 hover:underline">Admin → Plans</Link> se aata hai. Yahan sirf dikhane ka text badlein.
+          Prices, trial and what each plan includes all come from <Link to="/plans" className="text-brand-700 hover:underline">Admin → Plans</Link>. Here you only change the display text.
         </>
       }
       buildValue={build}
       onErrors={setErrors}
     >
       {plans.isLoading ? (
-        <p className="text-sm text-neutral-500">Plans load ho rahe hain…</p>
+        <p className="text-sm text-slate-500">Loading plans…</p>
       ) : plans.isError ? (
         <p className="text-sm text-rose-600">{errorMessage(plans.error)}</p>
       ) : (
@@ -61,30 +61,30 @@ export function PricingSettingsTab({ value }: { value: PricingSettings | null })
             const d = display[p.slug] ?? {};
             const free = p.priceMonthly === 0;
             return (
-              <div key={p.id} className="rounded-xl border border-neutral-200 p-3">
+              <div key={p.id} className="rounded-xl border border-slate-200 p-3">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-neutral-900">{p.name}</span>
+                  <span className="font-semibold text-slate-900">{p.name}</span>
                   <Chip>{p.slug}</Chip>
-                  <span className="text-sm text-neutral-700">{formatPKRFull(p.priceMonthly)}/mahina</span>
+                  <span className="text-sm text-slate-700">{formatPKRFull(p.priceMonthly)}/mahina</span>
                   {p.trialDays > 0 && <Chip tone="blue">{p.trialDays} din trial</Chip>}
                   {!p.isActive && <Chip tone="rose">Inactive</Chip>}
-                  {!p.isPublic && <Chip tone="amber">Public nahi (site par nahi dikhega)</Chip>}
-                  <Link to="/plans" className="ml-auto inline-flex items-center gap-1 text-xs text-emerald-700 hover:underline">
+                  {!p.isPublic && <Chip tone="amber">Not public (hidden on the site)</Chip>}
+                  <Link to="/plans" className="ml-auto inline-flex items-center gap-1 text-xs text-brand-700 hover:underline">
                     Plan badlein <ExternalLink className="h-3 w-3" />
                   </Link>
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <Field label="Tagline" error={errors[`plans.${p.slug}.tagline`]}>
-                    <input className={inputCls} maxLength={120} value={d.tagline ?? ''} placeholder={free && p.trialDays > 0 ? `${p.trialDays} din Free Trial` : ''} onChange={(e) => setPlan(p.slug, { tagline: e.target.value })} />
+                    <input className={inputCls} maxLength={120} value={d.tagline ?? ''} placeholder={free && p.trialDays > 0 ? `${p.trialDays} day free trial` : ''} onChange={(e) => setPlan(p.slug, { tagline: e.target.value })} />
                   </Field>
                   <Field label="Button text" error={errors[`plans.${p.slug}.ctaLabel`]}>
                     <input className={inputCls} maxLength={40} value={d.ctaLabel ?? ''} onChange={(e) => setPlan(p.slug, { ctaLabel: e.target.value })} />
                   </Field>
-                  <Field label="Button link" error={errors[`plans.${p.slug}.ctaHref`]} hint="signup, demo, whatsapp, /path ya https://…">
+                  <Field label="Button link" error={errors[`plans.${p.slug}.ctaHref`]} hint="signup, demo, whatsapp, /path or https://…">
                     <input className={inputCls} value={d.ctaHref ?? ''} onChange={(e) => setPlan(p.slug, { ctaHref: e.target.value })} />
                   </Field>
                   <div className="pt-7">
-                    <Toggle checked={!!d.highlight} onChange={(v) => setPlan(p.slug, { highlight: v })} label="Highlight (sab se mashhoor)" />
+                    <Toggle checked={!!d.highlight} onChange={(v) => setPlan(p.slug, { highlight: v })} label="Highlight (most popular)" />
                   </div>
                 </div>
               </div>
@@ -94,8 +94,8 @@ export function PricingSettingsTab({ value }: { value: PricingSettings | null })
       )}
 
       <div>
-        <h3 className="mb-1 text-sm font-semibold text-neutral-900">Feature labels</h3>
-        <p className="mb-3 text-xs text-neutral-500">Plan ke har feature ka naam jo pricing table me dikhe ga. Kaunsa plan kya deta hai, woh Plans se aata hai.</p>
+        <h3 className="mb-1 text-sm font-semibold text-slate-900">Feature labels</h3>
+        <p className="mb-3 text-xs text-slate-500">The name of each plan feature as shown in the pricing table. What each plan includes comes from Plans.</p>
         <div className="grid gap-2 sm:grid-cols-2">
           {PLAN_FEATURE_KEYS.map((k) => (
             <Field key={k} label={<code className="text-xs">{k}</code>} error={errors[`featureLabels.${k}`]}>
@@ -105,7 +105,7 @@ export function PricingSettingsTab({ value }: { value: PricingSettings | null })
         </div>
       </div>
 
-      <Field label="Neeche note" error={errors.notes} hint="Misal: GST ki tafseel. Qeemat yahan mat likhein, {{price:…}} token istemal karein.">
+      <Field label="Note below" error={errors.notes} hint="Example: GST details. Do not type prices here; use the {{price:…}} token.">
         <textarea className={inputCls} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </Field>
     </SettingSection>

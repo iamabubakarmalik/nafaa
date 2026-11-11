@@ -77,22 +77,22 @@ export function BlockForm({
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100">
           <Icon className="h-5 w-5" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold text-neutral-900">{meta.label}</h2>
-          <p className="text-xs text-neutral-500">{meta.help}</p>
+          <h2 className="text-base font-semibold text-slate-900">{meta.label}</h2>
+          <p className="text-xs text-slate-500">{meta.help}</p>
         </div>
         <span
           className={cn(
             'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset',
-            errorCount ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+            errorCount ? 'bg-amber-50 text-amber-800 ring-amber-200' : 'bg-brand-50 text-brand-700 ring-brand-200',
           )}
-          title="Contract ke hisaab se check"
+          title="Checked against the content rules"
         >
           {errorCount ? <CircleAlert className="h-3 w-3" /> : <CircleCheck className="h-3 w-3" />}
-          {errorCount ? `${errorCount} cheezein baqi` : 'Mukammal'}
+          {errorCount ? `${errorCount} issues left` : 'Complete'}
         </span>
       </div>
 
@@ -113,7 +113,7 @@ export function BlockForm({
 
       <Form block={block as DraftOf<BlockType>} set={set} err={err} entryType={entryType} title={title} summary={summary} />
 
-      <Section title="Block settings" className="border-t border-neutral-100 pt-5">
+      <Section title="Block settings" className="border-t border-slate-100 pt-5">
         <Grid>
           <TextField
             label="Anchor"
@@ -122,8 +122,8 @@ export function BlockForm({
             value={block.anchor}
             onChange={(anchor) => set({ anchor: anchor || undefined })}
             placeholder="pricing"
-            error={anchorInvalid ? 'a-z, 0-9 aur hyphen' : err('anchor')}
-            hint="Is hisse ka link: /page#anchor"
+            error={anchorInvalid ? 'a-z, 0-9 and hyphens' : err('anchor')}
+            hint="Link to this section: /page#anchor"
           />
           <Segmented
             label="Background"
@@ -136,7 +136,7 @@ export function BlockForm({
             ]}
           />
         </Grid>
-        <Toggle checked={block.hidden} onChange={(hidden) => set({ hidden: hidden || undefined })} label="Chhupa hua" hint="Draft me rehta hai, site par nahi dikhta" />
+        <Toggle checked={block.hidden} onChange={(hidden) => set({ hidden: hidden || undefined })} label="Hidden" hint="Stays in the draft and is not shown on the site" />
       </Section>
     </div>
   );

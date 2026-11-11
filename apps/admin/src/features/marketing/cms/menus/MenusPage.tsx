@@ -1,18 +1,18 @@
 /**
- * Website → Menus (ARCH 13 screen 7): a tree editor for header, footer,
- * legal and mobile. Item kinds: entry link, URL, auto list and group header.
+ * Website menus: a tree editor for header, footer, legal and mobile. Item kinds: entry link, URL, auto list and group header.
  * Reordering uses move/indent buttons (no drag library needed); the preview
  * shows the menu as the API resolves it after the last save.
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, CornerDownRight, CornerUpLeft, ExternalLink, Plus, Trash2 } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronDown, ChevronRight, CornerDownRight, CornerUpLeft, ExternalLink, Globe, Lightbulb, ListTree, Plus, Save, Trash2 } from 'lucide-react';
 import {
   ALLOWED_ICONS, CMS_ENTRY_TYPES, ENTRY_TYPE_META, KNOWN_LOCALES, MENU_KEYS, MENU_KINDS, MENU_MAX_DEPTH, putMenuBodySchema,
   type CmsEntryType, type IconName, type MenuItem, type MenuItemResolved, type MenuKey,
 } from '../contract/cms-contract';
-import { PageHeader } from '../../_shared/components/PageHeader';
+import { PageHero, PageShell, confirmDialog, heroButton, heroPrimaryButton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { errorMessage, formatPkt, zodFieldErrors } from '../dashboard/shared/cms-http';
 import { Card, Chip, EntryRefSelect, Field, HistoryList, Spinner, Tabs, Toggle, btn, inputCls, selectCls } from '../dashboard/shared/ui';
 import { cn } from '../../../../lib/cn';
@@ -41,6 +41,7 @@ function depthOf(item: MenuItem): number {
 
 export function MenusPage() {
   const qc = useQueryClient();
+  const guide = usePageGuide();
   const [key, setKey] = useState<MenuKey>('header');
   const [locale, setLocale] = useState<string>('en');
   const [tab, setTab] = useState<'edit' | 'history'>('edit');
@@ -74,38 +75,53 @@ export function MenusPage() {
       return menusApi.put(key, parsed.data);
     },
     onSuccess: () => {
-      toast.success('Menu save ho gaya, site update ho rahi hai');
+      toast.success('Menu saved. The site is updating.');
       setErrors([]);
       qc.invalidateQueries({ queryKey: ['cms-menu', key, locale] });
       qc.invalidateQueries({ queryKey: ['cms-history', 'MENU'] });
     },
     onError: (e: unknown) => {
       const fe = (e as { fieldErrors?: string[] }).fieldErrors;
-      if (fe) { setErrors(fe); toast.error('Menu me ghaltiyan hain'); return; }
+      if (fe) { setErrors(fe); toast.error('The menu has errors'); return; }
       toast.error(errorMessage(e));
     },
   });
 
   const switchMenu = (k: MenuKey) => {
-    if (dirty && !confirm('Save nahi kiya. Phir bhi doosra menu kholein?')) return;
+    if (dirty) {
+      void confirmDialog({ title: 'Switch menu?', text: 'You have unsaved changes in this menu.', yes: 'Switch anyway', danger: true }).then((ok) => ok && setKey(k));
+      return;
+    }
     setKey(k);
   };
 
+  const countItems = (list: MenuItem[]): number => list.reduce((n, it) => n + 1 + countItems(it.children ?? []), 0);
+  const totalItems = countItems(items);
+
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <PageShell>
+      <PageHero
         title="Menus"
-        subtitle="Website ke header, footer, legal aur mobile menu. Auto list me nayi industries khud aa jati hain."
+        chip={`${MENU_LABELS[key]} · ${locale.toUpperCase()}`}
+        busy={detail.isFetching}
+        loading={detail.isLoading}
         actions={
           <>
-            <select className={selectCls} value={locale} onChange={(e) => setLocale(e.target.value)} aria-label="Zaban">
+            <select className="h-9 rounded-xl bg-[color:var(--hero-btn-bg)] px-2 text-[0.8125rem] font-semibold text-[color:var(--hero-btn-fg)] ring-1 ring-[color:var(--hero-btn-ring)]" value={locale} onChange={(e) => setLocale(e.target.value)} aria-label="Language">
               {KNOWN_LOCALES.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
-            <button className={btn.primary} disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
-              {save.isPending ? 'Save ho raha hai…' : 'Save'}
+            <button type="button" className={heroPrimaryButton} disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
+              {save.isPending ? 'Saving…' : 'Save'}
             </button>
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
           </>
         }
+        stats={[
+          { label: 'Menu', value: MENU_LABELS[key] },
+          { label: 'Items', value: totalItems, hint: `${items.length} at the top level` },
+          { label: 'Last saved', value: detail.data?.updatedAt ? formatPkt(detail.data.updatedAt, false) : '—' },
+          { label: 'Unsaved changes', value: dirty ? 'Yes' : 'No' },
+        ]}
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Tabs tabs={MENU_KEYS.map((k) => ({ key: k, label: MENU_LABELS[k] }))} value={key} onChange={switchMenu} />
@@ -124,15 +140,15 @@ export function MenusPage() {
             title="Items"
             actions={
               <>
-                {detail.data?.updatedAt && <span className="text-xs text-neutral-500">Aakhri save: {formatPkt(detail.data.updatedAt)}</span>}
+                {detail.data?.updatedAt && <span className="text-xs text-slate-500">Last saved: {formatPkt(detail.data.updatedAt)}</span>}
                 <button className={btn.secondary} onClick={() => change([...items, { id: newId(), kind: 'entry' }])}>
                   <Plus className="h-4 w-4" /> Item
                 </button>
               </>
             }
           >
-            {detail.isError && <p className="mb-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">Ye menu abhi bana nahi ya load nahi hua ({errorMessage(detail.error)}). Save karne par ban jaye ga.</p>}
-            <Field label="Menu ka naam" className="mb-4">
+            {detail.isError && <p className="mb-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-800">This menu does not exist yet or did not load ({errorMessage(detail.error)}). Saving will create it.</p>}
+            <Field label="Menu name" className="mb-4">
               <input className={inputCls} value={title} maxLength={80} onChange={(e) => { setTitle(e.target.value); setDirty(true); }} />
             </Field>
             {errors.length > 0 && (
@@ -141,16 +157,35 @@ export function MenusPage() {
             {items.length ? (
               <ItemList items={items} root={items} parent={[]} onChange={change} resolvedById={resolvedById} />
             ) : (
-              <p className="text-sm text-neutral-500">Menu khali hai.</p>
+              <p className="text-sm text-slate-500">The menu is empty.</p>
             )}
           </Card>
-          <Card title="Preview (aakhri save)">
+          <Card title="Preview (last save)">
             <MenuPreview menuKey={key} items={detail.data?.resolved ?? []} />
-            {dirty && <p className="mt-3 text-xs text-amber-700">Save karne ke baad preview update hoga.</p>}
+            {dirty && <p className="mt-3 text-xs text-amber-700">The preview updates after you save.</p>}
           </Card>
         </div>
       )}
-    </div>
+      {guide.isOpen && (
+        <PageGuide
+          title="Menus"
+          description="The header, footer, legal and mobile menus of the website."
+          flowTitle="Changing a menu"
+          flow={[
+            { label: 'Pick a menu', hint: 'Header, footer…', icon: ListTree, color: '#4f46e5' },
+            { label: 'Edit items', hint: 'Add, move, indent', icon: Plus, color: '#d97706' },
+            { label: 'Save', hint: 'Site refreshes', icon: Save, color: '#0284c7' },
+            { label: 'Live', hint: 'On every page', icon: Globe, color: '#059669' },
+          ]}
+          steps={[
+            { icon: ArrowUp, color: '#4f46e5', title: 'Move and indent', text: 'Use the arrows to reorder items, and the corner arrows to put an item inside the one above or take it out.' },
+            { icon: ExternalLink, color: '#0284c7', title: 'Item kinds', text: 'Link to a CMS page, a URL, an automatic list (new industries appear by themselves) or a group heading.' },
+            { icon: Save, color: '#059669', title: 'Save', text: 'Nothing changes on the site until you save. The preview updates after saving.' },
+          ]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }
 
@@ -158,7 +193,7 @@ function ItemList({ items, root, parent, onChange, resolvedById }: {
   items: MenuItem[]; root: MenuItem[]; parent: Path; onChange: (next: MenuItem[]) => void; resolvedById: Map<string, MenuItemResolved>;
 }) {
   return (
-    <ul className={cn('space-y-2', parent.length > 0 && 'ml-6 border-l border-neutral-200 pl-3')}>
+    <ul className={cn('space-y-2', parent.length > 0 && 'ml-6 border-l border-slate-200 pl-3')}>
       {items.map((item, i) => (
         <ItemRow key={item.id} item={item} index={i} siblings={items} root={root} parent={parent} onChange={onChange} resolvedById={resolvedById} />
       ))}
@@ -175,7 +210,7 @@ function ItemRow({ item, index, siblings, root, parent, onChange, resolvedById }
   const resolved = resolvedById.get(item.id);
 
   const setItem = (p: Partial<MenuItem>) => onChange(updateList(root, parent, (list) => list.map((it, i) => (i === index ? { ...it, ...p } : it))));
-  const remove = () => confirm('Ye item (aur iske andar wale) hatayein?') && onChange(updateList(root, parent, (list) => list.filter((_, i) => i !== index)));
+  const remove = async () => (await confirmDialog({ title: 'Remove this item and everything inside it?', yes: 'Remove', danger: true })) && onChange(updateList(root, parent, (list) => list.filter((_, i) => i !== index)));
   const move = (d: -1 | 1) =>
     onChange(updateList(root, parent, (list) => {
       const next = [...list];
@@ -186,7 +221,7 @@ function ItemRow({ item, index, siblings, root, parent, onChange, resolvedById }
     }));
   const indent = () => {
     if (index === 0) return;
-    if (level + depthOf(item) > MENU_MAX_DEPTH) return toast.error(`Menu ${MENU_MAX_DEPTH} level se zyada gehra nahi ho sakta`);
+    if (level + depthOf(item) > MENU_MAX_DEPTH) return toast.error(`A menu can be at most ${MENU_MAX_DEPTH} levels deep`);
     let next = updateList(root, parent, (list) => list.filter((_, i) => i !== index));
     next = updateList(next, [...parent, index - 1], (list) => [...list, item]);
     onChange(next);
@@ -200,7 +235,7 @@ function ItemRow({ item, index, siblings, root, parent, onChange, resolvedById }
     onChange(next);
   };
   const addChild = () => {
-    if (level >= MENU_MAX_DEPTH) return toast.error(`Menu ${MENU_MAX_DEPTH} level se zyada gehra nahi ho sakta`);
+    if (level >= MENU_MAX_DEPTH) return toast.error(`A menu can be at most ${MENU_MAX_DEPTH} levels deep`);
     setItem({ children: [...(item.children ?? []), { id: newId(), kind: 'entry' }] });
   };
 
@@ -209,25 +244,25 @@ function ItemRow({ item, index, siblings, root, parent, onChange, resolvedById }
     resolved?.label ||
     (item.kind === 'auto' && item.auto ? `${ENTRY_TYPE_META[item.auto.entryType].label} (${item.auto.limit})` : '') ||
     (item.kind === 'url' ? item.url : '') ||
-    'Naya item';
+    'New item';
 
   return (
     <li>
-      <div className="rounded-xl border border-neutral-200 bg-white">
+      <div className="rounded-xl border border-slate-200 bg-white">
         <div className="flex items-center gap-2 px-3 py-2">
           <button className={btn.icon} onClick={() => setOpen(!open)} aria-label="Kholein">
             {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
-          <span className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">{summary}</span>
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900">{summary}</span>
           <Chip tone={item.kind === 'auto' ? 'blue' : item.kind === 'group' ? 'amber' : 'neutral'}>{KIND_LABELS[item.kind]}</Chip>
-          <button className={btn.icon} disabled={index === 0} onClick={() => move(-1)} aria-label="Upar"><ArrowUp className="h-4 w-4" /></button>
-          <button className={btn.icon} disabled={index === siblings.length - 1} onClick={() => move(1)} aria-label="Neeche"><ArrowDown className="h-4 w-4" /></button>
-          <button className={btn.icon} disabled={index === 0} onClick={indent} aria-label="Andar" title="Pichle item ke andar"><CornerDownRight className="h-4 w-4" /></button>
-          <button className={btn.icon} disabled={!parent.length} onClick={outdent} aria-label="Bahar" title="Ek level bahar"><CornerUpLeft className="h-4 w-4" /></button>
-          <button className={btn.icon} onClick={remove} aria-label="Hatayein"><Trash2 className="h-4 w-4" /></button>
+          <button className={btn.icon} disabled={index === 0} onClick={() => move(-1)} aria-label="Move up"><ArrowUp className="h-4 w-4" /></button>
+          <button className={btn.icon} disabled={index === siblings.length - 1} onClick={() => move(1)} aria-label="Move down"><ArrowDown className="h-4 w-4" /></button>
+          <button className={btn.icon} disabled={index === 0} onClick={indent} aria-label="Indent" title="Put inside the item above"><CornerDownRight className="h-4 w-4" /></button>
+          <button className={btn.icon} disabled={!parent.length} onClick={outdent} aria-label="Outdent" title="Move out one level"><CornerUpLeft className="h-4 w-4" /></button>
+          <button className={btn.icon} onClick={remove} aria-label="Remove"><Trash2 className="h-4 w-4" /></button>
         </div>
         {open && (
-          <div className="grid gap-3 border-t border-neutral-100 p-3 sm:grid-cols-2">
+          <div className="grid gap-3 border-t border-slate-100 p-3 sm:grid-cols-2">
             <Field label="Kism">
               <select
                 className={selectCls + ' w-full'}
@@ -240,7 +275,7 @@ function ItemRow({ item, index, siblings, root, parent, onChange, resolvedById }
                 {MENU_KINDS.map((k) => <option key={k} value={k}>{KIND_LABELS[k]}</option>)}
               </select>
             </Field>
-            <Field label="Label" required={item.kind === 'url' || item.kind === 'group'} hint={item.kind === 'entry' ? 'Khali ho to page ka title' : undefined}>
+            <Field label="Label" required={item.kind === 'url' || item.kind === 'group'} hint={item.kind === 'entry' ? 'Leave empty to use the page title' : undefined}>
               <input className={inputCls} value={item.label ?? ''} maxLength={80} onChange={(e) => setItem({ label: e.target.value || undefined })} />
             </Field>
             {item.kind === 'entry' && (
@@ -253,7 +288,7 @@ function ItemRow({ item, index, siblings, root, parent, onChange, resolvedById }
               </Field>
             )}
             {item.kind === 'url' && (
-              <Field label="URL" required className="sm:col-span-2" hint="/path, https://…, signup, demo ya whatsapp">
+              <Field label="URL" required className="sm:col-span-2" hint="/path, https://…, signup, demo or whatsapp">
                 <input className={inputCls} value={item.url ?? ''} onChange={(e) => setItem({ url: e.target.value || undefined })} />
               </Field>
             )}
@@ -264,7 +299,7 @@ function ItemRow({ item, index, siblings, root, parent, onChange, resolvedById }
                     {CMS_ENTRY_TYPES.map((t) => <option key={t} value={t}>{ENTRY_TYPE_META[t].label}</option>)}
                   </select>
                 </Field>
-                <Field label="Group" hint="Industry group key (khali = sab)">
+                <Field label="Group" hint="Industry group key (empty means all)">
                   <input className={inputCls} value={item.auto.group ?? ''} onChange={(e) => setItem({ auto: { ...item.auto!, group: e.target.value || undefined } })} />
                 </Field>
                 <Field label="Kitne">
@@ -277,22 +312,22 @@ function ItemRow({ item, index, siblings, root, parent, onChange, resolvedById }
                   </select>
                 </Field>
                 <div className="sm:col-span-2">
-                  <Toggle checked={!!item.auto.featured} onChange={(v) => setItem({ auto: { ...item.auto!, featured: v || undefined } })} label="Sirf featured pages" />
+                  <Toggle checked={!!item.auto.featured} onChange={(v) => setItem({ auto: { ...item.auto!, featured: v || undefined } })} label="Featured pages only" />
                 </div>
               </>
             )}
-            <Field label="Description" hint="Mega menu me label ke neeche">
+            <Field label="Description" hint="Shown under the label in the mega menu">
               <input className={inputCls} value={item.description ?? ''} maxLength={160} onChange={(e) => setItem({ description: e.target.value || undefined })} />
             </Field>
             <Field label="Icon">
               <select className={selectCls + ' w-full'} value={item.icon ?? ''} onChange={(e) => setItem({ icon: (e.target.value || undefined) as IconName | undefined })}>
-                <option value="">Koi nahi</option>
+                <option value="">None</option>
                 {ALLOWED_ICONS.map((ic) => <option key={ic} value={ic}>{ic}</option>)}
               </select>
             </Field>
             <div className="sm:col-span-2">
               <button className={btn.ghost} disabled={level >= MENU_MAX_DEPTH} onClick={addChild}>
-                <Plus className="h-4 w-4" /> Andar item
+                <Plus className="h-4 w-4" /> Add inner item
               </button>
             </div>
           </div>
@@ -310,14 +345,14 @@ function ItemRow({ item, index, siblings, root, parent, onChange, resolvedById }
 /** Header renders as a mega menu (top items with columns); other menus as a nested list. */
 function MenuPreview({ menuKey, items }: { menuKey: MenuKey; items: MenuItemResolved[] }) {
   const [active, setActive] = useState(0);
-  if (!items.length) return <p className="text-sm text-neutral-500">Abhi kuch nahi.</p>;
+  if (!items.length) return <p className="text-sm text-slate-500">Nothing here yet.</p>;
   if (menuKey !== 'header') {
     const render = (list: MenuItemResolved[]) => (
       <ul className="space-y-1 pl-3">
         {list.map((r) => (
           <li key={r.id} className="text-sm">
-            <span className="text-neutral-800">{r.label}</span> <span className="text-xs text-neutral-400">{r.href}</span>
-            {r.external && <ExternalLink className="ml-1 inline h-3 w-3 text-neutral-400" />}
+            <span className="text-slate-800">{r.label}</span> <span className="text-xs text-slate-400">{r.href}</span>
+            {r.external && <ExternalLink className="ml-1 inline h-3 w-3 text-slate-400" />}
             {r.children?.length ? render(r.children) : null}
           </li>
         ))}
@@ -328,9 +363,9 @@ function MenuPreview({ menuKey, items }: { menuKey: MenuKey; items: MenuItemReso
   const current = items[active];
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-1 border-b border-neutral-200 pb-2">
+      <div className="flex flex-wrap gap-1 border-b border-slate-200 pb-2">
         {items.map((r, i) => (
-          <button key={r.id} onMouseEnter={() => setActive(i)} onClick={() => setActive(i)} className={cn('rounded-md px-2 py-1 text-sm', i === active ? 'bg-emerald-50 text-emerald-700' : 'text-neutral-700')}>
+          <button key={r.id} onMouseEnter={() => setActive(i)} onClick={() => setActive(i)} className={cn('rounded-md px-2 py-1 text-sm', i === active ? 'bg-brand-50 text-brand-700' : 'text-slate-700')}>
             {r.label}
             {r.children?.length ? ' ▾' : ''}
           </button>
@@ -340,18 +375,18 @@ function MenuPreview({ menuKey, items }: { menuKey: MenuKey; items: MenuItemReso
         <div className="grid grid-cols-2 gap-4">
           {current.children.map((col) => (
             <div key={col.id}>
-              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{col.label}</p>
-              {col.description && <p className="text-xs text-neutral-400">{col.description}</p>}
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{col.label}</p>
+              {col.description && <p className="text-xs text-slate-400">{col.description}</p>}
               <ul className="mt-1 space-y-0.5">
                 {(col.children ?? []).map((l) => (
-                  <li key={l.id} className="truncate text-sm text-neutral-800" title={l.href}>{l.label}</li>
+                  <li key={l.id} className="truncate text-sm text-slate-800" title={l.href}>{l.label}</li>
                 ))}
               </ul>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-xs text-neutral-500">{current?.href}</p>
+        <p className="text-xs text-slate-500">{current?.href}</p>
       )}
     </div>
   );

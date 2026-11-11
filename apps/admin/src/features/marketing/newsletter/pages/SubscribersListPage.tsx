@@ -1,253 +1,190 @@
-import { useState } from 'react';
+/**
+ * Newsletter subscribers: the email list behind the website signup forms.
+ * Search, status, source, period and paging run on the server; select rows
+ * to unsubscribe, reactivate, tag or delete in bulk.
+ */
+
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Download, Mail, Send, Tag, Trash2, UserCheck, UserX, Users, Globe, MailX } from 'lucide-react';
 import {
-  Mail, Search, Download, Send, UserX, UserCheck, Trash2, Tag,
-} from 'lucide-react';
-import { newsletterApi, type Subscriber } from '../../../../api/marketing/marketing-newsletter.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { StatCard } from '../../_shared/components/StatCard';
-import { StatusBadge } from '../../_shared/components/StatusBadge';
-import { DataTable } from '../../_shared/components/DataTable';
-import { EmptyState } from '../../_shared/components/EmptyState';
-import { useCsvDownload } from '../../_shared/hooks/useCsvDownload';
-import { formatDistanceToNow } from 'date-fns';
+  Button, Checkbox, DateRangeMenu, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, confirmDialog, heroButton, heroPrimaryButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { newsletterApi, type Subscriber } from '@/api/marketing/marketing-newsletter.api';
+import { formatRelative } from '@/lib/format';
+import { ListCard, StatusBadge, statusLabel, useListParams } from '@/ui';
+import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '@/features/shared/period';
+import { GuideButton, PromptModal, exportList, num } from '../../lib/kit';
+
+const STATUSES = ['ACTIVE', 'UNSUBSCRIBED', 'BOUNCED', 'PENDING_CONFIRMATION', 'COMPLAINED'];
 
 export function SubscribersListPage() {
   const qc = useQueryClient();
-  const download = useCsvDownload();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<string>('');
+  const guide = usePageGuide();
+  const [exporting, setExporting] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const [tagOpen, setTagOpen] = useState(false);
+  const list = useListParams({ status: 'ALL', source: 'ALL', ...PERIOD_DEFAULTS });
+  const { status, source } = list.filters;
+  const query = {
+    search: list.debouncedSearch || undefined,
+    status: status === 'ALL' ? undefined : status,
+    source: source === 'ALL' ? undefined : source,
+    ...periodQuery(list.filters),
+  };
 
-  const { data: stats } = useQuery({
-    queryKey: ['newsletter-stats'],
-    queryFn: newsletterApi.stats,
-    refetchInterval: 5000,
+  const stats = useQuery({ queryKey: ['mkt', 'newsletter', 'stats'], queryFn: newsletterApi.stats, staleTime: 30_000 });
+  const subs = useQuery({
+    queryKey: ['mkt', 'newsletter', query, list.page, list.limit],
+    queryFn: () => newsletterApi.list({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
   });
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['newsletter-list', page, search, status],
-    refetchInterval: 5000,
-    queryFn: () => newsletterApi.list({ page, limit: 25, search, status: status || undefined }),
-  });
+  const s = stats.data;
+  const rows: Subscriber[] = subs.data?.items ?? [];
+  // A selection only makes sense for the rows being shown.
+  useEffect(() => { setSelected([]); }, [list.page, list.limit, status, source, list.debouncedSearch]);
 
   const bulkMut = useMutation({
     mutationFn: newsletterApi.bulk,
     onSuccess: (r) => {
       toast.success(`${r.count ?? selected.length} subscribers updated`);
       setSelected([]);
-      qc.invalidateQueries({ queryKey: ['newsletter-list'] });
-      qc.invalidateQueries({ queryKey: ['newsletter-stats'] });
+      qc.invalidateQueries({ queryKey: ['mkt', 'newsletter'] });
     },
-    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Bulk action fail'),
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'The action failed'),
   });
 
-  const toggle = (id: string) => {
-    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
-  };
-  const toggleAll = () => {
-    if (selected.length === data?.items.length) setSelected([]);
-    else setSelected(data?.items.map((s: Subscriber) => s.id) ?? []);
-  };
+  const sources = (s?.bySource ?? []).map((x) => x.source).filter(Boolean);
+  const chip = periodChip(list.filters);
+  const chips = [
+    status !== 'ALL' && <FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{statusLabel(status)}</FilterChip>,
+    source !== 'ALL' && <FilterChip key="o" onRemove={() => list.setFilter('source', 'ALL')}>{statusLabel(source)}</FilterChip>,
+    chip && <FilterChip key="p" onRemove={() => clearPeriod(list)}>{chip}</FilterChip>,
+  ].filter(Boolean);
+  const allOn = rows.length > 0 && selected.length === rows.length;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Newsletter Subscribers"
-        subtitle={`${stats?.total.toLocaleString() ?? 0} total • ${stats?.growthRate ?? '0%'} growth`}
+    <PageShell>
+      <PageHero
+        title="Newsletter subscribers"
+        chip={s ? `${num(s.total)} total` : undefined}
+        busy={subs.isFetching}
+        loading={stats.isLoading}
         actions={
           <>
-            <Link
-              to="/marketing/newsletter/send"
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-            >
-              <Send className="h-4 w-4" />
-              Send Newsletter
-            </Link>
-            <button
-              onClick={() =>
-                download(
-                  newsletterApi.exportCsvUrl({ search, status: status || undefined }),
-                  `subscribers-${Date.now()}.csv`,
-                )
-              }
-              className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-700 hover:border-emerald-300"
-            >
-              <Download className="h-4 w-4" />
-              Export CSV
+            <button type="button" className={heroButton} disabled={exporting} onClick={() => exportList<Subscriber>('subscribers', (page) => newsletterApi.list({ ...query, page, limit: 100 }), [
+              { label: 'Email', value: (r) => r.email },
+              { label: 'First name', value: (r) => r.firstName },
+              { label: 'Last name', value: (r) => r.lastName },
+              { label: 'Status', value: (r) => r.status },
+              { label: 'Source', value: (r) => r.source },
+              { label: 'Tags', value: (r) => (r.tags ?? []).join(' ') },
+              { label: 'Engagement', value: (r) => r.engagementScore },
+              { label: 'Joined', value: (r) => r.createdAt.slice(0, 10) },
+            ], setExporting)}>
+              <Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}
             </button>
+            <Link to="/marketing/newsletter/send" className={heroPrimaryButton}><Send className="h-4 w-4" /> Send newsletter</Link>
+            <GuideButton onClick={guide.open} />
           </>
         }
+        stats={s ? [
+          { label: 'Active', value: num(s.active), hint: `${s.growthRate} growth` },
+          { label: 'New this week', value: num(s.new7d), hint: `${num(s.new30d)} in 30 days` },
+          { label: 'Unsubscribed', value: num(s.unsubscribed), hint: s.unsubscribeRate },
+          { label: 'Bounced', value: num(s.bounced), hint: s.bounceRate },
+        ] : undefined}
       />
 
-      {stats && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total" value={stats.total.toLocaleString()} icon={Mail} />
-          <StatCard label="Active" value={stats.active.toLocaleString()} delta={stats.growthRate} deltaColor="up" />
-          <StatCard label="Unsubscribed" value={stats.unsubscribed.toLocaleString()} hint={stats.unsubscribeRate} />
-          <StatCard label="Bounced" value={stats.bounced.toLocaleString()} hint={stats.bounceRate} />
-        </div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Email, first name, last name…"
-            className="w-full rounded-lg border border-neutral-300 pl-9 pr-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          />
-        </div>
-        <select
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setPage(1);
-          }}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-        >
-          <option value="">All statuses</option>
-          <option value="ACTIVE">Active</option>
-          <option value="UNSUBSCRIBED">Unsubscribed</option>
-          <option value="BOUNCED">Bounced</option>
-          <option value="PENDING_CONFIRMATION">Pending</option>
-          <option value="COMPLAINED">Complained</option>
-        </select>
-      </div>
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search email or name" />}
+        chips={chips.length ? chips : undefined}
+        onClear={list.clear}
+      >
+        <FilterMenu icon={Tag} label="Status" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)}
+          options={[{ value: 'ALL', label: 'All statuses' }, ...STATUSES.map((v) => ({ value: v, label: statusLabel(v) }))]} />
+        {sources.length > 0 && (
+          <FilterMenu icon={Globe} label="Source" value={source} active={source !== 'ALL'} onChange={(v) => list.setFilter('source', v)}
+            options={[{ value: 'ALL', label: 'All sources' }, ...sources.map((v) => ({ value: v, label: statusLabel(v) }))]} />
+        )}
+        <DateRangeMenu value={periodValue(list.filters)} onChange={(v) => setPeriod(list, v)} startHour={0} label="Joined" />
+      </FilterBar>
 
       {selected.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl bg-emerald-50 px-4 py-3 text-sm">
-          <span className="font-medium text-emerald-800">{selected.length} selected</span>
-          <button
-            onClick={() => bulkMut.mutate({ subscriberIds: selected, action: 'UNSUBSCRIBE' })}
-            className="inline-flex items-center gap-1 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
-          >
-            <UserX className="h-3 w-3" /> Unsubscribe
-          </button>
-          <button
-            onClick={() => bulkMut.mutate({ subscriberIds: selected, action: 'REACTIVATE' })}
-            className="inline-flex items-center gap-1 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
-          >
-            <UserCheck className="h-3 w-3" /> Reactivate
-          </button>
-          <button
-            onClick={() => {
-              const tag = prompt('Tag naam?');
-              if (tag) bulkMut.mutate({ subscriberIds: selected, action: 'TAG', tag });
-            }}
-            className="inline-flex items-center gap-1 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
-          >
-            <Tag className="h-3 w-3" /> Tag
-          </button>
-          <button
-            onClick={() => {
-              if (confirm('Delete these subscribers permanently?'))
-                bulkMut.mutate({ subscriberIds: selected, action: 'DELETE' });
-            }}
-            className="inline-flex items-center gap-1 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-rose-600 hover:bg-rose-50"
-          >
-            <Trash2 className="h-3 w-3" /> Delete
-          </button>
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-brand-50 px-4 py-3 text-[0.8125rem] ring-1 ring-brand-200">
+          <span className="font-semibold text-brand-800">{selected.length} selected</span>
+          <Button size="xs" variant="secondary" leftIcon={<UserX className="h-3.5 w-3.5" />} onClick={() => bulkMut.mutate({ subscriberIds: selected, action: 'UNSUBSCRIBE' })}>Unsubscribe</Button>
+          <Button size="xs" variant="secondary" leftIcon={<UserCheck className="h-3.5 w-3.5" />} onClick={() => bulkMut.mutate({ subscriberIds: selected, action: 'REACTIVATE' })}>Reactivate</Button>
+          <Button size="xs" variant="secondary" leftIcon={<Tag className="h-3.5 w-3.5" />} onClick={() => setTagOpen(true)}>Add tag</Button>
+          <Button size="xs" variant="critical" leftIcon={<Trash2 className="h-3.5 w-3.5" />} onClick={async () => {
+            if (await confirmDialog({ title: `Delete ${selected.length} subscribers?`, text: 'They are removed permanently.', yes: 'Delete', danger: true })) bulkMut.mutate({ subscriberIds: selected, action: 'DELETE' });
+          }}>Delete</Button>
+          <Button size="xs" variant="ghost" onClick={() => setSelected([])}>Clear selection</Button>
         </div>
       )}
 
-      <DataTable<Subscriber>
-        loading={isLoading}
-        data={data?.items ?? []}
-        keyExtractor={(s) => s.id}
-        empty={<EmptyState icon={Mail} title="No subscribers yet" message="Signup form live hote hi entries yahan aayen ge." />}
-        columns={[
-          {
-            key: 'select',
-            header: (
-              <input
-                type="checkbox"
-                checked={selected.length === data?.items?.length && data?.items?.length > 0}
-                onChange={toggleAll}
-                className="h-4 w-4 rounded border-neutral-300"
-              />
-            ) as any,
-            render: (s) => (
-              <input
-                type="checkbox"
-                checked={selected.includes(s.id)}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  toggle(s.id);
-                }}
-                onClick={(e) => e.stopPropagation()}
-                className="h-4 w-4 rounded border-neutral-300"
-              />
-            ),
-          },
-          {
-            key: 'email',
-            header: 'Subscriber',
-            render: (s) => (
-              <div>
-                <p className="font-medium text-neutral-900">{s.email}</p>
-                {(s.firstName || s.lastName) && (
-                  <p className="text-xs text-neutral-500">{[s.firstName, s.lastName].filter(Boolean).join(' ')}</p>
-                )}
-              </div>
-            ),
-          },
-          { key: 'status', header: 'Status', render: (s) => <StatusBadge status={s.status} /> },
-          { key: 'source', header: 'Source', render: (s) => <span className="text-xs text-neutral-500">{s.source ?? '—'}</span> },
-          {
-            key: 'engagement',
-            header: 'Engagement',
-            render: (s) => (
-              <div className="text-xs">
-                <div className="font-medium text-neutral-700">{s.engagementScore.toFixed(0)}</div>
-                <div className="text-neutral-500">
-                  {s.totalOpened}/{s.totalClicked} opens/clicks
-                </div>
-              </div>
-            ),
-          },
-          {
-            key: 'createdAt',
-            header: 'Joined',
-            render: (s) => (
-              <span className="text-xs text-neutral-500">
-                {formatDistanceToNow(new Date(s.createdAt), { addSuffix: true })}
-              </span>
-            ),
-          },
-        ]}
-      />
+      <ListCard
+        loading={subs.isLoading}
+        empty={!rows.length}
+        emptyIcon={<Mail className="h-6 w-6" />}
+        emptyTitle="No subscribers match"
+        emptyText="Subscribers appear here when visitors sign up on the website."
+        page={list.page} limit={list.limit} total={subs.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="52rem">
+          <THead>
+            <Tr>
+              <Th className="w-10"><Checkbox aria-label="Select all" checked={allOn} onChange={() => setSelected(allOn ? [] : rows.map((r) => r.id))} /></Th>
+              <Th>Subscriber</Th><Th>Status</Th><Th>Source</Th><Th align="right">Engagement</Th><Th align="right">Joined</Th>
+            </Tr>
+          </THead>
+          <TBody>
+            {rows.map((r) => (
+              <Tr key={r.id}>
+                <Td><Checkbox aria-label={`Select ${r.email}`} checked={selected.includes(r.id)} onChange={() => setSelected((p) => (p.includes(r.id) ? p.filter((x) => x !== r.id) : [...p, r.id]))} /></Td>
+                <Td>
+                  <div className="font-semibold text-slate-900">{r.email}</div>
+                  {(r.firstName || r.lastName) && <div className="text-[0.75rem] text-slate-500">{[r.firstName, r.lastName].filter(Boolean).join(' ')}</div>}
+                </Td>
+                <Td><StatusBadge value={r.status} /></Td>
+                <Td className="text-slate-600">{r.source ? statusLabel(r.source) : '—'}</Td>
+                <Td align="right">
+                  <div className="font-medium tabular-nums text-slate-900">{r.engagementScore.toFixed(0)}</div>
+                  <div className="text-[0.75rem] text-slate-500">{r.totalOpened} opens · {r.totalClicked} clicks</div>
+                </Td>
+                <Td align="right" className="whitespace-nowrap text-slate-500">{formatRelative(r.createdAt)}</Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
+      </ListCard>
 
-      {data && data.meta && (
-        <div className="flex items-center justify-between text-sm text-neutral-600">
-          <p>
-            Page {data.meta.page} of {data.meta.totalPages} • {data.meta.total.toLocaleString()} total
-          </p>
-          <div className="flex gap-2">
-            <button
-              disabled={!data.meta.hasPrev}
-              onClick={() => setPage((p) => p - 1)}
-              className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <button
-              disabled={!data.meta.hasNext}
-              onClick={() => setPage((p) => p + 1)}
-              className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+      <PromptModal open={tagOpen} title="Add a tag" label="Tag name" placeholder="pos-users" confirmLabel="Add tag" onSubmit={(tag) => bulkMut.mutate({ subscriberIds: selected, action: 'TAG', tag })} onClose={() => setTagOpen(false)} />
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Newsletter subscribers"
+          description="Everyone who gave their email on the website. Keep the list clean and send them news."
+          flowTitle="From signup to inbox"
+          flow={[
+            { label: 'Visitor signs up', hint: 'Website form', icon: Globe, color: '#4f46e5' },
+            { label: 'Active subscriber', hint: 'On the list', icon: Users, color: '#059669' },
+            { label: 'You send news', hint: 'Newsletter', icon: Send, color: '#0284c7' },
+            { label: 'Opens or leaves', hint: 'Engagement', icon: MailX, color: '#d97706' },
+          ]}
+          steps={[
+            { icon: Tag, color: '#4f46e5', title: 'Tag people', text: 'Select rows and add a tag. Tags let a campaign or newsletter reach part of the list.' },
+            { icon: UserX, color: '#d97706', title: 'Unsubscribe or reactivate', text: 'Use the bar that appears when rows are selected.' },
+            { icon: Trash2, color: '#e11d48', title: 'Delete', text: 'Deleting removes people permanently, so you are asked to confirm.' },
+            { icon: Download, color: '#059669', title: 'Export', text: 'Export CSV downloads every subscriber that matches the filters.' },
+          ]}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
       )}
-    </div>
+    </PageShell>
   );
 }

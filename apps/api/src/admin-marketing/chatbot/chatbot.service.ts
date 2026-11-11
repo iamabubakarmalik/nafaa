@@ -5,6 +5,7 @@ import { parsePagination, paginated } from '../_shared/helpers/pagination.helper
 import { ListConversationsDto } from './dto/list-conversations.dto';
 import { SendMessageDto } from './dto/send-message.dto';
 import { TakeoverDto } from './dto/takeover.dto';
+import { dayRange } from '../_shared/helpers/day-range.helper';
 
 @Injectable()
 export class ChatbotService {
@@ -35,11 +36,8 @@ export class ChatbotService {
         { conversationNumber: { contains: dto.search, mode: 'insensitive' } },
       ];
     }
-    if (dto.from || dto.to) {
-      where.startedAt = {};
-      if (dto.from) (where.startedAt as any).gte = new Date(dto.from);
-      if (dto.to) (where.startedAt as any).lte = new Date(dto.to);
-    }
+    const range = dayRange(dto.from, dto.to);
+    if (range) where.startedAt = range;
 
     const [items, total] = await Promise.all([
       this.prisma.chatbotConversation.findMany({

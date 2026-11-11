@@ -1,116 +1,165 @@
+/**
+ * Marketing leads: every prospect from the website (forms, demos, chat,
+ * newsletter), scored and ranked. Search, filters, period and paging run on
+ * the server; Export CSV downloads the whole filtered list.
+ */
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Flame, Search, Download, TrendingUp, Users } from 'lucide-react';
-import { leadsApi, type Lead } from '../../../../api/marketing/marketing-leads.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { StatCard } from '../../_shared/components/StatCard';
-import { StatusBadge } from '../../_shared/components/StatusBadge';
-import { TemperatureBadge } from '../../_shared/components/TemperatureBadge';
-import { DataTable } from '../../_shared/components/DataTable';
-import { useCsvDownload } from '../../_shared/hooks/useCsvDownload';
+import { Calendar, Download, Flame, MessageSquare, Tag, Thermometer, Users, UserCheck, Phone, Target } from 'lucide-react';
+import {
+  DateRangeMenu, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, heroButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { leadsApi, type Lead } from '@/api/marketing/marketing-leads.api';
+import { formatRelative } from '@/lib/format';
+import { ListCard, StatusBadge, statusLabel, useListParams } from '@/ui';
+import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '@/features/shared/period';
+import { GuideButton, TemperatureBadge, exportList, num } from '../../lib/kit';
+
+const STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'DEMO_SCHEDULED', 'DEMO_COMPLETED', 'PROPOSAL_SENT', 'NEGOTIATING', 'CONVERTED', 'LOST', 'UNRESPONSIVE', 'DO_NOT_CONTACT'];
+const TEMPS = ['FIRE', 'HOT', 'WARM', 'COLD'];
 
 export function LeadsListPage() {
   const nav = useNavigate();
-  const download = useCsvDownload();
-  const [page, setPage] = useState(1);
-  const [temperature, setTemperature] = useState('');
-  const [status, setStatus] = useState('');
-  const [search, setSearch] = useState('');
+  const guide = usePageGuide();
+  const [exporting, setExporting] = useState(false);
+  const list = useListParams({ status: 'ALL', temperature: 'ALL', ...PERIOD_DEFAULTS });
+  const { status, temperature } = list.filters;
 
-  const { data: stats } = useQuery({ queryKey: ['leads-stats'], queryFn: leadsApi.stats });
-  const { data, isLoading } = useQuery({
-    queryKey: ['leads', page, temperature, status, search],
-    queryFn: () => leadsApi.list({ page, limit: 25, temperature: temperature || undefined, status: status || undefined, search: search || undefined }),
+  const query = {
+    search: list.debouncedSearch || undefined,
+    status: status === 'ALL' ? undefined : status,
+    temperature: temperature === 'ALL' ? undefined : temperature,
+    ...periodQuery(list.filters),
+  };
+  const leads = useQuery({
+    queryKey: ['mkt', 'leads', query, list.page, list.limit],
+    queryFn: () => leadsApi.list({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
   });
+  const stats = useQuery({ queryKey: ['mkt', 'leads', 'stats'], queryFn: leadsApi.stats, staleTime: 60_000 });
+  const s = stats.data;
+  const rows: Lead[] = leads.data?.items ?? [];
+  const chip = periodChip(list.filters);
+
+  const chips = [
+    status !== 'ALL' && <FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{statusLabel(status)}</FilterChip>,
+    temperature !== 'ALL' && <FilterChip key="t" onRemove={() => list.setFilter('temperature', 'ALL')}>{statusLabel(temperature)}</FilterChip>,
+    chip && <FilterChip key="p" onRemove={() => clearPeriod(list)}>{chip}</FilterChip>,
+  ].filter(Boolean);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <PageShell>
+      <PageHero
         title="Leads"
-        subtitle="Aap ki growth ka dil — sab prospects ek jagah"
+        chip={s ? `${num(s.total)} total` : undefined}
+        busy={leads.isFetching}
+        loading={stats.isLoading}
         actions={
-          <button
-            onClick={() => download(leadsApi.exportCsvUrl({ temperature, status }), `leads-${Date.now()}.csv`)}
-            className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-2 text-sm font-medium hover:border-emerald-300"
-          >
-            <Download className="h-4 w-4" /> Export CSV
-          </button>
+          <>
+            <button type="button" className={heroButton} disabled={exporting} onClick={() => exportList<Lead>('leads', (page) => leadsApi.list({ ...query, page, limit: 100 }), [
+              { label: 'Lead number', value: (l) => l.leadNumber },
+              { label: 'Name', value: (l) => l.fullName },
+              { label: 'Email', value: (l) => l.email },
+              { label: 'Phone', value: (l) => l.phone },
+              { label: 'Company', value: (l) => l.companyName },
+              { label: 'Industry', value: (l) => l.industry },
+              { label: 'Source', value: (l) => l.source },
+              { label: 'Status', value: (l) => l.status },
+              { label: 'Temperature', value: (l) => l.temperature },
+              { label: 'Score', value: (l) => l.score },
+              { label: 'Created', value: (l) => l.createdAt.slice(0, 10) },
+            ], setExporting)}>
+              <Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
+            <GuideButton onClick={guide.open} />
+          </>
         }
+        stats={s ? [
+          { label: 'Total leads', value: num(s.total), hint: `${num(s.converted)} converted` },
+          { label: 'Fire and hot', value: num(s.temperature.fire + s.temperature.hot), hint: 'Ready to talk to' },
+          { label: 'Average score', value: s.averageScore, hint: 'Out of 100' },
+          { label: 'Conversion', value: s.conversionRate, hint: 'Leads that became shops' },
+        ] : undefined}
       />
 
-      {stats && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total Leads" value={stats.total.toLocaleString()} icon={Users} />
-          <StatCard label="🔥 Fire+Hot" value={stats.temperature.fire + stats.temperature.hot} icon={Flame} deltaColor="up" />
-          <StatCard label="Avg Score" value={stats.averageScore} icon={TrendingUp} />
-          <StatCard label="Conversion" value={stats.conversionRate} deltaColor="up" hint={`${stats.converted} converted`} />
-        </div>
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search name, email, phone or company" />}
+        chips={chips.length ? chips : undefined}
+        onClear={list.clear}
+      >
+        <FilterMenu icon={Tag} label="Status" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)}
+          options={[{ value: 'ALL', label: 'All statuses' }, ...STATUSES.map((v) => ({ value: v, label: statusLabel(v) }))]} />
+        <FilterMenu icon={Thermometer} label="Temperature" value={temperature} active={temperature !== 'ALL'} onChange={(v) => list.setFilter('temperature', v)}
+          options={[{ value: 'ALL', label: 'All temperatures' }, ...TEMPS.map((v) => ({ value: v, label: statusLabel(v) }))]} />
+        <DateRangeMenu value={periodValue(list.filters)} onChange={(v) => setPeriod(list, v)} startHour={0} label="Created" />
+      </FilterBar>
+
+      <ListCard
+        loading={leads.isLoading}
+        empty={!rows.length}
+        emptyIcon={<Users className="h-6 w-6" />}
+        emptyTitle="No leads match"
+        emptyText="Try another search or clear the filters."
+        page={list.page} limit={list.limit} total={leads.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="54rem">
+          <THead>
+            <Tr>
+              <Th>Lead</Th><Th>Source</Th><Th>Temperature</Th><Th>Score</Th><Th>Status</Th>
+              <Th align="right">Activities</Th><Th align="right">Created</Th>
+            </Tr>
+          </THead>
+          <TBody>
+            {rows.map((l) => (
+              <Tr key={l.id} interactive onClick={() => nav(`/marketing/leads/${l.id}`)}>
+                <Td>
+                  <div className="font-semibold text-slate-900">{l.fullName}</div>
+                  <div className="text-[0.75rem] text-slate-500">{l.companyName ?? l.email ?? l.phone}</div>
+                </Td>
+                <Td className="text-slate-600">{statusLabel(l.source)}</Td>
+                <Td><TemperatureBadge value={l.temperature} /></Td>
+                <Td>
+                  <div className="flex items-center gap-2">
+                    <div className="h-1.5 w-16 rounded-full bg-slate-200">
+                      <div className={`h-1.5 rounded-full ${l.score >= 80 ? 'bg-rose-500' : l.score >= 60 ? 'bg-amber-500' : l.score >= 40 ? 'bg-sky-500' : 'bg-slate-400'}`} style={{ width: `${Math.min(100, l.score)}%` }} />
+                    </div>
+                    <span className="text-[0.75rem] font-semibold tabular-nums text-slate-700">{l.score}</span>
+                  </div>
+                </Td>
+                <Td><StatusBadge value={l.status} /></Td>
+                <Td align="right" className="tabular-nums text-slate-600">{l._count?.activities ?? 0}</Td>
+                <Td align="right" className="whitespace-nowrap text-slate-500">{formatRelative(l.createdAt)}</Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
+      </ListCard>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Leads"
+          description="Every person who showed interest in Nafaa from the website, scored by how ready they are."
+          flowTitle="How a lead moves"
+          flow={[
+            { label: 'Visitor acts', hint: 'Form, demo, chat', icon: MessageSquare, color: '#4f46e5' },
+            { label: 'Lead created', hint: 'Scored 0 to 100', icon: Flame, color: '#e11d48' },
+            { label: 'You follow up', hint: 'Call, email, demo', icon: Phone, color: '#0284c7' },
+            { label: 'Becomes a shop', hint: 'Converted', icon: UserCheck, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Thermometer, color: '#e11d48', title: 'Start with fire and hot', text: 'The score rises with every action, so the hottest leads sit at the top of the list.' },
+            { icon: Target, color: '#4f46e5', title: 'Open a lead', text: 'See contact details, log calls and meetings, and change the status as the talk moves on.' },
+            { icon: Calendar, color: '#0284c7', title: 'Pick a period', text: 'Use Created to see only leads from a week or a month.' },
+            { icon: Download, color: '#059669', title: 'Export', text: 'Export CSV downloads every lead that matches the filters, not only this page.' },
+          ]}
+          tips={['Press / to jump to the search box.', 'Filters stay in the address, so you can share the link.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
       )}
-
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Name, email, company…" className="w-full rounded-lg border border-neutral-300 pl-9 pr-3 py-2 text-sm" />
-        </div>
-        <select value={temperature} onChange={(e) => setTemperature(e.target.value)} className="rounded-lg border border-neutral-300 px-3 py-2 text-sm">
-          <option value="">All temperatures</option>
-          <option value="FIRE">🔥 Fire</option>
-          <option value="HOT">🌶 Hot</option>
-          <option value="WARM">☀️ Warm</option>
-          <option value="COLD">🥶 Cold</option>
-        </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border border-neutral-300 px-3 py-2 text-sm">
-          <option value="">All statuses</option>
-          <option value="NEW">New</option>
-          <option value="CONTACTED">Contacted</option>
-          <option value="QUALIFIED">Qualified</option>
-          <option value="DEMO_SCHEDULED">Demo Scheduled</option>
-          <option value="DEMO_COMPLETED">Demo Done</option>
-          <option value="PROPOSAL_SENT">Proposal Sent</option>
-          <option value="NEGOTIATING">Negotiating</option>
-          <option value="CONVERTED">Converted</option>
-          <option value="LOST">Lost</option>
-        </select>
-      </div>
-
-      <DataTable<Lead>
-        loading={isLoading}
-        data={data?.items ?? []}
-        keyExtractor={(l) => l.id}
-        onRowClick={(l) => nav(`/marketing/leads/${l.id}`)}
-        columns={[
-          {
-            key: 'name',
-            header: 'Lead',
-            render: (l) => (
-              <div>
-                <p className="font-medium text-neutral-900">{l.fullName}</p>
-                <p className="text-xs text-neutral-500">{l.companyName ?? l.email ?? l.phone}</p>
-              </div>
-            ),
-          },
-          { key: 'source', header: 'Source', render: (l) => <span className="text-xs text-neutral-600">{l.source}</span> },
-          { key: 'temperature', header: 'Temp', render: (l) => <TemperatureBadge temp={l.temperature} /> },
-          {
-            key: 'score',
-            header: 'Score',
-            render: (l) => (
-              <div className="flex items-center gap-2">
-                <div className="h-1.5 w-16 rounded-full bg-neutral-200">
-                  <div
-                    className={`h-1.5 rounded-full ${l.score >= 80 ? 'bg-rose-500' : l.score >= 60 ? 'bg-orange-500' : l.score >= 40 ? 'bg-amber-500' : 'bg-sky-500'}`}
-                    style={{ width: `${l.score}%` }}
-                  />
-                </div>
-                <span className="text-xs font-semibold text-neutral-700">{l.score}</span>
-              </div>
-            ),
-          },
-          { key: 'status', header: 'Status', render: (l) => <StatusBadge status={l.status} /> },
-          { key: 'engagement', header: 'Activity', render: (l) => <span className="text-xs text-neutral-500">{l._count?.activities ?? 0} logs</span> },
-        ]}
-      />
-    </div>
+    </PageShell>
   );
 }

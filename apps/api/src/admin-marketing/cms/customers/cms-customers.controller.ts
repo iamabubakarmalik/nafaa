@@ -17,10 +17,12 @@ import {
 import { CmsExceptionFilter } from '../public/cms-exception.filter';
 import { parseOr400, userId } from '../public/cms-http';
 import { CmsCustomersService } from './cms-customers.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 type AuthedRequest = { user?: { id?: string } };
 
 /** Admin → Website → Customers and testimonials (API-CONTRACT 8.8). */
+@AdminArea('marketing')
 @Controller('admin/marketing/cms')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 @UseFilters(CmsExceptionFilter)

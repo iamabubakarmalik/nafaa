@@ -23,7 +23,7 @@ function useDebounced<T>(value: T, ms = 250): T {
 
 export function TypeTag({ type, className }: { type: CmsEntryType; className?: string }) {
   return (
-    <span className={cn('inline-flex shrink-0 items-center rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-500', className)}>
+    <span className={cn('inline-flex shrink-0 items-center rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500', className)}>
       {ENTRY_TYPE_META[type]?.label ?? type}
     </span>
   );
@@ -35,7 +35,7 @@ export function EntrySearch({
   onPick,
   excludeIds = [],
   autoFocus = true,
-  placeholder = 'Title ya path se dhoondein…',
+  placeholder = 'Search by title or path…',
 }: {
   types?: readonly CmsEntryType[];
   onPick: (ref: AdminEntryRef) => void;
@@ -55,14 +55,14 @@ export function EntrySearch({
   const items = (data ?? []).filter((r) => !excludeIds.includes(r.id));
   return (
     <div className="w-[min(420px,90vw)]">
-      <div className="relative border-b border-neutral-100 p-2">
-        <Search className="absolute left-4 top-4 h-4 w-4 text-neutral-400" />
+      <div className="relative border-b border-slate-100 p-2">
+        <Search className="absolute left-4 top-4 h-4 w-4 text-slate-400" />
         <input
           autoFocus={autoFocus}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-lg bg-neutral-50 py-2 pl-8 pr-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          className="w-full rounded-lg bg-slate-50 py-2 pl-8 pr-3 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500/20"
         />
         {types && types.length > 0 && (
           <div className="mt-1.5 flex flex-wrap gap-1 px-0.5">
@@ -73,9 +73,9 @@ export function EntrySearch({
         )}
       </div>
       <div className="max-h-72 overflow-y-auto p-1">
-        {isError && <p className="px-3 py-4 text-center text-xs text-rose-600">Search nahi chal saki (API)</p>}
+        {isError && <p className="px-3 py-4 text-center text-xs text-rose-600">Search is not available right now</p>}
         {!isError && items.length === 0 && (
-          <p className="px-3 py-4 text-center text-xs text-neutral-500">{isFetching ? 'Dhoond rahe hain…' : 'Kuch nahi mila'}</p>
+          <p className="px-3 py-4 text-center text-xs text-slate-500">{isFetching ? 'Searching…' : 'Nothing found'}</p>
         )}
         {items.map((r) => (
           <button
@@ -85,12 +85,12 @@ export function EntrySearch({
               addRefs([r]);
               onPick(r);
             }}
-            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition hover:bg-emerald-50"
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition hover:bg-brand-50"
           >
             <StatusDot status={r.status} />
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-medium text-neutral-900">{r.title}</span>
-              <span className="block truncate font-mono text-[11px] text-neutral-500">{r.path}</span>
+              <span className="block truncate text-sm font-medium text-slate-900">{r.title}</span>
+              <span className="block truncate font-mono text-[11px] text-slate-500">{r.path}</span>
             </span>
             <TypeTag type={r.type} />
           </button>
@@ -105,16 +105,16 @@ export function EntryChip({ id, onRemove, trailing }: { id: string; onRemove?: (
   const { refs } = useEditor();
   const ref = refs[id];
   return (
-    <div className="flex min-w-0 items-center gap-2 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5">
-      {ref ? <StatusDot status={ref.status} /> : <FileText className="h-3.5 w-3.5 text-neutral-400" />}
+    <div className="flex min-w-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
+      {ref ? <StatusDot status={ref.status} /> : <FileText className="h-3.5 w-3.5 text-slate-400" />}
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm text-neutral-800">{ref?.title ?? 'Entry'}</span>
-        <span className="block truncate font-mono text-[11px] text-neutral-500">{ref?.path ?? id}</span>
+        <span className="block truncate text-sm text-slate-800">{ref?.title ?? 'Entry'}</span>
+        <span className="block truncate font-mono text-[11px] text-slate-500">{ref?.path ?? id}</span>
       </span>
       {ref && <TypeTag type={ref.type} />}
       {trailing}
       {onRemove && (
-        <button type="button" onClick={onRemove} className="text-neutral-400 hover:text-rose-600" aria-label="Hatayein">
+        <button type="button" onClick={onRemove} className="text-slate-400 hover:text-rose-600" aria-label="Remove">
           <X className="h-3.5 w-3.5" />
         </button>
       )}
@@ -131,7 +131,7 @@ export function EntryPicker({
   hint,
   error,
   required,
-  placeholder = 'Entry chunein',
+  placeholder = 'Choose an entry',
 }: {
   value: string | null | undefined;
   onChange: (id: string | null) => void;
@@ -152,7 +152,7 @@ export function EntryPicker({
             id={value}
             onRemove={() => onChange(null)}
             trailing={
-              <button type="button" onClick={() => setOpen((o) => !o)} className="text-xs font-medium text-emerald-700 hover:underline">
+              <button type="button" onClick={() => setOpen((o) => !o)} className="text-xs font-medium text-brand-700 hover:underline">
                 Badlein
               </button>
             }
@@ -162,8 +162,8 @@ export function EntryPicker({
             type="button"
             onClick={() => setOpen((o) => !o)}
             className={cn(
-              'flex w-full items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-left text-sm text-neutral-500 transition hover:border-emerald-400 hover:text-emerald-700',
-              error ? 'border-rose-300' : 'border-neutral-300',
+              'flex w-full items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-left text-sm text-slate-500 transition hover:border-brand-400 hover:text-brand-700',
+              error ? 'border-rose-300' : 'border-slate-300',
             )}
           >
             <Search className="h-4 w-4" /> {placeholder}
@@ -220,11 +220,11 @@ export function EntryMultiPicker({
             id={id}
             onRemove={() => onChange(list.filter((x) => x !== id))}
             trailing={
-              <span className="flex text-neutral-400">
-                <button type="button" disabled={i === 0} onClick={() => move(i, i - 1)} className="px-0.5 hover:text-neutral-800 disabled:opacity-30" aria-label="Upar">
+              <span className="flex text-slate-400">
+                <button type="button" disabled={i === 0} onClick={() => move(i, i - 1)} className="px-0.5 hover:text-slate-800 disabled:opacity-30" aria-label="Move up">
                   ↑
                 </button>
-                <button type="button" disabled={i === list.length - 1} onClick={() => move(i, i + 1)} className="px-0.5 hover:text-neutral-800 disabled:opacity-30" aria-label="Neeche">
+                <button type="button" disabled={i === list.length - 1} onClick={() => move(i, i + 1)} className="px-0.5 hover:text-slate-800 disabled:opacity-30" aria-label="Move down">
                   ↓
                 </button>
               </span>
@@ -235,9 +235,9 @@ export function EntryMultiPicker({
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
-            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-neutral-300 py-1.5 text-xs font-medium text-neutral-600 hover:border-emerald-400 hover:text-emerald-700"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 py-1.5 text-xs font-medium text-slate-600 hover:border-brand-400 hover:text-brand-700"
           >
-            <Search className="h-3.5 w-3.5" /> Entry shamil karein
+            <Search className="h-3.5 w-3.5" /> Add an entry
           </button>
         )}
         <Popover open={open}>

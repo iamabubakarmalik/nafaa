@@ -19,7 +19,7 @@ export function StepsForm({ block, set, err }: BlockFormProps<'steps'>) {
     <div className="space-y-5">
       <TextField label="Heading" required value={block.heading} onChange={(heading) => set({ heading })} chars={{ max: 120 }} error={err('heading')} />
       <MarkdownEditor label="Intro" inline rows={2} value={block.intro} onChange={(intro) => set({ intro: intro || undefined })} error={err('intro')} />
-      <Toggle checked={block.howTo} onChange={(howTo) => set({ howTo: howTo || undefined })} label="HowTo schema" hint="Sirf asal qadam ba qadam hidayat ke liye" />
+      <Toggle checked={block.howTo} onChange={(howTo) => set({ howTo: howTo || undefined })} label="HowTo schema" hint="Only for real step-by-step instructions" />
       <ListEditor<Step>
         label="Qadam"
         items={block.items as Step[] | undefined}
@@ -28,7 +28,7 @@ export function StepsForm({ block, set, err }: BlockFormProps<'steps'>) {
         max={BLOCK_LIMITS.stepsItems.max}
         create={() => ({ title: '', body: '' })}
         itemTitle={(s, i) => `${i + 1}. ${s.title || 'Qadam'}`}
-        addLabel="Qadam shamil karein"
+        addLabel="Add a step"
         error={err('items')}
         render={(s, update, i) => (
           <>
@@ -71,7 +71,7 @@ export function ScreenshotForm({ block, set, err }: BlockFormProps<'screenshot'>
   const [placing, setPlacing] = useState(false);
   return (
     <div className="space-y-5">
-      <MediaField label="Screenshot" required kinds={['SCREENSHOT', 'IMAGE']} value={block.mediaId} onChange={(mediaId) => set({ mediaId })} error={err('mediaId')} hint="Sirf asal app ki tasveer" />
+      <MediaField label="Screenshot" required kinds={['SCREENSHOT', 'IMAGE']} value={block.mediaId} onChange={(mediaId) => set({ mediaId })} error={err('mediaId')} hint="A real app picture only" />
       <Grid>
         <SelectField<Frame> label="Frame" value={block.frame} onChange={(frame) => set({ frame })} options={FRAME_OPTIONS} error={err('frame')} />
         <TextField label="Address bar text" value={block.url} onChange={(url) => set({ url: url || undefined })} placeholder="app.nafaa.pk/khata" mono />
@@ -81,9 +81,9 @@ export function ScreenshotForm({ block, set, err }: BlockFormProps<'screenshot'>
         value={block.layout}
         onChange={(layout) => set({ layout })}
         options={[
-          { value: 'full', label: 'Poori chaurai' },
-          { value: 'split-left', label: 'Tasveer left' },
-          { value: 'split-right', label: 'Tasveer right' },
+          { value: 'full', label: 'Full width' },
+          { value: 'split-left', label: 'Image on the left' },
+          { value: 'split-right', label: 'Image on the right' },
         ]}
         error={err('layout')}
       />
@@ -93,18 +93,18 @@ export function ScreenshotForm({ block, set, err }: BlockFormProps<'screenshot'>
 
       <Section
         title="Callouts"
-        description="Tasveer par click karke nishaan lagayein (6 tak)"
+        description="Click the picture to place markers (up to 6)"
         actions={
           media && callouts.length < BLOCK_LIMITS.screenshotCalloutsMax ? (
-            <button type="button" onClick={() => setPlacing((p) => !p)} className={`rounded-lg px-2.5 py-1 text-xs font-medium ${placing ? 'bg-emerald-600 text-white' : 'border border-neutral-300 text-neutral-700'}`}>
-              {placing ? 'Tasveer par click karein…' : '+ Nishaan'}
+            <button type="button" onClick={() => setPlacing((p) => !p)} className={`rounded-lg px-2.5 py-1 text-xs font-medium ${placing ? 'bg-brand-600 text-brand-fg' : 'border border-slate-300 text-slate-700'}`}>
+              {placing ? 'Click the picture…' : '+ Marker'}
             </button>
           ) : undefined
         }
       >
         {media && (
           <div
-            className={`relative overflow-hidden rounded-lg border border-neutral-200 ${placing ? 'cursor-crosshair ring-2 ring-emerald-500/30' : ''}`}
+            className={`relative overflow-hidden rounded-lg border border-slate-200 ${placing ? 'cursor-crosshair ring-2 ring-brand-500/30' : ''}`}
             onClick={(e) => {
               if (!placing) return;
               const r = e.currentTarget.getBoundingClientRect();
@@ -116,7 +116,7 @@ export function ScreenshotForm({ block, set, err }: BlockFormProps<'screenshot'>
           >
             <MediaThumb media={media} className="w-full" />
             {callouts.map((c, i) => (
-              <span key={i} className="absolute grid h-6 w-6 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-emerald-600 text-[11px] font-bold text-white shadow ring-2 ring-white" style={{ left: `${c.x ?? 0}%`, top: `${c.y ?? 0}%` }}>
+              <span key={i} className="absolute grid h-6 w-6 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-brand-600 text-[11px] font-bold text-white shadow ring-2 ring-white" style={{ left: `${c.x ?? 0}%`, top: `${c.y ?? 0}%` }}>
                 {i + 1}
               </span>
             ))}
@@ -127,8 +127,8 @@ export function ScreenshotForm({ block, set, err }: BlockFormProps<'screenshot'>
           onChange={(next) => set({ callouts: (next.length ? next : undefined) as typeof block.callouts })}
           max={BLOCK_LIMITS.screenshotCalloutsMax}
           create={() => ({ x: 50, y: 50, label: '' })}
-          itemTitle={(c, i) => `${i + 1}. ${c.label || 'Nishaan'}`}
-          addLabel="Nishaan shamil karein"
+          itemTitle={(c, i) => `${i + 1}. ${c.label || 'Marker'}`}
+          addLabel="Add a marker"
           compact
           render={(c, update, i) => (
             <div className="grid gap-3 sm:grid-cols-[2fr_1fr_1fr]">
@@ -147,7 +147,7 @@ export function DiagramForm({ block, set, err }: BlockFormProps<'diagram'>) {
   return (
     <div className="space-y-5">
       <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} />
-      <TextArea label="Caption" required value={block.caption} onChange={(caption) => set({ caption })} chars={{ max: 300 }} rows={2} hint="Screen reader aur Google ke liye: diagram kya dikhata hai" error={err('caption')} />
+      <TextArea label="Caption" required value={block.caption} onChange={(caption) => set({ caption })} chars={{ max: 300 }} rows={2} hint="For screen readers and Google: what the diagram shows" error={err('caption')} />
       <DiagramEditor value={block.diagram as DiagramDraft | undefined} onChange={(diagram) => set({ diagram: diagram as typeof block.diagram })} errors={scoped(err, 'diagram')} />
     </div>
   );
@@ -167,7 +167,7 @@ export function CodeSampleForm({ block, set, err }: BlockFormProps<'codeSample'>
         max={BLOCK_LIMITS.codeTabs.max}
         create={() => ({ label: '', language: 'bash', code: '' })}
         itemTitle={(t, i) => t.label || `Tab ${i + 1}`}
-        addLabel="Tab shamil karein"
+        addLabel="Add a tab"
         error={err('tabs')}
         render={(t, update, i) => (
           <>

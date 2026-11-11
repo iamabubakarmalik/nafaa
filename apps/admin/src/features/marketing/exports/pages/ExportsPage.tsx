@@ -1,53 +1,77 @@
-import { useState } from 'react';
-import { Download, FileText } from 'lucide-react';
-import { exportsApi, type ExportEntity } from '../../../../api/marketing/marketing-exports.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { useCsvDownload } from '../../_shared/hooks/useCsvDownload';
+/**
+ * Data exports: download whole marketing datasets (subscribers, leads,
+ * contact forms, demos, campaigns) as CSV, for one period or everything
+ * from the last 90 days when no period is chosen.
+ */
 
-const ENTITIES: { key: ExportEntity; label: string; description: string }[] = [
-  { key: 'subscribers', label: 'Newsletter Subscribers', description: 'Emails, tags, engagement scores' },
-  { key: 'leads', label: 'Marketing Leads', description: 'All leads with scores + temperature' },
-  { key: 'contact-forms', label: 'Contact Forms', description: 'All submissions + status' },
-  { key: 'demos', label: 'Demo Bookings', description: 'Requested + completed demos' },
-  { key: 'campaigns', label: 'Campaigns', description: 'Sent campaigns + open/click stats' },
+import { Calendar, Download, FileText, Megaphone, Users, Mail, MessageSquare, CalendarCheck } from 'lucide-react';
+import { Button, Card, DateRangeMenu, FilterBar, PageHero, PageShell } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { exportsApi, type ExportEntity } from '@/api/marketing/marketing-exports.api';
+import { useListParams } from '@/ui';
+import { PERIOD_DEFAULTS, periodChip, periodQuery, periodValue, setPeriod } from '@/features/shared/period';
+import { GuideButton, downloadServerCsv } from '../../lib/kit';
+
+const ENTITIES: { key: ExportEntity; label: string; description: string; icon: typeof Mail }[] = [
+  { key: 'subscribers', label: 'Newsletter subscribers', description: 'Emails, tags and engagement scores', icon: Mail },
+  { key: 'leads', label: 'Marketing leads', description: 'All leads with score and temperature', icon: Users },
+  { key: 'contact-forms', label: 'Contact forms', description: 'All submissions with their status', icon: MessageSquare },
+  { key: 'demos', label: 'Demo bookings', description: 'Requested and completed demos', icon: CalendarCheck },
+  { key: 'campaigns', label: 'Campaigns', description: 'Sent campaigns with open and click stats', icon: Megaphone },
 ];
 
 export function ExportsPage() {
-  const download = useCsvDownload();
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const guide = usePageGuide();
+  const list = useListParams(PERIOD_DEFAULTS);
+  const q = periodQuery(list.filters);
+  const chip = periodChip(list.filters);
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Data Exports" subtitle="Download CSV data for analysis" />
+    <PageShell>
+      <PageHero
+        title="Data exports"
+        chip={chip ?? 'Last 90 days'}
+        actions={<GuideButton onClick={guide.open} />}
+        stats={[
+          { label: 'Datasets', value: ENTITIES.length },
+          { label: 'Period', value: chip ?? 'Last 90 days' },
+          { label: 'Format', value: 'CSV' },
+        ]}
+      />
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <h3 className="mb-3 font-semibold text-neutral-800">Date Range (optional)</h3>
-        <div className="flex flex-wrap gap-3">
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
-        </div>
-      </div>
+      <FilterBar>
+        <DateRangeMenu value={periodValue(list.filters)} onChange={(v) => setPeriod(list, v)} startHour={0} label="Period" />
+      </FilterBar>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {ENTITIES.map((e) => (
-          <div key={e.key} className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-            <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
-              <FileText className="h-5 w-5" />
+          <Card key={e.key} title={e.label} description={e.description}>
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><e.icon className="h-5 w-5" /></span>
+              <Button variant="outline" size="sm" leftIcon={<Download className="h-4 w-4" />} onClick={() => downloadServerCsv(exportsApi.url(e.key, q.from, q.to), `nafaa-${e.key}-${new Date().toISOString().slice(0, 10)}.csv`)}>Download CSV</Button>
             </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-neutral-900">{e.label}</h4>
-              <p className="mt-0.5 text-xs text-neutral-500">{e.description}</p>
-              <button
-                onClick={() => download(exportsApi.url(e.key, from || undefined, to || undefined), `${e.key}-${Date.now()}.csv`)}
-                className="mt-3 inline-flex items-center gap-2 rounded-lg border border-emerald-300 bg-white px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
-              >
-                <Download className="h-3 w-3" /> Download CSV
-              </button>
-            </div>
-          </div>
+          </Card>
         ))}
       </div>
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Data exports"
+          description="Take marketing data out of Nafaa to work on it in a spreadsheet."
+          flowTitle="Exporting"
+          flow={[
+            { label: 'Pick a period', hint: 'Optional', icon: Calendar, color: '#4f46e5' },
+            { label: 'Choose a dataset', hint: 'Leads, forms…', icon: FileText, color: '#0284c7' },
+            { label: 'Download CSV', hint: 'Opens in Excel', icon: Download, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Calendar, color: '#4f46e5', title: 'Period', text: 'Without a period, the last 90 days are exported.' },
+            { icon: Download, color: '#059669', title: 'Download', text: 'Each card downloads one file. Names with Urdu letters open correctly in Excel.' },
+          ]}
+          tips={['Each list page also has its own Export CSV that follows its filters.']}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

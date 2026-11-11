@@ -1,5 +1,5 @@
 import {
-  Body, Controller, Get, Param, Post, Req, UseGuards,
+  Body, Controller, Get, Param, Post, Query, Req, UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { MarketingAdminGuard } from '../_shared/guards/marketing-admin.guard';
@@ -7,7 +7,9 @@ import { MarketingPermissionsGuard } from '../_shared/guards/marketing-permissio
 import { RequireMarketingPermissions } from '../_shared/decorators/marketing-permissions.decorator';
 import { MARKETING_PERMISSIONS } from '../_shared/constants/marketing-permissions.constants';
 import { AbTestsService } from './ab-tests.service';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
+@AdminArea('marketing')
 @Controller('admin/marketing/ab-tests')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class AbTestsController {
@@ -15,7 +17,7 @@ export class AbTestsController {
 
   @Get()
   @RequireMarketingPermissions(MARKETING_PERMISSIONS.AB_TESTS_VIEW)
-  list() { return this.svc.list(); }
+  list(@Query() q: any) { return this.svc.list(q); }
 
   @Get(':id')
   @RequireMarketingPermissions(MARKETING_PERMISSIONS.AB_TESTS_VIEW)

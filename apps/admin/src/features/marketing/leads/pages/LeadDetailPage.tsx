@@ -1,166 +1,160 @@
+/**
+ * One marketing lead: contact details, status and temperature, engagement
+ * counters and the activity timeline, with a form to log calls, emails,
+ * meetings and notes.
+ */
+
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Mail, Phone, Building2, Activity, PlusCircle } from 'lucide-react';
-import { leadsApi } from '../../../../api/marketing/marketing-leads.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { StatusBadge } from '../../_shared/components/StatusBadge';
-import { TemperatureBadge } from '../../_shared/components/TemperatureBadge';
-import { formatDistanceToNow } from 'date-fns';
+import { Activity, ClipboardList, PlusCircle, Phone, Thermometer, UserCheck } from 'lucide-react';
+import { Button, Card, EmptyState, Input, PageHero, PageShell, Select, Skeleton, Textarea } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { leadsApi } from '@/api/marketing/marketing-leads.api';
+import { formatRelative } from '@/lib/format';
+import { DetailList, statusLabel } from '@/ui';
+import { GuideButton, TemperatureBadge } from '../../lib/kit';
+
+const ACTIVITY_TYPES = ['CALL', 'EMAIL', 'MEETING', 'DEMO', 'SMS', 'WHATSAPP', 'NOTE'];
+const STATUSES = ['NEW', 'CONTACTED', 'QUALIFIED', 'DEMO_SCHEDULED', 'DEMO_COMPLETED', 'PROPOSAL_SENT', 'NEGOTIATING', 'CONVERTED', 'LOST', 'UNRESPONSIVE', 'DO_NOT_CONTACT'];
+const TEMPS = ['COLD', 'WARM', 'HOT', 'FIRE'];
 
 export function LeadDetailPage() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
-  const [activityType, setActivityType] = useState<any>('CALL');
+  const guide = usePageGuide();
+  const [activityType, setActivityType] = useState('CALL');
   const [summary, setSummary] = useState('');
   const [details, setDetails] = useState('');
 
-  const { data: lead, isLoading } = useQuery({
-    queryKey: ['lead', id],
-    queryFn: () => leadsApi.detail(id!),
-    enabled: !!id,
-  });
+  const { data: lead, isLoading } = useQuery({ queryKey: ['mkt', 'lead', id], queryFn: () => leadsApi.detail(id!), enabled: !!id });
+  const refresh = () => { qc.invalidateQueries({ queryKey: ['mkt', 'lead', id] }); qc.invalidateQueries({ queryKey: ['mkt', 'leads'] }); };
 
   const updateMut = useMutation({
     mutationFn: (body: any) => leadsApi.update(id!, body),
-    onSuccess: () => {
-      toast.success('Lead updated');
-      qc.invalidateQueries({ queryKey: ['lead', id] });
-    },
+    onSuccess: () => { toast.success('Lead updated'); refresh(); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Could not update the lead'),
   });
-
   const logMut = useMutation({
     mutationFn: (body: any) => leadsApi.logActivity(id!, body),
-    onSuccess: () => {
-      toast.success('Activity logged');
-      setSummary('');
-      setDetails('');
-      qc.invalidateQueries({ queryKey: ['lead', id] });
-    },
+    onSuccess: () => { toast.success('Activity logged'); setSummary(''); setDetails(''); refresh(); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Could not log the activity'),
   });
 
-  if (isLoading || !lead) return <div className="h-40 animate-pulse rounded-2xl bg-white" />;
+  if (isLoading || !lead) {
+    return (
+      <PageShell>
+        <PageHero title="Lead" back="/marketing/leads" loading />
+        <Skeleton className="h-64 rounded-3xl" />
+      </PageShell>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <PageShell>
+      <PageHero
         title={lead.fullName}
-        subtitle={lead.leadNumber}
-        backTo="/marketing/leads"
-        actions={
-          <>
-            <TemperatureBadge temp={lead.temperature} />
-            <StatusBadge status={lead.status} />
-            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold">Score: {lead.score}</span>
-          </>
-        }
+        back="/marketing/leads"
+        chip={statusLabel(lead.status)}
+        backLabel="Leads"
+        meta={lead.leadNumber}
+        actions={<GuideButton onClick={guide.open} />}
+        stats={[
+          { label: 'Score', value: lead.score, hint: 'Out of 100' },
+          { label: 'Temperature', value: statusLabel(lead.temperature) },
+          { label: 'Emails sent', value: lead.emailsSent, hint: `${lead.emailsOpened} opened` },
+          { label: 'Calls and meetings', value: lead.callsMade + lead.meetingsHeld, hint: `${lead.demosAttended} demos attended` },
+        ]}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 font-semibold text-neutral-800">Contact</h3>
-            <div className="grid gap-3 sm:grid-cols-2 text-sm">
-              {lead.email && <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-neutral-400" /> {lead.email}</div>}
-              {lead.phone && <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-neutral-400" /> {lead.phone}</div>}
-              {lead.companyName && <div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-neutral-400" /> {lead.companyName}</div>}
-              {lead.industry && <div className="text-neutral-600">Industry: {lead.industry}</div>}
-              {lead.budget && <div className="text-neutral-600">Budget: {lead.budget}</div>}
-              {lead.timeline && <div className="text-neutral-600">Timeline: {lead.timeline}</div>}
-            </div>
-          </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="space-y-4 xl:col-span-2">
+          <Card title="Contact" description="How to reach this person.">
+            <DetailList cols={2} items={[
+              { label: 'Email', value: lead.email },
+              { label: 'Phone', value: lead.phone },
+              { label: 'Company', value: lead.companyName },
+              { label: 'Industry', value: lead.industry },
+              { label: 'Budget', value: lead.budget },
+              { label: 'Timeline', value: lead.timeline },
+              { label: 'Source', value: statusLabel(lead.source) },
+              { label: 'Decision maker', value: lead.decisionMaker ? 'Yes' : 'No' },
+            ]} />
+          </Card>
 
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5">
-            <h3 className="mb-3 font-semibold text-emerald-900">Log Activity</h3>
+          <Card title="Log activity" description="Write down what happened so the next person knows.">
             <div className="space-y-3">
-              <select value={activityType} onChange={(e) => setActivityType(e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm">
-                <option value="CALL">📞 Call</option>
-                <option value="EMAIL">📧 Email</option>
-                <option value="MEETING">🤝 Meeting</option>
-                <option value="DEMO">🎬 Demo</option>
-                <option value="SMS">📱 SMS</option>
-                <option value="WHATSAPP">💬 WhatsApp</option>
-                <option value="NOTE">📝 Note</option>
-              </select>
-              <input value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="Summary (kya hua)" className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
-              <textarea value={details} onChange={(e) => setDetails(e.target.value)} placeholder="Details (optional)" rows={2} className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
-              <button
-                onClick={() => {
-                  if (!summary.trim()) { toast.error('Summary zaroori'); return; }
-                  logMut.mutate({ type: activityType, summary, details });
-                }}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-              >
-                <PlusCircle className="h-4 w-4" /> Log Activity
-              </button>
+              <Select label="Type" value={activityType} onChange={(e) => setActivityType(e.target.value)} options={ACTIVITY_TYPES.map((v) => ({ value: v, label: statusLabel(v) }))} />
+              <Input label="Summary" value={summary} onChange={(e) => setSummary(e.target.value)} placeholder="What happened?" />
+              <Textarea label="Details (optional)" value={details} onChange={(e) => setDetails(e.target.value)} rows={2} />
+              <Button leftIcon={<PlusCircle className="h-4 w-4" />} loading={logMut.isPending} onClick={() => {
+                if (!summary.trim()) { toast.error('Write a short summary first'); return; }
+                logMut.mutate({ type: activityType, summary, details });
+              }}>Log activity</Button>
             </div>
-          </div>
+          </Card>
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 font-semibold text-neutral-800">Activity Timeline</h3>
+          <Card title="Activity timeline">
             {lead.activities && lead.activities.length > 0 ? (
               <ul className="space-y-3">
                 {lead.activities.map((a: any) => (
-                  <li key={a.id} className="flex gap-3 border-l-2 border-emerald-200 pl-3">
-                    <Activity className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-neutral-500">{a.activityType}</span>
-                        <span className="text-xs text-neutral-400">
-                          {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}
-                        </span>
+                  <li key={a.id} className="flex gap-3 border-l-2 border-brand-200 pl-3">
+                    <Activity className="mt-0.5 h-4 w-4 shrink-0 text-brand-600" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2 text-[0.75rem] text-slate-500">
+                        <span className="font-medium">{statusLabel(a.activityType)}</span>
+                        <span>{formatRelative(a.createdAt)}</span>
                       </div>
-                      <p className="text-sm text-neutral-800">{a.title}</p>
-                      {a.description && <p className="mt-0.5 text-xs text-neutral-500">{a.description}</p>}
+                      <p className="text-[0.875rem] text-slate-900">{a.title}</p>
+                      {a.description && <p className="mt-0.5 text-[0.75rem] text-slate-500">{a.description}</p>}
                     </div>
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p className="text-sm text-neutral-500">Koi activity abhi nahi.</p>
-            )}
-          </div>
+            ) : <EmptyState icon={<Activity className="h-6 w-6" />} title="No activity yet" description="Log the first call, email or note above." />}
+          </Card>
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 text-sm font-semibold text-neutral-700">Update Lead</h3>
-            <div className="space-y-2">
-              <select value={lead.status} onChange={(e) => updateMut.mutate({ status: e.target.value })} className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm">
-                <option value="NEW">New</option>
-                <option value="CONTACTED">Contacted</option>
-                <option value="QUALIFIED">Qualified</option>
-                <option value="DEMO_SCHEDULED">Demo Scheduled</option>
-                <option value="DEMO_COMPLETED">Demo Done</option>
-                <option value="PROPOSAL_SENT">Proposal Sent</option>
-                <option value="NEGOTIATING">Negotiating</option>
-                <option value="CONVERTED">Converted</option>
-                <option value="LOST">Lost</option>
-                <option value="UNRESPONSIVE">Unresponsive</option>
-                <option value="DO_NOT_CONTACT">Do Not Contact</option>
-              </select>
-              <select value={lead.temperature} onChange={(e) => updateMut.mutate({ temperature: e.target.value })} className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm">
-                <option value="COLD">🥶 Cold</option>
-                <option value="WARM">☀️ Warm</option>
-                <option value="HOT">🔥 Hot</option>
-                <option value="FIRE">💥 Fire</option>
-              </select>
+          <Card title="Update lead">
+            <div className="space-y-3">
+              <Select label="Status" value={lead.status} onChange={(e) => updateMut.mutate({ status: e.target.value })} options={STATUSES.map((v) => ({ value: v, label: statusLabel(v) }))} />
+              <Select label="Temperature" value={lead.temperature} onChange={(e) => updateMut.mutate({ temperature: e.target.value })} options={TEMPS.map((v) => ({ value: v, label: statusLabel(v) }))} />
+              <div className="flex items-center gap-2 text-[0.8125rem] text-slate-500">Now: <TemperatureBadge value={lead.temperature} /></div>
             </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 text-sm font-semibold text-neutral-700">Engagement</h3>
-            <ul className="space-y-1 text-sm">
-              <li className="flex justify-between"><span className="text-neutral-500">Emails sent</span><span className="font-medium">{lead.emailsSent}</span></li>
-              <li className="flex justify-between"><span className="text-neutral-500">Emails opened</span><span className="font-medium">{lead.emailsOpened}</span></li>
-              <li className="flex justify-between"><span className="text-neutral-500">Calls</span><span className="font-medium">{lead.callsMade}</span></li>
-              <li className="flex justify-between"><span className="text-neutral-500">Meetings</span><span className="font-medium">{lead.meetingsHeld}</span></li>
-              <li className="flex justify-between"><span className="text-neutral-500">Demos attended</span><span className="font-medium">{lead.demosAttended}</span></li>
-            </ul>
-          </div>
+          </Card>
+          <Card title="Engagement">
+            <DetailList items={[
+              { label: 'Emails sent', value: lead.emailsSent },
+              { label: 'Emails opened', value: lead.emailsOpened },
+              { label: 'Calls', value: lead.callsMade },
+              { label: 'Meetings', value: lead.meetingsHeld },
+              { label: 'Demos attended', value: lead.demosAttended },
+            ]} />
+          </Card>
         </div>
       </div>
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Lead"
+          description="Work one prospect from first contact to a paying shop."
+          flowTitle="Working a lead"
+          flow={[
+            { label: 'Read details', hint: 'Contact, budget', icon: ClipboardList, color: '#4f46e5' },
+            { label: 'Reach out', hint: 'Call or message', icon: Phone, color: '#0284c7' },
+            { label: 'Log it', hint: 'Activity timeline', icon: PlusCircle, color: '#d97706' },
+            { label: 'Update status', hint: 'Converted or lost', icon: UserCheck, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Phone, color: '#0284c7', title: 'Log every touch', text: 'Each call, email or note you log is added to the timeline and raises the score.' },
+            { icon: Thermometer, color: '#e11d48', title: 'Keep temperature honest', text: 'Change it to Hot or Fire when the person is ready to buy.' },
+            { icon: UserCheck, color: '#059669', title: 'Close the loop', text: 'Set the status to Converted or Lost so reports stay accurate.' },
+          ]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

@@ -46,15 +46,15 @@ export function SeoSettingsTab({ value }: { value: SeoSettings | null }) {
     setGates({ ...gates, [t]: { minWords: '', minFaqs: '', similarityMax: '', ...gates[t], ...p } });
 
   return (
-    <SettingSection settingKey="seo" title="SEO defaults" description="Title ka dhancha, har page type ki kam se kam lambai (quality gate) aur official sources." buildValue={build} onErrors={setErrors}>
-      <Field label="Title template" required error={errors.titleTemplate} hint="%s ki jagah page ka title aata hai">
+    <SettingSection settingKey="seo" title="SEO defaults" description="The title format, the minimum length of each page type (quality gate) and official sources." buildValue={build} onErrors={setErrors}>
+      <Field label="Title template" required error={errors.titleTemplate} hint="%s is replaced by the page title">
         <input className={inputCls} value={template} onChange={(e) => setTemplate(e.target.value)} />
       </Field>
 
       <div>
-        <h3 className="mb-1 text-sm font-semibold text-neutral-900">Title patterns</h3>
-        <p className="mb-2 text-xs text-neutral-500">
-          Key: page type (INDUSTRY) ya PAGE:home. Placeholders: {TITLE_PATTERN_PLACEHOLDERS.map((p) => `{${p}}`).join(', ')}, {'{data.field}'}. Khali chhorein to default lagta hai.
+        <h3 className="mb-1 text-sm font-semibold text-slate-900">Title patterns</h3>
+        <p className="mb-2 text-xs text-slate-500">
+          Key: page type (INDUSTRY) or PAGE:home. Placeholders: {TITLE_PATTERN_PLACEHOLDERS.map((p) => `{${p}}`).join(', ')}, {'{data.field}'}. Leave empty to use the default.
         </p>
         <RowList
           rows={patterns}
@@ -77,12 +77,12 @@ export function SeoSettingsTab({ value }: { value: SeoSettings | null }) {
       </div>
 
       <div>
-        <h3 className="mb-1 text-sm font-semibold text-neutral-900">Quality gates</h3>
-        <p className="mb-2 text-xs text-neutral-500">Is se kam words wala page publish ho sakta hai lekin noindex rahe ga aur sitemap me nahi aaye ga. Khali = default.</p>
+        <h3 className="mb-1 text-sm font-semibold text-slate-900">Quality gates</h3>
+        <p className="mb-2 text-xs text-slate-500">A page with fewer words can still be published, but it stays noindex and is left out of the sitemap. Empty means the default.</p>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-neutral-500">
+              <tr className="text-left text-xs text-slate-500">
                 <th className="py-1 pr-2">Type</th><th className="px-2">Min words</th><th className="px-2">Min FAQs</th><th className="px-2">Similarity max (0-1)</th>
               </tr>
             </thead>
@@ -91,8 +91,8 @@ export function SeoSettingsTab({ value }: { value: SeoSettings | null }) {
                 const d = DEFAULT_QUALITY_GATES[t];
                 const g = gates[t];
                 return (
-                  <tr key={t} className="border-t border-neutral-100">
-                    <td className="py-1 pr-2 text-neutral-700">{ENTRY_TYPE_META[t].label}</td>
+                  <tr key={t} className="border-t border-slate-100">
+                    <td className="py-1 pr-2 text-slate-700">{ENTRY_TYPE_META[t].label}</td>
                     <td className="px-2 py-1"><input type="number" min={0} className={inputCls + ' w-24'} placeholder={d ? String(d.minWords) : ''} value={g?.minWords ?? ''} onChange={(e) => setGate(t, { minWords: e.target.value })} /></td>
                     <td className="px-2 py-1"><input type="number" min={0} className={inputCls + ' w-20'} placeholder={d?.minFaqs != null ? String(d.minFaqs) : ''} value={g?.minFaqs ?? ''} onChange={(e) => setGate(t, { minFaqs: e.target.value })} /></td>
                     <td className="px-2 py-1"><input type="number" min={0} max={1} step={0.05} className={inputCls + ' w-24'} placeholder={d?.similarityMax != null ? String(d.similarityMax) : ''} value={g?.similarityMax ?? ''} onChange={(e) => setGate(t, { similarityMax: e.target.value })} /></td>
@@ -105,10 +105,10 @@ export function SeoSettingsTab({ value }: { value: SeoSettings | null }) {
         {Object.entries(errors).filter(([k]) => k.startsWith('qualityGates.')).map(([k, v]) => <p key={k} className="text-xs text-rose-600">{k}: {v}</p>)}
       </div>
 
-      <Field label="Official domains" error={errors.officialDomains ?? Object.entries(errors).find(([k]) => k.startsWith('officialDomains.'))?.[1]} hint="Har line me ek domain. Compliance pages ke sources inhi se hone chahiyein.">
+      <Field label="Official domains" error={errors.officialDomains ?? Object.entries(errors).find(([k]) => k.startsWith('officialDomains.'))?.[1]} hint="One domain per line. Sources of compliance pages should come from these.">
         <textarea className={inputCls} rows={5} value={domains} onChange={(e) => setDomains(e.target.value)} />
       </Field>
-      <Field label="IndexNow key" error={errors.indexNowKey} hint="8-128 huroof (a-z, A-Z, 0-9, -)">
+      <Field label="IndexNow key" error={errors.indexNowKey} hint="8-128 characters (a-z, A-Z, 0-9, -)">
         <input className={inputCls} value={indexNowKey} onChange={(e) => setIndexNowKey(e.target.value)} />
       </Field>
     </SettingSection>
@@ -133,15 +133,15 @@ export function AnalyticsSettingsTab({ value }: { value: AnalyticsSettings | nul
   });
 
   return (
-    <SettingSection settingKey="analytics" title="Analytics" description="Website par lagne wale tracking tools. Visitors ki consent ke baad hi chalte hain." buildValue={build} onErrors={setErrors}>
+    <SettingSection settingKey="analytics" title="Analytics" description="Tracking tools used on the website. They run only after the visitor gives consent." buildValue={build} onErrors={setErrors}>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label="GTM ID" error={errors.gtmId} hint="GTM-XXXXXXX"><input className={inputCls} value={gtmId} onChange={(e) => setGtmId(e.target.value)} /></Field>
         <Field label="Clarity ID" error={errors.clarityId}><input className={inputCls} value={clarityId} onChange={(e) => setClarityId(e.target.value)} /></Field>
-        <Field label="Clarity sample (%)" error={errors.claritySample} hint="Kitne fisad visits record hon"><input type="number" min={0} max={100} className={inputCls} value={samplePct} onChange={(e) => setSamplePct(e.target.value)} /></Field>
+        <Field label="Clarity sample (%)" error={errors.claritySample} hint="What percentage of visits to record"><input type="number" min={0} max={100} className={inputCls} value={samplePct} onChange={(e) => setSamplePct(e.target.value)} /></Field>
       </div>
       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-        <Toggle checked={allowPlatformStats} onChange={setAllow} label="Platform ke asal numbers site par dikhane ki ijazat (misal: 30 din ke bills)" />
-        <p className="mt-1 text-xs text-amber-800">Default band hai. Sirf owner ki manzoori ke baad on karein.</p>
+        <Toggle checked={allowPlatformStats} onChange={setAllow} label="Allow real platform numbers on the site (for example: bills in 30 days)" />
+        <p className="mt-1 text-xs text-amber-800">Off by default. Switch on only after the owner approves.</p>
       </div>
     </SettingSection>
   );
@@ -155,13 +155,13 @@ export function IndustryGroupsTab({ value }: { value: IndustryGroups | null }) {
   const build = (): unknown => rows.map((r, i) => ({ key: r.key.trim(), label: r.label, sortOrder: (i + 1) * 10 }));
 
   return (
-    <SettingSection settingKey="industry-groups" title="Industry groups" description="Industries ke groups aur unki tarteeb (mega menu aur industries page)." buildValue={build} onErrors={setErrors}>
+    <SettingSection settingKey="industry-groups" title="Industry groups" description="Groups of industries and their order (mega menu and industries page)." buildValue={build} onErrors={setErrors}>
       <RowList
         rows={rows}
         onChange={setRows}
         addLabel="Group"
         make={() => ({ key: '', label: '' })}
-        empty="Koi group nahi."
+        empty="No groups."
         render={(row, setRow, i) => (
           <div className="grid gap-2 sm:grid-cols-[180px_1fr]">
             <div>

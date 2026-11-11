@@ -6,9 +6,10 @@ import { parsePagination, paginated } from '../_shared/helpers/pagination.helper
 export class SeoService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listPages(dto: { page?: number; limit?: number; search?: string }) {
+  async listPages(dto: { page?: number; limit?: number; search?: string; status?: string }) {
     const { page, limit, skip } = parsePagination(dto);
     const where: any = {};
+    if (dto.status) where.status = dto.status;
     if (dto.search) {
       where.OR = [
         { path: { contains: dto.search, mode: 'insensitive' } },

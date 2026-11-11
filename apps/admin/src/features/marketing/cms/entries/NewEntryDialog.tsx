@@ -61,7 +61,7 @@ export function NewEntryDialog({ open, onClose, types, locales }: { open: boolea
       }),
     onSuccess: (e) => {
       qc.invalidateQueries({ queryKey: cmsKeys.entriesAll });
-      toast.success('Draft ban gaya');
+      toast.success('Draft created');
       onClose();
       nav(`/marketing/website/entries/${e.id}`);
     },
@@ -75,8 +75,8 @@ export function NewEntryDialog({ open, onClose, types, locales }: { open: boolea
     <Modal
       open={open}
       onClose={onClose}
-      title="Nayi entry"
-      description="Draft banega; blocks type ke starter layout se aate hain"
+      title="New entry"
+      description="A draft is created. Its blocks come from the starter layout of the type."
       footer={
         <>
           <Btn variant="ghost" onClick={onClose}>
@@ -118,17 +118,17 @@ export function NewEntryDialog({ open, onClose, types, locales }: { open: boolea
             setSlugTouched(true);
             setSlug(v.toLowerCase());
           }}
-          error={effectiveSlug && !slugOk ? 'a-z, 0-9 aur hyphen, kam az kam 2 harf' : undefined}
+          error={effectiveSlug && !slugOk ? 'a-z, 0-9 and hyphens, at least 2 characters' : undefined}
           hint={<span className="font-mono">{pathPreview}</span>}
         />
         {parentType && (
           <EntryPicker
-            label={needsParent ? 'Shehar (parent)' : 'Parent (optional)'}
+            label={needsParent ? 'City (parent)' : 'Parent (optional)'}
             required={needsParent}
             types={[parentType]}
             value={parentId}
             onChange={setParentId}
-            hint={type === 'PAGE' ? 'Path parent ke neeche banega' : undefined}
+            hint={type === 'PAGE' ? 'The path is built under the parent' : undefined}
           />
         )}
       </div>

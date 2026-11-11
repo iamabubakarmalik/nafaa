@@ -40,7 +40,7 @@ export function DetailsPanel({ entry, update, onReplace }: { entry: AdminEntry; 
     mutationFn: () => cmsApi.factCheck(entry.id),
     onSuccess: (r) => {
       onReplace(r.entry);
-      toast.success('Fact-check ki tareekh lag gayi');
+      toast.success('Fact-check date saved');
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
@@ -48,7 +48,7 @@ export function DetailsPanel({ entry, update, onReplace }: { entry: AdminEntry; 
   return (
     <div className="space-y-7">
       <Section title="Bunyadi">
-        <TextField label="Title" required value={entry.title} onChange={(title) => update({ title })} chars={{ max: 200 }} error={entry.title.trim() ? undefined : 'Title zaroori hai'} />
+        <TextField label="Title" required value={entry.title} onChange={(title) => update({ title })} chars={{ max: 200 }} error={entry.title.trim() ? undefined : 'Title is required'} />
         <TextArea
           label="Summary"
           required={money}
@@ -56,7 +56,7 @@ export function DetailsPanel({ entry, update, onReplace }: { entry: AdminEntry; 
           onChange={(v) => update({ summary: v || null })}
           words={TEXT_LIMITS.summaryWords}
           rows={3}
-          hint="Short answer aur meta description ki bunyad: seedha jawab, 40-60 alfaaz"
+          hint="The base of the short answer and meta description: a direct answer, 40-60 words"
         />
         <TextField
           label="Slug"
@@ -64,27 +64,27 @@ export function DetailsPanel({ entry, update, onReplace }: { entry: AdminEntry; 
           value={entry.slug}
           disabled={isHome}
           onChange={(v) => update({ slug: v.toLowerCase() })}
-          error={slugInvalid ? 'Sirf a-z, 0-9 aur beech me hyphen' : undefined}
-          hint={isHome ? 'Home page ka slug khali rehta hai' : undefined}
+          error={slugInvalid ? 'Only a-z, 0-9 and hyphens inside' : undefined}
+          hint={isHome ? 'The home page slug stays empty' : undefined}
           aside={
             !isHome && (
-              <button type="button" onClick={() => update({ slug: slugify(entry.title) })} className="text-[11px] font-medium text-emerald-700 hover:underline">
+              <button type="button" onClick={() => update({ slug: slugify(entry.title) })} className="text-[11px] font-medium text-brand-700 hover:underline">
                 Title se banayein
               </button>
             )
           }
         />
-        <div className="rounded-lg bg-neutral-50 px-3 py-2 ring-1 ring-neutral-200">
-          <p className="text-[11px] text-neutral-500">Path ({meta.pathPattern})</p>
-          <p className="font-mono text-sm text-neutral-900">{entry.path}</p>
-          {pathChanged && <p className="mt-1 text-[11px] text-amber-700">Live path {entry.publishedPath} hai. Publish par purane path se 301 redirect khud ban jayega.</p>}
+        <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200">
+          <p className="text-[11px] text-slate-500">Path ({meta.pathPattern})</p>
+          <p className="font-mono text-sm text-slate-900">{entry.path}</p>
+          {pathChanged && <p className="mt-1 text-[11px] text-amber-700">The live path is {entry.publishedPath}. When you publish, a 301 redirect from the old path is created automatically.</p>}
         </div>
         {parentTypes && (
-          <EntryPicker label={entry.type === 'CITY_INDUSTRY' ? 'Shehar (parent)' : 'Parent'} required={entry.type === 'CITY_INDUSTRY'} types={parentTypes} value={entry.parentId} onChange={(parentId) => update({ parentId })} />
+          <EntryPicker label={entry.type === 'CITY_INDUSTRY' ? 'City (parent)' : 'Parent'} required={entry.type === 'CITY_INDUSTRY'} types={parentTypes} value={entry.parentId} onChange={(parentId) => update({ parentId })} />
         )}
       </Section>
 
-      <Section title={`${meta.label} data`} description={required.length ? `Publish ke liye zaroori: ${required.join(', ')}` : undefined}>
+      <Section title={`${meta.label} data`} description={required.length ? `Required to publish: ${required.join(', ')}` : undefined}>
         <DataForm type={entry.type} data={data} required={required} onChange={(next) => update({ data: next as AdminEntry['data'] })} />
       </Section>
 
@@ -93,11 +93,11 @@ export function DetailsPanel({ entry, update, onReplace }: { entry: AdminEntry; 
           <EntryPicker label="Author" types={['PERSON']} value={entry.authorId} onChange={(authorId) => update({ authorId })} />
           <EntryPicker label="Reviewer" types={['PERSON']} value={entry.reviewerId} onChange={(reviewerId) => update({ reviewerId })} />
         </Grid>
-        <div className="flex items-center gap-3 rounded-xl border border-neutral-200 p-3">
-          <BadgeCheck className={entry.factCheckedAt ? 'h-5 w-5 text-emerald-600' : 'h-5 w-5 text-neutral-300'} />
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-3">
+          <BadgeCheck className={entry.factCheckedAt ? 'h-5 w-5 text-brand-600' : 'h-5 w-5 text-slate-300'} />
           <div className="flex-1 text-sm">
-            <p className="font-medium text-neutral-800">{entry.factCheckedAt ? `Fact-check: ${formatPkt(entry.factCheckedAt, false)}` : 'Fact-check nahi hua'}</p>
-            <p className="text-xs text-neutral-500">{needsFactCheck ? 'Is type ko publish se pehle zaroori hai' : 'Har dawa source se mila kar'}</p>
+            <p className="font-medium text-slate-800">{entry.factCheckedAt ? `Fact-check: ${formatPkt(entry.factCheckedAt, false)}` : 'Not fact-checked'}</p>
+            <p className="text-xs text-slate-500">{needsFactCheck ? 'Required before publishing this type' : 'Check every claim against its source'}</p>
           </div>
           <Btn size="sm" onClick={() => factCheck.mutate()} loading={factCheck.isPending}>
             Maine aaj check kiya
@@ -110,19 +110,19 @@ export function DetailsPanel({ entry, update, onReplace }: { entry: AdminEntry; 
         <Grid>
           <NumberField label="Sort order" value={entry.sortOrder} onChange={(v) => update({ sortOrder: v ?? 0 })} />
           <div className="pt-6">
-            <Toggle checked={entry.featured} onChange={(featured) => update({ featured })} label="Featured" hint="Hubs aur menus me upar" />
+            <Toggle checked={entry.featured} onChange={(featured) => update({ featured })} label="Featured" hint="Shown first in hubs and menus" />
           </div>
         </Grid>
       </Section>
 
       <Section title="Zaban">
-        <div className="flex items-center gap-2 text-sm text-neutral-700">
-          <Globe className="h-4 w-4 text-neutral-400" /> Locale: <b className="uppercase">{entry.locale}</b>
-          {entry.translationKey && <span className="font-mono text-xs text-neutral-500">· {entry.translationKey}</span>}
+        <div className="flex items-center gap-2 text-sm text-slate-700">
+          <Globe className="h-4 w-4 text-slate-400" /> Locale: <b className="uppercase">{entry.locale}</b>
+          {entry.translationKey && <span className="font-mono text-xs text-slate-500">· {entry.translationKey}</span>}
         </div>
         {entry.status === 'PUBLISHED' && (
-          <p className="flex items-center gap-1.5 text-xs text-neutral-500">
-            <Lock className="h-3 w-3" /> Live entry: tabdeeliyan draft me hain jab tak Publish na karein
+          <p className="flex items-center gap-1.5 text-xs text-slate-500">
+            <Lock className="h-3 w-3" /> Live entry: changes stay in the draft until you publish
           </p>
         )}
       </Section>

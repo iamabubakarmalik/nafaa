@@ -1,15 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { rangeEnd, rangeStart } from '../_shared/helpers/day-range.helper';
 
 @Injectable()
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async overview(range: { from?: string; to?: string }) {
-    const from = range.from
-      ? new Date(range.from)
-      : new Date(Date.now() - 30 * 864e5);
-    const to = range.to ? new Date(range.to) : new Date();
+    const from = rangeStart(range.from, new Date(Date.now() - 30 * 864e5));
+    const to = rangeEnd(range.to);
 
     const [
       pageviews, uniqueVisitors, sessions, formSubmissions,
@@ -60,8 +59,8 @@ export class AnalyticsService {
   }
 
   async trafficSources(range: { from?: string; to?: string }) {
-    const from = range.from ? new Date(range.from) : new Date(Date.now() - 30 * 864e5);
-    const to = range.to ? new Date(range.to) : new Date();
+    const from = rangeStart(range.from, new Date(Date.now() - 30 * 864e5));
+    const to = rangeEnd(range.to);
 
     const raw = await this.prisma.marketingPageView.groupBy({
       by: ['utmSource'],
@@ -78,8 +77,8 @@ export class AnalyticsService {
   }
 
   async topPages(range: { from?: string; to?: string }) {
-    const from = range.from ? new Date(range.from) : new Date(Date.now() - 30 * 864e5);
-    const to = range.to ? new Date(range.to) : new Date();
+    const from = rangeStart(range.from, new Date(Date.now() - 30 * 864e5));
+    const to = rangeEnd(range.to);
 
     const raw = await this.prisma.marketingPageView.groupBy({
       by: ['path'],

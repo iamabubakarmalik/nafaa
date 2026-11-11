@@ -22,7 +22,9 @@ import { ListSubscribersDto } from './dto/list-subscribers.dto';
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
 import { SendNewsletterDto } from './dto/send-newsletter.dto';
 import { BulkActionDto } from './dto/bulk-action.dto';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
+@AdminArea('marketing')
 @Controller('admin/marketing/newsletter')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class NewsletterController {

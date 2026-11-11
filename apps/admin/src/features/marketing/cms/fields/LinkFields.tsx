@@ -40,13 +40,13 @@ export function HrefField({
     <Field
       label={label}
       required={required}
-      error={error ?? (invalid ? 'Link: entry:<id>, /path, #anchor, https://…, signup, demo ya whatsapp' : undefined)}
-      hint={entry ? (target ? <span>→ {target.title} <span className="font-mono">{target.path}{entry.anchor ? `#${entry.anchor}` : ''}</span></span> : 'Entry link (save ke baad naam dikhega)') : hint}
+      error={error ?? (invalid ? 'Link: entry:<id>, /path, #anchor, https://…, signup, demo or whatsapp' : undefined)}
+      hint={entry ? (target ? <span>→ {target.title} <span className="font-mono">{target.path}{entry.anchor ? `#${entry.anchor}` : ''}</span></span> : 'Entry link (the name shows after saving)') : hint}
     >
       <div ref={ref} className="relative">
         <div className="flex gap-1.5">
           <div className="relative flex-1">
-            <Link2 className="absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
+            <Link2 className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <input
               value={v}
               onChange={(e) => onChange(e.target.value.trim() === '' ? undefined : e.target.value.trim())}
@@ -56,9 +56,9 @@ export function HrefField({
           </div>
           <button
             type="button"
-            title="Kisi page se link karein"
+            title="Link to a page"
             onClick={() => setOpen((o) => !o)}
-            className="inline-flex items-center gap-1 rounded-lg border border-neutral-300 px-2.5 text-xs font-medium text-neutral-700 hover:border-emerald-400 hover:text-emerald-700"
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-2.5 text-xs font-medium text-slate-700 hover:border-brand-400 hover:text-brand-700"
           >
             <FileSearch className="h-4 w-4" /> Page
           </button>
@@ -72,7 +72,7 @@ export function HrefField({
                 onClick={() => onChange(k)}
                 className={cn(
                   'rounded-md border px-2 py-0.5 text-[11px] font-medium transition',
-                  v === k ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:text-neutral-800',
+                  v === k ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-800',
                 )}
               >
                 {KEYWORD_LABEL[k] ?? k}
@@ -117,20 +117,20 @@ export function CtaField({
         <button
           type="button"
           onClick={() => onChange({ label: '', href: '', variant: 'secondary' })}
-          className="w-full rounded-lg border border-dashed border-neutral-300 py-2 text-xs font-medium text-neutral-600 hover:border-emerald-400 hover:text-emerald-700"
+          className="w-full rounded-lg border border-dashed border-slate-300 py-2 text-xs font-medium text-slate-600 hover:border-brand-400 hover:text-brand-700"
         >
-          + {typeof label === 'string' ? label : 'Button'} shamil karein
+          + Add {typeof label === 'string' ? label : 'button'}
         </button>
       </Field>
     );
   }
   return (
-    <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50/50 p-3">
+    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-neutral-700">{label}</span>
+        <span className="text-xs font-semibold text-slate-700">{label}</span>
         {optional && (
-          <button type="button" onClick={() => onChange(undefined)} className="text-xs text-neutral-500 hover:text-rose-600">
-            Hatayein
+          <button type="button" onClick={() => onChange(undefined)} className="text-xs text-slate-500 hover:text-rose-600">
+            Remove
           </button>
         )}
       </div>
@@ -148,7 +148,7 @@ export function CtaField({
         />
       </Grid>
       <HrefField value={cta.href} onChange={(href) => set({ href: href ?? '' })} error={errors?.('href')} required />
-      <TextField label="Analytics naam (trackAs)" value={cta.trackAs} onChange={(trackAs) => set({ trackAs: trackAs || undefined })} mono placeholder="hero_signup" error={errors?.('trackAs')} />
+      <TextField label="Analytics name (trackAs)" value={cta.trackAs} onChange={(trackAs) => set({ trackAs: trackAs || undefined })} mono placeholder="hero_signup" error={errors?.('trackAs')} />
     </div>
   );
 }

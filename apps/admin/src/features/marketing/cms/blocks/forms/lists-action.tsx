@@ -34,7 +34,7 @@ export function EntryGridForm({ block, set, err }: BlockFormProps<'entryGrid'>) 
       <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} />
       <MarkdownEditor label="Intro" inline rows={2} value={block.intro} onChange={(intro) => set({ intro: intro || undefined })} />
       <Grid>
-        <SelectField<CmsEntryType> label="Kis type ki entries" required value={block.entryType} onChange={(entryType) => entryType && set({ entryType })} options={TYPE_OPTIONS} error={err('entryType')} />
+        <SelectField<CmsEntryType> label="Entries of which type" required value={block.entryType} onChange={(entryType) => entryType && set({ entryType })} options={TYPE_OPTIONS} error={err('entryType')} />
         <Segmented
           label="Layout"
           value={block.layout}
@@ -44,7 +44,7 @@ export function EntryGridForm({ block, set, err }: BlockFormProps<'entryGrid'>) 
             { value: 'list', label: 'List' },
             { value: 'grouped', label: 'Groups' },
           ]}
-          hint={block.layout === 'grouped' ? 'Settings → Industry groups ki tarteeb se' : undefined}
+          hint={block.layout === 'grouped' ? 'In the order of Settings → Industry groups' : undefined}
           error={err('layout')}
         />
       </Grid>
@@ -56,27 +56,27 @@ export function EntryGridForm({ block, set, err }: BlockFormProps<'entryGrid'>) 
           emptyLabel="Default"
           options={[
             { value: 'order', label: 'Sort order' },
-            { value: 'recent', label: 'Naye pehle' },
+            { value: 'recent', label: 'Newest first' },
             { value: 'title', label: 'Title (A-Z)' },
           ]}
         />
-        <NumberField label="Limit" value={block.limit} min={1} max={BLOCK_LIMITS.entryGridLimitMax} onChange={(limit) => set({ limit })} placeholder="Sab" error={err('limit')} />
+        <NumberField label="Limit" value={block.limit} min={1} max={BLOCK_LIMITS.entryGridLimitMax} onChange={(limit) => set({ limit })} placeholder="All" error={err('limit')} />
       </Grid>
-      <Section title="Filter" description="Sirf woh entries jo in sharton par poori utrein">
+      <Section title="Filter" description="Only entries that meet these conditions">
         <Grid>
-          <EntryPicker label="Tag (is entry se tagged)" value={filter.tagId} onChange={(tagId) => setFilter({ tagId: tagId ?? undefined })} />
+          <EntryPicker label="Tag (tagged with this entry)" value={filter.tagId} onChange={(tagId) => setFilter({ tagId: tagId ?? undefined })} />
           <EntryPicker label="Parent" value={filter.parentId} onChange={(parentId) => setFilter({ parentId: parentId ?? undefined })} />
         </Grid>
         <Grid>
           <TextField label="Group key" mono value={filter.group} onChange={(group) => setFilter({ group: group || undefined })} placeholder="retail" error={err('filter.group')} />
           <div className="pt-6">
-            <Toggle checked={filter.featured} onChange={(featured) => setFilter({ featured: featured || undefined })} label="Sirf featured" />
+            <Toggle checked={filter.featured} onChange={(featured) => setFilter({ featured: featured || undefined })} label="Featured only" />
           </div>
         </Grid>
         {block.entryType && (FEATURE_STATUS_TYPES as readonly string[]).includes(block.entryType) && (
           <ChipMultiSelect<FeatureStatus>
             label="Feature status"
-            hint="Roadmap page par 'coming' aur 'beta' chunein"
+            hint="On the roadmap page choose 'coming' and 'beta'"
             value={filter.status}
             onChange={(status) => setFilter({ status: status.length ? status : undefined })}
             options={FEATURE_STATUSES.map((s) => ({ value: s, label: s }))}
@@ -92,7 +92,7 @@ export function RelatedLinksForm({ block, set, err }: BlockFormProps<'relatedLin
     <div className="space-y-5">
       <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} placeholder="Related" />
       <Segmented
-        label="Cards kahan se"
+        label="Where the cards come from"
         value={block.source}
         onChange={(source) => set({ source })}
         options={[
@@ -102,7 +102,7 @@ export function RelatedLinksForm({ block, set, err }: BlockFormProps<'relatedLin
         error={err('source')}
       />
       <Grid>
-        <SelectField<CmsEntryType> label="Sirf is type ke" value={block.tagType} onChange={(tagType) => set({ tagType })} emptyLabel="Sab types" options={TYPE_OPTIONS} />
+        <SelectField<CmsEntryType> label="Only this type" value={block.tagType} onChange={(tagType) => set({ tagType })} emptyLabel="All types" options={TYPE_OPTIONS} />
         <NumberField label="Limit" value={block.limit} min={1} max={BLOCK_LIMITS.relatedLimitMax} onChange={(limit) => set({ limit })} error={err('limit')} />
       </Grid>
     </div>
@@ -114,7 +114,7 @@ const CITY_SECTION_LABEL: Record<(typeof CITY_FACT_SECTIONS)[number], string> = 
   markets: 'Markets',
   areas: 'Areas',
   support: 'Support',
-  nearby: 'Qareebi shehar',
+  nearby: 'Nearby cities',
 };
 
 export function CityFactsForm({ block, set, err }: BlockFormProps<'cityFacts'>) {
@@ -122,8 +122,8 @@ export function CityFactsForm({ block, set, err }: BlockFormProps<'cityFacts'>) 
     <div className="space-y-5">
       <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} />
       <ChipMultiSelect
-        label="Kya dikhayein"
-        hint="Data Details tab ke City data se aata hai"
+        label="What to show"
+        hint="Comes from the City data in the Details tab"
         value={block.show}
         onChange={(show) => set({ show })}
         options={CITY_FACT_SECTIONS.map((s) => ({ value: s, label: CITY_SECTION_LABEL[s] }))}
@@ -147,7 +147,7 @@ export function CtaBandForm({ block, set, err }: BlockFormProps<'cta'>) {
 export function LeadFormForm({ block, set, err }: BlockFormProps<'leadForm'>) {
   return (
     <div className="space-y-5">
-      <p className="rounded-xl bg-neutral-50 p-3 text-xs text-neutral-600 ring-1 ring-neutral-200">
+      <p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600 ring-1 ring-slate-200">
         Form ki entries Marketing → Contact Forms / Demo Bookings aur Leads me aati hain.
       </p>
       <TextField label="Heading" required value={block.heading} onChange={(heading) => set({ heading })} chars={{ max: 120 }} error={err('heading')} />
@@ -171,16 +171,16 @@ export function LeadFormForm({ block, set, err }: BlockFormProps<'leadForm'>) {
       {block.form === 'quote' && (
         <ChipMultiSelect
           label="Budget currency"
-          hint="Khali ho to PKR aur USD dono"
+          hint="If empty, both PKR and USD"
           value={block.currencies}
           onChange={(currencies) => set({ currencies: currencies.length ? currencies : undefined })}
           options={LEAD_CURRENCIES.map((c) => ({ value: c, label: c }))}
           error={err('currencies')}
         />
       )}
-      <Toggle checked={block.whatsapp} onChange={(whatsapp) => set({ whatsapp: whatsapp || undefined })} label="WhatsApp button bhi" hint="Site settings ka WhatsApp number" />
-      <TextField label="Subject prefix" value={block.subjectPrefix} onChange={(subjectPrefix) => set({ subjectPrefix: subjectPrefix || undefined })} chars={{ max: 80 }} placeholder="[Service: Website]" hint="Lead ke subject ke shuru me lagta hai, taake pata chale kis page se aayi" />
-      <TextField label="Kamyabi ka message" required value={block.successMessage} onChange={(successMessage) => set({ successMessage })} chars={{ max: 300 }} error={err('successMessage')} />
+      <Toggle checked={block.whatsapp} onChange={(whatsapp) => set({ whatsapp: whatsapp || undefined })} label="Also a WhatsApp button" hint="Uses the WhatsApp number from the site settings" />
+      <TextField label="Subject prefix" value={block.subjectPrefix} onChange={(subjectPrefix) => set({ subjectPrefix: subjectPrefix || undefined })} chars={{ max: 80 }} placeholder="[Service: Website]" hint="Added at the start of the lead subject, so you can tell which page it came from" />
+      <TextField label="Success message" required value={block.successMessage} onChange={(successMessage) => set({ successMessage })} chars={{ max: 300 }} error={err('successMessage')} />
     </div>
   );
 }

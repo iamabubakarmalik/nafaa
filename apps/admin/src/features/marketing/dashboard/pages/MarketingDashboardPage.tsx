@@ -1,194 +1,110 @@
+/**
+ * Marketing dashboard: a live snapshot of the growth funnel (newsletter,
+ * contact forms, demos, leads, chat, campaigns, traffic), what needs
+ * attention, and the latest marketing activity.
+ */
+
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import {
-  Mail, MessageSquare, Calendar, Users, Bot, Megaphone,
-  TrendingUp, AlertTriangle, Flame, Activity,
+  Activity, AlertTriangle, ArrowRight, Bot, Calendar, Flame, Globe, Mail, Megaphone, MessageSquare, TrendingUp, Users, UserCheck,
 } from 'lucide-react';
-import { marketingDashboardApi } from '../../../../api/marketing/marketing-dashboard.api';
-import { StatCard } from '../../_shared/components/StatCard';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { EmptyState } from '../../_shared/components/EmptyState';
-import { formatDistanceToNow } from 'date-fns';
+import { Card, EmptyState, KpiCard, KpiRow, PageHero, PageShell, Skeleton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { marketingDashboardApi } from '@/api/marketing/marketing-dashboard.api';
+import { formatRelative } from '@/lib/format';
+import { statusLabel } from '@/ui';
+import { GuideButton, num } from '../../lib/kit';
+
+/** "PII_ACCESS:customer_list" → "Pii access · customer list" */
+const activityTitle = (action: string) => statusLabel(action.replace(/[:.]/g, ' · ').replace(/_/g, ' '));
 
 export function MarketingDashboardPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['marketing-dashboard'],
-    queryFn: marketingDashboardApi.overview,
-    refetchInterval: 30_000,
-  });
-
-  const { data: activity } = useQuery({
-    queryKey: ['marketing-activity'],
-    queryFn: () => marketingDashboardApi.activity(15),
-    refetchInterval: 60_000,
-  });
-
-  if (isLoading || !data) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Marketing Dashboard" subtitle="Growth ka poora picture ek jagah" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-2xl bg-white" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const guide = usePageGuide();
+  const nav = useNavigate();
+  const { data, isLoading, isFetching } = useQuery({ queryKey: ['mkt', 'dashboard'], queryFn: marketingDashboardApi.overview, refetchInterval: 30_000 });
+  const activity = useQuery({ queryKey: ['mkt', 'dashboard', 'activity'], queryFn: () => marketingDashboardApi.activity(15), refetchInterval: 60_000 });
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Marketing Dashboard"
-        subtitle="Aap ke growth funnel ki live snapshot"
+    <PageShell>
+      <PageHero
+        title="Marketing"
+        chip="Live"
+        busy={isFetching}
+        loading={isLoading}
+        actions={<GuideButton onClick={guide.open} />}
+        stats={data ? [
+          { label: 'Subscribers', value: num(data.newsletter.total), hint: `+${num(data.newsletter.new7d)} this week` },
+          { label: 'Leads fire and hot', value: num(data.leads.fire + data.leads.hot), hint: `${num(data.leads.total)} leads in total` },
+          { label: 'Upcoming demos', value: num(data.demos.upcoming), hint: `${data.demos.conversionRate} conversion` },
+          { label: 'Visitors (7 days)', value: num(data.traffic.uniqueVisitors7d), hint: `${num(data.traffic.pageviews7d)} pageviews` },
+        ] : undefined}
       />
 
-      {/* Alerts */}
-      {data.alerts && data.alerts.length > 0 && (
+      {data?.alerts?.length > 0 && (
         <div className="space-y-2">
           {data.alerts.map((a: any, i: number) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
-            >
-              <AlertTriangle className="h-4 w-4 shrink-0" />
-              <span>{a.message}</span>
+            <div key={i} className="flex items-center gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
+              <AlertTriangle className="h-4 w-4 shrink-0" /> <span>{a.message}</span>
             </div>
           ))}
         </div>
       )}
 
-      {/* Newsletter + Forms + Demos */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">
-          Lead Generation
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link to="/marketing/newsletter">
-            <StatCard
-              label="Subscribers"
-              value={data.newsletter.total.toLocaleString()}
-              icon={Mail}
-              delta={`+${data.newsletter.new7d} this week`}
-              deltaColor={data.newsletter.new7d > 0 ? 'up' : 'neutral'}
-              hint={`${data.newsletter.active} active`}
-            />
-          </Link>
-          <Link to="/marketing/contact-forms">
-            <StatCard
-              label="Contact Forms"
-              value={data.contactForms.new}
-              icon={MessageSquare}
-              delta={`${data.contactForms.last7d} last 7d`}
-              deltaColor={data.contactForms.urgentOpen > 0 ? 'down' : 'neutral'}
-              hint={data.contactForms.urgentOpen > 0 ? `${data.contactForms.urgentOpen} URGENT` : 'All caught up'}
-            />
-          </Link>
-          <Link to="/marketing/demos">
-            <StatCard
-              label="Demos Upcoming"
-              value={data.demos.upcoming}
-              icon={Calendar}
-              delta={`${data.demos.conversionRate} conversion`}
-              deltaColor="up"
-              hint={`${data.demos.completed30d} completed 30d`}
-            />
-          </Link>
-          <Link to="/marketing/leads">
-            <StatCard
-              label="Leads Fire+Hot"
-              value={data.leads.fire + data.leads.hot}
-              icon={Flame}
-              delta={`+${data.leads.new7d} this week`}
-              deltaColor="up"
-              hint={`${data.leads.total} total`}
-            />
-          </Link>
-        </div>
-      </section>
+      {data ? (
+        <>
+          <KpiRow cols={4}>
+            <KpiCard onClick={() => nav('/marketing/newsletter')} icon={Mail} color="#4f46e5" label="Subscribers" value={num(data.newsletter.total)} hint={`${num(data.newsletter.active)} active · +${num(data.newsletter.new7d)} this week`} />
+            <KpiCard onClick={() => nav('/marketing/contact-forms')} icon={MessageSquare} color="#0891b2" label="New contact forms" value={num(data.contactForms.new)} hint={data.contactForms.urgentOpen > 0 ? `${num(data.contactForms.urgentOpen)} urgent` : `${num(data.contactForms.last7d)} in 7 days`} />
+            <KpiCard onClick={() => nav('/marketing/demos')} icon={Calendar} color="#d97706" label="Upcoming demos" value={num(data.demos.upcoming)} hint={`${num(data.demos.completed30d)} completed in 30 days`} />
+            <KpiCard onClick={() => nav('/marketing/leads')} icon={Flame} color="#e11d48" label="Fire and hot leads" value={num(data.leads.fire + data.leads.hot)} hint={`+${num(data.leads.new7d)} new this week`} />
+            <KpiCard onClick={() => nav('/marketing/chatbot')} icon={Bot} color="#7c3aed" label="Chats waiting" value={num(data.chatbot.waiting)} hint={`${num(data.chatbot.active)} active · ${num(data.chatbot.last7d)} in 7 days`} />
+            <KpiCard onClick={() => nav('/marketing/campaigns')} icon={Megaphone} color="#059669" label="Active campaigns" value={num(data.campaigns.active)} hint={`${num(data.campaigns.sent30d)} sent in 30 days`} />
+            <KpiCard onClick={() => nav('/marketing/analytics')} icon={Users} color="#0284c7" label="Visitors (7 days)" value={num(data.traffic.uniqueVisitors7d)} hint={`${num(data.traffic.pageviews7d)} pageviews`} />
+            <KpiCard onClick={() => nav('/marketing/conversions')} icon={TrendingUp} color="#16a34a" label="Demo conversion" value={data.demos.conversionRate} hint="Demos that became shops" />
+          </KpiRow>
 
-      {/* Chat + Campaigns + Traffic */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-neutral-500">
-          Engagement & Reach
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link to="/marketing/chatbot">
-            <StatCard
-              label="Chat Waiting"
-              value={data.chatbot.waiting}
-              icon={Bot}
-              delta={`${data.chatbot.active} active`}
-              deltaColor={data.chatbot.waiting > 0 ? 'down' : 'neutral'}
-              hint={`${data.chatbot.last7d} last 7d`}
-            />
-          </Link>
-          <Link to="/marketing/campaigns">
-            <StatCard
-              label="Active Campaigns"
-              value={data.campaigns.active}
-              icon={Megaphone}
-              delta={`${data.campaigns.sent30d} sent 30d`}
-              deltaColor="up"
-            />
-          </Link>
-          <Link to="/marketing/analytics">
-            <StatCard
-              label="Visitors 7d"
-              value={data.traffic.uniqueVisitors7d.toLocaleString()}
-              icon={Users}
-              delta={`${data.traffic.pageviews7d.toLocaleString()} pageviews`}
-              deltaColor="up"
-            />
-          </Link>
-          <Link to="/marketing/analytics">
-            <StatCard
-              label="Conversion Rate"
-              value={data.demos.conversionRate}
-              icon={TrendingUp}
-              delta="Demos → Customers"
-              deltaColor="up"
-            />
-          </Link>
-        </div>
-      </section>
+          <Card title="Recent activity" description="The latest things that happened in marketing.">
+            {activity.data && activity.data.length > 0 ? (
+              <ul className="divide-y divide-slate-100">
+                {activity.data.map((a: any) => (
+                  <li key={a.id} className="flex items-start gap-3 py-2.5">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600"><Activity className="h-4 w-4" /></span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[0.875rem] font-medium text-slate-900">{activityTitle(a.action)}</p>
+                      {a.description && <p className="mt-0.5 truncate text-[0.75rem] text-slate-500">{a.description}</p>}
+                    </div>
+                    <span className="shrink-0 text-[0.75rem] text-slate-400">{formatRelative(a.createdAt)}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : <EmptyState icon={<Activity className="h-6 w-6" />} title="No activity yet" description="Actions from the team and visitors will show up here." />}
+          </Card>
+        </>
+      ) : isLoading && (
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-[5.5rem] rounded-2xl" />)}</div>
+      )}
 
-      {/* Recent activity */}
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-neutral-500">
-            Recent Activity
-          </h2>
-        </div>
-        <div className="rounded-2xl border border-neutral-200 bg-white p-2 shadow-sm">
-          {activity && activity.length > 0 ? (
-            <ul className="divide-y divide-neutral-100">
-              {activity.map((a: any) => (
-                <li key={a.id} className="flex items-start gap-3 px-3 py-3">
-                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600">
-                    <Activity className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-neutral-800">{a.action.replace(/_/g, ' ')}</p>
-                    {a.description && (
-                      <p className="mt-0.5 truncate text-xs text-neutral-500">{a.description}</p>
-                    )}
-                  </div>
-                  <span className="shrink-0 text-xs text-neutral-400">
-                    {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <EmptyState
-              icon={Activity}
-              title="No activity yet"
-              message="Jaisay hi log actions lengay, wo yahan dikhayen ge."
-            />
-          )}
-        </div>
-      </section>
-    </div>
+      {guide.isOpen && (
+        <PageGuide
+          title="Marketing"
+          description="Everything about how people find Nafaa and become customers."
+          flowTitle="The marketing funnel"
+          flow={[
+            { label: 'Visitors', hint: 'Website traffic', icon: Globe, color: '#0284c7' },
+            { label: 'Sign up or ask', hint: 'Newsletter, forms, chat', icon: Mail, color: '#4f46e5' },
+            { label: 'Leads and demos', hint: 'Follow up', icon: Flame, color: '#e11d48' },
+            { label: 'Shops', hint: 'Customers', icon: UserCheck, color: '#059669' },
+          ]}
+          steps={[
+            { icon: AlertTriangle, color: '#d97706', title: 'Check the alerts', text: 'Amber notes at the top are things that need an answer today.' },
+            { icon: ArrowRight, color: '#4f46e5', title: 'Open a card', text: 'Each number links to its list, already filtered where it makes sense.' },
+            { icon: Activity, color: '#059669', title: 'Read recent activity', text: 'See what the team and visitors did most recently.' },
+          ]}
+          tips={['Numbers refresh every 30 seconds.']}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

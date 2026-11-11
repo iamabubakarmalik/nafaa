@@ -14,6 +14,7 @@ import { ListSubscribersDto, NewsletterStatus } from './dto/list-subscribers.dto
 import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
 import { SendNewsletterDto } from './dto/send-newsletter.dto';
 import { BulkActionDto, BulkAction } from './dto/bulk-action.dto';
+import { dayRange } from '../_shared/helpers/day-range.helper';
 
 @Injectable()
 export class NewsletterService {
@@ -45,11 +46,8 @@ export class NewsletterService {
         { lastName: { contains: dto.search, mode: 'insensitive' } },
       ];
     }
-    if (dto.from || dto.to) {
-      where.createdAt = {};
-      if (dto.from) (where.createdAt as any).gte = new Date(dto.from);
-      if (dto.to) (where.createdAt as any).lte = new Date(dto.to);
-    }
+    const range = dayRange(dto.from, dto.to);
+    if (range) where.createdAt = range;
 
     const [items, total] = await Promise.all([
       this.prisma.newsletterSubscriber.findMany({

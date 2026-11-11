@@ -16,7 +16,7 @@ export function HeroForm({ block, set, err, title }: BlockFormProps<'hero'>) {
     <div className="space-y-5">
       <Section title="Text">
         <Grid>
-          <TextField label="Eyebrow" value={block.eyebrow} onChange={(eyebrow) => set({ eyebrow: eyebrow || undefined })} chars={{ max: 60 }} placeholder="Chhota label upar" error={err('eyebrow')} />
+          <TextField label="Eyebrow" value={block.eyebrow} onChange={(eyebrow) => set({ eyebrow: eyebrow || undefined })} chars={{ max: 60 }} placeholder="A short label above the heading" error={err('eyebrow')} />
           <Segmented
             label="Layout"
             value={block.layout}
@@ -28,17 +28,17 @@ export function HeroForm({ block, set, err, title }: BlockFormProps<'hero'>) {
             error={err('layout')}
           />
         </Grid>
-        <TextField label="Heading (H1)" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 160 }} placeholder={title || 'Entry ka title'} hint="Khali ho to entry ka title H1 banega" error={err('heading')} />
+        <TextField label="Heading (H1)" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 160 }} placeholder={title || 'Entry title'} hint="If empty, the entry title becomes the H1" error={err('heading')} />
         <MarkdownEditor label="Sub-heading" required inline rows={3} value={block.sub} onChange={(sub) => set({ sub })} words={TEXT_LIMITS.heroSubWords} error={err('sub')} />
         <ListEditor<string>
           label="Badges"
-          hint="Chhote trust points, sirf sach (jaise FBR & PRA approved POS integrator token se)"
+          hint="Short trust points, true ones only (for example the FBR & PRA approved POS integrator token)"
           items={block.badges}
           onChange={(badges) => set({ badges: badges.length ? badges : undefined })}
           max={BLOCK_LIMITS.heroBadgesMax}
           create={() => ''}
           itemTitle={(b, i) => b || `Badge ${i + 1}`}
-          addLabel="Badge shamil karein"
+          addLabel="Add a badge"
           compact
           render={(b, update, i) => <TextField value={b} onChange={update} chars={{ max: 120 }} error={err(`badges[${i}]`)} />}
         />
@@ -57,7 +57,7 @@ export function HeroForm({ block, set, err, title }: BlockFormProps<'hero'>) {
             setMedia({ kind });
           }}
           options={[
-            { value: 'none', label: 'Kuch nahi' },
+            { value: 'none', label: 'None' },
             { value: 'screenshot', label: 'Screenshot' },
             { value: 'diagram', label: 'Diagram' },
             { value: 'image', label: 'Image' },
@@ -93,7 +93,7 @@ export function AnswerBoxForm({ block, set, err, summary }: BlockFormProps<'answ
         value={block.answer}
         onChange={(answer) => set({ answer: answer || undefined })}
         words={TEXT_LIMITS.answerWords}
-        hint={block.answer ? undefined : summary ? `Khali hai, to entry ka summary dikhega (${answerWords} alfaaz)` : 'Khali hai aur entry ka summary bhi khali hai'}
+        hint={block.answer ? undefined : summary ? `Empty, so the entry summary is shown (${answerWords} words)` : 'Empty, and the entry summary is empty too'}
         error={err('answer')}
       />
       <ListEditor<Fact>
@@ -104,17 +104,17 @@ export function AnswerBoxForm({ block, set, err, summary }: BlockFormProps<'answ
         max={BLOCK_LIMITS.answerFacts.max}
         create={() => ({ label: '', value: '' })}
         itemTitle={(f, i) => f.label || `Fact ${i + 1}`}
-        addLabel="Fact shamil karein"
+        addLabel="Add a fact"
         error={err('facts')}
         compact
         render={(f, update, i) => (
           <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
             <TextField label="Label" required value={f.label} onChange={(label) => update({ ...f, label })} chars={{ max: 60 }} error={err(`facts[${i}].label`)} />
-            <TextField label="Value" required value={f.value} onChange={(value) => update({ ...f, value })} chars={{ max: 300 }} hint="Price ho to token use karein" error={err(`facts[${i}].value`)} />
+            <TextField label="Value" required value={f.value} onChange={(value) => update({ ...f, value })} chars={{ max: 300 }} hint="If it is a price, use a token" error={err(`facts[${i}].value`)} />
           </div>
         )}
       />
-      <Field label="Roman Urdu summary" hint="Asaan Roman Urdu, 60 alfaaz tak">
+      <Field label="Roman Urdu summary" hint="Simple Roman Urdu, up to 60 words">
         <TextArea value={block.romanUrdu} onChange={(romanUrdu) => set({ romanUrdu: romanUrdu || undefined })} words={{ max: TEXT_LIMITS.romanUrduMaxWords }} rows={3} placeholder="Mukhtasar: …" error={err('romanUrdu')} />
       </Field>
     </div>

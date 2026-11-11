@@ -6,8 +6,10 @@ import { RequireMarketingPermissions } from '../../_shared/decorators/marketing-
 import { MARKETING_PERMISSIONS } from '../../_shared/constants/marketing-permissions.constants';
 import { CmsExceptionFilter } from '../public/cms-exception.filter';
 import { CmsDashboardService } from './cms-dashboard.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 /** Admin → Website dashboard, health report and "Revalidate everything" (API-CONTRACT 8.9). */
+@AdminArea('marketing')
 @Controller('admin/marketing/cms')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 @UseFilters(CmsExceptionFilter)

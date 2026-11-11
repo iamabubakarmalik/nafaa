@@ -28,7 +28,7 @@ export function SettingSection({ settingKey, title, description, buildValue, onE
   const save = useMutation({
     mutationFn: (value: unknown) => settingsApi.put(settingKey, value),
     onSuccess: () => {
-      toast.success('Settings save ho gayi, site update ho rahi hai');
+      toast.success('Settings saved. The site is updating.');
       qc.invalidateQueries({ queryKey: ['cms-settings'] });
       qc.invalidateQueries({ queryKey: ['cms-history', 'SETTING'] });
       qc.invalidateQueries({ queryKey: ['cms-llms-preview'] });
@@ -42,7 +42,7 @@ export function SettingSection({ settingKey, title, description, buildValue, onE
       const errs = zodFieldErrors(parsed.error);
       onErrors(errs);
       setSummary(Object.entries(errs).map(([k, v]) => (k === '_' ? v : `${k}: ${v}`)));
-      toast.error('Kuch fields theek karein');
+      toast.error('Please fix the highlighted fields');
       return;
     }
     onErrors({});
@@ -57,11 +57,11 @@ export function SettingSection({ settingKey, title, description, buildValue, onE
         actions={
           <>
             <button className={btn.ghost} onClick={() => setShowHistory((v) => !v)}>{showHistory ? 'Form' : 'History'}</button>
-            <button className={btn.primary} disabled={save.isPending} onClick={onSave}>{save.isPending ? 'Save ho raha hai…' : 'Save'}</button>
+            <button className={btn.primary} disabled={save.isPending} onClick={onSave}>{save.isPending ? 'Saving…' : 'Save'}</button>
           </>
         }
       >
-        {description && <p className="-mt-2 mb-4 text-sm text-neutral-500">{description}</p>}
+        {description && <p className="-mt-2 mb-4 text-sm text-slate-500">{description}</p>}
         {summary.length > 0 && (
           <ul className="mb-4 rounded-lg bg-rose-50 p-3 text-xs text-rose-700">{summary.map((s) => <li key={s}>{s}</li>)}</ul>
         )}
@@ -90,14 +90,14 @@ export function RowList<T>({ rows, onChange, render, empty, addLabel, make }: {
   };
   return (
     <div className="space-y-2">
-      {!rows.length && empty && <p className="text-sm text-neutral-500">{empty}</p>}
+      {!rows.length && empty && <p className="text-sm text-slate-500">{empty}</p>}
       {rows.map((row, i) => (
-        <div key={i} className="flex items-start gap-2 rounded-xl border border-neutral-200 p-3">
+        <div key={i} className="flex items-start gap-2 rounded-xl border border-slate-200 p-3">
           <div className="flex-1">{render(row, (patch) => onChange(rows.map((r, k) => (k === i ? { ...r, ...patch } : r))), i)}</div>
           <div className="flex flex-col gap-1">
-            <button type="button" className={btn.icon} disabled={i === 0} onClick={() => move(i, -1)} aria-label="Upar">↑</button>
-            <button type="button" className={btn.icon} disabled={i === rows.length - 1} onClick={() => move(i, 1)} aria-label="Neeche">↓</button>
-            <button type="button" className={btn.icon} onClick={() => onChange(rows.filter((_, k) => k !== i))} aria-label="Hatayein">✕</button>
+            <button type="button" className={btn.icon} disabled={i === 0} onClick={() => move(i, -1)} aria-label="Move up">↑</button>
+            <button type="button" className={btn.icon} disabled={i === rows.length - 1} onClick={() => move(i, 1)} aria-label="Move down">↓</button>
+            <button type="button" className={btn.icon} onClick={() => onChange(rows.filter((_, k) => k !== i))} aria-label="Remove">✕</button>
           </div>
         </div>
       ))}

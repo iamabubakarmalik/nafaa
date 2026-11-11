@@ -1,151 +1,165 @@
+/**
+ * Contact forms: messages and support tickets sent from the website. Search,
+ * status, priority, period and paging run on the server; the page checks for
+ * new messages every few seconds and tells you when one arrives.
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Search, AlertTriangle, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { contactFormsApi, type ContactForm } from '../../../../api/marketing/marketing-contact-forms.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { StatCard } from '../../_shared/components/StatCard';
-import { StatusBadge } from '../../_shared/components/StatusBadge';
-import { DataTable } from '../../_shared/components/DataTable';
-import { formatDistanceToNow } from 'date-fns';
+import { AlertTriangle, Ban, CheckCircle, Download, Flag, MessageSquare, Reply, Tag } from 'lucide-react';
+import {
+  DateRangeMenu, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, heroButton,
+} from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { contactFormsApi, type ContactForm } from '@/api/marketing/marketing-contact-forms.api';
+import { formatRelative } from '@/lib/format';
+import { ListCard, StatusBadge, statusLabel, useListParams } from '@/ui';
+import { PERIOD_DEFAULTS, clearPeriod, periodChip, periodQuery, periodValue, setPeriod } from '@/features/shared/period';
+import { GuideButton, exportList, num } from '../../lib/kit';
+
+const STATUSES = ['NEW', 'IN_PROGRESS', 'REPLIED', 'RESOLVED', 'SPAM', 'ARCHIVED'];
+const PRIORITIES = ['URGENT', 'HIGH', 'NORMAL', 'LOW'];
+const PRIORITY_VARIANT: Record<string, 'danger' | 'warning' | 'default'> = { URGENT: 'danger', HIGH: 'warning', NORMAL: 'default', LOW: 'default' };
 
 export function ContactFormsListPage() {
   const prevNew = useRef<number | null>(null);
   const nav = useNavigate();
-  const [page, setPage] = useState(1);
-  const [status, setStatus] = useState('');
-  const [priority, setPriority] = useState('');
-  const [search, setSearch] = useState('');
+  const guide = usePageGuide();
+  const [exporting, setExporting] = useState(false);
+  const list = useListParams({ status: 'ALL', priority: 'ALL', ...PERIOD_DEFAULTS });
+  const { status, priority } = list.filters;
+  const query = {
+    search: list.debouncedSearch || undefined,
+    status: status === 'ALL' ? undefined : status,
+    priority: priority === 'ALL' ? undefined : priority,
+    ...periodQuery(list.filters),
+  };
 
-  const { data: stats } = useQuery({
-    queryKey: ['contact-forms-stats'],
-    queryFn: contactFormsApi.stats,
-    refetchInterval: 5000,
-  });
-
+  const stats = useQuery({ queryKey: ['mkt', 'contact-forms', 'stats'], queryFn: contactFormsApi.stats, refetchInterval: 15_000 });
   useEffect(() => {
-    const current = (stats as any)?.new ?? null;
-    if (current !== null && prevNew.current !== null && current > prevNew.current) {
-      toast.success(`New contact form received (${current} pending)`);
-    }
+    const current = stats.data?.new ?? null;
+    if (current !== null && prevNew.current !== null && current > prevNew.current) toast.success(`New contact form received (${current} waiting)`);
     if (current !== null) prevNew.current = current;
-  }, [stats]);
+  }, [stats.data]);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['contact-forms', page, status, priority, search],
-    refetchInterval: 5000,
-    queryFn: () =>
-      contactFormsApi.list({
-        page,
-        limit: 25,
-        status: status || undefined,
-        priority: priority || undefined,
-        search: search || undefined,
-      }),
+  const forms = useQuery({
+    queryKey: ['mkt', 'contact-forms', query, list.page, list.limit],
+    queryFn: () => contactFormsApi.list({ ...query, page: list.page, limit: list.limit }),
+    placeholderData: (prev) => prev,
+    refetchInterval: 15_000,
   });
+  const s = stats.data;
+  const rows: ContactForm[] = forms.data?.items ?? [];
+  const chip = periodChip(list.filters);
+  const chips = [
+    status !== 'ALL' && <FilterChip key="s" onRemove={() => list.setFilter('status', 'ALL')}>{statusLabel(status)}</FilterChip>,
+    priority !== 'ALL' && <FilterChip key="r" onRemove={() => list.setFilter('priority', 'ALL')}>{statusLabel(priority)} priority</FilterChip>,
+    chip && <FilterChip key="p" onRemove={() => clearPeriod(list)}>{chip}</FilterChip>,
+  ].filter(Boolean);
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Contact Forms" subtitle="Inquiries + support tickets ek jagah" />
-
-      {stats && (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="New" value={stats.new} icon={MessageSquare} hint={`${stats.total} total`} />
-          <StatCard label="Urgent Open" value={stats.urgentOpen} icon={AlertTriangle} deltaColor={stats.urgentOpen > 0 ? 'down' : 'neutral'} />
-          <StatCard label="Avg Response" value={`${stats.avgResponseMinutes}m`} icon={Clock} />
-          <StatCard label="Resolved" value={stats.resolved} icon={CheckCircle} hint={stats.resolvedRate} />
-        </div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
-          <input
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Name, email, message…"
-            className="w-full rounded-lg border border-neutral-300 pl-9 pr-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-          />
-        </div>
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        >
-          <option value="">All statuses</option>
-          <option value="NEW">New</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="REPLIED">Replied</option>
-          <option value="RESOLVED">Resolved</option>
-          <option value="SPAM">Spam</option>
-        </select>
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value)}
-          className="rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-        >
-          <option value="">All priorities</option>
-          <option value="URGENT">Urgent</option>
-          <option value="HIGH">High</option>
-          <option value="NORMAL">Normal</option>
-          <option value="LOW">Low</option>
-        </select>
-      </div>
-
-      <DataTable<ContactForm>
-        loading={isLoading}
-        data={data?.items ?? []}
-        keyExtractor={(f) => f.id}
-        onRowClick={(f) => nav(`/marketing/contact-forms/${f.id}`)}
-        columns={[
-          { key: 'ticketNumber', header: 'Ticket', render: (f) => <code className="text-xs font-mono">{f.ticketNumber}</code> },
-          {
-            key: 'from',
-            header: 'From',
-            render: (f) => (
-              <div>
-                <p className="font-medium text-neutral-900">{f.fullName}</p>
-                <p className="text-xs text-neutral-500">{f.email}</p>
-              </div>
-            ),
-          },
-          {
-            key: 'subject',
-            header: 'Subject',
-            render: (f) => (
-              <div className="max-w-md">
-                <p className="font-medium text-neutral-800">{f.subject}</p>
-                <p className="mt-0.5 truncate text-xs text-neutral-500">{f.message}</p>
-              </div>
-            ),
-          },
-          { key: 'priority', header: 'Priority', render: (f) => <StatusBadge status={f.priority} /> },
-          { key: 'status', header: 'Status', render: (f) => <StatusBadge status={f.status} /> },
-          {
-            key: 'createdAt',
-            header: 'Age',
-            render: (f) => (
-              <span className="text-xs text-neutral-500">
-                {formatDistanceToNow(new Date(f.createdAt), { addSuffix: true })}
-              </span>
-            ),
-          },
-        ]}
+    <PageShell>
+      <PageHero
+        title="Contact forms"
+        chip={s ? `${num(s.total)} total` : undefined}
+        busy={forms.isFetching}
+        loading={stats.isLoading}
+        actions={
+          <>
+            <button type="button" className={heroButton} disabled={exporting} onClick={() => exportList<ContactForm>('contact-forms', (page) => contactFormsApi.list({ ...query, page, limit: 100 }), [
+              { label: 'Ticket', value: (f) => f.ticketNumber },
+              { label: 'Name', value: (f) => f.fullName },
+              { label: 'Email', value: (f) => f.email },
+              { label: 'Phone', value: (f) => f.phone },
+              { label: 'Company', value: (f) => f.companyName },
+              { label: 'Subject', value: (f) => f.subject },
+              { label: 'Message', value: (f) => f.message },
+              { label: 'Status', value: (f) => f.status },
+              { label: 'Priority', value: (f) => f.priority },
+              { label: 'Received', value: (f) => f.createdAt.slice(0, 10) },
+            ], setExporting)}>
+              <Download className="h-4 w-4" /> {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
+            <GuideButton onClick={guide.open} />
+          </>
+        }
+        stats={s ? [
+          { label: 'New', value: num(s.new), hint: `${num(s.total)} in total` },
+          { label: 'Urgent and open', value: num(s.urgentOpen), hint: s.urgentOpen ? 'Answer these first' : 'All caught up' },
+          { label: 'Average response', value: `${s.avgResponseMinutes} min` },
+          { label: 'Resolved', value: num(s.resolved), hint: s.resolvedRate },
+        ] : undefined}
       />
 
-      {data?.meta && (
-        <div className="flex items-center justify-between text-sm text-neutral-600">
-          <p>Page {data.meta.page} of {data.meta.totalPages}</p>
-          <div className="flex gap-2">
-            <button disabled={!data.meta.hasPrev} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 disabled:opacity-40">Previous</button>
-            <button disabled={!data.meta.hasNext} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-neutral-300 bg-white px-3 py-1.5 disabled:opacity-40">Next</button>
-          </div>
-        </div>
+      <FilterBar
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder="Search name, email, phone or message" />}
+        chips={chips.length ? chips : undefined}
+        onClear={list.clear}
+      >
+        <FilterMenu icon={Tag} label="Status" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)}
+          options={[{ value: 'ALL', label: 'All statuses' }, ...STATUSES.map((v) => ({ value: v, label: statusLabel(v) }))]} />
+        <FilterMenu icon={Flag} label="Priority" value={priority} active={priority !== 'ALL'} onChange={(v) => list.setFilter('priority', v)}
+          options={[{ value: 'ALL', label: 'All priorities' }, ...PRIORITIES.map((v) => ({ value: v, label: statusLabel(v) }))]} />
+        <DateRangeMenu value={periodValue(list.filters)} onChange={(v) => setPeriod(list, v)} startHour={0} label="Received" />
+      </FilterBar>
+
+      <ListCard
+        loading={forms.isLoading}
+        empty={!rows.length}
+        emptyIcon={<MessageSquare className="h-6 w-6" />}
+        emptyTitle="No contact forms match"
+        emptyText="Try another search or clear the filters."
+        page={list.page} limit={list.limit} total={forms.data?.meta.total} onPage={list.setPage} onLimit={list.setLimit}
+      >
+        <Table minWidth="56rem">
+          <THead>
+            <Tr><Th>Ticket</Th><Th>From</Th><Th>Subject</Th><Th>Priority</Th><Th>Status</Th><Th align="right">Received</Th></Tr>
+          </THead>
+          <TBody>
+            {rows.map((f) => (
+              <Tr key={f.id} interactive onClick={() => nav(`/marketing/contact-forms/${f.id}`)}>
+                <Td className="font-mono text-[0.75rem] text-slate-600">{f.ticketNumber}</Td>
+                <Td>
+                  <div className="font-semibold text-slate-900">{f.fullName}</div>
+                  <div className="text-[0.75rem] text-slate-500">{f.email}</div>
+                </Td>
+                <Td>
+                  <div className="max-w-md truncate font-medium text-slate-900">{f.subject}</div>
+                  <div className="max-w-md truncate text-[0.75rem] text-slate-500">{f.message}</div>
+                </Td>
+                <Td><StatusBadge value={f.priority} variant={PRIORITY_VARIANT[f.priority]} /></Td>
+                <Td><StatusBadge value={f.status} /></Td>
+                <Td align="right" className="whitespace-nowrap text-slate-500">{formatRelative(f.createdAt)}</Td>
+              </Tr>
+            ))}
+          </TBody>
+        </Table>
+      </ListCard>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Contact forms"
+          description="Messages visitors send from the website contact page."
+          flowTitle="A message from arrival to answer"
+          flow={[
+            { label: 'Visitor writes', hint: 'Contact page', icon: MessageSquare, color: '#4f46e5' },
+            { label: 'New ticket', hint: 'Appears here', icon: AlertTriangle, color: '#d97706' },
+            { label: 'You reply', hint: 'Email, optional SMS', icon: Reply, color: '#0284c7' },
+            { label: 'Resolved', hint: 'Closed', icon: CheckCircle, color: '#059669' },
+          ]}
+          steps={[
+            { icon: AlertTriangle, color: '#e11d48', title: 'Urgent first', text: 'Filter by Urgent priority to see what cannot wait.' },
+            { icon: Reply, color: '#0284c7', title: 'Open and reply', text: 'Click a row to read the message and send a reply.' },
+            { icon: Ban, color: '#64748b', title: 'Mark spam', text: 'Spam is hidden from the working list but kept under the Spam status.' },
+            { icon: Download, color: '#059669', title: 'Export', text: 'Export CSV downloads every ticket that matches the filters.' },
+          ]}
+          tips={['The page checks for new messages every 15 seconds.', 'Press / to jump to the search box.']}
+          shortcuts={[['/', 'Search'], ['G', 'This guide']]}
+          onClose={guide.close}
+        />
       )}
-    </div>
+    </PageShell>
   );
 }

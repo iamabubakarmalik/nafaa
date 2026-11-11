@@ -15,9 +15,9 @@ const STYLE: Record<FeatureStatus, string> = {
   coming: 'bg-amber-100 text-amber-800 ring-amber-600/20',
 };
 
-export function FeatureStatusBadge({ status, locale = 'ur', showLive = false, className }: {
+export function FeatureStatusBadge({ status, locale = 'en', showLive = false, className }: {
   status: FeatureStatus | null | undefined;
-  /** Admin UI is Roman Urdu, so "ur" ("Jald aa raha hai") is the default. */
+  /** The admin UI is English, so "en" is the default. */
   locale?: 'en' | 'ur';
   showLive?: boolean;
   className?: string;
@@ -33,7 +33,7 @@ export function FeatureStatusBadge({ status, locale = 'ur', showLive = false, cl
 
 /** Select options for a `data.status` field (entry editor forms). */
 export const FEATURE_STATUS_OPTIONS: { value: FeatureStatus; label: string; hint: string }[] = [
-  { value: 'live', label: 'Live', hint: 'Bana hua aur chal raha hai' },
-  { value: 'beta', label: 'Beta', hint: 'Chal raha hai, abhi test me; site par "Beta" badge' },
-  { value: 'coming', label: FEATURE_STATUS_BADGES.coming.ur, hint: 'Abhi bana nahi; sirf badge aur roadmap par, page noindex' },
+  { value: 'live', label: 'Live', hint: 'Built and running' },
+  { value: 'beta', label: 'Beta', hint: 'Running, still being tested; shows a "Beta" badge on the site' },
+  { value: 'coming', label: FEATURE_STATUS_BADGES.coming.en, hint: 'Not built yet; shown only as a badge and on the roadmap, page is noindex' },
 ];

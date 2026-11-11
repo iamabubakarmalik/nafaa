@@ -1,67 +1,94 @@
+/**
+ * Conversion funnel: how many visitors reach each step (visit, sign up, ask,
+ * book, convert) for the chosen period, and where they drop off.
+ */
+
 import { useQuery } from '@tanstack/react-query';
-import { TrendingDown } from 'lucide-react';
-import { conversionsApi } from '../../../../api/marketing/marketing-conversions.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { DateRangePicker } from '../../_shared/components/DateRangePicker';
-import { useMarketingDateRange } from '../../_shared/hooks/useMarketingDateRange';
+import { Filter, Globe, TrendingDown, TrendingUp, UserCheck } from 'lucide-react';
+import { Card, DateRangeMenu, EmptyState, FilterBar, PageHero, PageShell, Skeleton } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { conversionsApi } from '@/api/marketing/marketing-conversions.api';
+import { useListParams } from '@/ui';
+import { periodChip, periodQuery, periodValue, setPeriod } from '@/features/shared/period';
+import { GuideButton, num } from '../../lib/kit';
+
+const DEFAULTS = { period: 'month', from: '', to: '' };
 
 export function FunnelPage() {
-  const { from, to, setRange } = useMarketingDateRange(30);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['funnel', from, to],
-    queryFn: () => conversionsApi.funnel(from, to),
-  });
-
-  if (isLoading || !data) return <div className="h-40 animate-pulse rounded-2xl bg-white" />;
-
-  const maxCount = Math.max(...data.funnel.map((s: any) => s.count));
+  const guide = usePageGuide();
+  const list = useListParams(DEFAULTS);
+  const q = periodQuery(list.filters);
+  const { data, isLoading, isFetching } = useQuery({ queryKey: ['mkt', 'funnel', q], queryFn: () => conversionsApi.funnel(q.from, q.to), placeholderData: (p) => p });
+  const steps: any[] = data?.funnel ?? [];
+  const max = Math.max(1, ...steps.map((s) => s.count));
+  const top = steps[0]?.count ?? 0;
+  const last = steps[steps.length - 1]?.count ?? 0;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Conversion Funnel"
-        subtitle={`Overall conversion: ${data.overallConversion}`}
-        actions={<DateRangePicker from={from} to={to} onChange={setRange} />}
+    <PageShell>
+      <PageHero
+        title="Conversion funnel"
+        chip={periodChip(list.filters) ?? undefined}
+        busy={isFetching}
+        loading={isLoading}
+        actions={<GuideButton onClick={guide.open} />}
+        stats={data ? [
+          { label: 'Overall conversion', value: data.overallConversion },
+          { label: 'Top of funnel', value: num(top), hint: steps[0]?.step },
+          { label: 'Reached the end', value: num(last), hint: steps[steps.length - 1]?.step },
+          { label: 'Steps', value: steps.length },
+        ] : undefined}
       />
 
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="space-y-3">
-          {data.funnel.map((step: any, i: number) => {
-            const w = maxCount > 0 ? (step.count / maxCount) * 100 : 0;
-            return (
-              <div key={step.step} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-neutral-800">
-                    {i + 1}. {step.step}
-                  </span>
-                  <div className="flex items-center gap-4">
-                    <span className="font-semibold text-neutral-900">{step.count.toLocaleString()}</span>
-                    {step.conversionFromPrev !== '—' && (
-                      <span className="text-xs text-neutral-500">
-                        {step.conversionFromPrev} from prev
-                      </span>
-                    )}
-                    {step.dropoff !== '—' && (
-                      <span className="inline-flex items-center gap-1 text-xs text-rose-600">
-                        <TrendingDown className="h-3 w-3" /> {step.dropoff}
-                      </span>
-                    )}
+      <FilterBar>
+        <DateRangeMenu value={periodValue(list.filters)} onChange={(v) => setPeriod(list, v)} startHour={0} allowAll={false} defaultPreset="month" />
+      </FilterBar>
+
+      <Card title="Steps" description="Each bar is compared with the biggest step.">
+        {isLoading ? <Skeleton className="h-48 rounded-2xl" /> : steps.length === 0 ? (
+          <EmptyState icon={<Filter className="h-6 w-6" />} title="No funnel data" description="Try a longer period." />
+        ) : (
+          <ol className="space-y-4">
+            {steps.map((step, i) => {
+              const w = (step.count / max) * 100;
+              return (
+                <li key={step.step}>
+                  <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 text-[0.8125rem]">
+                    <span className="font-medium text-slate-800">{i + 1}. {step.step}</span>
+                    <span className="flex flex-wrap items-center gap-x-4 tabular-nums">
+                      <b className="text-slate-900">{num(step.count)}</b>
+                      {step.conversionFromPrev !== '—' && <span className="text-[0.75rem] text-slate-500">{step.conversionFromPrev} from previous</span>}
+                      {step.dropoff !== '—' && <span className="inline-flex items-center gap-1 text-[0.75rem] text-rose-600"><TrendingDown className="h-3 w-3" /> {step.dropoff} dropped</span>}
+                    </span>
                   </div>
-                </div>
-                <div className="h-8 overflow-hidden rounded-lg bg-neutral-100">
-                  <div
-                    className="flex h-full items-center justify-end rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 text-xs font-medium text-white transition-all"
-                    style={{ width: `${w}%` }}
-                  >
-                    {w > 15 && step.count.toLocaleString()}
+                  <div className="h-7 overflow-hidden rounded-lg bg-slate-100">
+                    <div className="h-full rounded-lg bg-brand-500 transition-[width] duration-500" style={{ width: `${Math.max(w, 1)}%`, opacity: 1 - i * 0.1 }} />
                   </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </Card>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Conversion funnel"
+          description="Shows where visitors are lost on the way to becoming customers."
+          flowTitle="The funnel"
+          flow={[
+            { label: 'Visit', hint: 'Website', icon: Globe, color: '#0284c7' },
+            { label: 'Engage', hint: 'Sign up, ask, chat', icon: Filter, color: '#4f46e5' },
+            { label: 'Book a demo', hint: 'Interest', icon: TrendingUp, color: '#d97706' },
+            { label: 'Convert', hint: 'Becomes a shop', icon: UserCheck, color: '#059669' },
+          ]}
+          steps={[
+            { icon: TrendingDown, color: '#e11d48', title: 'Find the biggest drop', text: 'The step with the largest drop-off is where improving the website pays most.' },
+            { icon: TrendingUp, color: '#059669', title: 'Compare periods', text: 'Change the period to see whether a change helped.' },
+          ]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

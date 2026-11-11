@@ -48,10 +48,10 @@ function pickComponent(mod: PageModule): ComponentType | null {
 
 function Placeholder({ title }: { title: string }) {
   return (
-    <div className="mx-auto mt-10 max-w-lg rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center">
-      <Construction className="mx-auto h-8 w-8 text-neutral-300" />
-      <p className="mt-3 font-semibold text-neutral-800">{title}</p>
-      <p className="mt-1 text-sm text-neutral-500">Ye screen abhi ban rahi hai.</p>
+    <div className="mx-auto mt-10 max-w-lg rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+      <Construction className="mx-auto h-8 w-8 text-slate-300" />
+      <p className="mt-3 font-semibold text-slate-800">{title}</p>
+      <p className="mt-1 text-sm text-slate-500">This screen is not available yet.</p>
     </div>
   );
 }
@@ -81,7 +81,7 @@ function M2Route({ folder }: { folder: M2Folder }) {
     <Suspense
       fallback={
         <div className="grid h-60 place-items-center">
-          <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
         </div>
       }
     >

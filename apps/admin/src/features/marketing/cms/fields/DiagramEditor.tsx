@@ -31,7 +31,7 @@ const KIND_LABEL: Record<DiagramKind, string> = {
   'store-sync': 'Store sync',
   'api-webhooks': 'API + webhooks',
   'service-process': 'Service process',
-  flow: 'Flow (apne nodes)',
+  flow: 'Flow (your own nodes)',
   hub: 'Hub (beech + spokes)',
   timeline: 'Timeline',
 };
@@ -63,27 +63,27 @@ export function DiagramEditor({ value, onChange, errors }: { value: DiagramDraft
           value={kind}
           onChange={(k) => k && onChange(emptyDiagram(k))}
           options={[
-            ...BESPOKE_DIAGRAM_KINDS.map((k) => ({ value: k, label: `${KIND_LABEL[k]} (bana hua)` })),
+            ...BESPOKE_DIAGRAM_KINDS.map((k) => ({ value: k, label: `${KIND_LABEL[k]} (built in)` })),
             ...DATA_DIAGRAM_KINDS.map((k) => ({ value: k, label: KIND_LABEL[k] })),
           ]}
           error={e('kind')}
         />
         <Field label="Animation">
           <div className="pt-1.5">
-            <Toggle checked={d.animate !== false} onChange={(animate) => set({ animate })} label="Chalta hua (scroll par)" />
+            <Toggle checked={d.animate !== false} onChange={(animate) => set({ animate })} label="Animated (on scroll)" />
           </div>
         </Field>
       </Grid>
 
       {kind && isBespokeDiagramKind(kind) && (
-        <Field label="Labels" hint="Khali chhorein to default text dikhega">
+        <Field label="Labels" hint="Leave empty to show the default text">
           <div className="grid gap-2 sm:grid-cols-2">
             {Object.entries(DIAGRAM_LABEL_KEYS[kind]).map(([key, def]) => {
               const labels = (d.labels as Record<string, string> | undefined) ?? {};
               return (
                 <TextField
                   key={key}
-                  label={<span className="font-mono text-[11px] text-neutral-500">{key}</span>}
+                  label={<span className="font-mono text-[11px] text-slate-500">{key}</span>}
                   value={labels[key]}
                   placeholder={def}
                   chars={{ max: DIAGRAM_LABEL_MAX }}
@@ -111,7 +111,7 @@ export function DiagramEditor({ value, onChange, errors }: { value: DiagramDraft
             max={DIAGRAM_LIMITS.flowNodes.max}
             create={() => ({ id: `step-${((d.nodes as unknown[] | undefined)?.length ?? 0) + 1}`, label: '' })}
             itemTitle={(n, i) => n.label || `Node ${i + 1}`}
-            addLabel="Node shamil karein"
+            addLabel="Add a node"
             error={e('nodes')}
             compact
             render={(n, update, i) => (
@@ -134,7 +134,7 @@ export function DiagramEditor({ value, onChange, errors }: { value: DiagramDraft
             max={DIAGRAM_LIMITS.flowEdgesMax}
             create={() => ({ from: '', to: '' })}
             itemTitle={(ed) => `${ed.from || '?'} → ${ed.to || '?'}`}
-            addLabel="Teer shamil karein"
+            addLabel="Add an arrow"
             compact
             render={(ed, update, i) => {
               const ids = ((d.nodes as FlowNode[] | undefined) ?? []).map((n) => n.id).filter((x): x is string => !!x);
@@ -142,7 +142,7 @@ export function DiagramEditor({ value, onChange, errors }: { value: DiagramDraft
               return (
                 <div className="grid gap-3 sm:grid-cols-3">
                   <SelectField label="Se" value={ed.from} onChange={(from) => update({ ...ed, from })} options={opts} emptyLabel="—" error={e(`edges[${i}].from`)} />
-                  <SelectField label="Tak" value={ed.to} onChange={(to) => update({ ...ed, to })} options={opts} emptyLabel="—" error={e(`edges[${i}].to`)} />
+                  <SelectField label="To" value={ed.to} onChange={(to) => update({ ...ed, to })} options={opts} emptyLabel="—" error={e(`edges[${i}].to`)} />
                   <TextField label="Label" value={ed.label} onChange={(label) => update({ ...ed, label: label || undefined })} chars={{ max: 32 }} />
                 </div>
               );
@@ -155,14 +155,14 @@ export function DiagramEditor({ value, onChange, errors }: { value: DiagramDraft
         <>
           <Grid>
             <TextField
-              label="Beech ka label"
+              label="Centre label"
               required
               value={(d.center as Spoke | undefined)?.label}
               onChange={(label) => set({ center: { ...(d.center as object), label } })}
               chars={{ max: DIAGRAM_LABEL_MAX }}
               error={e('center.label')}
             />
-            <IconPicker value={(d.center as Spoke | undefined)?.icon} onChange={(icon) => set({ center: { ...(d.center as object), icon } })} label="Beech ka icon" />
+            <IconPicker value={(d.center as Spoke | undefined)?.icon} onChange={(icon) => set({ center: { ...(d.center as object), icon } })} label="Centre icon" />
           </Grid>
           <ListEditor<Spoke>
             label="Spokes"
@@ -189,7 +189,7 @@ export function DiagramEditor({ value, onChange, errors }: { value: DiagramDraft
 
       {kind === 'timeline' && (
         <ListEditor<TimelineItem>
-          label="Waqt ke qadam"
+          label="Steps over time"
           items={d.items as TimelineItem[] | undefined}
           onChange={(items) => set({ items })}
           min={DIAGRAM_LIMITS.timelineItems.min}

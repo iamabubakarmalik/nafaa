@@ -2547,19 +2547,19 @@ export function blockStructureIssues(entryType: CmsEntryType, blocks: readonly {
   blocks.forEach((block, i) => {
     if (block.hidden) return;
     if (!allowed.includes(block.type)) {
-      issues.push({ code: 'BLOCK_NOT_ALLOWED', severity: 'error', field: `blocks[${i}]`, blockId: block.id, message: `"${block.type}" block ${ENTRY_TYPE_META[entryType].label} par allowed nahi` });
+      issues.push({ code: 'BLOCK_NOT_ALLOWED', severity: 'error', field: `blocks[${i}]`, blockId: block.id, message: `"${block.type}" block is not allowed on a ${ENTRY_TYPE_META[entryType].label} page` });
     }
     if (block.type === 'hero') {
       heroCount += 1;
       const firstVisible = blocks.findIndex((b) => !b.hidden);
       if (i !== firstVisible || heroCount > 1) {
-        issues.push({ code: 'HERO_NOT_FIRST', severity: 'error', field: `blocks[${i}]`, blockId: block.id, message: 'Hero sirf ek ho sakta hai aur sab se pehle hona chahiye' });
+        issues.push({ code: 'HERO_NOT_FIRST', severity: 'error', field: `blocks[${i}]`, blockId: block.id, message: 'There can be only one Hero and it must come first' });
       }
     }
     if (block.type === 'faq') {
       faqCount += 1;
       if (faqCount > 1) {
-        issues.push({ code: 'INVALID_BLOCK', severity: 'error', field: `blocks[${i}]`, blockId: block.id, message: 'FAQ block sirf ek ho sakta hai' });
+        issues.push({ code: 'INVALID_BLOCK', severity: 'error', field: `blocks[${i}]`, blockId: block.id, message: 'There can be only one FAQ block' });
       }
     }
   });

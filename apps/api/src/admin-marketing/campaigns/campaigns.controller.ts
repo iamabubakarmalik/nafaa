@@ -9,7 +9,9 @@ import { MARKETING_PERMISSIONS } from '../_shared/constants/marketing-permission
 import { CampaignsService } from './campaigns.service';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { ListCampaignsDto } from './dto/list-campaigns.dto';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
+@AdminArea('marketing')
 @Controller('admin/marketing/campaigns')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class CampaignsController {

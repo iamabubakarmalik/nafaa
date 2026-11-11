@@ -17,7 +17,9 @@ import { DemoBookingsService } from './demo-bookings.service';
 import { ListDemosDto } from './dto/list-demos.dto';
 import { ScheduleDemoDto } from './dto/schedule-demo.dto';
 import { CompleteDemoDto } from './dto/complete-demo.dto';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
+@AdminArea('marketing')
 @Controller('admin/marketing/demo-bookings')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class DemoBookingsController {

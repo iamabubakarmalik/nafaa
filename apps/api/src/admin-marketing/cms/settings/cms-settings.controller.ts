@@ -9,10 +9,12 @@ import { localeSchema, putSettingBodySchema } from '../contract/cms-contract';
 import { CmsExceptionFilter } from '../public/cms-exception.filter';
 import { parseOr400, userId } from '../public/cms-http';
 import { CmsSettingsService } from './cms-settings.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 const localeQuery = z.object({ locale: localeSchema.optional() });
 
 /** Admin → Website → Settings (API-CONTRACT 8.7). The llms preview lives in the public module. */
+@AdminArea('marketing')
 @Controller('admin/marketing/cms/settings')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 @UseFilters(CmsExceptionFilter)

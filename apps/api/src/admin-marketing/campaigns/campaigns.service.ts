@@ -6,6 +6,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { parsePagination, paginated } from '../_shared/helpers/pagination.helper';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { ListCampaignsDto } from './dto/list-campaigns.dto';
+import { dayRange } from '../_shared/helpers/day-range.helper';
 
 @Injectable()
 export class CampaignsService {
@@ -37,6 +38,8 @@ export class CampaignsService {
       where.type = dto.channel as any;
     }
     if (dto.search) where.name = { contains: dto.search, mode: 'insensitive' };
+    const range = dayRange(dto.from, dto.to);
+    if (range) where.createdAt = range;
 
     const [items, total] = await Promise.all([
       this.prisma.marketingCampaign.findMany({

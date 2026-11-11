@@ -21,10 +21,12 @@ import { CmsExceptionFilter } from '../public/cms-exception.filter';
 import { parseOr400, userId } from '../public/cms-http';
 import { CmsRedirectsService } from './cms-redirects.service';
 import { parseRedirectCsv } from './redirect-match';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 type AuthedRequest = { user?: { id?: string } };
 
 /** Admin → Website → Redirects (API-CONTRACT 8.5). */
+@AdminArea('marketing')
 @Controller('admin/marketing/cms/redirects')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 @UseFilters(CmsExceptionFilter)

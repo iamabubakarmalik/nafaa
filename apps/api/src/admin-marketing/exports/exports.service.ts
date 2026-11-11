@@ -1,13 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { rangeEnd, rangeStart } from '../_shared/helpers/day-range.helper';
 
 @Injectable()
 export class ExportsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async export(entity: string, from?: string, to?: string) {
-    const fromDate = from ? new Date(from) : new Date(Date.now() - 90 * 864e5);
-    const toDate = to ? new Date(to) : new Date();
+    const fromDate = rangeStart(from, new Date(Date.now() - 90 * 864e5));
+    const toDate = rangeEnd(to);
 
     switch (entity) {
       case 'subscribers':

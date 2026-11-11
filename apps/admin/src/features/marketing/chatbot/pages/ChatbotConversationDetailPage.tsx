@@ -1,125 +1,125 @@
+/**
+ * One chatbot conversation: the message thread (refreshes every 5 seconds),
+ * take over from the bot, reply or leave an internal note, and resolve.
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Send, UserCheck, CheckSquare, Lock } from 'lucide-react';
-import { chatbotApi } from '../../../../api/marketing/marketing-chatbot.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { StatusBadge } from '../../_shared/components/StatusBadge';
-import { format } from 'date-fns';
+import { Bot, CheckSquare, Send, UserCheck } from 'lucide-react';
+import { Button, Card, Checkbox, PageHero, PageShell, Skeleton, Textarea } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { chatbotApi } from '@/api/marketing/marketing-chatbot.api';
+import { formatDate } from '@/lib/format';
+import { DetailList, statusLabel } from '@/ui';
+import { cn } from '@/lib/cn';
+import { GuideButton } from '../../lib/kit';
+
+const time = (d: string) => new Date(d).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' });
 
 export function ChatbotConversationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
+  const guide = usePageGuide();
   const [msg, setMsg] = useState('');
   const [internal, setInternal] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { data: conv } = useQuery({
-    queryKey: ['chatbot-detail', id],
-    queryFn: () => chatbotApi.detail(id!),
-    refetchInterval: 5_000,
-    enabled: !!id,
-  });
+  const { data: conv } = useQuery({ queryKey: ['mkt', 'chatbot-detail', id], queryFn: () => chatbotApi.detail(id!), refetchInterval: 5_000, enabled: !!id });
+  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [conv?.messages?.length]);
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [conv?.messages?.length]);
+  const refresh = () => { qc.invalidateQueries({ queryKey: ['mkt', 'chatbot-detail', id] }); qc.invalidateQueries({ queryKey: ['mkt', 'chatbot'] }); };
+  const fail = (e: any) => toast.error(e.response?.data?.message ?? 'Something went wrong. Try again.');
+  const takeoverMut = useMutation({ mutationFn: () => chatbotApi.takeover(id!, 'Assalam-o-Alaikum! Main aap ki madad karta hun.'), onSuccess: () => { toast.success('You took over this chat'); refresh(); }, onError: fail });
+  const sendMut = useMutation({ mutationFn: () => chatbotApi.sendMessage(id!, msg, internal), onSuccess: () => { setMsg(''); refresh(); }, onError: fail });
+  const resolveMut = useMutation({ mutationFn: () => chatbotApi.resolve(id!, 'Resolved by admin'), onSuccess: () => { toast.success('Chat resolved'); refresh(); }, onError: fail });
 
-  const takeoverMut = useMutation({
-    mutationFn: () => chatbotApi.takeover(id!, 'Assalam-o-Alaikum! Main aap ki madad karta hun.'),
-    onSuccess: () => { toast.success('Chat taken over'); qc.invalidateQueries({ queryKey: ['chatbot-detail', id] }); },
-  });
+  if (!conv) return <PageShell><PageHero title="Conversation" back="/marketing/chatbot" loading /><Skeleton className="h-64 rounded-3xl" /></PageShell>;
 
-  const sendMut = useMutation({
-    mutationFn: () => chatbotApi.sendMessage(id!, msg, internal),
-    onSuccess: () => { setMsg(''); qc.invalidateQueries({ queryKey: ['chatbot-detail', id] }); },
-  });
-
-  const resolveMut = useMutation({
-    mutationFn: () => chatbotApi.resolve(id!, 'Resolved by admin'),
-    onSuccess: () => { toast.success('Chat resolved'); qc.invalidateQueries({ queryKey: ['chatbot-detail', id] }); },
-  });
-
-  if (!conv) return <div className="h-40 animate-pulse rounded-2xl bg-white" />;
+  const open = conv.status !== 'RESOLVED' && conv.status !== 'ABANDONED';
+  const bubble = (t: string) => t === 'USER' ? 'bg-slate-100 text-slate-800' : t === 'BOT' ? 'bg-sky-50 text-sky-900' : t === 'SYSTEM' ? 'bg-amber-50 text-xs italic text-amber-900' : 'bg-brand-600 text-brand-fg';
 
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title={conv.visitorName ?? 'Anonymous Visitor'}
-        subtitle={conv.conversationNumber}
-        backTo="/marketing/chatbot"
-        actions={<StatusBadge status={conv.status} />}
+    <PageShell>
+      <PageHero
+        title={conv.visitorName ?? 'Anonymous visitor'}
+        back="/marketing/chatbot"
+        backLabel="Chatbot"
+        chip={statusLabel(conv.status)}
+        meta={conv.conversationNumber}
+        actions={<GuideButton onClick={guide.open} />}
+        stats={[
+          { label: 'Messages', value: conv.messages?.length ?? 0 },
+          { label: 'Status', value: statusLabel(conv.status) },
+          { label: 'Page', value: conv.currentPage ?? '/' },
+        ]}
       />
 
-      <div className="grid gap-6 lg:grid-cols-4">
-        <div className="lg:col-span-3 rounded-2xl border border-neutral-200 bg-white shadow-sm">
-          <div ref={scrollRef} className="max-h-[500px] overflow-y-auto p-5 space-y-3">
+      <div className="grid gap-4 xl:grid-cols-4">
+        <Card flush className="xl:col-span-3" title="Conversation">
+          <div ref={scrollRef} className="max-h-[32rem] space-y-3 overflow-y-auto p-4 sm:p-5">
             {conv.messages?.map((m: any) => (
-              <div key={m.id} className={`flex ${m.senderType === 'USER' ? 'justify-start' : 'justify-end'}`}>
-                <div className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${
-                  m.senderType === 'USER' ? 'bg-neutral-100 text-neutral-800' :
-                  m.senderType === 'BOT' ? 'bg-blue-50 text-blue-900' :
-                  m.senderType === 'SYSTEM' ? 'bg-amber-50 text-amber-900 italic text-xs' :
-                  'bg-emerald-600 text-white'
-                }`}>
+              <div key={m.id} className={cn('flex', m.senderType === 'USER' ? 'justify-start' : 'justify-end')}>
+                <div className={cn('max-w-[75%] rounded-2xl px-4 py-2 text-[0.875rem]', bubble(m.senderType))}>
                   {m.content}
-                  <p className="mt-1 text-xs opacity-60">{format(new Date(m.createdAt), 'p')}</p>
+                  <p className="mt-1 text-[0.6875rem] opacity-60">{time(m.createdAt)} · {formatDate(m.createdAt)}</p>
                 </div>
               </div>
             ))}
           </div>
-
-          {conv.status !== 'RESOLVED' && conv.status !== 'ABANDONED' && (
-            <div className="border-t border-neutral-200 p-4">
+          {open && (
+            <div className="border-t border-slate-100 p-4">
               {conv.status === 'BOT_HANDLING' || conv.status === 'WAITING_HUMAN' ? (
-                <button
-                  onClick={() => takeoverMut.mutate()}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-                >
-                  <UserCheck className="h-4 w-4" /> Take Over
-                </button>
+                <Button fullWidth leftIcon={<UserCheck className="h-4 w-4" />} loading={takeoverMut.isPending} onClick={() => takeoverMut.mutate()}>Take over</Button>
               ) : (
-                <div className="flex flex-col gap-2">
-                  <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={2} placeholder="Jawab likhein…" className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
-                  <div className="flex items-center justify-between">
-                    <label className="inline-flex items-center gap-2 text-xs text-neutral-600">
-                      <input type="checkbox" checked={internal} onChange={(e) => setInternal(e.target.checked)} />
-                      Internal note (visitor won't see)
-                    </label>
-                    <button
-                      onClick={() => msg.trim() && sendMut.mutate()}
-                      disabled={sendMut.isPending}
-                      className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-                    >
-                      <Send className="h-4 w-4" /> Send
-                    </button>
+                <div className="space-y-2">
+                  <Textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={2} placeholder="Write a reply" aria-label="Reply" />
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Checkbox label="Internal note (the visitor will not see it)" checked={internal} onChange={(e) => setInternal(e.target.checked)} />
+                    <Button leftIcon={<Send className="h-4 w-4" />} loading={sendMut.isPending} onClick={() => msg.trim() && sendMut.mutate()}>Send</Button>
                   </div>
                 </div>
               )}
             </div>
           )}
-        </div>
+        </Card>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-            <h3 className="mb-2 text-sm font-semibold">Visitor</h3>
-            <p className="text-xs text-neutral-600">{conv.visitorEmail ?? 'No email'}</p>
-            {conv.visitorPhone && <p className="text-xs text-neutral-600">{conv.visitorPhone}</p>}
-            {conv.visitorCountry && <p className="text-xs text-neutral-600">{conv.visitorCity ?? ''} {conv.visitorCountry}</p>}
-            <p className="mt-2 text-xs text-neutral-500">On: {conv.currentPage ?? '/'}</p>
-          </div>
-
+          <Card title="Visitor">
+            <DetailList items={[
+              { label: 'Email', value: conv.visitorEmail },
+              { label: 'Phone', value: conv.visitorPhone },
+              { label: 'Location', value: [conv.visitorCity, conv.visitorCountry].filter(Boolean).join(', ') || null },
+              { label: 'On page', value: conv.currentPage ?? '/' },
+            ]} />
+          </Card>
           {conv.status !== 'RESOLVED' && (
-            <button
-              onClick={() => resolveMut.mutate()}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50"
-            >
-              <CheckSquare className="h-4 w-4" /> Mark Resolved
-            </button>
+            <Button variant="outline" fullWidth leftIcon={<CheckSquare className="h-4 w-4" />} loading={resolveMut.isPending} onClick={() => resolveMut.mutate()}>Mark resolved</Button>
           )}
         </div>
       </div>
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Chatbot conversation"
+          description="Read the chat, step in when the bot cannot help, and close it when done."
+          flowTitle="Taking over a chat"
+          flow={[
+            { label: 'Read the thread', hint: 'Bot and visitor', icon: Bot, color: '#0284c7' },
+            { label: 'Take over', hint: 'Greets the visitor', icon: UserCheck, color: '#4f46e5' },
+            { label: 'Reply', hint: 'Or leave a note', icon: Send, color: '#d97706' },
+            { label: 'Resolve', hint: 'Closes the chat', icon: CheckSquare, color: '#059669' },
+          ]}
+          steps={[
+            { icon: UserCheck, color: '#4f46e5', title: 'Take over', text: 'Available while the bot is handling or the visitor is waiting. The visitor gets a greeting.' },
+            { icon: Send, color: '#d97706', title: 'Reply or note', text: 'Tick Internal note to write something only your team can see.' },
+            { icon: CheckSquare, color: '#059669', title: 'Resolve', text: 'Mark the chat resolved once the visitor is helped.' },
+          ]}
+          tips={['The thread refreshes every 5 seconds.']}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

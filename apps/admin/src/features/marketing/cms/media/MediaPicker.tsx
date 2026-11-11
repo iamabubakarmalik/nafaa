@@ -26,7 +26,7 @@ export interface MediaPickerProps {
   disabled?: boolean;
 }
 
-export function MediaPicker({ value, onChange, media, kinds, label = 'Media chunein', disabled }: MediaPickerProps) {
+export function MediaPicker({ value, onChange, media, kinds, label = 'Choose media', disabled }: MediaPickerProps) {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useState<PublicMedia | null>(media ?? null);
 
@@ -44,15 +44,15 @@ export function MediaPicker({ value, onChange, media, kinds, label = 'Media chun
   return (
     <div>
       {value ? (
-        <div className="flex items-center gap-3 rounded-lg border border-neutral-300 bg-white p-2">
-          <div className="h-14 w-20 shrink-0 overflow-hidden rounded-md bg-neutral-100">
+        <div className="flex items-center gap-3 rounded-lg border border-slate-300 bg-white p-2">
+          <div className="h-14 w-20 shrink-0 overflow-hidden rounded-md bg-slate-100">
             {current ? <MediaThumb media={current} /> : null}
           </div>
-          <p className="min-w-0 flex-1 truncate text-sm text-neutral-700">{current?.alt ?? `Media ${value}`}</p>
+          <p className="min-w-0 flex-1 truncate text-sm text-slate-700">{current?.alt ?? `Media ${value}`}</p>
           {!disabled && (
             <div className="flex gap-1">
               <button type="button" className={btn.ghost} onClick={() => setOpen(true)}>Badlein</button>
-              <button type="button" className={btn.icon} aria-label="Hatayein" onClick={() => { setCurrent(null); onChange(null, null); }}>
+              <button type="button" className={btn.icon} aria-label="Remove" onClick={() => { setCurrent(null); onChange(null, null); }}>
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -92,7 +92,7 @@ export function MediaPickerDialog({ open, onClose, onSelect, kinds, selectedId }
         title="Media library"
         footer={
           <button type="button" className={btn.secondary} onClick={() => setUploading(true)}>
-            <Upload className="h-4 w-4" /> Nayi file upload
+            <Upload className="h-4 w-4" /> Upload a new file
           </button>
         }
       >

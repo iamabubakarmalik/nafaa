@@ -44,7 +44,7 @@ export function errorStatus(error: unknown): number | undefined {
 }
 
 /** A readable message for a failed request (Nest message, or a plain fallback). */
-export function errorMessage(error: unknown, fallback = 'Kuch ghalat ho gaya. Dobara try karein.'): string {
+export function errorMessage(error: unknown, fallback = 'Something went wrong. Try again.'): string {
   const msg = errorBody(error)?.message;
   if (Array.isArray(msg)) return msg.join(', ');
   if (typeof msg === 'string' && msg.trim()) return msg;

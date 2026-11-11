@@ -5,7 +5,9 @@ import { MarketingPermissionsGuard } from '../_shared/guards/marketing-permissio
 import { RequireMarketingPermissions } from '../_shared/decorators/marketing-permissions.decorator';
 import { MARKETING_PERMISSIONS } from '../_shared/constants/marketing-permissions.constants';
 import { MarketingDashboardService } from './dashboard.service';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
+@AdminArea('marketing')
 @Controller('admin/marketing/dashboard')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class MarketingDashboardController {

@@ -9,10 +9,12 @@ import { createFaqBodySchema, faqsQuerySchema, localeSchema, patchFaqBodySchema 
 import { CmsExceptionFilter } from '../public/cms-exception.filter';
 import { parseOr400, userId } from '../public/cms-http';
 import { CmsFaqsService } from './cms-faqs.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 type AuthedRequest = { user?: { id?: string } };
 
 /** Admin → Website → FAQs (API-CONTRACT 8.3). */
+@AdminArea('marketing')
 @Controller('admin/marketing/cms/faqs')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 @UseFilters(CmsExceptionFilter)

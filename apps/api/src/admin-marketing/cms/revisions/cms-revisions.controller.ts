@@ -9,9 +9,11 @@ import { historyQuerySchema, type EntryResponse, type RevisionDetail, type Revis
 import { CmsEntriesService } from '../entries/cms-entries.service';
 import { EntryConflictException, parseOr400 } from '../publishing/cms-errors';
 import { CmsRevisionsService } from './cms-revisions.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 const P = MARKETING_PERMISSIONS;
 
+@AdminArea('marketing')
 @Controller('admin/marketing/cms')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class CmsRevisionsController {

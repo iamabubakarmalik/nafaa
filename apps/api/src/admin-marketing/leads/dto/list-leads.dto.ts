@@ -32,4 +32,6 @@ export class ListLeadsDto {
   @IsOptional() @IsString() assignedTo?: string;
   @IsOptional() @Type(() => Number) @IsInt() minScore?: number;
   @IsOptional() @Type(() => Number) @IsInt() maxScore?: number;
+  @IsOptional() @IsString() from?: string;
+  @IsOptional() @IsString() to?: string;
 }

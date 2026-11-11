@@ -1,187 +1,138 @@
+/**
+ * One contact form ticket: the message, earlier replies, a reply form (email,
+ * optional SMS, mark resolved), and status, priority and spam actions.
+ */
+
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Send, Ban, CheckCircle, Mail, Phone, Building2 } from 'lucide-react';
-import { contactFormsApi } from '../../../../api/marketing/marketing-contact-forms.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { StatusBadge } from '../../_shared/components/StatusBadge';
-import { format, formatDistanceToNow } from 'date-fns';
+import { Ban, CheckCircle, Flag, Reply, Send } from 'lucide-react';
+import { Button, Card, Checkbox, Input, PageHero, PageShell, Select, Skeleton, Textarea, confirmDialog } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { contactFormsApi } from '@/api/marketing/marketing-contact-forms.api';
+import { formatDate, formatRelative } from '@/lib/format';
+import { DetailList, statusLabel } from '@/ui';
+import { GuideButton } from '../../lib/kit';
+
+const STATUSES = ['NEW', 'IN_PROGRESS', 'REPLIED', 'RESOLVED', 'ARCHIVED'];
+const PRIORITIES = ['LOW', 'NORMAL', 'HIGH', 'URGENT'];
 
 export function ContactFormDetailPage() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
+  const guide = usePageGuide();
   const [message, setMessage] = useState('');
   const [subject, setSubject] = useState('');
   const [markResolved, setMarkResolved] = useState(false);
   const [sendSms, setSendSms] = useState(false);
 
-  const { data: form, isLoading } = useQuery({
-    queryKey: ['contact-form', id],
-    queryFn: () => contactFormsApi.detail(id!),
-    enabled: !!id,
-  });
+  const { data: form, isLoading } = useQuery({ queryKey: ['mkt', 'contact-form', id], queryFn: () => contactFormsApi.detail(id!), enabled: !!id });
+  const refresh = () => { qc.invalidateQueries({ queryKey: ['mkt', 'contact-form', id] }); qc.invalidateQueries({ queryKey: ['mkt', 'contact-forms'] }); };
 
   const replyMut = useMutation({
     mutationFn: (body: any) => contactFormsApi.reply(id!, body),
-    onSuccess: () => {
-      toast.success('Reply sent!');
-      setMessage('');
-      setSubject('');
-      qc.invalidateQueries({ queryKey: ['contact-form', id] });
-    },
-    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Send fail'),
+    onSuccess: () => { toast.success('Reply sent'); setMessage(''); setSubject(''); setMarkResolved(false); refresh(); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Could not send the reply'),
   });
-
-  const spamMut = useMutation({
-    mutationFn: () => contactFormsApi.markSpam(id!),
-    onSuccess: () => {
-      toast.success('Marked as spam');
-      qc.invalidateQueries({ queryKey: ['contact-form', id] });
-    },
-  });
-
+  const spamMut = useMutation({ mutationFn: () => contactFormsApi.markSpam(id!), onSuccess: () => { toast.success('Marked as spam'); refresh(); } });
   const updateMut = useMutation({
     mutationFn: (body: any) => contactFormsApi.update(id!, body),
-    onSuccess: () => {
-      toast.success('Updated');
-      qc.invalidateQueries({ queryKey: ['contact-form', id] });
-    },
+    onSuccess: () => { toast.success('Updated'); refresh(); },
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Could not update'),
   });
 
   if (isLoading || !form) {
-    return <div className="h-40 animate-pulse rounded-2xl bg-white" />;
+    return <PageShell><PageHero title="Contact form" back="/marketing/contact-forms" loading /><Skeleton className="h-64 rounded-3xl" /></PageShell>;
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <PageShell>
+      <PageHero
         title={form.subject}
-        subtitle={`Ticket ${form.ticketNumber}`}
-        backTo="/marketing/contact-forms"
-        actions={
-          <div className="flex items-center gap-2">
-            <StatusBadge status={form.priority} />
-            <StatusBadge status={form.status} />
-          </div>
-        }
+        back="/marketing/contact-forms"
+        backLabel="Contact forms"
+        chip={statusLabel(form.status)}
+        meta={`Ticket ${form.ticketNumber}`}
+        actions={<GuideButton onClick={guide.open} />}
+        stats={[
+          { label: 'Status', value: statusLabel(form.status) },
+          { label: 'Priority', value: statusLabel(form.priority) },
+          { label: 'Replies', value: form.replies?.length ?? 0 },
+          { label: 'Received', value: formatRelative(form.createdAt) },
+        ]}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-            <div className="mb-3 flex items-center justify-between border-b border-neutral-100 pb-3">
-              <div>
-                <p className="font-semibold text-neutral-900">{form.fullName}</p>
-                <p className="text-xs text-neutral-500">{form.email}</p>
-              </div>
-              <span className="text-xs text-neutral-400">
-                {formatDistanceToNow(new Date(form.createdAt), { addSuffix: true })}
-              </span>
-            </div>
-            <p className="whitespace-pre-wrap text-sm text-neutral-700">{form.message}</p>
-          </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="space-y-4 xl:col-span-2">
+          <Card title={form.fullName} description={form.email} actions={<span className="text-[0.75rem] text-slate-500">{formatDate(form.createdAt)}</span>}>
+            <p className="whitespace-pre-wrap text-[0.875rem] text-slate-800">{form.message}</p>
+          </Card>
 
-          {form.replies && form.replies.map((r: any) => (
-            <div key={r.id} className={`rounded-2xl border p-5 shadow-sm ${
-              r.senderType === 'ADMIN' ? 'border-emerald-200 bg-emerald-50/50 ml-8' : 'border-neutral-200 bg-white mr-8'
-            }`}>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-medium text-neutral-700">
-                  {r.senderType === 'ADMIN' ? '👤 Admin' : form.fullName}
-                </p>
-                <span className="text-xs text-neutral-400">
-                  {format(new Date(r.createdAt), 'PPp')}
-                </span>
-              </div>
-              <p className="whitespace-pre-wrap text-sm text-neutral-700">{r.message}</p>
-            </div>
+          {form.replies?.map((r: any) => (
+            <Card key={r.id} title={r.senderType === 'ADMIN' ? 'Nafaa team' : form.fullName} actions={<span className="text-[0.75rem] text-slate-500">{formatDate(r.createdAt)}</span>} className={r.senderType === 'ADMIN' ? 'ring-brand-200' : undefined}>
+              <p className="whitespace-pre-wrap text-[0.875rem] text-slate-800">{r.message}</p>
+            </Card>
           ))}
 
           {form.status !== 'SPAM' && form.status !== 'ARCHIVED' && (
-            <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-              <h3 className="mb-3 font-semibold text-neutral-800">Reply</h3>
-              <input
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                placeholder="Subject (optional)"
-                className="mb-3 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-              />
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={5}
-                placeholder="Aap ka jawab likhein…"
-                className="mb-3 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-              />
-              <div className="mb-3 flex flex-wrap gap-4 text-sm">
-                <label className="inline-flex items-center gap-2">
-                  <input type="checkbox" checked={markResolved} onChange={(e) => setMarkResolved(e.target.checked)} className="rounded" />
-                  Mark resolved
-                </label>
-                <label className="inline-flex items-center gap-2">
-                  <input type="checkbox" checked={sendSms} onChange={(e) => setSendSms(e.target.checked)} disabled={!form.phone} className="rounded" />
-                  Also send SMS {!form.phone && '(no phone)'}
-                </label>
-              </div>
-              <button
-                onClick={() => {
-                  if (!message.trim()) { toast.error('Message zaroori'); return; }
+            <Card title="Reply" description="The reply goes to the sender's email.">
+              <div className="space-y-3">
+                <Input label="Subject (optional)" value={subject} onChange={(e) => setSubject(e.target.value)} />
+                <Textarea label="Message" value={message} onChange={(e) => setMessage(e.target.value)} rows={5} />
+                <div className="flex flex-wrap gap-x-6 gap-y-2">
+                  <Checkbox label="Mark resolved" checked={markResolved} onChange={(e) => setMarkResolved(e.target.checked)} />
+                  <Checkbox label={form.phone ? 'Also send SMS' : 'Also send SMS (no phone number)'} checked={sendSms} onChange={(e) => setSendSms(e.target.checked)} disabled={!form.phone} />
+                </div>
+                <Button leftIcon={<Send className="h-4 w-4" />} loading={replyMut.isPending} onClick={() => {
+                  if (!message.trim()) { toast.error('Write a message first'); return; }
                   replyMut.mutate({ subject: subject || undefined, message, markResolved, sendSms });
-                }}
-                disabled={replyMut.isPending}
-                className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-              >
-                <Send className="h-4 w-4" /> Send Reply
-              </button>
-            </div>
+                }}>Send reply</Button>
+              </div>
+            </Card>
           )}
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 text-sm font-semibold text-neutral-700">Sender</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-neutral-700"><Mail className="h-3 w-3" /> {form.email}</div>
-              {form.phone && <div className="flex items-center gap-2 text-neutral-700"><Phone className="h-3 w-3" /> {form.phone}</div>}
-              {form.companyName && <div className="flex items-center gap-2 text-neutral-700"><Building2 className="h-3 w-3" /> {form.companyName}</div>}
+          <Card title="Sender">
+            <DetailList items={[
+              { label: 'Name', value: form.fullName },
+              { label: 'Email', value: form.email },
+              { label: 'Phone', value: form.phone },
+              { label: 'Company', value: form.companyName },
+              { label: 'Form', value: statusLabel(form.formType) },
+            ]} />
+          </Card>
+          <Card title="Actions">
+            <div className="space-y-3">
+              <Select label="Status" value={form.status === 'SPAM' ? '' : form.status} placeholder={form.status === 'SPAM' ? 'Spam' : undefined} onChange={(e) => e.target.value && updateMut.mutate({ status: e.target.value })} options={STATUSES.map((v) => ({ value: v, label: statusLabel(v) }))} />
+              <Select label="Priority" value={form.priority} onChange={(e) => updateMut.mutate({ priority: e.target.value })} options={PRIORITIES.map((v) => ({ value: v, label: statusLabel(v) }))} />
+              <Button variant="critical" fullWidth leftIcon={<Ban className="h-4 w-4" />} onClick={async () => {
+                if (await confirmDialog({ title: 'Mark as spam?', text: 'The ticket moves to the Spam status.', yes: 'Mark as spam', danger: true })) spamMut.mutate();
+              }}>Mark as spam</Button>
             </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 text-sm font-semibold text-neutral-700">Actions</h3>
-            <div className="space-y-2">
-              <select
-                value={form.status}
-                onChange={(e) => updateMut.mutate({ status: e.target.value })}
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-              >
-                <option value="NEW">New</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="REPLIED">Replied</option>
-                <option value="RESOLVED">Resolved</option>
-                <option value="ARCHIVED">Archived</option>
-              </select>
-              <select
-                value={form.priority}
-                onChange={(e) => updateMut.mutate({ priority: e.target.value })}
-                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-              >
-                <option value="LOW">Low</option>
-                <option value="NORMAL">Normal</option>
-                <option value="HIGH">High</option>
-                <option value="URGENT">Urgent</option>
-              </select>
-              <button
-                onClick={() => { if (confirm('Mark as spam?')) spamMut.mutate(); }}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-rose-300 bg-white px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50"
-              >
-                <Ban className="h-3 w-3" /> Mark as Spam
-              </button>
-            </div>
-          </div>
+          </Card>
         </div>
       </div>
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Contact form ticket"
+          description="Read the message, answer it and close the ticket."
+          flowTitle="Handling a ticket"
+          flow={[
+            { label: 'Read', hint: 'Message and sender', icon: Flag, color: '#4f46e5' },
+            { label: 'Reply', hint: 'Email, optional SMS', icon: Reply, color: '#0284c7' },
+            { label: 'Mark resolved', hint: 'Tick on send', icon: CheckCircle, color: '#059669' },
+          ]}
+          steps={[
+            { icon: Reply, color: '#0284c7', title: 'Reply', text: 'Write the answer and send it. Tick Mark resolved to close the ticket in one step.' },
+            { icon: Flag, color: '#d97706', title: 'Set priority', text: 'Raise urgent tickets so they show first in the list.' },
+            { icon: Ban, color: '#e11d48', title: 'Spam', text: 'Mark junk as spam. You will be asked to confirm.' },
+          ]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

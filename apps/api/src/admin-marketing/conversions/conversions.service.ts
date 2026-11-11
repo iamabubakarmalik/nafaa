@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { rangeEnd, rangeStart } from '../_shared/helpers/day-range.helper';
 
 @Injectable()
 export class ConversionsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async funnel(range: { from?: string; to?: string }) {
-    const from = range.from ? new Date(range.from) : new Date(Date.now() - 30 * 864e5);
-    const to = range.to ? new Date(range.to) : new Date();
+    const from = rangeStart(range.from, new Date(Date.now() - 30 * 864e5));
+    const to = rangeEnd(range.to);
 
     const [visits, pricingVisits, formStarts, formSubmits, demos, converted] =
       await Promise.all([

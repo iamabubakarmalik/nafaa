@@ -18,7 +18,9 @@ import { ContactFormsService } from './contact-forms.service';
 import { ListFormsDto } from './dto/list-forms.dto';
 import { UpdateFormDto } from './dto/update-form.dto';
 import { ReplyFormDto } from './dto/reply-form.dto';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
+@AdminArea('marketing')
 @Controller('admin/marketing/contact-forms')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class ContactFormsController {

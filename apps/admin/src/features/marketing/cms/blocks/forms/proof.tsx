@@ -12,9 +12,9 @@ import type { BlockFormProps } from '../types';
 export function FaqForm({ block, set }: BlockFormProps<'faq'>) {
   return (
     <div className="space-y-4">
-      <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} placeholder="Aksar pooche jane wale sawal" />
-      <p className="rounded-xl bg-neutral-50 p-3 text-xs text-neutral-600 ring-1 ring-neutral-200">
-        Sawal aur jawab right panel ke <b>FAQ</b> tab se jorein. Jo FAQs page par dikhte hain wohi FAQPage schema me jate hain.
+      <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} placeholder="Frequently asked questions" />
+      <p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600 ring-1 ring-slate-200">
+        Add questions and answers from the <b>FAQ</b> tab in the right panel. The FAQs shown on the page are the ones that go into the FAQPage schema.
       </p>
     </div>
   );
@@ -22,9 +22,9 @@ export function FaqForm({ block, set }: BlockFormProps<'faq'>) {
 
 function ConsentNote() {
   return (
-    <div className="flex items-start gap-2 rounded-xl bg-emerald-50/70 p-3 text-xs text-emerald-900 ring-1 ring-emerald-200">
+    <div className="flex items-start gap-2 rounded-xl bg-brand-50/70 p-3 text-xs text-brand-900 ring-1 ring-brand-200">
       <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-      <p>Sirf woh customers dikhte hain jin ki likhi hui ijazat (consent) Customers screen me darj hai. Kuch na ho to block khaali rehta hai, koi naqli cheez nahi aati.</p>
+      <p>Only customers whose written consent is recorded on the Customers screen are shown. If there are none, the block stays empty; nothing fake is ever added.</p>
     </div>
   );
 }
@@ -59,27 +59,27 @@ function PickOrAuto({ block, set, err, kind }: { block: PickDraft; set: (patch: 
       <ConsentNote />
       <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} />
       <Segmented
-        label="Kaise chunein"
+        label="How to choose"
         value={block.mode}
         onChange={(mode) => set({ mode })}
         options={[
           { value: 'auto', label: 'Auto (tag se)' },
-          { value: 'pick', label: 'Khud chunein' },
+          { value: 'pick', label: 'Pick by hand' },
         ]}
         error={err('mode')}
       />
       {block.mode === 'pick' ? (
-        <Field label={isQuotes ? 'Quotes' : 'Logos'} error={err('ids')} hint={`${ids.length} chune (zyada se zyada ${BLOCK_LIMITS.pickIdsMax})`}>
+        <Field label={isQuotes ? 'Quotes' : 'Logos'} error={err('ids')} hint={`${ids.length} chosen (at most ${BLOCK_LIMITS.pickIdsMax})`}>
           <div className="max-h-72 space-y-1.5 overflow-y-auto">
-            {options.length === 0 && <p className="rounded-lg bg-neutral-50 p-3 text-xs text-neutral-500">Abhi koi consented {isQuotes ? 'quote' : 'logo'} nahi hai.</p>}
+            {options.length === 0 && <p className="rounded-lg bg-slate-50 p-3 text-xs text-slate-500">There is no consented {isQuotes ? 'quote' : 'logo'} yet.</p>}
             {options.map((o) => {
               const on = ids.includes(o.id);
               return (
-                <label key={o.id} className={cn('flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2', on ? 'border-emerald-300 bg-emerald-50/60' : 'border-neutral-200')}>
-                  <input type="checkbox" className="mt-1 accent-emerald-600" checked={on} onChange={() => set({ ids: on ? ids.filter((x) => x !== o.id) : [...ids, o.id] })} />
+                <label key={o.id} className={cn('flex cursor-pointer items-start gap-3 rounded-lg border px-3 py-2', on ? 'border-brand-300 bg-brand-50/60' : 'border-slate-200')}>
+                  <input type="checkbox" className="mt-1 accent-brand-600" checked={on} onChange={() => set({ ids: on ? ids.filter((x) => x !== o.id) : [...ids, o.id] })} />
                   <span className="min-w-0">
-                    <span className="block text-sm font-medium text-neutral-800">{o.title}</span>
-                    <span className="block truncate text-xs text-neutral-500">{o.sub}</span>
+                    <span className="block text-sm font-medium text-slate-800">{o.title}</span>
+                    <span className="block truncate text-xs text-slate-500">{o.sub}</span>
                   </span>
                 </label>
               );
@@ -93,7 +93,7 @@ function PickOrAuto({ block, set, err, kind }: { block: PickDraft; set: (patch: 
         </Grid>
       )}
       <NumberField
-        label="Kitne dikhayein"
+        label="How many to show"
         value={block.limit}
         min={1}
         max={isQuotes ? BLOCK_LIMITS.testimonialLimitMax : BLOCK_LIMITS.logoLimitMax}
@@ -118,14 +118,14 @@ export function SourcesForm({ block, set, err }: BlockFormProps<'sources'>) {
       <TextField label="Heading" value={block.heading} onChange={(heading) => set({ heading: heading || undefined })} chars={{ max: 120 }} placeholder="Sources" />
       <ListEditor<Partial<Source>>
         label="Sources"
-        hint="Official domains (FBR, PRA, SRB…) follow links ke saath dikhte hain"
+        hint="Official domains (FBR, PRA, SRB…) are shown with followed links"
         items={block.items as Partial<Source>[] | undefined}
         onChange={(items) => set({ items: items as typeof block.items })}
         min={1}
         max={BLOCK_LIMITS.sourcesMax}
         create={emptySource}
         itemTitle={(s, i) => s.title || `Source ${i + 1}`}
-        addLabel="Source shamil karein"
+        addLabel="Add a source"
         error={err('items')}
         render={(s, update, i) => <SourceFields value={s} onChange={update} errors={(p) => err(`items[${i}].${p}`)} />}
       />

@@ -30,7 +30,7 @@ export function StatusDot({ status }: { status: CmsStatus }) {
 
 /** Small SEO score ring (0-100). */
 export function ScoreRing({ score, size = 30 }: { score: number | null | undefined; size?: number }) {
-  if (score === null || score === undefined) return <span className="text-xs text-neutral-400">—</span>;
+  if (score === null || score === undefined) return <span className="text-xs text-slate-400">—</span>;
   const r = size / 2 - 3;
   const c = 2 * Math.PI * r;
   const color = score >= 80 ? '#059669' : score >= 50 ? '#d97706' : '#e11d48';
@@ -40,7 +40,7 @@ export function ScoreRing({ score, size = 30 }: { score: number | null | undefin
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e5e5" strokeWidth="3" />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - Math.max(0, Math.min(100, score)) / 100)} />
       </svg>
-      <span className="absolute text-[10px] font-bold tabular-nums text-neutral-800">{score}</span>
+      <span className="absolute text-[10px] font-bold tabular-nums text-slate-800">{score}</span>
     </span>
   );
 }

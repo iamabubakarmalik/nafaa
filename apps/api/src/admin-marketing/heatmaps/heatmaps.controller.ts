@@ -5,7 +5,9 @@ import { MarketingPermissionsGuard } from '../_shared/guards/marketing-permissio
 import { RequireMarketingPermissions } from '../_shared/decorators/marketing-permissions.decorator';
 import { MARKETING_PERMISSIONS } from '../_shared/constants/marketing-permissions.constants';
 import { HeatmapsService } from './heatmaps.service';
+import { AdminArea } from '../../admin/access/admin-access.decorators';
 
+@AdminArea('marketing')
 @Controller('admin/marketing/heatmaps')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class HeatmapsController {
@@ -13,7 +15,7 @@ export class HeatmapsController {
 
   @Get('pages')
   @RequireMarketingPermissions(MARKETING_PERMISSIONS.HEATMAPS_VIEW)
-  pages() { return this.svc.listPages(); }
+  pages(@Query() q: any) { return this.svc.listPages(q); }
 
   @Get('clicks')
   @RequireMarketingPermissions(MARKETING_PERMISSIONS.HEATMAPS_VIEW)

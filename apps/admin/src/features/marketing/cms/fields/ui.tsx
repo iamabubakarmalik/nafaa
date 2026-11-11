@@ -6,10 +6,11 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Plus, Trash2, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { Button, Modal as DsModal, Segmented as DsSegmented, Switch } from '@/design-system/components';
 import { countWords } from '../contract/cms-contract';
 
 export const inputClass =
-  'w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 transition focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 disabled:bg-neutral-50 disabled:text-neutral-500';
+  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 disabled:bg-slate-50 disabled:text-slate-500';
 
 // ─── Field shell ───
 
@@ -31,7 +32,7 @@ export function Field({ label, hint, error, required, aside, className, children
       {(label || aside) && (
         <div className="flex items-center justify-between gap-2">
           {label ? (
-            <label htmlFor={htmlFor} className="text-xs font-semibold text-neutral-700">
+            <label htmlFor={htmlFor} className="text-xs font-semibold text-slate-700">
               {label}
               {required && <span className="ml-0.5 text-rose-500">*</span>}
             </label>
@@ -42,7 +43,7 @@ export function Field({ label, hint, error, required, aside, className, children
         </div>
       )}
       {children}
-      {error ? <p className="text-xs text-rose-600">{error}</p> : hint ? <p className="text-xs text-neutral-500">{hint}</p> : null}
+      {error ? <p className="text-xs text-rose-600">{error}</p> : hint ? <p className="text-xs text-slate-500">{hint}</p> : null}
     </div>
   );
 }
@@ -51,9 +52,9 @@ export function Field({ label, hint, error, required, aside, className, children
 export function Counter({ value, min, max, unit = 'chars' }: { value: number; min?: number; max?: number; unit?: 'chars' | 'words' }) {
   const out = (min !== undefined && value > 0 && value < min) || (max !== undefined && value > max);
   return (
-    <span className={cn('text-[11px] tabular-nums', out ? 'font-semibold text-amber-600' : 'text-neutral-400')}>
+    <span className={cn('text-[11px] tabular-nums', out ? 'font-semibold text-amber-600' : 'text-slate-400')}>
       {value}
-      {max !== undefined ? `/${min !== undefined ? `${min}-` : ''}${max}` : ''} {unit === 'words' ? 'alfaaz' : ''}
+      {max !== undefined ? `/${min !== undefined ? `${min}-` : ''}${max}` : ''} {unit === 'words' ? 'words' : ''}
     </span>
   );
 }
@@ -82,7 +83,7 @@ export function TextField({ value, onChange, placeholder, maxLength, chars, word
   return (
     <Field {...shell} aside={aside} htmlFor={id}>
       <div className="relative flex items-center">
-        {prefix && <span className="pointer-events-none absolute left-3 text-sm text-neutral-400">{prefix}</span>}
+        {prefix && <span className="pointer-events-none absolute left-3 text-sm text-slate-400">{prefix}</span>}
         <input
           id={id}
           type={type}
@@ -189,7 +190,7 @@ export function SelectField<T extends string>({ value, onChange, options, emptyL
             </option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-2.5 top-2.5 h-4 w-4 text-neutral-400" />
+        <ChevronDown className="pointer-events-none absolute right-2.5 top-2.5 h-4 w-4 text-slate-400" />
       </div>
     </Field>
   );
@@ -213,44 +214,17 @@ export function Segmented<T extends string | number>({
 }) {
   return (
     <Field label={label} error={error} hint={hint}>
-      <div className="inline-flex flex-wrap gap-1 rounded-lg bg-neutral-100 p-1">
-        {options.map((o) => (
-          <button
-            key={String(o.value)}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className={cn(
-              'rounded-md px-3 py-1 text-xs font-medium transition',
-              value === o.value ? 'bg-white text-emerald-700 shadow-sm ring-1 ring-neutral-200' : 'text-neutral-600 hover:text-neutral-900',
-            )}
-          >
-            {o.label}
-          </button>
-        ))}
-      </div>
+      <DsSegmented
+        value={value === undefined ? '' : String(value)}
+        onChange={(v) => onChange(options.find((o) => String(o.value) === v)!.value)}
+        items={options.map((o) => ({ value: String(o.value), label: o.label }))}
+      />
     </Field>
   );
 }
 
 export function Toggle({ checked, onChange, label, hint, disabled }: { checked: boolean | undefined; onChange: (v: boolean) => void; label: ReactNode; hint?: ReactNode; disabled?: boolean }) {
-  return (
-    <label className={cn('flex cursor-pointer items-start gap-3', disabled && 'cursor-not-allowed opacity-60')}>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={!!checked}
-        disabled={disabled}
-        onClick={() => onChange(!checked)}
-        className={cn('relative mt-0.5 h-5 w-9 shrink-0 rounded-full transition', checked ? 'bg-emerald-600' : 'bg-neutral-300')}
-      >
-        <span className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all', checked ? 'left-[18px]' : 'left-0.5')} />
-      </button>
-      <span>
-        <span className="block text-sm font-medium text-neutral-800">{label}</span>
-        {hint && <span className="block text-xs text-neutral-500">{hint}</span>}
-      </span>
-    </label>
-  );
+  return <Switch size="sm" className="flex-row-reverse justify-end" checked={!!checked} disabled={disabled} onChange={(e) => onChange(e.target.checked)} label={label} description={hint} />;
 }
 
 /** Multi-select as chips (enum arrays like cityFacts.show or plan feature keys). */
@@ -282,7 +256,7 @@ export function ChipMultiSelect<T extends string>({
               onClick={() => onChange(on ? (value ?? []).filter((v) => v !== o.value) : [...(value ?? []), o.value])}
               className={cn(
                 'rounded-full border px-2.5 py-1 text-xs font-medium transition',
-                on ? 'border-emerald-300 bg-emerald-50 text-emerald-700' : 'border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300',
+                on ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300',
               )}
             >
               {o.label}
@@ -299,7 +273,7 @@ export function StringListField({
   value,
   onChange,
   label,
-  placeholder = 'Likh kar Enter dabayein',
+  placeholder = 'Type and press Enter',
   hint,
   error,
   max,
@@ -322,11 +296,11 @@ export function StringListField({
   };
   return (
     <Field label={label} hint={hint} error={error} aside={max !== undefined ? <Counter value={list.length} max={max} unit="chars" /> : undefined}>
-      <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-neutral-300 bg-white p-1.5">
+      <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-300 bg-white p-1.5">
         {list.map((item, i) => (
-          <span key={`${item}-${i}`} className="inline-flex max-w-full items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700">
+          <span key={`${item}-${i}`} className="inline-flex max-w-full items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
             <span className="truncate">{item}</span>
-            <button type="button" onClick={() => onChange(list.filter((_, j) => j !== i))} className="text-neutral-400 hover:text-rose-600" aria-label="Hatayein">
+            <button type="button" onClick={() => onChange(list.filter((_, j) => j !== i))} className="text-slate-400 hover:text-rose-600" aria-label="Remove">
               <X className="h-3 w-3" />
             </button>
           </span>
@@ -357,8 +331,8 @@ export function Section({ title, description, children, actions, className }: { 
       {(title || actions) && (
         <div className="flex items-start justify-between gap-3">
           <div>
-            {title && <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>}
-            {description && <p className="mt-0.5 text-xs text-neutral-500">{description}</p>}
+            {title && <h3 className="text-sm font-semibold text-slate-900">{title}</h3>}
+            {description && <p className="mt-0.5 text-xs text-slate-500">{description}</p>}
           </div>
           {actions}
         </div>
@@ -391,7 +365,7 @@ interface ListEditorProps<T> {
 }
 
 /** Ordered list of sub-items with add, remove, move and drag-to-reorder. */
-export function ListEditor<T>({ items, onChange, create, render, itemTitle, addLabel = 'Item shamil karein', min, max, label, hint, error, compact }: ListEditorProps<T>) {
+export function ListEditor<T>({ items, onChange, create, render, itemTitle, addLabel = 'Add item', min, max, label, hint, error, compact }: ListEditorProps<T>) {
   const list = items ?? [];
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
@@ -409,7 +383,7 @@ export function ListEditor<T>({ items, onChange, create, render, itemTitle, addL
       label={label}
       hint={hint}
       error={error}
-      aside={min !== undefined || max !== undefined ? <span className={cn('text-[11px] tabular-nums', (min !== undefined && list.length < min) ? 'font-semibold text-amber-600' : 'text-neutral-400')}>{list.length}{max !== undefined ? ` / ${min !== undefined ? `${min}-` : ''}${max}` : ''}</span> : undefined}
+      aside={min !== undefined || max !== undefined ? <span className={cn('text-[11px] tabular-nums', (min !== undefined && list.length < min) ? 'font-semibold text-amber-600' : 'text-slate-400')}>{list.length}{max !== undefined ? ` / ${min !== undefined ? `${min}-` : ''}${max}` : ''}</span> : undefined}
     >
       <div className="space-y-2">
         {list.map((item, i) => (
@@ -428,10 +402,10 @@ export function ListEditor<T>({ items, onChange, create, render, itemTitle, addL
             }}
             className={cn(
               'group rounded-xl border bg-white transition',
-              dragOver === i && dragFrom !== i ? 'border-emerald-400 ring-2 ring-emerald-500/20' : 'border-neutral-200',
+              dragOver === i && dragFrom !== i ? 'border-brand-400 ring-2 ring-brand-500/20' : 'border-slate-200',
             )}
           >
-            <div className="flex items-center gap-2 border-b border-neutral-100 px-2 py-1.5">
+            <div className="flex items-center gap-2 border-b border-slate-100 px-2 py-1.5">
               <span
                 draggable
                 onDragStart={() => setDragFrom(i)}
@@ -439,22 +413,22 @@ export function ListEditor<T>({ items, onChange, create, render, itemTitle, addL
                   setDragFrom(null);
                   setDragOver(null);
                 }}
-                className="cursor-grab text-neutral-300 hover:text-neutral-500 active:cursor-grabbing"
-                title="Kheench kar tarteeb badlein"
+                className="cursor-grab text-slate-300 hover:text-slate-500 active:cursor-grabbing"
+                title="Drag to reorder"
               >
                 <GripVertical className="h-4 w-4" />
               </span>
-              <span className="min-w-0 flex-1 truncate text-xs font-semibold text-neutral-600">
+              <span className="min-w-0 flex-1 truncate text-xs font-semibold text-slate-600">
                 {itemTitle ? itemTitle(item, i) : `#${i + 1}`}
               </span>
               <div className="flex items-center gap-0.5 opacity-60 transition group-hover:opacity-100">
-                <IconBtn label="Upar" onClick={() => move(i, i - 1)} disabled={i === 0}>
+                <IconBtn label="Move up" onClick={() => move(i, i - 1)} disabled={i === 0}>
                   <ArrowUp className="h-3.5 w-3.5" />
                 </IconBtn>
-                <IconBtn label="Neeche" onClick={() => move(i, i + 1)} disabled={i === list.length - 1}>
+                <IconBtn label="Move down" onClick={() => move(i, i + 1)} disabled={i === list.length - 1}>
                   <ArrowDown className="h-3.5 w-3.5" />
                 </IconBtn>
-                <IconBtn label="Hatayein" onClick={() => onChange(list.filter((_, j) => j !== i))} disabled={!canRemove} danger>
+                <IconBtn label="Remove" onClick={() => onChange(list.filter((_, j) => j !== i))} disabled={!canRemove} danger>
                   <Trash2 className="h-3.5 w-3.5" />
                 </IconBtn>
               </div>
@@ -468,7 +442,7 @@ export function ListEditor<T>({ items, onChange, create, render, itemTitle, addL
           <button
             type="button"
             onClick={() => onChange([...list, create()])}
-            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-neutral-300 py-2 text-xs font-medium text-neutral-600 transition hover:border-emerald-400 hover:bg-emerald-50/50 hover:text-emerald-700"
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-slate-300 py-2 text-xs font-medium text-slate-600 transition hover:border-brand-400 hover:bg-brand-50/50 hover:text-brand-700"
           >
             <Plus className="h-3.5 w-3.5" /> {addLabel}
           </button>
@@ -488,8 +462,8 @@ export function IconBtn({ children, onClick, label, disabled, danger, active, cl
       onClick={onClick}
       className={cn(
         'grid h-7 w-7 place-items-center rounded-md transition disabled:cursor-not-allowed disabled:opacity-30',
-        danger ? 'text-neutral-500 hover:bg-rose-50 hover:text-rose-600' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900',
-        active && 'bg-emerald-50 text-emerald-700',
+        danger ? 'text-slate-500 hover:bg-rose-50 hover:text-rose-600' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900',
+        active && 'bg-brand-50 text-brand-700',
         className,
       )}
     >
@@ -523,29 +497,19 @@ export function Btn({
   className?: string;
   title?: string;
 }) {
-  const v: Record<BtnVariant, string> = {
-    primary: 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700',
-    secondary: 'border border-neutral-300 bg-white text-neutral-800 hover:border-emerald-300 hover:text-emerald-800',
-    ghost: 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900',
-    danger: 'bg-rose-600 text-white hover:bg-rose-700',
-    dark: 'bg-neutral-900 text-white hover:bg-neutral-800',
-  };
   return (
-    <button
+    <Button
       type={type}
       title={title}
       onClick={onClick}
-      disabled={disabled || loading}
-      className={cn(
-        'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg font-medium transition disabled:cursor-not-allowed disabled:opacity-50',
-        size === 'sm' ? 'h-8 px-2.5 text-xs' : 'h-9 px-3.5 text-sm',
-        v[variant],
-        className,
-      )}
+      disabled={disabled}
+      loading={loading}
+      variant={variant === 'dark' ? 'inverse' : variant}
+      size={size === 'sm' ? 'xs' : 'sm'}
+      className={cn('whitespace-nowrap', className)}
     >
-      {loading && <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />}
       {children}
-    </button>
+    </Button>
   );
 }
 
@@ -566,31 +530,7 @@ export function Modal({
   footer?: ReactNode;
   width?: 'sm' | 'md' | 'lg' | 'xl';
 }) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-  if (!open) return null;
-  const w = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-3xl', xl: 'max-w-6xl' }[width];
-  return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-neutral-900/40 p-4 backdrop-blur-[2px] sm:p-8" onMouseDown={onClose}>
-      <div className={cn('w-full rounded-2xl bg-white shadow-2xl ring-1 ring-neutral-200', w)} onMouseDown={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between gap-4 border-b border-neutral-100 px-5 py-4">
-          <div>
-            <h2 className="text-base font-semibold text-neutral-900">{title}</h2>
-            {description && <p className="mt-0.5 text-sm text-neutral-500">{description}</p>}
-          </div>
-          <IconBtn label="Band karein" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </IconBtn>
-        </div>
-        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">{children}</div>
-        {footer && <div className="flex items-center justify-end gap-2 border-t border-neutral-100 bg-neutral-50/60 px-5 py-3">{footer}</div>}
-      </div>
-    </div>
-  );
+  return <DsModal open={open} onClose={onClose} title={title} description={description} size={width} footer={footer}>{children}</DsModal>;
 }
 
 /** Closes when clicking outside; used by pickers and menus. */
@@ -617,7 +557,7 @@ export function Popover({ open, children, className, align = 'left' }: { open: b
   return (
     <div
       className={cn(
-        'absolute z-40 mt-1 rounded-xl border border-neutral-200 bg-white shadow-xl ring-1 ring-black/5',
+        'absolute z-40 mt-1 rounded-xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5',
         align === 'right' ? 'right-0' : 'left-0',
         className,
       )}

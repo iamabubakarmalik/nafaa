@@ -6,8 +6,10 @@ import { RequireMarketingPermissions } from '../../_shared/decorators/marketing-
 import { MARKETING_PERMISSIONS } from '../../_shared/constants/marketing-permissions.constants';
 import type { CmsConfig } from '../contract/cms-contract';
 import { CmsConfigService } from './cms-config.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 /** Admin CMS configuration (API-CONTRACT 8.9, `GET /config`). */
+@AdminArea('marketing')
 @Controller('admin/marketing/cms')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class CmsConfigController {

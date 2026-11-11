@@ -2,15 +2,26 @@ import {
   BadRequestException, Injectable, NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { paginated, parsePagination } from '../_shared/helpers/pagination.helper';
 
 @Injectable()
 export class AbTestsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async list() {
-    return this.prisma.abTest.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+  /** Without paging params the full list is returned (old behaviour). */
+  async list(dto: { page?: number | string; limit?: number | string; search?: string; status?: string } = {}) {
+    const where: any = {};
+    if (dto.status) where.status = dto.status;
+    if (dto.search) where.name = { contains: dto.search, mode: 'insensitive' };
+    if (dto.page === undefined && dto.limit === undefined) {
+      return this.prisma.abTest.findMany({ where, orderBy: { createdAt: 'desc' } });
+    }
+    const { page, limit, skip } = parsePagination({ page: Number(dto.page) || 1, limit: Number(dto.limit) || 25 });
+    const [items, total] = await Promise.all([
+      this.prisma.abTest.findMany({ where, skip, take: limit, orderBy: { createdAt: 'desc' } }),
+      this.prisma.abTest.count({ where }),
+    ]);
+    return paginated(items, total, page, limit);
   }
 
   async getOne(id: string) {

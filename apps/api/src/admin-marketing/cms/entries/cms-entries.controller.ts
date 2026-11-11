@@ -42,6 +42,7 @@ import { CmsPreviewService } from '../preview/cms-preview.service';
 import { EntryConflictException, parseOr400 } from '../publishing/cms-errors';
 import { CmsPublishingService } from '../publishing/cms-publishing.service';
 import { CmsEntriesService } from './cms-entries.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 interface AuthedRequest {
   user?: { id?: string };
@@ -50,6 +51,7 @@ const userIdOf = (req: AuthedRequest): string | null => req.user?.id ?? null;
 
 const P = MARKETING_PERMISSIONS;
 
+@AdminArea('marketing')
 @Controller('admin/marketing/cms/entries')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 export class CmsEntriesController {

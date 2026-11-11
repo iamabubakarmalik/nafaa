@@ -1,165 +1,147 @@
+/**
+ * One demo booking: the prospect, preferred time, and the three actions
+ * (confirm or reschedule, mark complete with outcome, cancel with a reason).
+ */
+
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CalendarCheck, XCircle, CheckCircle, Mail, Phone, Building2, Users, Target } from 'lucide-react';
-import { demoBookingsApi } from '../../../../api/marketing/marketing-demo-bookings.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
-import { StatusBadge } from '../../_shared/components/StatusBadge';
-import { format } from 'date-fns';
+import { CalendarCheck, CheckCircle, Phone, Video, XCircle } from 'lucide-react';
+import { Button, Card, Input, PageHero, PageShell, Select, Skeleton, Textarea } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { demoBookingsApi } from '@/api/marketing/marketing-demo-bookings.api';
+import { formatDate } from '@/lib/format';
+import { DetailList, statusLabel } from '@/ui';
+import { GuideButton, PromptModal } from '../../lib/kit';
+
+const OUTCOMES = [
+  { value: 'CONVERTED', label: 'Converted (ready to buy)' },
+  { value: 'INTERESTED', label: 'Interested (follow up)' },
+  { value: 'NEEDS_FOLLOWUP', label: 'Needs follow-up' },
+  { value: 'NOT_INTERESTED', label: 'Not interested' },
+  { value: 'WRONG_FIT', label: 'Wrong fit' },
+];
 
 export function DemoBookingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const qc = useQueryClient();
+  const guide = usePageGuide();
   const [scheduledAt, setScheduledAt] = useState('');
   const [meetingLink, setMeetingLink] = useState('');
   const [notes, setNotes] = useState('');
-
-  const [outcome, setOutcome] = useState<any>('INTERESTED');
+  const [outcome, setOutcome] = useState('INTERESTED');
   const [rating, setRating] = useState(8);
   const [feedback, setFeedback] = useState('');
   const [nextStep, setNextStep] = useState('');
+  const [cancelOpen, setCancelOpen] = useState(false);
 
-  const { data: demo, isLoading } = useQuery({
-    queryKey: ['demo', id],
-    queryFn: () => demoBookingsApi.detail(id!),
-    enabled: !!id,
-  });
+  const { data: demo, isLoading } = useQuery({ queryKey: ['mkt', 'demo', id], queryFn: () => demoBookingsApi.detail(id!), enabled: !!id });
+  const done = (msg: string) => () => { toast.success(msg); qc.invalidateQueries({ queryKey: ['mkt', 'demo', id] }); qc.invalidateQueries({ queryKey: ['mkt', 'demos'] }); };
+  const fail = (e: any) => toast.error(e.response?.data?.message ?? 'Something went wrong. Try again.');
 
-  const scheduleMut = useMutation({
-    mutationFn: (body: any) => demoBookingsApi.schedule(id!, body),
-    onSuccess: () => {
-      toast.success('Demo scheduled + notification sent');
-      qc.invalidateQueries({ queryKey: ['demo', id] });
-    },
-  });
+  const scheduleMut = useMutation({ mutationFn: (body: any) => demoBookingsApi.schedule(id!, body), onSuccess: done('Demo confirmed and the prospect was notified'), onError: fail });
+  const completeMut = useMutation({ mutationFn: (body: any) => demoBookingsApi.complete(id!, body), onSuccess: done('Demo marked complete'), onError: fail });
+  const cancelMut = useMutation({ mutationFn: (reason: string) => demoBookingsApi.cancel(id!, reason), onSuccess: done('Demo cancelled'), onError: fail });
 
-  const completeMut = useMutation({
-    mutationFn: (body: any) => demoBookingsApi.complete(id!, body),
-    onSuccess: () => {
-      toast.success('Demo marked complete');
-      qc.invalidateQueries({ queryKey: ['demo', id] });
-    },
-  });
-
-  const cancelMut = useMutation({
-    mutationFn: (reason: string) => demoBookingsApi.cancel(id!, reason),
-    onSuccess: () => {
-      toast.success('Demo cancelled');
-      qc.invalidateQueries({ queryKey: ['demo', id] });
-    },
-  });
-
-  if (isLoading || !demo) return <div className="h-40 animate-pulse rounded-2xl bg-white" />;
+  if (isLoading || !demo) {
+    return <PageShell><PageHero title="Demo booking" back="/marketing/demos" loading /><Skeleton className="h-64 rounded-3xl" /></PageShell>;
+  }
+  const canSchedule = demo.status === 'PENDING' || demo.status === 'CONFIRMED';
+  const canCancel = demo.status !== 'CANCELLED' && demo.status !== 'COMPLETED';
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <PageShell>
+      <PageHero
         title={demo.fullName}
-        subtitle={demo.bookingNumber}
-        backTo="/marketing/demos"
-        actions={<StatusBadge status={demo.status} />}
+        back="/marketing/demos"
+        backLabel="Demo bookings"
+        chip={statusLabel(demo.status)}
+        meta={demo.bookingNumber}
+        actions={<GuideButton onClick={guide.open} />}
+        stats={[
+          { label: 'Preferred day', value: formatDate(demo.preferredDate), hint: demo.preferredTime },
+          { label: 'Status', value: statusLabel(demo.status) },
+          { label: 'Interest', value: demo.interestLevel ? statusLabel(demo.interestLevel) : '—' },
+          { label: 'Rating', value: demo.rating != null ? `${demo.rating}/10` : '—' },
+        ]}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-            <h3 className="mb-4 font-semibold text-neutral-800">Prospect Details</h3>
-            <div className="grid gap-3 sm:grid-cols-2 text-sm">
-              <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-neutral-400" /> {demo.email}</div>
-              <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-neutral-400" /> {demo.phone}</div>
-              {demo.companyName && <div className="flex items-center gap-2"><Building2 className="h-4 w-4 text-neutral-400" /> {demo.companyName}</div>}
-              {demo.industry && <div className="flex items-center gap-2"><Target className="h-4 w-4 text-neutral-400" /> {demo.industry}</div>}
-            </div>
-            <div className="mt-4 rounded-xl bg-neutral-50 p-3 text-sm">
-              <p className="text-xs uppercase tracking-wider text-neutral-500">Preferred Time</p>
-              <p className="mt-1 font-medium text-neutral-800">
-                {format(new Date(demo.preferredDate), 'PPP')} • {demo.preferredTime}
-              </p>
-            </div>
-          </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="space-y-4 xl:col-span-2">
+          <Card title="Prospect">
+            <DetailList cols={2} items={[
+              { label: 'Email', value: demo.email },
+              { label: 'Phone', value: demo.phone },
+              { label: 'Company', value: demo.companyName },
+              { label: 'Industry', value: demo.industry },
+              { label: 'Preferred time', value: `${formatDate(demo.preferredDate)} · ${demo.preferredTime}` },
+              { label: 'Meeting link', value: demo.meetingLink },
+              { label: 'Feedback', value: demo.feedback, hidden: !demo.feedback },
+              { label: 'Follow-up notes', value: demo.followUpNotes, hidden: !demo.followUpNotes },
+            ]} />
+          </Card>
 
-          {(demo.status === 'PENDING' || demo.status === 'CONFIRMED') && (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5">
-              <h3 className="mb-3 font-semibold text-emerald-900">Schedule / Reschedule</h3>
+          {canSchedule && (
+            <Card title="Confirm or reschedule" description="The prospect gets a message with the new time.">
               <div className="space-y-3">
-                <input
-                  type="datetime-local"
-                  value={scheduledAt}
-                  onChange={(e) => setScheduledAt(e.target.value)}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-                />
-                <input
-                  value={meetingLink}
-                  onChange={(e) => setMeetingLink(e.target.value)}
-                  placeholder="Meeting link (Zoom/Meet)"
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-                />
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Internal notes"
-                  rows={2}
-                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-                />
-                <button
-                  onClick={() => {
-                    if (!scheduledAt) { toast.error('Date & time zaroori'); return; }
-                    scheduleMut.mutate({ scheduledAt: new Date(scheduledAt).toISOString(), meetingLink, notes });
-                  }}
-                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-                >
-                  <CalendarCheck className="h-4 w-4" /> Confirm Demo
-                </button>
+                <Input label="Date and time" type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
+                <Input label="Meeting link" value={meetingLink} onChange={(e) => setMeetingLink(e.target.value)} placeholder="Zoom or Meet link" />
+                <Textarea label="Internal notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+                <Button leftIcon={<CalendarCheck className="h-4 w-4" />} loading={scheduleMut.isPending} onClick={() => {
+                  if (!scheduledAt) { toast.error('Pick a date and time first'); return; }
+                  scheduleMut.mutate({ scheduledAt: new Date(scheduledAt).toISOString(), meetingLink, notes });
+                }}>Confirm demo</Button>
               </div>
-            </div>
+            </Card>
           )}
 
           {demo.status === 'CONFIRMED' && (
-            <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-5">
-              <h3 className="mb-3 font-semibold text-blue-900">Mark Complete</h3>
+            <Card title="Mark complete" description="Record how the demo went.">
               <div className="space-y-3">
-                <select value={outcome} onChange={(e) => setOutcome(e.target.value)} className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm">
-                  <option value="CONVERTED">🎉 Converted (Ready to buy)</option>
-                  <option value="INTERESTED">👍 Interested (Follow up)</option>
-                  <option value="NEEDS_FOLLOWUP">⏳ Needs follow-up</option>
-                  <option value="NOT_INTERESTED">👎 Not interested</option>
-                  <option value="WRONG_FIT">❌ Wrong fit</option>
-                </select>
+                <Select label="Outcome" value={outcome} onChange={(e) => setOutcome(e.target.value)} options={OUTCOMES} />
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-neutral-600">Rating: {rating}/10</label>
-                  <input type="range" min={1} max={10} value={rating} onChange={(e) => setRating(+e.target.value)} className="w-full" />
+                  <label className="mb-1 block text-[0.8125rem] font-medium text-slate-700">Rating: {rating}/10</label>
+                  <input type="range" min={1} max={10} value={rating} onChange={(e) => setRating(+e.target.value)} className="w-full accent-brand-600" />
                 </div>
-                <textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Feedback" rows={2} className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
-                <input value={nextStep} onChange={(e) => setNextStep(e.target.value)} placeholder="Next step" className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm" />
-                <button
-                  onClick={() => completeMut.mutate({ outcome, rating, feedback, nextStep })}
-                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                >
-                  <CheckCircle className="h-4 w-4" /> Mark Complete
-                </button>
+                <Textarea label="Feedback" value={feedback} onChange={(e) => setFeedback(e.target.value)} rows={2} />
+                <Input label="Next step" value={nextStep} onChange={(e) => setNextStep(e.target.value)} />
+                <Button leftIcon={<CheckCircle className="h-4 w-4" />} loading={completeMut.isPending} onClick={() => completeMut.mutate({ outcome, rating, feedback, nextStep })}>Mark complete</Button>
               </div>
-            </div>
+            </Card>
           )}
         </div>
 
         <div className="space-y-4">
-          {demo.status !== 'CANCELLED' && demo.status !== 'COMPLETED' && (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-5">
-              <h3 className="mb-2 font-semibold text-rose-900">Cancel Demo</h3>
-              <button
-                onClick={() => {
-                  const r = prompt('Cancellation reason?');
-                  if (r) cancelMut.mutate(r);
-                }}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50"
-              >
-                <XCircle className="h-4 w-4" /> Cancel
-              </button>
-            </div>
+          {canCancel && (
+            <Card title="Cancel demo" description="Tell us why, so reports stay useful.">
+              <Button variant="critical" fullWidth leftIcon={<XCircle className="h-4 w-4" />} onClick={() => setCancelOpen(true)}>Cancel demo</Button>
+            </Card>
           )}
         </div>
       </div>
-    </div>
+
+      <PromptModal open={cancelOpen} title="Cancel this demo?" label="Reason" placeholder="Why is it cancelled?" confirmLabel="Cancel demo" danger onSubmit={(r) => cancelMut.mutate(r)} onClose={() => setCancelOpen(false)} />
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Demo booking"
+          description="Move one demo from request to result."
+          flowTitle="Steps on this page"
+          flow={[
+            { label: 'Read request', hint: 'Prospect, preferred time', icon: Phone, color: '#d97706' },
+            { label: 'Confirm time', hint: 'Notifies the prospect', icon: CalendarCheck, color: '#0284c7' },
+            { label: 'Run the demo', hint: 'Use the meeting link', icon: Video, color: '#4f46e5' },
+            { label: 'Mark complete', hint: 'Outcome and rating', icon: CheckCircle, color: '#059669' },
+          ]}
+          steps={[
+            { icon: CalendarCheck, color: '#0284c7', title: 'Confirm', text: 'Pick the date and add the meeting link. The prospect is told right away.' },
+            { icon: CheckCircle, color: '#059669', title: 'Complete', text: 'Available once the demo is confirmed. Choose the outcome and write the next step.' },
+            { icon: XCircle, color: '#e11d48', title: 'Cancel', text: 'Cancel with a reason if the demo will not happen.' },
+          ]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

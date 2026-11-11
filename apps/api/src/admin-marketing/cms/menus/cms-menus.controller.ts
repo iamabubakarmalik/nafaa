@@ -9,10 +9,12 @@ import { localeSchema, putMenuBodySchema } from '../contract/cms-contract';
 import { CmsExceptionFilter } from '../public/cms-exception.filter';
 import { parseOr400, userId } from '../public/cms-http';
 import { CmsMenusService } from './cms-menus.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 const localeQuery = z.object({ locale: localeSchema.optional() });
 
 /** Admin → Website → Menus (API-CONTRACT 8.6). */
+@AdminArea('marketing')
 @Controller('admin/marketing/cms/menus')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 @UseFilters(CmsExceptionFilter)

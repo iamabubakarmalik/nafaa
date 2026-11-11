@@ -12,12 +12,14 @@ import { MEDIA_LIMITS, mediaQuerySchema, mediaUploadFieldsSchema, patchMediaBody
 import { CmsExceptionFilter } from '../public/cms-exception.filter';
 import { parseOr400, userId } from '../public/cms-http';
 import { CmsMediaService, type UploadedFile as MediaFile } from './cms-media.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 type AuthedRequest = { user?: { id?: string } };
 
 const upload = FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: MEDIA_LIMITS.documentMaxBytes } });
 
 /** Admin → Website → Media (API-CONTRACT 8.4). */
+@AdminArea('marketing')
 @Controller('admin/marketing/cms/media')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 @UseFilters(CmsExceptionFilter)

@@ -17,4 +17,6 @@ export class ListCampaignsDto {
   @IsOptional() @IsEnum(CampaignStatus) status?: CampaignStatus;
   @IsOptional() @IsString() channel?: string;
   @IsOptional() @IsString() search?: string;
+  @IsOptional() @IsString() from?: string;
+  @IsOptional() @IsString() to?: string;
 }

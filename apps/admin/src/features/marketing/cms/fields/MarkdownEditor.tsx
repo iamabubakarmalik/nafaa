@@ -33,19 +33,19 @@ type Panel = 'link' | 'token' | null;
 
 /** Preview typography (scoped with arbitrary variants; no global CSS needed). */
 export const PREVIEW_CLASS = [
-  'text-sm leading-relaxed text-neutral-800',
+  'text-sm leading-relaxed text-slate-800',
   '[&_h1]:mb-2 [&_h1]:mt-4 [&_h1]:text-xl [&_h1]:font-bold',
-  '[&_h2]:mb-2 [&_h2]:mt-5 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-neutral-900 first:[&_h2]:mt-0',
-  '[&_h3]:mb-1.5 [&_h3]:mt-4 [&_h3]:font-semibold [&_h3]:text-neutral-900',
+  '[&_h2]:mb-2 [&_h2]:mt-5 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-slate-900 first:[&_h2]:mt-0',
+  '[&_h3]:mb-1.5 [&_h3]:mt-4 [&_h3]:font-semibold [&_h3]:text-slate-900',
   '[&_.md-bad]:rounded [&_.md-bad]:bg-amber-100 [&_.md-bad]:px-1',
   '[&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5',
-  '[&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-emerald-200 [&_blockquote]:pl-3 [&_blockquote]:text-neutral-600',
-  '[&_a]:text-emerald-700 [&_a]:underline [&_.md-entry]:decoration-dotted',
-  '[&_code]:rounded [&_code]:bg-neutral-100 [&_code]:px-1 [&_code]:text-[12px] [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-neutral-900 [&_pre]:p-3 [&_pre_code]:bg-transparent [&_pre_code]:text-neutral-100',
-  '[&_table]:my-3 [&_table]:w-full [&_table]:border-collapse [&_table]:text-xs [&_td]:border [&_td]:border-neutral-200 [&_td]:px-2 [&_td]:py-1 [&_th]:border [&_th]:border-neutral-200 [&_th]:bg-neutral-50 [&_th]:px-2 [&_th]:py-1 [&_th]:text-left',
+  '[&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-brand-200 [&_blockquote]:pl-3 [&_blockquote]:text-slate-600',
+  '[&_a]:text-brand-700 [&_a]:underline [&_.md-entry]:decoration-dotted',
+  '[&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1 [&_code]:text-[12px] [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-slate-900 [&_pre]:p-3 [&_pre_code]:bg-transparent [&_pre_code]:text-slate-100',
+  '[&_table]:my-3 [&_table]:w-full [&_table]:border-collapse [&_table]:text-xs [&_td]:border [&_td]:border-slate-200 [&_td]:px-2 [&_td]:py-1 [&_th]:border [&_th]:border-slate-200 [&_th]:bg-slate-50 [&_th]:px-2 [&_th]:py-1 [&_th]:text-left',
   '[&_img]:my-3 [&_img]:max-h-64 [&_img]:rounded-lg',
-  '[&_.md-token]:rounded [&_.md-token]:bg-emerald-50 [&_.md-token]:px-1 [&_.md-token]:font-medium [&_.md-token]:text-emerald-800 [&_.md-token]:ring-1 [&_.md-token]:ring-emerald-200',
-  '[&_.md-missing]:rounded [&_.md-missing]:bg-rose-50 [&_.md-missing]:px-1 [&_.md-missing]:text-rose-700 [&_.md-empty]:text-neutral-400',
+  '[&_.md-token]:rounded [&_.md-token]:bg-brand-50 [&_.md-token]:px-1 [&_.md-token]:font-medium [&_.md-token]:text-brand-800 [&_.md-token]:ring-1 [&_.md-token]:ring-brand-200',
+  '[&_.md-missing]:rounded [&_.md-missing]:bg-rose-50 [&_.md-missing]:px-1 [&_.md-missing]:text-rose-700 [&_.md-empty]:text-slate-400',
 ].join(' ');
 
 export function MarkdownEditor({ value, onChange, label, hint, error, required, inline, rows, words, placeholder }: Props) {
@@ -120,10 +120,10 @@ export function MarkdownEditor({ value, onChange, label, hint, error, required, 
       hint={hint}
       error={error}
       required={required}
-      aside={words ? <Counter value={wordCount} min={words.min} max={words.max} unit="words" /> : !inline ? <span className="text-[11px] text-neutral-400">{wordCount} alfaaz</span> : undefined}
+      aside={words ? <Counter value={wordCount} min={words.min} max={words.max} unit="words" /> : !inline ? <span className="text-[11px] text-slate-400">{wordCount} words</span> : undefined}
     >
-      <div className={cn('overflow-visible rounded-xl border bg-white focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20', error ? 'border-rose-300' : 'border-neutral-300')}>
-        <div ref={panelRef} className="relative flex flex-wrap items-center gap-0.5 border-b border-neutral-100 bg-neutral-50/70 px-1.5 py-1">
+      <div className={cn('overflow-visible rounded-xl border bg-white focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20', error ? 'border-rose-300' : 'border-slate-300')}>
+        <div ref={panelRef} className="relative flex flex-wrap items-center gap-0.5 border-b border-slate-100 bg-slate-50/70 px-1.5 py-1">
           {!inline && (
             <>
               <IconBtn label="Heading 2" onClick={() => prefixLines(() => '## ')}>
@@ -132,7 +132,7 @@ export function MarkdownEditor({ value, onChange, label, hint, error, required, 
               <IconBtn label="Heading 3" onClick={() => prefixLines(() => '### ')}>
                 <Heading3 className="h-4 w-4" />
               </IconBtn>
-              <span className="mx-1 h-4 w-px bg-neutral-200" />
+              <span className="mx-1 h-4 w-px bg-slate-200" />
             </>
           )}
           <IconBtn label="Bold" onClick={() => edit('**', '**', 'bold')}>
@@ -157,7 +157,7 @@ export function MarkdownEditor({ value, onChange, label, hint, error, required, 
               </IconBtn>
             </>
           )}
-          <span className="mx-1 h-4 w-px bg-neutral-200" />
+          <span className="mx-1 h-4 w-px bg-slate-200" />
           <IconBtn label="Link" active={panel === 'link'} onClick={() => setPanel(panel === 'link' ? null : 'link')}>
             <Link2 className="h-4 w-4" />
           </IconBtn>
@@ -170,31 +170,31 @@ export function MarkdownEditor({ value, onChange, label, hint, error, required, 
             <Braces className="h-4 w-4" />
           </IconBtn>
 
-          <div className="ml-auto flex rounded-md bg-neutral-200/60 p-0.5">
-            <button type="button" onClick={() => setTab('write')} className={cn('inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium', tab === 'write' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500')}>
-              <PencilLine className="h-3 w-3" /> Likhein
+          <div className="ml-auto flex rounded-md bg-slate-200/60 p-0.5">
+            <button type="button" onClick={() => setTab('write')} className={cn('inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium', tab === 'write' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500')}>
+              <PencilLine className="h-3 w-3" /> Write
             </button>
-            <button type="button" onClick={() => setTab('preview')} className={cn('inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium', tab === 'preview' ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500')}>
+            <button type="button" onClick={() => setTab('preview')} className={cn('inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium', tab === 'preview' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500')}>
               <Eye className="h-3 w-3" /> Preview
             </button>
           </div>
 
           <Popover open={panel === 'link'} className="top-full">
-            <EntrySearch placeholder="Site ka page dhoondein…" onPick={(r) => linkSelection(toEntryLink(r.id))} />
-            <div className="flex gap-1.5 border-t border-neutral-100 p-2">
+            <EntrySearch placeholder="Search for a site page…" onPick={(r) => linkSelection(toEntryLink(r.id))} />
+            <div className="flex gap-1.5 border-t border-slate-100 p-2">
               <input
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="Ya bahar ka URL: https://fbr.gov.pk/…"
-                className="flex-1 rounded-lg border border-neutral-200 px-2.5 py-1.5 font-mono text-xs focus:border-emerald-500 focus:outline-none"
+                placeholder="Or an outside URL: https://fbr.gov.pk/…"
+                className="flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 font-mono text-xs focus:border-brand-500 focus:outline-none"
               />
-              <button type="button" disabled={!/^(https?:\/\/|\/|#|mailto:)/.test(url)} onClick={() => linkSelection(url.trim())} className="rounded-lg bg-emerald-600 px-2.5 text-xs font-medium text-white disabled:opacity-40">
+              <button type="button" disabled={!/^(https?:\/\/|\/|#|mailto:)/.test(url)} onClick={() => linkSelection(url.trim())} className="rounded-lg bg-brand-600 px-2.5 text-xs font-medium text-white disabled:opacity-40">
                 Lagayein
               </button>
             </div>
           </Popover>
           <Popover open={panel === 'token'} className="top-full w-[360px] p-1">
-            <p className="px-2.5 pb-1 pt-1.5 text-[11px] text-neutral-500">Token site par asal value se badal jata hai. Price kabhi khud na likhein.</p>
+            <p className="px-2.5 pb-1 pt-1.5 text-[11px] text-slate-500">The token is replaced by the real value on the site. Never type a price yourself.</p>
             <div className="max-h-64 overflow-y-auto">
               {tokenList.map((t) => (
                 <button
@@ -204,10 +204,10 @@ export function MarkdownEditor({ value, onChange, label, hint, error, required, 
                     edit(t.token, '', '');
                     setPanel(null);
                   }}
-                  className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left hover:bg-emerald-50"
+                  className="flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left hover:bg-brand-50"
                 >
-                  <code className="truncate text-xs text-emerald-800">{t.token}</code>
-                  <span className="shrink-0 truncate text-[11px] text-neutral-500">{t.description}</span>
+                  <code className="truncate text-xs text-brand-800">{t.token}</code>
+                  <span className="shrink-0 truncate text-[11px] text-slate-500">{t.description}</span>
                 </button>
               ))}
             </div>
@@ -221,12 +221,12 @@ export function MarkdownEditor({ value, onChange, label, hint, error, required, 
             rows={rows ?? (inline ? 2 : 10)}
             placeholder={placeholder ?? (inline ? 'Text…' : '## Heading\n\nParagraph…')}
             onChange={(e) => onChange(e.target.value)}
-            className="block w-full resize-y border-0 bg-transparent px-3 py-2.5 font-mono text-[13px] leading-relaxed text-neutral-800 placeholder:text-neutral-400 focus:outline-none"
+            className="block w-full resize-y border-0 bg-transparent px-3 py-2.5 font-mono text-[13px] leading-relaxed text-slate-800 placeholder:text-slate-400 focus:outline-none"
           />
         ) : (
           <div
             className={cn(PREVIEW_CLASS, 'min-h-[80px] px-4 py-3')}
-            dangerouslySetInnerHTML={{ __html: renderMarkdownPreview(text, { refs, media: mediaRefs, tokens: tokenExamples }) || '<p class="md-empty">Kuch nahi likha</p>' }}
+            dangerouslySetInnerHTML={{ __html: renderMarkdownPreview(text, { refs, media: mediaRefs, tokens: tokenExamples }) || '<p class="md-empty">Nothing written yet</p>' }}
           />
         )}
       </div>

@@ -45,14 +45,14 @@ export function SiteSettingsTab({ value }: { value: SiteSettings | null }) {
   });
 
   return (
-    <SettingSection settingKey="site" title="Site" description="Website ka naam, links aur rabta. Signup aur demo buttons yahin se link hote hain." buildValue={build} onErrors={setErrors}>
+    <SettingSection settingKey="site" title="Site" description="The site name, links and contact. The signup and demo buttons link from here." buildValue={build} onErrors={setErrors}>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Naam" required error={errors.name}><input className={inputCls} value={s.name} onChange={(e) => set({ name: e.target.value })} /></Field>
         <Field label="Website URL" required error={errors.baseUrl}><input className={inputCls} value={s.baseUrl} onChange={(e) => set({ baseUrl: e.target.value })} /></Field>
-        <Field label="App URL" required error={errors.appUrl} hint="Jahan dukandar login karte hain"><input className={inputCls} value={s.appUrl} placeholder="https://…" onChange={(e) => set({ appUrl: e.target.value })} /></Field>
+        <Field label="App URL" required error={errors.appUrl} hint="Where shop owners sign in"><input className={inputCls} value={s.appUrl} placeholder="https://…" onChange={(e) => set({ appUrl: e.target.value })} /></Field>
         <Field label="Signup URL" required error={errors.signupUrl}><input className={inputCls} value={s.signupUrl} placeholder="https://…" onChange={(e) => set({ signupUrl: e.target.value })} /></Field>
         <Field label="Demo page path" required error={errors.demoPath}><input className={inputCls} value={s.demoPath} onChange={(e) => set({ demoPath: e.target.value })} /></Field>
-        <Field label="Zabanein" error={errors.locales} hint="Urdu (ur) pages baad me aayenge">
+        <Field label="Languages" error={errors.locales} hint="Urdu (ur) pages will come later">
           <div className="flex gap-4 pt-2">
             {KNOWN_LOCALES.map((l) => (
               <Toggle
@@ -67,24 +67,24 @@ export function SiteSettingsTab({ value }: { value: SiteSettings | null }) {
         </Field>
       </div>
 
-      <div className="rounded-xl border border-neutral-200 p-3">
-        <Toggle checked={s.waOn} onChange={(v) => set({ waOn: v })} label="WhatsApp button dikhayein" />
+      <div className="rounded-xl border border-slate-200 p-3">
+        <Toggle checked={s.waOn} onChange={(v) => set({ waOn: v })} label="Show the WhatsApp button" />
         {s.waOn && (
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
-            <Field label="WhatsApp number" required error={errors['whatsapp.number']} hint="Sirf digits, country code ke sath (92…)"><input className={inputCls} value={s.waNumber} onChange={(e) => set({ waNumber: e.target.value })} /></Field>
-            <Field label="Pehla message" error={errors['whatsapp.message']}><input className={inputCls} value={s.waMessage} onChange={(e) => set({ waMessage: e.target.value })} /></Field>
+            <Field label="WhatsApp number" required error={errors['whatsapp.number']} hint="Digits only, with the country code (92…)"><input className={inputCls} value={s.waNumber} onChange={(e) => set({ waNumber: e.target.value })} /></Field>
+            <Field label="First message" error={errors['whatsapp.message']}><input className={inputCls} value={s.waMessage} onChange={(e) => set({ waMessage: e.target.value })} /></Field>
           </div>
         )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Logo" error={errors.logoMediaId}><MediaPicker value={s.logoMediaId} kinds={['LOGO']} onChange={(id) => set({ logoMediaId: id })} /></Field>
-        <Field label="Default share image (OG)" error={errors.defaultOgMediaId} hint="1200×630 behtar"><MediaPicker value={s.defaultOgMediaId} onChange={(id) => set({ defaultOgMediaId: id })} /></Field>
+        <Field label="Default share image (OG)" error={errors.defaultOgMediaId} hint="1200×630 works best"><MediaPicker value={s.defaultOgMediaId} onChange={(id) => set({ defaultOgMediaId: id })} /></Field>
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-semibold text-neutral-900">Social links</h3>
-        <p className="mb-2 text-xs text-neutral-500">Sirf woh link "verified" karein jo khud khol kar check kiya ho. Sirf verified links site aur schema me jate hain.</p>
+        <h3 className="mb-2 text-sm font-semibold text-slate-900">Social links</h3>
+        <p className="mb-2 text-xs text-slate-500">Mark a link "verified" only after opening it yourself. Only verified links go to the site and schema.</p>
         <RowList<Social>
           rows={s.social}
           onChange={(social) => set({ social })}

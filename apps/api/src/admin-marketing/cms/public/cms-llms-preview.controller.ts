@@ -10,8 +10,10 @@ import { CmsCardsService } from './cms-cards.service';
 import { CmsExceptionFilter } from './cms-exception.filter';
 import { organizationJsonLd, renderLlmsTxt } from './cms-llms-preview';
 import { CmsPublicService } from './cms-public.service';
+import { AdminArea } from '../../../admin/access/admin-access.decorators';
 
 /** `GET /admin/marketing/cms/settings/preview/llms` (API-CONTRACT 8.7); lives here because it reads the public payload. */
+@AdminArea('marketing')
 @Controller('admin/marketing/cms/settings/preview')
 @UseGuards(JwtAuthGuard, MarketingAdminGuard, MarketingPermissionsGuard)
 @UseFilters(CmsExceptionFilter)

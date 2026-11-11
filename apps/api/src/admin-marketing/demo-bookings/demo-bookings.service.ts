@@ -7,6 +7,7 @@ import { parsePagination, paginated } from '../_shared/helpers/pagination.helper
 import { ListDemosDto } from './dto/list-demos.dto';
 import { ScheduleDemoDto } from './dto/schedule-demo.dto';
 import { CompleteDemoDto, DemoOutcome } from './dto/complete-demo.dto';
+import { dayRange } from '../_shared/helpers/day-range.helper';
 
 @Injectable()
 export class DemoBookingsService {
@@ -43,11 +44,8 @@ export class DemoBookingsService {
         { bookingNumber: { contains: dto.search, mode: 'insensitive' } },
       ];
     }
-    if (dto.from || dto.to) {
-      where.createdAt = {};
-      if (dto.from) (where.createdAt as any).gte = new Date(dto.from);
-      if (dto.to) (where.createdAt as any).lte = new Date(dto.to);
-    }
+    const range = dayRange(dto.from, dto.to);
+    if (range) where.createdAt = range;
 
     const [items, total] = await Promise.all([
       this.prisma.demoBooking.findMany({

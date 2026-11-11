@@ -1,13 +1,22 @@
+/**
+ * Send a newsletter: subject, preheader, HTML body and an optional tag
+ * filter. Send a test to one address first, then send to all active
+ * subscribers.
+ */
+
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { Send, TestTube } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { newsletterApi } from '../../../../api/marketing/marketing-newsletter.api';
-import { PageHeader } from '../../_shared/components/PageHeader';
+import { toast } from 'sonner';
+import { CheckCircle, FlaskConical, PenLine, Send, TestTube, Users } from 'lucide-react';
+import { Button, Card, Input, PageHero, PageShell, Textarea, confirmDialog } from '@/design-system/components';
+import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { newsletterApi } from '@/api/marketing/marketing-newsletter.api';
+import { GuideButton } from '../../lib/kit';
 
 export function SendNewsletterPage() {
   const nav = useNavigate();
+  const guide = usePageGuide();
   const [subject, setSubject] = useState('');
   const [preheader, setPreheader] = useState('');
   const [html, setHtml] = useState('<p>Assalam-o-Alaikum {{name}},</p>\n<p>Aap ke liye kuch naya hai…</p>');
@@ -18,26 +27,16 @@ export function SendNewsletterPage() {
     mutationFn: newsletterApi.send,
     onSuccess: (r: any) => {
       if (r.testMode) toast.success(`Test email sent to ${r.sentTo}`);
-      else {
-        toast.success(`Newsletter queued for ${r.queuedFor} subscribers`);
-        nav('/marketing/newsletter');
-      }
+      else { toast.success(`Newsletter queued for ${r.queuedFor} subscribers`); nav('/marketing/newsletter'); }
     },
-    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Send fail ho gaya'),
+    onError: (e: any) => toast.error(e.response?.data?.message ?? 'Could not send the newsletter'),
   });
 
   const send = (testMode: boolean) => {
-    if (!subject.trim() || !html.trim()) {
-      toast.error('Subject aur body zaroori hai');
-      return;
-    }
-    if (testMode && !testEmail) {
-      toast.error('Test email chahiye');
-      return;
-    }
+    if (!subject.trim() || !html.trim()) { toast.error('Add a subject and a message body'); return; }
+    if (testMode && !testEmail) { toast.error('Enter an email address for the test'); return; }
     sendMut.mutate({
-      subject,
-      html,
+      subject, html,
       preheader: preheader || undefined,
       tags: tags ? tags.split(',').map((t) => t.trim()).filter(Boolean) : undefined,
       testMode,
@@ -46,94 +45,65 @@ export function SendNewsletterPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Send Newsletter"
-        subtitle="{{name}} placeholder use kar sakte hain personalisation ke liye"
-        backTo="/marketing/newsletter"
+    <PageShell>
+      <PageHero
+        title="Send newsletter"
+        back="/marketing/newsletter"
+        backLabel="Subscribers"
+        actions={<GuideButton onClick={guide.open} />}
+        stats={[
+          { label: 'Subject', value: subject ? `${subject.length} chars` : 'Missing' },
+          { label: 'Audience', value: tags.trim() ? 'Tagged only' : 'All active' },
+          { label: 'Test address', value: testEmail || 'Not set' },
+        ]}
       />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div>
-            <label className="mb-1 block text-sm font-medium text-neutral-700">Subject *</label>
-            <input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Ramzan Special — 20% off"
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-neutral-700">Preheader</label>
-            <input
-              value={preheader}
-              onChange={(e) => setPreheader(e.target.value)}
-              placeholder="Chhota preview text jo inbox mein subject ke baad dikhta hai"
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-neutral-700">HTML Body *</label>
-            <textarea
-              value={html}
-              onChange={(e) => setHtml(e.target.value)}
-              rows={16}
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 font-mono text-xs focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-            <p className="mt-1 text-xs text-neutral-500">
-              Use <code className="rounded bg-neutral-100 px-1">{'{{name}}'}</code> for personalisation.
-            </p>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium text-neutral-700">Tags filter (optional)</label>
-            <input
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="pos-users, karachi (comma separated)"
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-            />
-          </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <Card title="Message" description="Use {{name}} to add the subscriber's name.">
+            <div className="space-y-4">
+              <Input label="Subject" required value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Eid special: 20% off" />
+              <Input label="Preheader" value={preheader} onChange={(e) => setPreheader(e.target.value)} hint="Short preview text shown in the inbox after the subject." />
+              <Textarea label="HTML body" required value={html} onChange={(e) => setHtml(e.target.value)} rows={16} className="font-mono text-xs" />
+              <Input label="Tag filter (optional)" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="pos-users, karachi" hint="Comma separated. Empty means all active subscribers." />
+            </div>
+          </Card>
         </div>
-
         <div className="space-y-4">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <h3 className="mb-3 font-semibold text-neutral-800">Test send</h3>
-            <input
-              value={testEmail}
-              onChange={(e) => setTestEmail(e.target.value)}
-              placeholder="apna@email.com"
-              className="mb-3 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
-            />
-            <button
-              onClick={() => send(true)}
-              disabled={sendMut.isPending}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
-            >
-              <TestTube className="h-4 w-4" /> Send Test
-            </button>
-          </div>
-
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
-            <h3 className="mb-2 font-semibold text-emerald-900">Ready to launch?</h3>
-            <p className="mb-4 text-xs text-emerald-800">
-              Test karain, phir sab active subscribers ko bhejain.
-            </p>
-            <button
-              onClick={() => {
-                if (confirm('Sab active subscribers ko bhejna hai?')) send(false);
-              }}
-              disabled={sendMut.isPending}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-            >
-              <Send className="h-4 w-4" /> Send Newsletter
-            </button>
-          </div>
+          <Card title="Send a test" description="Check how it looks before it goes to everyone.">
+            <div className="space-y-3">
+              <Input label="Test email" type="email" value={testEmail} onChange={(e) => setTestEmail(e.target.value)} placeholder="you@example.com" />
+              <Button variant="outline" fullWidth leftIcon={<TestTube className="h-4 w-4" />} loading={sendMut.isPending} onClick={() => send(true)}>Send test</Button>
+            </div>
+          </Card>
+          <Card title="Ready to send?" description="Send a test first, then send to the audience.">
+            <Button fullWidth leftIcon={<Send className="h-4 w-4" />} loading={sendMut.isPending} onClick={async () => {
+              if (await confirmDialog({ title: 'Send to all active subscribers?', text: tags.trim() ? 'Only subscribers with the tags you entered will get it.' : 'Every active subscriber will get this email.', yes: 'Send newsletter' })) send(false);
+            }}>Send newsletter</Button>
+          </Card>
         </div>
       </div>
-    </div>
+
+      {guide.isOpen && (
+        <PageGuide
+          title="Send newsletter"
+          description="Write once, test, then send to your subscribers."
+          flowTitle="Sending a newsletter"
+          flow={[
+            { label: 'Write', hint: 'Subject and body', icon: PenLine, color: '#4f46e5' },
+            { label: 'Send a test', hint: 'To yourself', icon: FlaskConical, color: '#d97706' },
+            { label: 'Send', hint: 'Active subscribers', icon: Users, color: '#0284c7' },
+            { label: 'Done', hint: 'Queued', icon: CheckCircle, color: '#059669' },
+          ]}
+          steps={[
+            { icon: PenLine, color: '#4f46e5', title: 'Write', text: 'A subject and an HTML body are required. {{name}} becomes the first name.' },
+            { icon: FlaskConical, color: '#d97706', title: 'Test', text: 'Send a test to one address and check it in your inbox.' },
+            { icon: Users, color: '#0284c7', title: 'Audience', text: 'Add tags to reach part of the list. Empty means all active subscribers.' },
+            { icon: Send, color: '#059669', title: 'Send', text: 'You are asked to confirm, then the emails are queued.' },
+          ]}
+          onClose={guide.close}
+        />
+      )}
+    </PageShell>
   );
 }

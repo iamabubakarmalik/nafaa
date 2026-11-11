@@ -44,25 +44,25 @@ export function IconPicker({
   }, [names, q]);
   const unknown = !!value && !isAllowedIcon(value);
   return (
-    <Field label={label} error={error ?? (unknown ? `"${value}" allowed icon nahi` : undefined)} hint={hint} required={required}>
+    <Field label={label} error={error ?? (unknown ? `"${value}" is not an allowed icon` : undefined)} hint={hint} required={required}>
       <div ref={ref} className="relative">
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
           className={cn(
-            'flex h-9 w-full items-center gap-2 rounded-lg border bg-white px-3 text-left text-sm transition hover:border-emerald-400',
-            error || unknown ? 'border-rose-300' : 'border-neutral-300',
+            'flex h-9 w-full items-center gap-2 rounded-lg border bg-white px-3 text-left text-sm transition hover:border-brand-400',
+            error || unknown ? 'border-rose-300' : 'border-slate-300',
           )}
         >
           {value ? (
             <>
-              <span className="grid h-6 w-6 place-items-center rounded-md bg-emerald-50 text-emerald-700">
+              <span className="grid h-6 w-6 place-items-center rounded-md bg-brand-50 text-brand-700">
                 <CmsIcon name={value} className="h-4 w-4" />
               </span>
-              <span className="flex-1 truncate font-mono text-xs text-neutral-700">{value}</span>
+              <span className="flex-1 truncate font-mono text-xs text-slate-700">{value}</span>
             </>
           ) : (
-            <span className="flex-1 text-neutral-400">Icon chunein</span>
+            <span className="flex-1 text-slate-400">Choose an icon</span>
           )}
           {value && allowClear ? (
             <span
@@ -72,23 +72,23 @@ export function IconPicker({
                 e.stopPropagation();
                 onChange(undefined);
               }}
-              className="text-neutral-400 hover:text-rose-600"
+              className="text-slate-400 hover:text-rose-600"
             >
               <X className="h-3.5 w-3.5" />
             </span>
           ) : (
-            <ChevronDown className="h-4 w-4 text-neutral-400" />
+            <ChevronDown className="h-4 w-4 text-slate-400" />
           )}
         </button>
         <Popover open={open} className="w-[340px] p-2">
           <div className="relative mb-2">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-neutral-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
             <input
               autoFocus
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="store, receipt, pill…"
-              className="w-full rounded-lg bg-neutral-50 py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full rounded-lg bg-slate-50 py-2 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
           <div className="grid max-h-64 grid-cols-8 gap-1 overflow-y-auto">
@@ -102,15 +102,15 @@ export function IconPicker({
                   setOpen(false);
                 }}
                 className={cn(
-                  'grid h-9 w-9 place-items-center rounded-lg text-neutral-700 transition hover:bg-emerald-50 hover:text-emerald-700',
-                  value === n && 'bg-emerald-600 text-white hover:bg-emerald-600 hover:text-white',
+                  'grid h-9 w-9 place-items-center rounded-lg text-slate-700 transition hover:bg-brand-50 hover:text-brand-700',
+                  value === n && 'bg-brand-600 text-brand-fg hover:bg-brand-600 hover:text-white',
                 )}
               >
                 <CmsIcon name={n} className="h-4 w-4" />
               </button>
             ))}
           </div>
-          {filtered.length === 0 && <p className="py-4 text-center text-xs text-neutral-500">Koi icon nahi mila</p>}
+          {filtered.length === 0 && <p className="py-4 text-center text-xs text-slate-500">No icon found</p>}
         </Popover>
       </div>
     </Field>

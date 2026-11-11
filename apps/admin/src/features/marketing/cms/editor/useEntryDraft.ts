@@ -71,10 +71,10 @@ export function useEntryDraft(initial: AdminEntry) {
         if (apiErrorStatus(err) === 409) {
           conflictRef.current = true;
           setState('conflict');
-          setError('Ye entry kisi aur ne badal di hai.');
+          setError('Someone else changed this entry.');
         } else {
           setState('error');
-          setError(apiErrorMessage(err, 'Save nahi hua'));
+          setError(apiErrorMessage(err, 'Could not save'));
         }
         return false;
       } finally {
