@@ -38,9 +38,11 @@ export class PresenceInterceptor implements NestInterceptor {
           if (lastWrite.size > 50_000) lastWrite.clear();
           const at = new Date(now);
           const via = appFromUserAgent(req.headers?.['user-agent']);
+          // Raw SQL on purpose: Prisma's update would also bump updatedAt, which
+          // sync and change feeds read. Only the presence columns change here.
           Promise.all([
-            this.prisma.user.update({ where: { id: user.id }, data: { lastSeenAt: at, lastSeenVia: via } }),
-            user.tenantId ? this.prisma.tenant.update({ where: { id: user.tenantId }, data: { lastActiveAt: at } }) : null,
+            this.prisma.$executeRaw`UPDATE "User" SET "lastSeenAt" = ${at}, "lastSeenVia" = ${via} WHERE id = ${user.id}`,
+            user.tenantId ? this.prisma.$executeRaw`UPDATE "Tenant" SET "lastActiveAt" = ${at} WHERE id = ${user.tenantId}` : null,
           ]).catch((e: Error) => this.logger.debug(`Presence write skipped: ${e.message}`));
         }
       }
