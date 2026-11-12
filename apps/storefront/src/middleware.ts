@@ -155,7 +155,10 @@ export async function middleware(req: NextRequest) {
   }
 
   const target = url.clone();
-  target.pathname = `/s/${encodeURIComponent(site)}/${lang}${rest === '/' ? '' : rest}`;
+  // Draft previews and password access must render fresh every time, so they use the
+  // uncached copy of the shop routes (/d); everyone else gets the cached pages (/s).
+  const tree = key.preview || key.access ? 'd' : 's';
+  target.pathname = `/${tree}/${encodeURIComponent(site)}/${lang}${rest === '/' ? '' : rest}`;
   const res = NextResponse.rewrite(target);
 
   if (rememberSlug) res.cookies.set(STORE_COOKIE, rememberSlug, { path: '/', sameSite: 'lax' });
