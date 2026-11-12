@@ -134,6 +134,23 @@ export class SubscriptionGuard implements CanActivate {
     // 3. Super admin bypass
     if (user.role === 'SUPER_ADMIN') return true;
 
+    // 3b. Shop paused by the Nafaa admin (admins signed in as the shop still pass).
+    if (!user.impersonatedBy) {
+      const t = await this.prisma.tenant.findUnique({ where: { id: user.tenantId }, select: { pausedAt: true, pausedUntil: true, pauseReason: true } });
+      if (t?.pausedAt && (!t.pausedUntil || t.pausedUntil > new Date())) {
+        throw new HttpException(
+          {
+            statusCode: HttpStatus.FORBIDDEN,
+            error: 'Shop Paused',
+            code: 'SHOP_PAUSED',
+            message: t.pauseReason?.trim() || 'Aap ki dukaan ka Nafaa account abhi rok diya gaya hai. Nafaa support se rabta karein: 0324-1772933.',
+            expiredAt: t.pausedUntil,
+          },
+          HttpStatus.FORBIDDEN,
+        );
+      }
+    }
+
     // 4. Find the tenant's *best* subscription.
     //    Ranked, not just newest: a stale EXPIRED row must never lock out a
     //    customer who also has a live ACTIVE one (that happened whenever an
@@ -226,7 +243,20 @@ export class SubscriptionGuard implements CanActivate {
             data: { status: 'PAST_DUE' },
           })
           .catch(() => {});
-        // Allow access during grace
+        // Grace days from the admin setting; 0 stops the app as soon as the plan ends.
+        const { graceDays } = await loadBillingSettings(this.prisma);
+        if (now.getTime() - sub.currentPeriodEnd.getTime() >= graceDays * 86_400_000) {
+          throw new HttpException(
+            {
+              statusCode: HttpStatus.PAYMENT_REQUIRED,
+              error: 'Subscription Expired',
+              message: 'Aap ka plan khatam ho gaya. Renew karein.',
+              code: 'SUBSCRIPTION_EXPIRED',
+              expiredAt: sub.currentPeriodEnd,
+            },
+            HttpStatus.PAYMENT_REQUIRED,
+          );
+        }
         res.setHeader('X-Subscription-Warning', 'PAST_DUE');
         return true;
       }
@@ -241,7 +271,7 @@ export class SubscriptionGuard implements CanActivate {
         (now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24),
       );
 
-      if (daysOverdue < graceDays) {
+      if (now.getTime() - dueDate.getTime() < graceDays * 86_400_000) {
         res.setHeader('X-Subscription-Warning', 'GRACE_PERIOD');
         res.setHeader('X-Grace-Days-Left', String(graceDays - daysOverdue));
         return true;

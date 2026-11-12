@@ -42,6 +42,8 @@ export class BillingLifecycleService {
     this.running = true;
     try {
       const out = {
+        legacy: await this.endGrandfatherOnce(),
+        unpaused: await this.endPauses(),
         addOnDue: await this.addOnPayWindows(),
         addOnEnded: await this.addOnPeriods(),
         renewals: await this.renewals(),
@@ -55,6 +57,77 @@ export class BillingLifecycleService {
     } finally {
       this.running = false;
     }
+  }
+
+  /**
+   * Owner decision (12 Nov 2026): no free period for existing shops. Runs once:
+   * ends every grandfather period, records the add-ons each shop already uses
+   * (paid through its current plan period, or free until its trial ends), and
+   * re-prices open renewal bills so they include those add-ons.
+   */
+  private async endGrandfatherOnce(): Promise<number> {
+    const FLAG = 'billing.legacy_migrated';
+    if (await this.prisma.systemSetting.findUnique({ where: { key: FLAG }, select: { id: true } })) return 0;
+    const now = new Date();
+    const tenants = await this.prisma.tenant.findMany({ where: { billingGrandfatherUntil: { not: null } }, select: { id: true } });
+    const catalog = new Map((await this.prisma.addOn.findMany({ select: { id: true, key: true } })).map((a) => [a.key, a.id]));
+    let n = 0;
+    for (const t of tenants) {
+      const before = await this.entitlements.get(t.id, true);
+      await this.prisma.tenant.update({ where: { id: t.id }, data: { billingGrandfatherUntil: null } });
+      invalidateEntitlements(t.id);
+      const sub = await this.prisma.subscription.findFirst({
+        where: { tenantId: t.id, status: { in: ['ACTIVE', 'TRIAL'] } },
+        orderBy: { createdAt: 'desc' },
+        select: { status: true, trialEndsAt: true, currentPeriodEnd: true, planId: true, interval: true, plan: { select: { isFree: true } } },
+      });
+      if (!sub || sub.plan.isFree) continue;
+      const trial = sub.status === 'TRIAL';
+      for (const key of before.apps) {
+        const addOnId = catalog.get(key);
+        if (!addOnId) continue;
+        await this.prisma.tenantAddOn.upsert({
+          where: { tenantId_addOnId: { tenantId: t.id, addOnId } },
+          create: trial
+            ? { tenantId: t.id, addOnId, status: TenantAddOnStatus.ACTIVE, source: 'TRIAL', freeUntil: sub.trialEndsAt }
+            : { tenantId: t.id, addOnId, status: TenantAddOnStatus.ACTIVE, source: 'MIGRATED', currentPeriodEnd: sub.currentPeriodEnd, note: 'In use before pricing v2' },
+          update: {},
+        });
+      }
+      invalidateEntitlements(t.id);
+      // An open renewal bill (no payment under review) is re-priced with the add-ons.
+      if (!trial && before.apps.length) {
+        const open = await this.prisma.subscription.findFirst({
+          where: { tenantId: t.id, status: 'PENDING_PAYMENT' },
+          orderBy: { createdAt: 'desc' },
+          select: { planId: true, interval: true, invoices: { where: { status: { in: ['PENDING', 'OVERDUE'] } }, select: { payments: { where: { status: 'PENDING' }, select: { id: true } } } } },
+        });
+        const inReview = open?.invoices.some((i) => i.payments.length > 0);
+        if (open && !inReview) {
+          const rows = await this.prisma.tenantAddOn.findMany({ where: { tenantId: t.id, status: TenantAddOnStatus.ACTIVE, cancelAtPeriodEnd: false, addOn: { kind: { not: 'ONE_TIME' } } }, select: { quantity: true, addOn: { select: { key: true } } } });
+          try {
+            const res = await this.subscriptions.startSubscription({ tenantId: t.id }, open.planId, open.interval, rows.map((r) => ({ key: r.addOn.key, quantity: r.quantity })));
+            if (res.repriced) await this.notifier.renewalBill(t.id, (await this.prisma.plan.findUnique({ where: { id: open.planId }, select: { name: true } }))?.name ?? 'Plan', res.invoice.total, sub.currentPeriodEnd, res.invoice.invoiceNumber, ':with-addons');
+          } catch (e) {
+            this.logger.warn(`Re-pricing renewal for ${t.id} skipped: ${e instanceof Error ? e.message : e}`);
+          }
+        }
+      }
+      n++;
+    }
+    await this.prisma.systemSetting.create({ data: { key: FLAG, value: now.toISOString(), category: 'billing', description: 'Grandfather period ended and add-ons in use recorded (pricing v2)' } });
+    return n;
+  }
+
+  /** Pauses with an end date that has passed are lifted. */
+  private async endPauses(): Promise<number> {
+    const due = await this.prisma.tenant.findMany({ where: { pausedAt: { not: null }, pausedUntil: { lt: new Date() } }, select: { id: true } });
+    for (const t of due) {
+      await this.prisma.tenant.update({ where: { id: t.id }, data: { pausedAt: null, pausedUntil: null, pauseReason: null, status: 'ACTIVE' } });
+      invalidateEntitlements(t.id);
+      await this.prisma.notification.create({ data: { tenantId: t.id, type: 'INFO', title: 'Aap ki dukaan dobara chalu', message: 'Pause ka waqt khatam ho gaya. Aap ki dukaan dobara chalu hai.' } });
+    }
+    return due.length;
   }
 
   /** 1. Add-ons turned on with "Add now": remind, then switch off when unpaid. */

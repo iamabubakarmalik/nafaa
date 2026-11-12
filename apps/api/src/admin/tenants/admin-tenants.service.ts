@@ -3,6 +3,7 @@ import { Prisma, TenantStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { apiMessage, notificationText } from '../../common/i18n/api-message';
 import { DEFAULT_TZ, addDaysTz, dateKeyTz, startOfDayTz, subDaysTz } from '../../common/helpers/business-time.helper';
+import { invalidateEntitlements } from '../../modules/billing/entitlements/entitlements.service';
 
 @Injectable()
 export class AdminTenantsService {
@@ -82,8 +83,28 @@ export class AdminTenantsService {
       this.prisma.tenant.count({ where }),
     ]);
 
+    // The plan each shop is really on (a newer unpaid renewal bill is not it), its state and end.
+    const subs = items.length ? await this.prisma.subscription.findMany({
+      where: { tenantId: { in: items.map((t) => t.id) }, status: { in: ['ACTIVE', 'TRIAL', 'PAST_DUE', 'EXPIRED'] } },
+      orderBy: { createdAt: 'desc' },
+      select: { tenantId: true, status: true, trialEndsAt: true, currentPeriodEnd: true, plan: { select: { name: true, slug: true, isFree: true } } },
+    }) : [];
+    const RANK: Record<string, number> = { ACTIVE: 0, TRIAL: 1, PAST_DUE: 2, EXPIRED: 3 };
+    const now = new Date();
+    const billingOf = (tenantId: string) => {
+      const sub = subs.filter((x) => x.tenantId === tenantId).sort((a, b) => RANK[a.status] - RANK[b.status])[0];
+      if (!sub) return { planName: null, planSlug: null, state: 'expired', endsAt: null };
+      const endsAt = sub.status === 'TRIAL' ? sub.trialEndsAt : sub.currentPeriodEnd;
+      const state = sub.plan.isFree ? 'free' : endsAt && endsAt > now && (sub.status === 'ACTIVE' || sub.status === 'TRIAL') ? (sub.status === 'TRIAL' ? 'trial' : 'active') : 'expired';
+      return { planName: sub.plan.name, planSlug: sub.plan.slug, state, endsAt: sub.plan.isFree ? null : endsAt };
+    };
+    const withBilling = items.map((t) => ({
+      ...t,
+      billing: { ...billingOf(t.id), paused: !!t.pausedAt && (!t.pausedUntil || t.pausedUntil > now), pausedUntil: t.pausedUntil, pauseReason: t.pauseReason },
+    }));
+
     return {
-      items,
+      items: withBilling,
       meta: {
         page,
         limit,
@@ -252,6 +273,33 @@ export class AdminTenantsService {
   }
 
   /** Ends every session of every user in the shop; they all sign in again. */
+  async pause(id: string, reason?: string, until?: string | null) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id }, select: { id: true } });
+    if (!tenant) throw new NotFoundException('Shop not found');
+    const end = until ? new Date(until) : null;
+    if (end && (Number.isNaN(end.getTime()) || end <= new Date())) throw new BadRequestException('Pause end must be a future date');
+    const text = reason?.trim().slice(0, 300) || null;
+    await this.prisma.tenant.update({ where: { id }, data: { pausedAt: new Date(), pausedUntil: end, pauseReason: text, status: 'SUSPENDED' } });
+    const { count } = await this.prisma.session.deleteMany({ where: { user: { tenantId: id } } });
+    invalidateEntitlements(id);
+    await this.prisma.notification.create({
+      data: {
+        tenantId: id, type: 'WARNING',
+        ...notificationText('Aap ki dukaan rok di gayi hai', text ?? (end ? apiMessage('Nafaa ne aap ki dukaan {{date}} tak rok di hai.', { date: end.toISOString().slice(0, 10) }) : 'Nafaa ne aap ki dukaan rok di hai. Support se rabta karein.')),
+      },
+    });
+    return { paused: true, pausedUntil: end, signedOut: count };
+  }
+
+  async unpause(id: string) {
+    const tenant = await this.prisma.tenant.findUnique({ where: { id }, select: { id: true } });
+    if (!tenant) throw new NotFoundException('Shop not found');
+    await this.prisma.tenant.update({ where: { id }, data: { pausedAt: null, pausedUntil: null, pauseReason: null, status: 'ACTIVE' } });
+    invalidateEntitlements(id);
+    await this.prisma.notification.create({ data: { tenantId: id, type: 'INFO', ...notificationText('Aap ki dukaan dobara chalu', 'Nafaa ne aap ki dukaan dobara chalu kar di hai.') } });
+    return { paused: false };
+  }
+
   async signOutAll(id: string) {
     const { count } = await this.prisma.session.deleteMany({ where: { user: { tenantId: id } } });
     return { ended: count };
@@ -288,10 +336,15 @@ export class AdminTenantsService {
     const tenant = await this.prisma.tenant.findUnique({ where: { id } });
     if (!tenant) throw new NotFoundException('Tenant not found');
 
+    // Suspending pauses the shop for real (until reactivated); reactivating clears the pause.
     const updated = await this.prisma.tenant.update({
       where: { id },
-      data: { status },
+      data: status === 'SUSPENDED'
+        ? { status, pausedAt: new Date(), pausedUntil: null, pauseReason: reason?.trim() || null }
+        : status === 'ACTIVE' ? { status, pausedAt: null, pausedUntil: null, pauseReason: null } : { status },
     });
+    invalidateEntitlements(id);
+    if (status === 'SUSPENDED') await this.prisma.session.deleteMany({ where: { user: { tenantId: id } } });
 
     await this.prisma.notification.create({
       data: {

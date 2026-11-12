@@ -51,6 +51,10 @@ export interface Entitlements {
    * menu; anything else stays out of the menu until the shop adds it.
    */
   apps: string[];
+  /** Paused by the Nafaa admin: the shop cannot work until unpaused (or pausedUntil). */
+  paused: boolean;
+  pausedUntil: Date | null;
+  pauseReason: string | null;
 }
 
 const RANK: Partial<Record<SubscriptionStatus, number>> = { ACTIVE: 0, TRIAL: 1, PAST_DUE: 2, EXPIRED: 3 };
@@ -114,7 +118,7 @@ export class EntitlementsService {
     const now = new Date();
     const [settings, tenant, subs, addOns] = await Promise.all([
       loadBillingSettings(this.prisma),
-      this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { billingGrandfatherUntil: true, extraFeatures: true, limitOverrides: true } }),
+      this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { billingGrandfatherUntil: true, extraFeatures: true, limitOverrides: true, pausedAt: true, pausedUntil: true, pauseReason: true } }),
       this.prisma.subscription.findMany({
         where: { tenantId, status: { in: ['ACTIVE', 'TRIAL', 'PAST_DUE', 'EXPIRED'] } },
         orderBy: { createdAt: 'desc' },
@@ -217,6 +221,9 @@ export class EntitlementsService {
       limits,
       addOns: activeAddOns,
       apps,
+      paused: !!tenant?.pausedAt && (!tenant.pausedUntil || tenant.pausedUntil > now),
+      pausedUntil: tenant?.pausedUntil ?? null,
+      pauseReason: tenant?.pauseReason ?? null,
     };
   }
 

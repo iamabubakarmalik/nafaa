@@ -32,7 +32,7 @@ export class EntitlementsController {
   @Get('entitlements')
   async mine(@GetUser() user: AuthenticatedUser) {
     const e = await this.entitlements.get(user.tenantId);
-    return { state: e.state, plan: e.plan, trialEndsAt: e.trialEndsAt, periodEnd: e.periodEnd, blocksAt: e.blocksAt, graceDaysLeft: e.graceDaysLeft, grandfatheredUntil: e.grandfatheredUntil, features: e.features, limits: e.limits, apps: e.apps, addOns: e.addOns.map((a) => ({ key: a.key, status: a.status, free: a.free })) };
+    return { state: e.state, plan: e.plan, trialEndsAt: e.trialEndsAt, periodEnd: e.periodEnd, blocksAt: e.blocksAt, graceDaysLeft: e.graceDaysLeft, grandfatheredUntil: e.grandfatheredUntil, features: e.features, limits: e.limits, apps: e.apps, paused: e.paused, pausedUntil: e.pausedUntil, pauseReason: e.pauseReason, addOns: e.addOns.map((a) => ({ key: a.key, status: a.status, free: a.free })) };
   }
 }
 

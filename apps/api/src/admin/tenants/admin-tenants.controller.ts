@@ -49,6 +49,17 @@ export class AdminTenantsController {
     return this.service.updateProfile(id, dto);
   }
 
+  /** Pause a shop: it cannot use Nafaa until unpaused or until `until`. Signs everyone out. */
+  @Post(':id/pause')
+  pause(@Param('id') id: string, @Body() body: { reason?: string; until?: string | null }) {
+    return this.service.pause(id, typeof body?.reason === 'string' ? body.reason : undefined, typeof body?.until === 'string' ? body.until : null);
+  }
+
+  @Post(':id/unpause')
+  unpause(@Param('id') id: string) {
+    return this.service.unpause(id);
+  }
+
   @Post(':id/sign-out-all')
   signOutAll(@Param('id') id: string) {
     return this.service.signOutAll(id);

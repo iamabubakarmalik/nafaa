@@ -431,6 +431,10 @@ model Tenant {
   extraFeatures           String[]     @default([])
   /// Admin limit changes, e.g. { "users": 10 }. Replaces the plan's limit.
   limitOverrides          Json?
+  /// Admin pause: the shop cannot use Nafaa while paused (until pausedUntil, or until unpaused).
+  pausedAt                DateTime?
+  pausedUntil             DateTime?
+  pauseReason             String?
 
   // ─── Business Configuration ──────────────────────────────────
   businessType     String? // CARPET, MOBILE, GROCERY, PHARMACY, etc.

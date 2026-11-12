@@ -76,9 +76,9 @@ export class BillingNotifier {
     });
   }
 
-  renewalBill(tenantId: string, planName: string, amount: number, periodEnd: Date, invoiceNo: string) {
+  renewalBill(tenantId: string, planName: string, amount: number, periodEnd: Date, invoiceNo: string, keySuffix = '') {
     return this.send(tenantId, {
-      key: `renewal:${invoiceNo}`, windowDays: 365, tone: 'info',
+      key: `renewal:${invoiceNo}${keySuffix}`, windowDays: 365, tone: 'info',
       title: `Agle mahine ka bill tayyar hai: ${rs(amount)}`,
       lines: [`Aap ka ${planName} plan ${day(periodEnd)} ko khatam hoga.`, `Renewal ka bill ${invoiceNo} (${rs(amount)}) tayyar hai. Waqt par payment karein taake kaam na ruke.`],
       cta: { label: 'Bill dekhein aur pay karein', path: '/billing' },

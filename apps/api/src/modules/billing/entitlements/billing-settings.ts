@@ -26,7 +26,8 @@ export const BILLING_SETTINGS_KEY = 'billing.settings';
 
 export const DEFAULT_BILLING_SETTINGS: BillingSettings = {
   trialDays: 7,
-  graceDays: 3,
+  // Owner (12 Nov): the app stops as soon as the plan ends.
+  graceDays: 0,
   addOnPayDays: 3,
   renewalLeadDays: 7,
   reminderDays: [7, 3, 1],
