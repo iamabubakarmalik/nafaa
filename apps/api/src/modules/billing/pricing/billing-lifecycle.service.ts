@@ -43,6 +43,7 @@ export class BillingLifecycleService {
     try {
       const out = {
         legacy: await this.endGrandfatherOnce(),
+        legacyExpired: await this.billExpiredShopsOnce(),
         unpaused: await this.endPauses(),
         addOnDue: await this.addOnPayWindows(),
         addOnEnded: await this.addOnPeriods(),
@@ -116,6 +117,51 @@ export class BillingLifecycleService {
       n++;
     }
     await this.prisma.systemSetting.create({ data: { key: FLAG, value: now.toISOString(), category: 'billing', description: 'Grandfather period ended and add-ons in use recorded (pricing v2)' } });
+    return n;
+  }
+
+  /**
+   * Runs once after endGrandfatherOnce: shops whose plan had already ended get
+   * the add-ons they use recorded (off until paid) and their open renewal bill
+   * re-priced with them, so renewing brings their channels back.
+   */
+  private async billExpiredShopsOnce(): Promise<number> {
+    const FLAG = 'billing.legacy_expired_billed';
+    if (await this.prisma.systemSetting.findUnique({ where: { key: FLAG }, select: { id: true } })) return 0;
+    const opens = await this.prisma.subscription.findMany({
+      where: { status: 'PENDING_PAYMENT' },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, tenantId: true, planId: true, interval: true, plan: { select: { name: true } }, invoices: { where: { status: { in: ['PENDING', 'OVERDUE'] } }, select: { payments: { where: { status: 'PENDING' }, select: { id: true } } } } },
+    });
+    const catalog = new Map((await this.prisma.addOn.findMany({ select: { id: true, key: true } })).map((a) => [a.key, a.id]));
+    const done = new Set<string>();
+    let n = 0;
+    for (const open of opens) {
+      if (done.has(open.tenantId)) continue;
+      done.add(open.tenantId);
+      const ent = await this.entitlements.get(open.tenantId, true);
+      if (ent.state !== 'expired' || !ent.apps.length) continue;
+      if (open.invoices.some((i) => i.payments.length > 0)) continue;
+      for (const key of ent.apps) {
+        const addOnId = catalog.get(key);
+        if (!addOnId) continue;
+        await this.prisma.tenantAddOn.upsert({
+          where: { tenantId_addOnId: { tenantId: open.tenantId, addOnId } },
+          create: { tenantId: open.tenantId, addOnId, status: TenantAddOnStatus.PAST_DUE, source: 'MIGRATED', note: 'In use before pricing v2' },
+          update: {},
+        });
+      }
+      invalidateEntitlements(open.tenantId);
+      const rows = await this.prisma.tenantAddOn.findMany({ where: { tenantId: open.tenantId, status: { in: [TenantAddOnStatus.ACTIVE, TenantAddOnStatus.PAST_DUE] }, cancelAtPeriodEnd: false, addOn: { kind: { not: 'ONE_TIME' } } }, select: { quantity: true, addOn: { select: { key: true } } } });
+      try {
+        const res = await this.subscriptions.startSubscription({ tenantId: open.tenantId }, open.planId, open.interval, rows.map((r) => ({ key: r.addOn.key, quantity: r.quantity })));
+        if (res.repriced) await this.notifier.renewalBill(open.tenantId, open.plan.name, res.invoice.total, new Date(), res.invoice.invoiceNumber, ':with-addons');
+        n++;
+      } catch (e) {
+        this.logger.warn(`Re-pricing expired shop ${open.tenantId} skipped: ${e instanceof Error ? e.message : e}`);
+      }
+    }
+    await this.prisma.systemSetting.create({ data: { key: FLAG, value: new Date().toISOString(), category: 'billing', description: 'Ended shops: add-ons in use added to their renewal bills' } });
     return n;
   }
 
