@@ -12,7 +12,7 @@ import {
   PanelTop, Search, ShoppingBag, ShoppingCart, Sparkles, Star, Tags, UserRound, Ban, Square,
 } from 'lucide-react';
 import { t } from '@core/i18n';
-import type { Block, GlobalKey, Section, SectionSchema, SettingField, TemplateKey, ThemeSchema } from '../api/stores.api';
+import type { Block, GlobalKey, Section, SectionSchema, SettingField, TemplateKey, ThemeDoc, ThemeSchema, UrduChange } from '../api/stores.api';
 
 /** Section names in simple words; the API label is the fallback. */
 const SECTION_LABELS: Record<string, string> = {
@@ -138,4 +138,27 @@ export function sectionSummary(sec: Section): string {
   const s = sec.settings ?? {};
   const pick = (v: unknown) => (typeof v === 'string' ? v : v && typeof v === 'object' && 'en' in v ? String((v as { en: unknown }).en ?? '') : '');
   return pick(s.heading) || pick(s.title) || pick(s.text) || '';
+}
+
+/**
+ * Puts Nafaa AI Urdu into the theme, only where the Urdu box is still empty
+ * and the English is the same as when it was translated. Returns the new
+ * theme and how many boxes were filled.
+ */
+export function applyUrdu(doc: ThemeDoc, changes: UrduChange[]): { doc: ThemeDoc; filled: number } {
+  const out: ThemeDoc = JSON.parse(JSON.stringify(doc));
+  let filled = 0;
+  for (const c of changes) {
+    const pool = c.where === 'global' ? (Object.values(out.global) as Section[]) : out.templates[c.where]?.sections ?? [];
+    const sec = pool.find((x) => x.id === c.sectionId);
+    const holder = c.blockId ? sec?.blocks?.find((b) => b.id === c.blockId) : sec;
+    if (!holder) continue;
+    const cur = holder.settings[c.key];
+    const en = typeof cur === 'string' ? cur : cur && typeof cur === 'object' ? String((cur as { en?: unknown }).en ?? '') : '';
+    const ur = cur && typeof cur === 'object' ? String((cur as { ur?: unknown }).ur ?? '') : '';
+    if (ur.trim() || en.trim() !== c.en) continue;
+    holder.settings = { ...holder.settings, [c.key]: { en, ur: c.ur } };
+    filled++;
+  }
+  return { doc: out, filled };
 }

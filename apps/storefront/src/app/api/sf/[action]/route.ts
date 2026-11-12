@@ -77,6 +77,13 @@ const handlers: Record<string, Handler> = {
     if (!tok) return { rates: [], zone: null };
     return api.shippingRates(storeId, tok, s(body.city, 80) ?? '', s(body.province, 10));
   },
+  'delivery.quote': async ({ storeId, body }) =>
+    (await api.deliveryQuote(storeId, {
+      city: s(body.city, 80) ?? '',
+      productId: s(body.productId, 64) || null,
+      variantId: s(body.variantId, 64) || null,
+      qty: Math.max(1, Math.min(99, n(body.quantity) || 1)),
+    })) ?? { rates: [], zone: null, reason: null },
   checkout: async ({ storeId, body, req, res }) => {
     const tok = await cartToken(storeId, req, res, false);
     if (!tok) throw new ApiError(400, 'Your cart is empty');

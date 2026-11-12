@@ -28,7 +28,8 @@ import { LineInfo, StoreCatalogService } from './store-catalog.service';
 import { PublicAccess, StoreAccessService, StoreCtx } from './store-access.service';
 import { StoreAnalyticsService } from './store-analytics.service';
 import { CheckoutSettings, PayCode, readCheckout, readShipping } from './store-settings';
-import { freeShippingGap, quoteRates } from './lib/shipping';
+import { deliveryQuote, freeShippingGap, quoteRates } from './lib/shipping';
+import { storeReturnUrl } from './lib/host';
 import { randomToken, readToken, signToken } from './lib/tokens';
 import { loadControls } from './store-controls';
 
@@ -260,6 +261,35 @@ export class StoreCheckoutService {
     return { rates: quote.rates, zone: quote.zone?.name ?? null, reason: quote.rates.length ? null : 'Sorry, we do not deliver to this city yet' };
   }
 
+  /**
+   * Delivery to a city for one product before there is a cart (product
+   * page). Same zones, rates and COD rules as checkout; price and weight
+   * come from Nafaa, never from the browser.
+   */
+  async quote(storeId: string, access: PublicAccess, q: { city?: string; province?: string; productId?: string; variantId?: string; qty?: string | number }) {
+    const ctx = await this.access.publicStore(storeId, access);
+    const city = s(q.city, 80);
+    if (city.length < 2) throw new BadRequestException('Please choose your city');
+    const qty = Math.max(1, Math.min(99, Math.floor(n(q.qty) || 1)));
+    const productId = s(q.productId, 64);
+    let subtotal = 0;
+    let weight = 0;
+    if (/^[\w-]{8,64}$/.test(productId)) {
+      const variantId = s(q.variantId, 64) || null;
+      const info = await this.catalog.lineInfo(ctx, [{ productId, variantId }]);
+      const all = [...info.values()].filter((l) => l.productId === productId);
+      const line = info.get(lineId({ productId, variantId })) ?? all.find((l) => l.availability !== 'out_of_stock') ?? all[0];
+      if (line) {
+        subtotal = r2(line.price * qty);
+        weight = line.weightKg * qty;
+      }
+    }
+    const controls = await loadControls(this.prisma);
+    const settings = readCheckout(ctx.store.checkout);
+    const out = deliveryQuote(readShipping(ctx.store.shipping), { enabled: settings.payments.cod && controls.payments.COD, maxOrder: settings.maxCodOrder }, { city, province: s(q.province, 40) || null, subtotal, weightKg: weight });
+    return { city, subtotal, ...out };
+  }
+
   // ═══ checkout ═══
 
   async checkout(storeId: string, access: PublicAccess, body: Record<string, any>) {
@@ -298,7 +328,7 @@ export class StoreCheckoutService {
       data: {
         contact: { name, phone, email: email || null } as Prisma.InputJsonValue,
         address: { address: addr, city, province: s(address.province, 40) || null, postalCode: s(address.postalCode, 12) || null, landmark: s(address.landmark, 200) || null } as Prisma.InputJsonValue,
-        shippingRateId: s(body?.shippingRateId, 100) || null, paymentMethod: String(body?.paymentMethod ?? 'COD').toUpperCase(), notes: s(body?.notes, 500) || null, lastActivityAt: new Date(),
+        shippingRateId: s(body?.shippingRateId, 100) || null, paymentMethod: String(body?.paymentMethod ?? 'COD').toUpperCase(), notes: s(body?.notes, 500) || c.notes || null, lastActivityAt: new Date(),
       },
     });
     const fresh = await this.cartRow(ctx, c.token);
@@ -336,7 +366,7 @@ export class StoreCheckoutService {
       paymentMethod: method === 'COD' ? 'cod' : method.toLowerCase(),
       paymentStatus: 'PENDING',
       cancelled: false,
-      notes: s(body?.notes, 500) || undefined,
+      notes: s(body?.notes, 500) || fresh.notes || undefined,
       paymentTitle: method === 'COD' ? 'Cash on delivery' : `Online payment (${method})`,
       shippingMethod: `Nafaa Store · ${cart.shipping.name}`,
       attribution: attribution as any,
@@ -355,8 +385,10 @@ export class StoreCheckoutService {
     await this.rememberCustomer(ctx, { name, phone, email: email || null, acceptsMarketing: body?.acceptsMarketing === true, customerId });
     this.analytics.purchase(ctx.store.id, ctx.tenantId, order.total);
 
-    const payment = await this.paymentFor(ctx, settings, saved.id, method, order.total, phone);
+    // The order token first, so the payment page can send the buyer back to this order on the store.
     const token = signToken('order', { s: ctx.store.id, o: saved.id }, ORDER_TOKEN_TTL).token;
+    const returnUrl = await this.orderPageUrl(ctx, token).catch(() => null);
+    const payment = await this.paymentFor(ctx, settings, saved.id, method, order.total, phone, returnUrl);
     return {
       orderId: saved.id,
       orderNumber: orderNo,
@@ -380,12 +412,20 @@ export class StoreCheckoutService {
     if (!active.some((g) => g.code === method)) throw new BadRequestException('This payment method is not available');
   }
 
+  /** The storefront order page on the store's primary host (checked against the store's own hosts). */
+  async orderPageUrl(ctx: StoreCtx, orderToken: string): Promise<string | null> {
+    const base = await this.access.storeBase(ctx.store);
+    const dev = this.access.devStorefront();
+    const url = `${base}/orders/${encodeURIComponent(orderToken)}${dev ? `?store=${encodeURIComponent(ctx.store.slug)}` : ''}`;
+    return storeReturnUrl(url, await this.access.storeHosts(ctx.store), dev);
+  }
+
   /** Online payment link, or an advance for risky / always-advance COD orders. */
-  private async paymentFor(ctx: StoreCtx, settings: CheckoutSettings, orderId: string, method: PayCode, total: number, phone: string) {
+  private async paymentFor(ctx: StoreCtx, settings: CheckoutSettings, orderId: string, method: PayCode, total: number, phone: string, returnUrl: string | null = null) {
     const none = { required: false, kind: null as 'FULL' | 'ADVANCE' | null, amount: 0, url: null as string | null };
     try {
       if (method !== 'COD') {
-        const link = await this.payments.createForCheckout(ctx.tenantId, orderId, method, total, 'FULL');
+        const link = await this.payments.createForCheckout(ctx.tenantId, orderId, method, total, 'FULL', { returnUrl });
         return { required: true, kind: 'FULL' as const, amount: link.amount, url: link.url };
       }
       const adv = settings.advance;
@@ -401,7 +441,7 @@ export class StoreCheckoutService {
       const gateway = (await this.payments.activeGateways(ctx.tenantId)).find((g) => settings.payments[g.code as 'SAFEPAY']);
       if (!gateway) return none;
       const amount = Math.max(1, Math.round((total * percent) / 100));
-      const link = await this.payments.createForCheckout(ctx.tenantId, orderId, gateway.code, amount, 'ADVANCE');
+      const link = await this.payments.createForCheckout(ctx.tenantId, orderId, gateway.code, amount, 'ADVANCE', { returnUrl });
       return { required: true, kind: 'ADVANCE' as const, amount, url: link.url };
     } catch (e: any) {
       this.logger.warn(`Store payment link ${orderId}: ${e?.message}`);

@@ -351,6 +351,16 @@ export interface ShippingRate {
   codFee: number;
 }
 
+/** Delivery to a city for one product, before there is a cart (product page). */
+export interface DeliveryQuote {
+  city: string;
+  subtotal: number;
+  zone: string | null;
+  rates: ShippingRate[];
+  freeShipping: { threshold: number; remaining: number } | null;
+  reason: string | null;
+}
+
 export interface CheckoutBody {
   cartToken: string;
   expectedTotal: number;
@@ -492,6 +502,7 @@ export interface StoreApi {
   cartPatch(storeId: string, token: string, patch: CartPatch): Promise<Cart>;
   cartCoupon(storeId: string, token: string, code: string): Promise<{ ok: boolean; message: string; cart: Cart }>;
   shippingRates(storeId: string, token: string, city: string, province?: string | null): Promise<{ rates: ShippingRate[]; zone: string | null; reason?: string | null }>;
+  deliveryQuote(storeId: string, q: { city: string; productId?: string | null; variantId?: string | null; qty?: number }, o?: ReadOpts): Promise<DeliveryQuote | null>;
   checkout(storeId: string, body: CheckoutBody): Promise<CheckoutResult>;
   order(storeId: string, orderToken: string): Promise<OrderView | null>;
   track(storeId: string, no: string, phoneLast4: string): Promise<TrackResult | null>;
@@ -649,6 +660,8 @@ const liveApi: StoreApi = {
       rates: [],
       zone: null,
     },
+  deliveryQuote: (id, q, o) =>
+    read<DeliveryQuote>(`${S(id)}/delivery-quote${qs({ city: q.city, productId: q.productId, variantId: q.variantId, qty: q.qty, preview: o?.preview })}`, { noStore: true, o }),
   checkout: (id, body) => send('POST', `${S(id)}/checkout`, body),
   order: (id, orderToken) => read<OrderView>(`${S(id)}/orders/${enc(orderToken)}`, { noStore: true }),
   track: (id, no, phone) => read<TrackResult>(`${S(id)}/track${qs({ no, phone })}`, { noStore: true }),

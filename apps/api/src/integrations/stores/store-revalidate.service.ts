@@ -13,6 +13,11 @@ import { StockChanged, stockEvents } from '../../common/shop-scope/stock-events'
 
 const BATCH_MS = 10_000;
 
+/** Storefront cache tags of a store's host lookups: `resolve:<slug>` and `resolve:<host>` per verified domain. */
+export function resolveTags(slug: string, hosts: string[]): string[] {
+  return [...new Set([slug, ...hosts].map((x) => String(x ?? '').trim().toLowerCase()).filter(Boolean))].slice(0, 40).map((x) => `resolve:${x}`);
+}
+
 @Injectable()
 export class StoreRevalidateService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(StoreRevalidateService.name);
@@ -71,6 +76,19 @@ export class StoreRevalidateService implements OnModuleInit, OnModuleDestroy {
     const batch = [...this.pending.entries()];
     this.pending.clear();
     for (const [storeId, tags] of batch) await this.send(storeId, [...tags]);
+  }
+
+  /**
+   * Sends at once with the store's resolve lookups too (status change, theme
+   * publish), so going live, password mode or a new design show without
+   * waiting for the storefront's 60-second host cache. The storefront keys
+   * that cache by slug (subdomain) or host (custom domain).
+   */
+  async sendWithResolve(storeId: string): Promise<boolean> {
+    if (!this.enabled()) return false;
+    const store = await this.prisma.nafaaStore.findUnique({ where: { id: storeId }, select: { slug: true, domains: { where: { status: 'ACTIVE' }, select: { hostname: true } } } });
+    if (!store) return false;
+    return this.send(storeId, [`store:${storeId}`, ...resolveTags(store.slug, store.domains.map((d) => d.hostname))]);
   }
 
   /** Sends at once (admin "revalidate", theme publish). Returns false when off or failed. */

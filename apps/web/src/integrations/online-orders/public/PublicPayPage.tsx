@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, CreditCard, Loader2, Lock, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, CreditCard, Loader2, Lock, XCircle } from 'lucide-react';
 import { Alert, Button, Card, Input } from '@/design-system/components';
 import { publicFetch } from './publicApi';
 import { t as tr } from '@core/i18n';
@@ -11,10 +11,23 @@ import { t as tr } from '@core/i18n';
    tasdeeq kar li to ✓.
    ═════════════════════════════════════════════════════════════ */
 
-interface Info { shop: string; orderNumber: string; customer: string; amount: number; kind: 'FULL' | 'ADVANCE'; orderTotal: number; provider: string; methods: string[]; collect: ('mobile' | 'cnic')[]; status: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED' }
+interface Info { shop: string; orderNumber: string; customer: string; amount: number; kind: 'FULL' | 'ADVANCE'; orderTotal: number; provider: string; methods: string[]; collect: ('mobile' | 'cnic')[]; status: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED'; returnUrl?: string | null }
 type Checkout = { kind: 'redirect'; url: string } | { kind: 'form'; action: string; fields: Record<string, string> } | { kind: 'wallet'; status: 'PAID' | 'PENDING' | 'FAILED'; message: string | null };
 
 const rs = (n: number) => `Rs ${Math.round(n).toLocaleString('en-PK')}`;
+
+/** Seconds before a paid buyer is taken back to the store's order page. */
+const RETURN_AFTER = 6;
+
+/** The store page from the API, used only when it is a plain https (or local dev) address. */
+const safeReturn = (url?: string | null): string | null => {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.protocol === 'https:' || (u.protocol === 'http:' && (u.hostname === 'localhost' || u.hostname.endsWith('.localhost')))) return u.toString();
+  } catch { /* not a url */ }
+  return null;
+};
 
 export default function PublicPayPage() {
   const { token = '' } = useParams();
@@ -43,6 +56,18 @@ export default function PublicPayPage() {
   }, [token, checking, walletMsg]);
 
   useEffect(() => { if (form) formRef.current?.submit(); }, [form]);
+
+  // Paid on a Nafaa Store order: back to the store's order page after a short pause.
+  const back = safeReturn(info?.returnUrl);
+  const paid = info?.status === 'PAID';
+  const [left, setLeft] = useState(RETURN_AFTER);
+  const [stay, setStay] = useState(false);
+  useEffect(() => {
+    if (!paid || !back || stay) return;
+    if (left <= 0) { window.location.assign(back); return; }
+    const h = setTimeout(() => setLeft((n) => n - 1), 1000);
+    return () => clearTimeout(h);
+  }, [paid, back, stay, left]);
 
   const wallet = !!info?.collect?.length;
   const pay = async () => {
@@ -92,6 +117,20 @@ export default function PublicPayPage() {
                 <CheckCircle2 className="mx-auto h-12 w-12 text-success-600" />
                 <div className="mt-2 text-lg font-bold text-success-900">{tr('Payment ho gayi — shukriya {{customer}}! 🎉', { customer: info.customer })}</div>
                 <p className="mt-1 text-sm text-success-800">{tr('{{shop}} ko khabar ho gayi hai.', { shop: info.shop })}</p>
+                {back && (
+                  <div className="mt-4">
+                    <Button size="lg" fullWidth leftIcon={<ArrowLeft className="h-5 w-5" />} onClick={() => window.location.assign(back)}>
+                      {tr('Wapas dukaan par')}
+                    </Button>
+                    {!stay && (
+                      <p className="mt-2 text-xs text-success-800">
+                        {tr('{{n}} second me khud wapas le jayenge', { n: Math.max(0, left) })}
+                        {' · '}
+                        <button type="button" className="font-semibold underline underline-offset-2" onClick={() => setStay(true)}>{tr('Yahin rahein')}</button>
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             ) : info.status === 'EXPIRED' || info.status === 'FAILED' ? (
               <div className="mt-6 rounded-2xl bg-slate-50 p-5 text-center">

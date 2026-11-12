@@ -83,3 +83,34 @@ export function weightKg(weight: number | null | undefined, unit?: string | null
   if (u === 'lb' || u === 'lbs') return w * 0.4536;
   return w;
 }
+
+export interface DeliveryQuote {
+  zone: string | null;
+  rates: QuotedRate[];
+  freeShipping: { threshold: number; remaining: number } | null;
+  reason: string | null;
+}
+
+/**
+ * Delivery to a city before anything is in the cart (product page): the
+ * zone's rates for this amount and weight, with Cash on Delivery shown only
+ * when the shop's checkout would allow it (COD on, allowed by Nafaa, under
+ * the shop's COD limit).
+ */
+export function deliveryQuote(
+  settings: ShippingSettings,
+  cod: { enabled: boolean; maxOrder: number | null },
+  q: { city?: string | null; province?: string | null; subtotal: number; weightKg: number },
+): DeliveryQuote {
+  const { zone, rates } = quoteRates(settings, q);
+  const out = rates.map((r) => {
+    const ok = r.codAvailable && cod.enabled && !(cod.maxOrder && q.subtotal + r.price + r.codFee > cod.maxOrder);
+    return { ...r, codAvailable: ok, codFee: ok ? r.codFee : 0 };
+  });
+  return {
+    zone: zone?.name ?? null,
+    rates: out,
+    freeShipping: freeShippingGap(settings, q.subtotal),
+    reason: out.length ? null : 'Sorry, we do not deliver to this city yet',
+  };
+}

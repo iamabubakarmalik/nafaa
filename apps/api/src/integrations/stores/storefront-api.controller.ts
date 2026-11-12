@@ -165,6 +165,11 @@ export class StorefrontApiController {
   @Post('s/:storeId/carts/:token/coupon') @HttpCode(200) @Header('Cache-Control', NO_STORE) @Throttle({ default: { limit: 20, ttl: 60_000 } })
   coupon(@Param('storeId') id: string, @Param('token') t: string, @Body() b: any, @Query('preview') p?: string, @Headers('x-store-access') a?: string) { return this.checkout.applyCoupon(id, this.acc(p, a), t, b?.code ?? ''); }
 
+  @Get('s/:storeId/delivery-quote') @Header('Cache-Control', NO_STORE) @Throttle({ default: { limit: 60, ttl: 60_000 } })
+  deliveryQuote(@Param('storeId') id: string, @Query() q: { city?: string; province?: string; productId?: string; variantId?: string; qty?: string; preview?: string }, @Headers('x-store-access') a?: string) {
+    return this.checkout.quote(id, this.acc(q.preview, a), q);
+  }
+
   @Post('s/:storeId/checkout') @HttpCode(200) @Header('Cache-Control', NO_STORE) @Throttle({ default: { limit: 5, ttl: 60_000 } })
   placeOrder(@Param('storeId') id: string, @Body() b: any, @Query('preview') p?: string, @Headers('x-store-access') a?: string) { return this.checkout.checkout(id, this.acc(p, a), b ?? {}); }
 

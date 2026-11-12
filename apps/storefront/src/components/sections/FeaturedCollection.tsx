@@ -22,7 +22,7 @@ export async function FeaturedCollection({ section, ctx, index }: SectionProps) 
     <section className="section-y">
       <div className="page">
         <SectionHeading title={r.text('heading')} text={r.text('subheading') || r.text('text')} link={r.bool('showViewAll', true) ? href(ctx.lang, `/collections/${handle ?? 'all'}`) : null} linkLabel={t(ctx.lang, 'common.viewAll')} />
-        <ProductGrid items={list.items} ctx={ctx} columns={r.num('columns', 4)} mobileColumns={r.num('mobileColumns', 2)} quickAdd={r.bool('quickAdd', ctx.theme.layout.quickAdd)} priorityCount={index < 2 ? 2 : 0} />
+        <ProductGrid items={list.items} ctx={ctx} columns={r.num('columns', 4)} mobileColumns={r.num('mobileColumns', 2)} quickAdd={r.bool('quickAdd', ctx.theme.layout.quickAdd)} priorityCount={index < 2 ? 2 : 0} balance />
       </div>
     </section>
   );

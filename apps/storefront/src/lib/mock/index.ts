@@ -495,6 +495,10 @@ export const mockApi: StoreApi = {
     const c = carts.get(token);
     return { rates: rates(get(id)!, city, c?.subtotal ?? 0), zone: city };
   },
+  async deliveryQuote(id, q) {
+    const list = rates(get(id)!, q.city, 0);
+    return { city: q.city, subtotal: 0, zone: q.city, rates: list, freeShipping: null, reason: list.length ? null : 'Sorry, we do not deliver to this city yet' };
+  },
   async checkout(id, body): Promise<CheckoutResult> {
     const b = get(id)!;
     const c = carts.get(body.cartToken);

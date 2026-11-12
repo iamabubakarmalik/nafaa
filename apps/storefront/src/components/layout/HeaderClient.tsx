@@ -8,6 +8,26 @@ import { useEffect, useState } from 'react';
 import type { MenuItem } from '@/lib/api';
 import { useStore } from '../providers/StoreProvider';
 
+/**
+ * For a see-through header on the home page: marks the header as scrolled
+ * once the page moves, so CSS (globals.css, .nf-header) turns it solid.
+ */
+export function HeaderScroll() {
+  const [el, setEl] = useState<HTMLSpanElement | null>(null);
+  useEffect(() => {
+    const header = el?.closest('header');
+    if (!header) return;
+    const on = () => {
+      if (window.scrollY > 8) header.setAttribute('data-scrolled', '');
+      else header.removeAttribute('data-scrolled');
+    };
+    on();
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, [el]);
+  return <span ref={setEl} hidden />;
+}
+
 export function LangSwitch({ className = '' }: { className?: string }) {
   const { shop, t } = useStore();
   const path = usePathname() || '/';

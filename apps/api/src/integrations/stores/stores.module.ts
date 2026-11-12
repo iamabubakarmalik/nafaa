@@ -18,6 +18,7 @@ import { StoreShopifyImportService } from './store-shopify-import.service';
 import { StorePublicService } from './store-public.service';
 import { StoreThemeImportController } from './store-theme-import.controller';
 import { StoreThemeImportService } from './store-theme-import.service';
+import { StoreTranslateService } from './store-translate.service';
 import { UploadsModule } from '../../modules/uploads/uploads.module';
 
 /**
@@ -32,7 +33,7 @@ import { UploadsModule } from '../../modules/uploads/uploads.module';
   providers: [
     StoreAccessService, StoreCatalogService, StoreRevalidateService, StoreThemeService, StoresService, StoreAnalyticsService,
     StoreCheckoutService, StoreCustomersService, StoreDomainsService, StoreShopifyImportService, StorePublicService, AdminStoresService,
-    StoreThemeImportService,
+    StoreThemeImportService, StoreTranslateService,
   ],
   exports: [StoreRevalidateService],
 })

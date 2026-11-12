@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 export function SectionHeading({ title, text, link, linkLabel, center }: { title: string; text?: string; link?: string | null; linkLabel?: string; center?: boolean }) {
   if (!title && !text) return null;
   return (
-    <div className={`mb-6 flex gap-4 md:mb-8 ${center ? 'flex-col items-center text-center' : 'items-end justify-between'}`}>
+    <div className={`mb-6 flex gap-4 md:mb-8 ${center ? 'flex-col items-center text-center' : 'items-baseline justify-between'}`}>
       <div className={center ? 'max-w-2xl' : ''}>
         {title && <h2 className="h-section">{title}</h2>}
         {text && <p className="mt-2 text-[15px] text-muted">{text}</p>}

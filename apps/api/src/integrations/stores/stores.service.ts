@@ -228,7 +228,10 @@ export class StoresService {
     if (status === 'PASSWORD' && !ctx.store.passwordHash) throw new BadRequestException('Pehle password rakhein');
     const firstLaunch = status === 'LIVE' && !ctx.store.launchedAt;
     await this.prisma.nafaaStore.update({ where: { id: ctx.store.id }, data: { status, ...(firstLaunch && { launchedAt: new Date() }) } });
-    this.changed(ctx);
+    // Status changes go out at once (not through the 10-second batch), host lookups included.
+    this.access.invalidate(ctx.store.id);
+    this.catalog.forget(ctx.store.id);
+    void this.revalidate.sendWithResolve(ctx.store.id).catch(() => false);
     if (status === 'LIVE') void this.pingSitemap(ctx);
     return this.full(await this.access.requireStore(user, id));
   }

@@ -63,6 +63,7 @@ export function CheckoutClient() {
       city: f.city || cart.address.city || '',
       address: f.address || cart.address.address || '',
       landmark: f.landmark || cart.address.landmark || '',
+      notes: f.notes || cart.notes || '',
     }));
     if (cart.coupon) setCoupon(cart.coupon.code);
     if (!started.current && cart.lines.length) {
@@ -71,6 +72,9 @@ export function CheckoutClient() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart?.token]);
+
+  // Notes written on the cart page travel with the order even when checkout has no notes box.
+  const notesOf = (f: typeof form) => (cs.notes ? f.notes : f.notes || cart?.notes || '').trim();
 
   const set = (k: keyof typeof form, v: string | boolean) => {
     setForm((f) => ({ ...f, [k]: v }));
@@ -85,7 +89,7 @@ export function CheckoutClient() {
       sf<{ cart: Cart | null }>('cart.patch', {
         contact: { name: f.name || null, phone: f.phone || null, email: f.email || null },
         address: { address: f.address || null, city: f.city || null, province: f.province || null, landmark: f.landmark || null, postalCode: f.postalCode || null },
-        notes: f.notes || null,
+        notes: notesOf(f) || null,
       })
         .then((r) => r.cart && setCart(r.cart))
         .catch(() => undefined);
@@ -164,7 +168,7 @@ export function CheckoutClient() {
       const patched = await sf<{ cart: Cart | null }>('cart.patch', {
         contact: { name: form.name, phone: form.phone, email: form.email || null },
         address: { address: form.address, city: form.city, province: form.province || null, landmark: form.landmark || null, postalCode: form.postalCode || null },
-        notes: form.notes || null,
+        notes: notesOf(form) || null,
         shippingRateId: rateId,
         paymentMethod: method,
       });
@@ -176,7 +180,7 @@ export function CheckoutClient() {
         address: { address: form.address.trim(), city: form.city, province: form.province || undefined, postalCode: form.postalCode || undefined, landmark: form.landmark || undefined },
         shippingRateId: rateId,
         paymentMethod: method,
-        notes: form.notes || undefined,
+        notes: notesOf(form) || undefined,
         acceptsMarketing: cs.marketingOptIn ? form.marketing : false,
         hp: form.hp,
       });

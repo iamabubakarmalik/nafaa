@@ -2,6 +2,9 @@
  * Site header (section type `header`). Two layouts from the theme: logo left
  * with the menu beside it, or logo centred with the menu below. Sticky by
  * default. Menus come from the shop's navigation (handle in settings.menu).
+ * "See-through on the home page" (transparentOnHome): over a home page that
+ * starts with a hero or slideshow the header sits on the picture and turns
+ * solid on scroll; other pages always get the solid header (globals.css).
  */
 import Link from 'next/link';
 import { ChevronDown } from 'lucide-react';
@@ -10,7 +13,7 @@ import { href } from '@/lib/format';
 import { reader, schemeClass } from '@/lib/settings';
 import type { SiteContext } from '@/lib/store';
 import { Logo } from './Logo';
-import { HeaderActions, MobileMenuButton } from './HeaderClient';
+import { HeaderActions, HeaderScroll, MobileMenuButton } from './HeaderClient';
 
 function NavLink({ item, ctx }: { item: MenuItem; ctx: SiteContext }) {
   const url = href(ctx.lang, item.url);
@@ -65,9 +68,16 @@ export function Header({ section, ctx }: { section: Section; ctx: SiteContext })
   const s = ctx.boot.settings;
   const logo = <Logo name={ctx.boot.store.name} logoUrl={s.logoUrl} width={s.logoWidth} homeHref={href(ctx.lang, '/')} />;
   const actions = <HeaderActions showSearch={r.bool('showSearch', true)} showAccount={r.bool('showAccount', true)} />;
+  const transparent = r.bool('transparentOnHome', false);
+  // Header height, for pulling the hero up under a see-through header.
+  const height = centered ? '[--nf-header-h:4rem] md:[--nf-header-h:5rem] lg:[--nf-header-h:8rem]' : '[--nf-header-h:4rem] md:[--nf-header-h:72px]';
 
   return (
-    <header className={`${sticky ? 'sticky top-0' : 'relative'} ${scheme} z-40 border-b border-fg/10 bg-bg/95 text-fg backdrop-blur supports-[backdrop-filter]:bg-bg/85`}>
+    <header
+      data-transparent={transparent ? '1' : undefined}
+      className={`nf-header ${height} ${sticky ? 'sticky top-0' : 'relative'} ${scheme} z-40 border-b border-fg/10 bg-bg/95 text-fg backdrop-blur supports-[backdrop-filter]:bg-bg/85`}
+    >
+      {transparent && <HeaderScroll />}
       <div className="page">
         {centered ? (
           <>

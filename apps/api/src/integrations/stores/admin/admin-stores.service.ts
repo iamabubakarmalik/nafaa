@@ -182,7 +182,7 @@ export class AdminStoresService {
     if (!text) throw new BadRequestException('Give a reason');
     await this.prisma.nafaaStore.update({ where: { id: s.id }, data: { suspendedAt: new Date(), suspendReason: text } });
     this.access.invalidate(s.id);
-    void this.revalidate.send(s.id);
+    void this.revalidate.sendWithResolve(s.id).catch(() => false);
     return { ok: true };
   }
 
@@ -190,7 +190,7 @@ export class AdminStoresService {
     const s = await this.store(id);
     await this.prisma.nafaaStore.update({ where: { id: s.id }, data: { suspendedAt: null, suspendReason: null } });
     this.access.invalidate(s.id);
-    void this.revalidate.send(s.id);
+    void this.revalidate.sendWithResolve(s.id).catch(() => false);
     return { ok: true };
   }
 
@@ -206,14 +206,14 @@ export class AdminStoresService {
         : { forcedPassword: false },
     });
     this.access.invalidate(s.id);
-    void this.revalidate.send(s.id);
+    void this.revalidate.sendWithResolve(s.id).catch(() => false);
     return { ok: true };
   }
 
   async revalidateStore(id: string) {
     const s = await this.store(id);
     this.access.invalidate(s.id);
-    return { ok: true, sent: await this.revalidate.send(s.id) };
+    return { ok: true, sent: await this.revalidate.sendWithResolve(s.id) };
   }
 
   private async domain(storeId: string | null, domainId: string) {

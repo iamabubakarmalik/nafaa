@@ -310,6 +310,9 @@ export interface MigrateState {
   lastRun: MigrateRun | null;
 }
 
+/** One proposed Urdu text from Nafaa AI; `where` is 'global' (announcement, header, footer) or a template. */
+export interface UrduChange { where: 'global' | TemplateKey; sectionId: string; blockId: string | null; key: string; en: string; ur: string }
+
 const s = (id: string) => `/${id}`;
 
 export const storesApi = {
@@ -330,6 +333,9 @@ export const storesApi = {
   publish: (id: string, note?: string) => post<{ published: ThemeVersionFull; draft: ThemeVersionFull }>(`${s(id)}/theme/publish`, { note }),
   rollback: (id: string, versionId: string, publish = false) => post<{ published: ThemeVersionFull; draft: ThemeVersionFull }>(`${s(id)}/theme/rollback`, { versionId, publish }),
   switchTheme: (id: string, themeId: ThemeId, keep: 'content' | 'nothing') => post<{ draft: ThemeVersionFull }>(`${s(id)}/theme/switch`, { themeId, keep }),
+  urduAvailable: () => get<{ available: boolean }>('/translate-urdu'),
+  /** Proposed Urdu for empty Urdu boxes of `doc`; nothing is saved by this call. */
+  translateUrdu: (id: string, doc: ThemeDoc) => post<{ changes: UrduChange[]; remaining: number; total: number }>(`${s(id)}/translate-urdu`, { doc }),
 
   // Pages
   pages: (id: string) => get<{ items: PageRow[] }>(`${s(id)}/pages`).then((r) => r.items),

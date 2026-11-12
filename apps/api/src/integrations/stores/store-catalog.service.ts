@@ -53,6 +53,17 @@ export type ProductRow = Prisma.ProductGetPayload<{ select: typeof PRODUCT_SELEC
 
 const n = (v: unknown) => Number(v ?? 0) || 0;
 const leadText = (rule: { leadDays: number | null; note: string | null }) => rule.note ?? (rule.leadDays ? `Ships in ${rule.leadDays} days` : null);
+/** Rating rows from ratingsFor's query → product id → { average, count }, one decimal. */
+export function ratingMap(rows: Array<{ pid: string | null; avg: number | null; count: bigint | number }>): Map<string, { average: number; count: number }> {
+  const out = new Map<string, { average: number; count: number }>();
+  for (const r of rows) {
+    const count = Number(r.count ?? 0);
+    if (!r.pid || !count || r.avg === null || !Number.isFinite(Number(r.avg))) continue;
+    out.set(r.pid, { average: Math.round(Number(r.avg) * 10) / 10, count });
+  }
+  return out;
+}
+
 const SIZE_ORDER = ['xxs', 'xs', 's', 'm', 'l', 'xl', 'xxl', '2xl', '3xl', '4xl', '5xl'];
 
 @Injectable()
@@ -136,12 +147,34 @@ export class StoreCatalogService {
     return ids.map((id) => byId.get(id)).filter((c): c is ProductCard => !!c);
   }
 
-  private async build(ctx: StoreCtx, rows: ProductRow[]) {
+  /**
+   * Average stars and count per product from rated order reviews (the same
+   * reviews the product page lists), for many products in one query. An
+   * order counts once per product even when the product is on it twice.
+   */
+  async ratingsFor(tenantId: string, productIds: string[]): Promise<Map<string, { average: number; count: number }>> {
+    const ids = [...new Set(productIds)].slice(0, 200);
+    if (!ids.length) return new Map();
+    const rows = await this.prisma.$queryRaw<Array<{ pid: string | null; avg: number | null; count: bigint }>>`
+      SELECT it.pid, AVG(r.rating)::float AS avg, COUNT(*)::bigint AS count
+      FROM online_reviews r
+      JOIN channel_orders o ON o.id = r."channelOrderId"
+      CROSS JOIN LATERAL (
+        SELECT DISTINCT e->>'productId' AS pid
+        FROM jsonb_array_elements(CASE WHEN jsonb_typeof(o.items) = 'array' THEN o.items ELSE '[]'::jsonb END) e
+      ) it
+      WHERE r."tenantId" = ${tenantId} AND r.rating IS NOT NULL AND it.pid IN (${Prisma.join(ids)})
+      GROUP BY it.pid`;
+    return ratingMap(rows);
+  }
+
+  private async build(ctx: StoreCtx, rows: ProductRow[], withRatings = true) {
     if (!rows.length) return [];
     const ids = rows.map((r) => r.id);
-    const [web, stocks] = await Promise.all([
+    const [web, stocks, ratings] = await Promise.all([
       this.prisma.storeProduct.findMany({ where: { storeId: ctx.store.id, productId: { in: ids } } }),
       ctx.shopId ? this.prisma.shopStock.findMany({ where: { shopId: ctx.shopId, productId: { in: ids } }, select: { productId: true, variantId: true, stock: true, shopPrice: true } }) : Promise.resolve([]),
+      withRatings ? this.ratingsFor(ctx.tenantId, ids).catch(() => new Map<string, { average: number; count: number }>()) : Promise.resolve(new Map<string, { average: number; count: number }>()),
     ]);
     const webOf = new Map(web.map((w) => [w.productId, w]));
     const stockKey = (p: string, v: string | null) => `${p}:${v ?? '-'}`;
@@ -168,7 +201,7 @@ export class StoreCatalogService {
         secondImage: images[1]?.url ?? null,
         price, compareAtPrice: compareAt, priceMax, onSale: !!compareAt, badges: [...new Set(badges)].slice(0, 4),
         availability: avail, leadTime: avail === 'backorder' ? lines.find((l) => l.availability === 'backorder')?.leadTime ?? null : null,
-        brand: p.brand?.name ?? null, category: p.category?.name ?? null, rating: null,
+        brand: p.brand?.name ?? null, category: p.category?.name ?? null, rating: ratings.get(p.id) ?? null,
         hasVariants: p.hasVariants && p.variants.length > 0, firstVariantId: (sellable[0] ?? lines[0])?.variantId ?? null,
       };
       return { card, row: p, web: w, lines, images };
@@ -514,7 +547,7 @@ export class StoreCatalogService {
     const ids = [...new Set(refs.map((r) => r.productId))].filter((x) => /^[\w-]{8,64}$/.test(x));
     if (!ids.length) return out;
     const rows = await this.prisma.product.findMany({ where: { AND: [await this.baseWhere(ctx), { id: { in: ids } }] }, select: PRODUCT_SELECT });
-    const built = await this.build(ctx, rows);
+    const built = await this.build(ctx, rows, false);
     for (const b of built) {
       for (const l of b.lines) {
         const v = l.variant;

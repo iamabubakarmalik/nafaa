@@ -268,7 +268,7 @@ describe('theme import service', () => {
     const f = fakePrisma();
     const ctx = () => ({ store: f.store, integration: {}, settings: { logoUrl: null, faviconUrl: null, logoWidth: 140, social: {} }, tenantId: 't1', shopId: null, preview: false });
     const access: any = { requireStore: async () => ctx(), assertWrite: async () => undefined, invalidate: () => undefined };
-    const revalidate: any = { send: async () => undefined };
+    const revalidate: any = { send: async () => undefined, sendWithResolve: async () => undefined };
     const theme = new StoreThemeService(f.prisma, access, revalidate);
     const uploads: any = { uploadOne: jest.fn(async (_u: any, file: any) => ({ url: `https://res.cloudinary.com/demo/${file.originalname}` })) };
     const service = new StoreThemeImportService(f.prisma, access, theme, uploads, {} as any, revalidate);

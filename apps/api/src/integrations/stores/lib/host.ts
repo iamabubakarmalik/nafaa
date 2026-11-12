@@ -68,3 +68,30 @@ export function slugFromHost(host: string): string | null {
 }
 
 export const subdomainHost = (slug: string) => `${slug}.${rootDomain()}`;
+
+/**
+ * A page on the store that a payment page may send the buyer back to: https
+ * on one of the store's own hosts, or the local dev storefront origin when
+ * one is given. Anything else is refused (null), so the payment page cannot
+ * be used to send people to another site.
+ */
+export function storeReturnUrl(raw: unknown, hosts: string[], devOrigin: string | null = null): string | null {
+  if (typeof raw !== 'string' || !raw || raw.length > 1500) return null;
+  let u: URL;
+  try {
+    u = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (u.username || u.password) return null;
+  if (devOrigin) {
+    try {
+      if (u.origin === new URL(devOrigin).origin) return u.toString();
+    } catch {
+      /* bad dev origin: ignore */
+    }
+  }
+  if (u.protocol !== 'https:' || u.port) return null;
+  const allowed = new Set(hosts.map(normalizeHost).filter(Boolean));
+  return allowed.has(u.hostname.toLowerCase()) ? u.toString() : null;
+}

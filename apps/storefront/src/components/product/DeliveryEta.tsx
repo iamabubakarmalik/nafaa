@@ -3,17 +3,18 @@
 /**
  * "Delivery to <city>": the shopper picks a city once (remembered), and sees
  * the delivery time, charge and whether Cash on Delivery is available there.
- * Rates come from the cart's shipping-rates; before anything is in the cart
- * the shop's default delivery time is shown.
+ * With items in the cart the rates come from the cart's shipping-rates;
+ * before that, from the delivery quote for this product and quantity (same
+ * zones and Cash on Delivery rules as checkout).
  */
 import { Banknote, MapPin, Truck } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import type { ShippingRate } from '@/lib/api';
+import type { DeliveryQuote, ShippingRate } from '@/lib/api';
 import { sf } from '@/lib/client/sf';
 import { useStore } from '../providers/StoreProvider';
 import { CitySelect } from '../checkout/CitySelect';
 
-export function DeliveryEta({ price }: { price: number }) {
+export function DeliveryEta({ price, productId, variantId = null, qty = 1 }: { price: number; productId?: string; variantId?: string | null; qty?: number }) {
   const { shop, t, money, cart } = useStore();
   const [city, setCity] = useState<string>('');
   const [rate, setRate] = useState<ShippingRate | null>(null);
@@ -27,24 +28,32 @@ export function DeliveryEta({ price }: { price: number }) {
     }
   }, []);
 
+  const hasCart = !!cart?.lines.length;
   useEffect(() => {
-    if (!city || !cart) {
+    if (!city) {
       setRate(null);
       setNone(false);
       return;
     }
     let live = true;
-    sf<{ rates: ShippingRate[] }>('shipping', { city })
-      .then((r) => {
-        if (!live) return;
-        setRate(r.rates[0] ?? null);
-        setNone(r.rates.length === 0);
-      })
-      .catch(() => undefined);
+    // Short pause so quantity clicks send one request.
+    const h = setTimeout(() => {
+      const ask = hasCart
+        ? sf<{ rates: ShippingRate[] }>('shipping', { city })
+        : sf<Pick<DeliveryQuote, 'rates'>>('delivery.quote', { city, productId, variantId, quantity: qty });
+      ask
+        .then((r) => {
+          if (!live) return;
+          setRate(r.rates[0] ?? null);
+          setNone(r.rates.length === 0);
+        })
+        .catch(() => undefined);
+    }, 250);
     return () => {
       live = false;
+      clearTimeout(h);
     };
-  }, [city, cart]);
+  }, [city, hasCart, cart?.subtotal, productId, variantId, qty]);
 
   const threshold = shop.shipping.freeShippingThreshold;
   const free = threshold != null && price >= threshold;

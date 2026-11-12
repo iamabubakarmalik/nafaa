@@ -86,7 +86,7 @@ export function MainSearch({ section, ctx, data }: SectionProps) {
 
 export function MainCart({ section, ctx }: SectionProps) {
   const r = reader(section, ctx.lang);
-  return <CartPageClient freeShippingBar={r.bool('freeShippingBar', true)} coupon={r.bool('coupon', true)} />;
+  return <CartPageClient freeShippingBar={r.bool('freeShippingBar', true)} coupon={r.bool('coupon', true)} notes={r.bool('notes', true)} />;
 }
 
 export function MainPage({ section, ctx, data }: SectionProps) {

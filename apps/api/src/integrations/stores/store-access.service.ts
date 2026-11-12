@@ -109,6 +109,17 @@ export class StoreAccessService {
     return d?.hostname ?? subdomainHost(store.slug);
   }
 
+  /** Every host that serves or redirects to the store: its subdomain and each verified custom domain. */
+  async storeHosts(store: Pick<NafaaStore, 'id' | 'slug'>): Promise<string[]> {
+    const rows = await this.prisma.storeDomain.findMany({ where: { storeId: store.id, status: 'ACTIVE' }, select: { hostname: true } });
+    return [subdomainHost(store.slug), ...rows.map((r) => r.hostname)];
+  }
+
+  /** The dev storefront origin, only when links point at it (local work without a root domain). */
+  devStorefront(): string | null {
+    return process.env.NODE_ENV !== 'production' && !process.env.STORE_ROOT_DOMAIN ? storefrontUrl() : null;
+  }
+
   /** Public URL of the store (https on the primary host; the dev storefront with ?store= locally). */
   async storeUrl(store: Pick<NafaaStore, 'id' | 'slug'>): Promise<string> {
     if (process.env.NODE_ENV !== 'production' && !process.env.STORE_ROOT_DOMAIN) return `${storefrontUrl()}/?store=${store.slug}`;

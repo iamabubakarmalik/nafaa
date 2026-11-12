@@ -15,6 +15,7 @@ import { StoreThemeService } from './store-theme.service';
 import { StoreDomainsService } from './store-domains.service';
 import { StoreAnalyticsService } from './store-analytics.service';
 import { StoreShopifyImportService } from './store-shopify-import.service';
+import { StoreTranslateService } from './store-translate.service';
 
 const VIEW = PERMISSIONS.ONLINE_PRODUCTS_VIEW;
 const EDIT = PERMISSIONS.ONLINE_PRODUCTS_MANAGE;
@@ -31,6 +32,7 @@ export class StoresController {
     private readonly domains: StoreDomainsService,
     private readonly analytics: StoreAnalyticsService,
     private readonly shopify: StoreShopifyImportService,
+    private readonly translate: StoreTranslateService,
   ) {}
 
   // ─── fixed paths first, so `:id` never takes them ───
@@ -39,6 +41,7 @@ export class StoresController {
   @Get('theme-schema') @RequirePermissions(VIEW) schema() { return this.theme.schema(); }
   @Get('policy-templates') @RequirePermissions(VIEW) templates(@GetUser() u: U) { return this.stores.policyTemplates(u); }
   @Get('pk-cities') @RequirePermissions(VIEW) cities() { return this.stores.cities(); }
+  @Get('translate-urdu') @RequirePermissions(VIEW) urduAvailable() { return this.translate.available(); }
   @Post() @RequirePermissions(EDIT) create(@GetUser() u: U, @Body() b: any) { return this.stores.create(u, b ?? {}); }
 
   // ─── store ───
@@ -53,6 +56,7 @@ export class StoresController {
   @Put(':id/theme/draft') @RequirePermissions(EDIT) saveDraft(@GetUser() u: U, @Param('id') id: string, @Body() b: any) { return this.theme.saveDraft(u, id, b ?? {}); }
   @Post(':id/theme/publish') @HttpCode(200) @RequirePermissions(EDIT) publish(@GetUser() u: U, @Param('id') id: string, @Body() b: any) { return this.theme.publish(u, id, b ?? {}); }
   @Post(':id/theme/rollback') @HttpCode(200) @RequirePermissions(EDIT) rollback(@GetUser() u: U, @Param('id') id: string, @Body() b: any) { return this.theme.rollback(u, id, b ?? {}); }
+  @Post(':id/translate-urdu') @HttpCode(200) @RequirePermissions(EDIT) urdu(@GetUser() u: U, @Param('id') id: string, @Body() b: any) { return this.translate.urdu(u, id, b ?? {}); }
   @Post(':id/theme/switch') @HttpCode(200) @RequirePermissions(EDIT) switchTheme(@GetUser() u: U, @Param('id') id: string, @Body() b: any) { return this.theme.switchTheme(u, id, b ?? {}); }
 
   // ─── pages ───

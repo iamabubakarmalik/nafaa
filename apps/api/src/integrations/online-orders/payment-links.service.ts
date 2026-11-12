@@ -28,6 +28,22 @@ export interface PaymentLink {
   createdAt: string;
   paidAt?: string | null;
   by?: string | null;
+  /** Page the buyer goes back to after paying (Nafaa Store order page); checked by the caller. */
+  returnUrl?: string | null;
+}
+
+/** A stored return page, kept only when it is https (or http on localhost for local work). */
+export function safeReturnUrl(raw: unknown): string | null {
+  if (typeof raw !== 'string' || !raw || raw.length > 1500) return null;
+  try {
+    const u = new URL(raw);
+    if (u.username || u.password) return null;
+    if (u.protocol === 'https:') return u.toString();
+    if (u.protocol === 'http:' && (u.hostname === 'localhost' || u.hostname.endsWith('.localhost')) && process.env.NODE_ENV !== 'production') return u.toString();
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 /** Order par jo advance mil chuka (Rupay) — courier COD isi se kam hota hai */
@@ -156,8 +172,10 @@ export class PaymentLinksService {
   /**
    * Link for an order placed on a Nafaa Store checkout (no staff user): the
    * full amount or an advance. Same link, page and verification as createLink.
+   * `returnUrl` must already be checked against the store's own hosts; here
+   * it is only kept when it is https (or a localhost dev page).
    */
-  async createForCheckout(tenantId: string, orderId: string, provider: string, amount: number, kind: 'FULL' | 'ADVANCE') {
+  async createForCheckout(tenantId: string, orderId: string, provider: string, amount: number, kind: 'FULL' | 'ADVANCE', opts: { returnUrl?: string | null } = {}) {
     const order = await this.prisma.channelOrder.findFirst({ where: { id: orderId, tenantId } });
     if (!order) throw new NotFoundException('Order nahi mila');
     const code = String(provider).toUpperCase();
@@ -166,7 +184,8 @@ export class PaymentLinksService {
     if (!a?.active) throw new BadRequestException('Payment method is not available');
     const ref = `NP${Date.now().toString(36).toUpperCase()}${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
     const meta = (order.metadata ?? {}) as any;
-    const link: PaymentLink = { ref, provider: code, amount: Math.max(1, Math.round(amount)), kind, status: 'PENDING', createdAt: new Date().toISOString(), by: null };
+    const returnUrl = safeReturnUrl(opts.returnUrl);
+    const link: PaymentLink = { ref, provider: code, amount: Math.max(1, Math.round(amount)), kind, status: 'PENDING', createdAt: new Date().toISOString(), by: null, ...(returnUrl && { returnUrl }) };
     await this.prisma.channelOrder.update({ where: { id: order.id }, data: { metadata: { ...meta, payments: [...(meta.payments ?? []), link].slice(-20) } } });
     return { ...link, url: `${this.web()}/pay/${this.token(order.id, ref)}` };
   }
@@ -187,6 +206,7 @@ export class PaymentLinksService {
       methods: PAY_GATEWAYS[link.provider]?.methods ?? [],
       collect: PAY_GATEWAYS[link.provider]?.adapter.collect ?? [],
       status: expired ? 'EXPIRED' : link.status,
+      returnUrl: safeReturnUrl(link.returnUrl),
     };
   }
 

@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
 import {
-  CheckCircle2, Cloud, CloudOff, ExternalLink, GraduationCap, History, Import, Layers, Loader2, MousePointerClick, Palette, Redo2, Rocket, Undo2,
+  CheckCircle2, Cloud, CloudOff, ExternalLink, GraduationCap, History, Import, Languages, Layers, Loader2, MousePointerClick, Palette, Redo2, Rocket, Undo2,
 } from 'lucide-react';
 import { PageShell, Select, Skeleton, confirmDialog, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
@@ -27,7 +27,7 @@ import { ThemeTokensPanel } from '../components/theme/ThemeTokensPanel';
 import { AddSectionModal, PublishModal, VersionsModal } from '../components/theme/EditorDialogs';
 import { PreviewPane, type PreviewHandle } from '../components/theme/PreviewPane';
 import { SK, storeLink, useStoreFull, useThemeSchema } from '../lib/hooks';
-import { TEMPLATE_ORDER, TEMPLATE_PATHS, newSection, templateLabel } from '../lib/sections';
+import { TEMPLATE_ORDER, TEMPLATE_PATHS, applyUrdu, newSection, templateLabel } from '../lib/sections';
 import { useUndo } from '../lib/useUndo';
 
 export default function ThemeEditorPage() {
@@ -174,6 +174,27 @@ function Editor({ ctx }: { ctx: StoreCtx }) {
   const fixed = schema.data?.templates[template]?.fixed ?? [];
   const urdu = !!full.data?.settings.languages.enabled.includes('ur');
 
+  // Nafaa AI fills empty Urdu boxes; the result goes into the draft like any edit (undo works, nothing is published).
+  const urduHelper = useQuery({ queryKey: ['stores', 'urdu-helper'], queryFn: storesApi.urduAvailable, enabled: urdu, staleTime: 10 * 60_000 });
+  const [urduBusy, setUrduBusy] = useState(false);
+  const fillUrdu = async () => {
+    if (!doc.value || urduBusy) return;
+    setUrduBusy(true);
+    try {
+      const r = await storesApi.translateUrdu(id, doc.value);
+      if (!r.total) { toast.success(t('Sab text ki Urdu pehle se likhi hai')); return; }
+      if (!r.changes.length) { toast.error(t('Abhi Urdu nahi ban saki — thori dair baad dobara try karein')); return; }
+      doc.set((cur) => (cur ? applyUrdu(cur, r.changes).doc : cur));
+      toast.success(r.remaining > 0
+        ? t('{{n}} text ki Urdu bhar di. Baqi {{left}} ke liye dobara dabayein.', { n: r.changes.length, left: r.remaining })
+        : t('{{n}} text ki Urdu bhar di. Dekh kar Publish karein.', { n: r.changes.length }));
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    } finally {
+      setUrduBusy(false);
+    }
+  };
+
   const setSections = (next: Section[], tag?: string) => doc.set((cur) => (cur ? { ...cur, templates: { ...cur.templates, [template]: { ...cur.templates[template], sections: next } } } : cur), tag);
   const setGlobal = (k: GlobalKey, sec: Section, tag?: string) => doc.set((cur) => (cur ? { ...cur, global: { ...cur.global, [k]: sec } } : cur), tag);
 
@@ -226,6 +247,12 @@ function Editor({ ctx }: { ctx: StoreCtx }) {
           <button type="button" onClick={doc.undo} disabled={!doc.canUndo} title={t('Undo (Ctrl+Z)')} aria-label={t('Undo')} className={`${heroIconButton} disabled:opacity-40`}><Undo2 className="h-4 w-4" /></button>
           <button type="button" onClick={doc.redo} disabled={!doc.canRedo} title={t('Redo (Ctrl+Shift+Z)')} aria-label={t('Redo')} className={`${heroIconButton} disabled:opacity-40`}><Redo2 className="h-4 w-4" /></button>
           <button type="button" onClick={() => setHistoryOpen(true)} className={heroButton}><History className="h-4 w-4" />{t('History')}</button>
+          {urdu && urduHelper.data?.available && (
+            <button type="button" onClick={() => void fillUrdu()} disabled={!d || urduBusy} className={`${heroButton} disabled:opacity-50`}
+              title={t('Khaali Urdu boxes Nafaa AI se bharein. Aap ki likhi Urdu nahi badlegi.')}>
+              {urduBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}{t('Urdu khud banayein (Nafaa AI)')}
+            </button>
+          )}
           <Link to="/online-store/site/theme/import" className={heroButton}><Import className="h-4 w-4" />{t('Theme laayein')}</Link>
           <a href={storeLink(ctx.store, ctx.list.storefrontUrl)} target="_blank" rel="noreferrer" className={heroButton}><ExternalLink className="h-4 w-4" />{t('Store dekhein')}</a>
           <button type="button" onClick={() => setPublishOpen(true)} disabled={!d || !unpublished} className={`${heroPrimaryButton} disabled:opacity-50`}>

@@ -3,7 +3,7 @@
 /** Full cart page (`main_cart`): lines, free-delivery progress, summary and checkout. */
 import Link from 'next/link';
 import { ShieldCheck, ShoppingBag, Tag, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Cart } from '@/lib/api';
 import { sf, SfError } from '@/lib/client/sf';
 import { useStore } from '../providers/StoreProvider';
@@ -54,7 +54,48 @@ function CouponBox() {
   );
 }
 
-export function CartPageClient({ freeShippingBar = true, coupon = true }: { freeShippingBar?: boolean; coupon?: boolean }) {
+/** Order note on the cart page; saved to the cart and sent with the order at checkout. */
+function CartNote() {
+  const { cart, setCart, t } = useStore();
+  const [text, setText] = useState(cart?.notes ?? '');
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    setText(cart?.notes ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart?.token]);
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+  const save = (v: string) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      sf<{ cart: Cart | null }>('cart.patch', { notes: v.trim() || null })
+        .then((r) => r.cart && setCart(r.cart))
+        .catch(() => undefined);
+    }, 600);
+  };
+  return (
+    <div className="mt-6">
+      <label htmlFor="cart-note" className="label">
+        {t('checkout.notes')}
+      </label>
+      <textarea
+        id="cart-note"
+        rows={2}
+        maxLength={500}
+        className="field resize-none"
+        placeholder={t('checkout.notesPlaceholder')}
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value);
+          save(e.target.value);
+        }}
+      />
+    </div>
+  );
+}
+
+export function CartPageClient({ freeShippingBar = true, coupon = true, notes = true }: { freeShippingBar?: boolean; coupon?: boolean; notes?: boolean }) {
   const { cart, cartReady, t, money, href } = useStore();
   const lines = cart?.lines ?? [];
   return (
@@ -85,6 +126,7 @@ export function CartPageClient({ freeShippingBar = true, coupon = true }: { free
                   <LineItem key={l.lineId} line={l} />
                 ))}
               </div>
+              {notes && <CartNote />}
               <Link href={href('/collections/all')} className="mt-6 inline-block text-[14px] font-medium underline underline-offset-4">
                 {t('cart.continue')}
               </Link>

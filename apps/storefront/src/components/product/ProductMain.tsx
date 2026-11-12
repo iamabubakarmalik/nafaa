@@ -304,7 +304,7 @@ export function ProductMain({
           </a>
         ) : null;
       case 'delivery_eta':
-        return <DeliveryEta key={b.id} price={price * qty} />;
+        return <DeliveryEta key={b.id} price={price * qty} productId={p.id} variantId={variant?.id ?? null} qty={qty} />;
       case 'trust_icons':
         return (
           <ul key={b.id} className="grid grid-cols-3 gap-2 text-center text-[12px] leading-tight text-muted">

@@ -129,7 +129,7 @@ export class StoreThemeService {
       return { published, draft: next };
     });
     this.access.invalidate(ctx.store.id);
-    void this.revalidate.send(ctx.store.id);
+    void this.revalidate.sendWithResolve(ctx.store.id).catch(() => false);
     return { published: this.present(out.published), draft: this.present(out.draft) };
   }
 
