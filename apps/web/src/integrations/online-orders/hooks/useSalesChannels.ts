@@ -33,6 +33,7 @@ export const CHANNEL_ICON: Record<string, { emoji: string; color: string; label:
   CUSTOM_WEBSITE: { emoji: '🌐', color: '#10b981', label: t('Website') },
   DARAZ: { emoji: '🛒', color: '#f57224', label: 'Daraz' },
   FOODPANDA: { emoji: '🍔', color: '#e21b70', label: 'Foodpanda' },
+  NAFAA_STORE: { emoji: '🛍️', color: '#db2777', label: 'Nafaa Store' },
 };
 
 export const channelMeta = (type: string) => CHANNEL_ICON[type] ?? { emoji: '🔌', color: '#64748b', label: type };

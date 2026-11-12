@@ -38,6 +38,7 @@ export const SOURCE_BY_TYPE: Record<string, { label: string; emoji: string }> = 
   FOODPANDA:      { label: 'Foodpanda', emoji: '🍔' },
   SHOPIFY:        { label: 'Shopify', emoji: '🟢' },
   WOOCOMMERCE:    { label: 'WooCommerce', emoji: '🟣' },
+  NAFAA_STORE:    { label: 'Nafaa Store', emoji: '🛍️' },
 };
 
 export function sourceOf(o: { platform?: string; integration?: { type: string }; metadata?: { platform?: string } | null }): { label: string; emoji: string; brand: BrandName } {

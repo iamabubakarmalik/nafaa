@@ -15,7 +15,7 @@ import { t } from '@core/i18n';
 type IconType = ComponentType<{ className?: string; style?: CSSProperties }>;
 
 /** Paths that count as active only on an exact match (they have child routes). */
-export const EXACT_MATCH_PATHS = new Set(['/staff', '/products', '/fbr', '/sales', '/online-orders', '/online-store', '/online-orders/cod']);
+export const EXACT_MATCH_PATHS = new Set(['/staff', '/products', '/fbr', '/sales', '/online-orders', '/online-store', '/online-orders/cod', '/online-store/site']);
 
 const ROW = 'group/item relative flex h-9 items-center gap-2.5 rounded-lg ps-2.5 pe-1 text-[0.84375rem] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-500';
 const ROW_ACTIVE = 'bg-white font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200/80 dark:bg-ink-white/[0.07] dark:text-ink-white dark:ring-ink-white/10';

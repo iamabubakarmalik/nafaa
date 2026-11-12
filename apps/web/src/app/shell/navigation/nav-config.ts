@@ -6,7 +6,7 @@ import {
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap, PackageX,
   Landmark, Send, Printer, QrCode, Search, HandCoins, Palette, Scale, ShieldAlert, UserCheck,
   PhoneCall, Briefcase, Code2, FileSpreadsheet, MapPin, Factory, PackageCheck, Calculator, BadgePercent, Network, Target, Undo2,
-  Workflow, Settings2, Share2, UsersRound, Radar, LayoutGrid,
+  Workflow, Settings2, Share2, UsersRound, Radar, LayoutGrid, Paintbrush, ListTree, MonitorSmartphone,
   MessagesSquare as InboxIcon, ThumbsUp as FacebookIcon,
 } from 'lucide-react';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
@@ -108,6 +108,25 @@ export const commerceNavGroups: NavGroup[] = [
       { to: '/online-orders/returns-requests', label: t('Returns & exchanges'), icon: Undo2, permission: P.SALES_VIEW, keywords: 'return exchange cancel address customer request wapsi badalna portal' },
       { to: '/online-orders/abandoned', label: t('Abandoned carts'), icon: ShoppingCart, permission: P.SALES_VIEW, keywords: 'abandoned cart checkout recover chhoda wapas shopify whatsapp' },
       { to: '/online-orders/call-center', label: t('Call center'), icon: PhoneCall, permission: P.ONLINE_ORDERS_VIEW, keywords: 'call center phone confirm call queue follow up dobara call agent tel dial confirmation' },
+    ],
+  },
+  {
+    // Nafaa Stores: the shop's own website (integrations/stores).
+    id: 'c-website', label: t('Website'), icon: MonitorSmartphone, color: '#db2777', defaultOpen: true, order: 2.5,
+    items: [
+      { to: '/online-store/site', label: t('Website'), icon: MonitorSmartphone, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'website store nafaa stores apni website online dukaan launch live shopify replacement' },
+      { to: '/online-store/site/theme', label: t('Theme editor'), icon: Paintbrush, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'theme design banner section rang font editor customize publish' },
+      { to: '/online-store/site/products', label: t('Website products'), icon: PackageCheck, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'website products show hide seo url handle badge' },
+      { to: '/online-store/site/collections', label: t('Collections'), icon: Tag, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'collection group category sale smart automatic' },
+      { to: '/online-store/site/pages', label: t('Pages & blog'), icon: FileText, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'page about contact faq blog post' },
+      { to: '/online-store/site/navigation', label: t('Menus'), icon: ListTree, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'menu navigation header footer link redirect purana address' },
+      { to: '/online-store/site/domains', label: t('Domains'), icon: Globe, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'domain apna domain www dns ssl subdomain' },
+      { to: '/online-store/site/checkout', label: t('Checkout & payments'), icon: CreditCard, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'checkout payment cod jazzcash easypaisa advance' },
+      { to: '/online-store/site/shipping', label: t('Delivery charges'), icon: Truck, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'shipping delivery charge zone rate free delivery cod fee' },
+      { to: '/online-store/site/policies', label: t('Policies'), icon: ShieldCheck, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'policy return refund privacy terms' },
+      { to: '/online-store/site/preferences', label: t('Website settings'), icon: Settings2, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'logo favicon social pixel tracking password language urdu' },
+      { to: '/online-store/site/analytics', label: t('Website analytics'), icon: BarChart3, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'visitors traffic conversion funnel analytics' },
+      { to: '/online-store/site/shopify', label: t('Move from Shopify'), icon: Download, permission: P.ONLINE_PRODUCTS_VIEW, planFeature: ['integration.website'], addOn: 'website', keywords: 'shopify migrate move import se aayein' },
     ],
   },
   {

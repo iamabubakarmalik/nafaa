@@ -62,6 +62,9 @@ export const ADMIN_AREAS: AdminAreaDef[] = [
   area('plans', 'Plans and subscriptions', 'Billing'),
   area('promos', 'Promo codes and referrals', 'Billing'),
   area('online_store', 'Online store', 'Online store', [], 'Pause sync, retry jobs, change channel settings.'),
+  area('stores', 'Nafaa Stores websites', 'Online store', [
+    { key: 'stores.suspend', label: 'Suspend or unsuspend a store website', hint: 'The website shows an "unavailable" page until unsuspended.', sensitive: true },
+  ], 'Platform controls, domains, force password mode, revalidate and the abuse queue.'),
   area('marketplace', 'Marketplace', 'Marketplace'),
   area('marketing', 'Marketing site', 'Marketing'),
   area('communications', 'Broadcasts, email and SMS', 'Communications', [], 'Send messages to shops.'),
@@ -96,8 +99,8 @@ export const SYSTEM_ROLES: Array<{ key: string; name: string; description: strin
     name: 'Operations',
     description: 'Runs shops, billing and the online store day to day. Cannot manage staff or delete shops.',
     permissions: [
-      ...views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'marketplace', 'communications', 'mobile', 'system', 'audit', 'partners'),
-      ...manages('notifications', 'tenants', 'users', 'deletion', 'billing', 'plans', 'online_store', 'marketplace', 'communications', 'partners'),
+      ...views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'stores', 'marketplace', 'communications', 'mobile', 'system', 'audit', 'partners'),
+      ...manages('notifications', 'tenants', 'users', 'deletion', 'billing', 'plans', 'online_store', 'stores', 'marketplace', 'communications', 'partners'),
       'billing.approve',
     ],
   },

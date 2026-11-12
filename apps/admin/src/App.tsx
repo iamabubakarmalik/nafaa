@@ -41,6 +41,12 @@ const CommerceJobsPage = lazy(() => import('@/features/commerce/pages/CommerceJo
 const CommerceOrdersPage = lazy(() => import('@/features/commerce/pages/CommerceOrdersPage'));
 const CommerceCouriersPage = lazy(() => import('@/features/commerce/pages/CommerceCouriersPage'));
 const CommerceControlsPage = lazy(() => import('@/features/commerce/pages/CommerceControlsPage'));
+const StoresOverviewPage = lazy(() => import('@/features/stores/pages/StoresOverviewPage'));
+const StoresListPage = lazy(() => import('@/features/stores/pages/StoresListPage'));
+const StoreDetailPage = lazy(() => import('@/features/stores/pages/StoreDetailPage'));
+const StoreDomainsPage = lazy(() => import('@/features/stores/pages/StoreDomainsPage'));
+const StoreReportsPage = lazy(() => import('@/features/stores/pages/StoreReportsPage'));
+const StoreControlsPage = lazy(() => import('@/features/stores/pages/StoreControlsPage'));
 const MobileOverviewPage = lazy(() => import('@/features/mobile/pages/MobileOverviewPage'));
 const MobileDevicesPage = lazy(() => import('@/features/mobile/pages/MobileDevicesPage'));
 const MobileDeviceDetailPage = lazy(() => import('@/features/mobile/pages/MobileDeviceDetailPage'));
@@ -162,6 +168,14 @@ export default function App() {
               <Route path="/commerce/orders" element={<CommerceOrdersPage />} />
               <Route path="/commerce/couriers" element={<CommerceCouriersPage />} />
               <Route path="/commerce/controls" element={<CommerceControlsPage />} />
+
+              {/* Nafaa Stores websites: fixed paths are listed before /stores/:id */}
+              <Route path="/stores" element={<StoresOverviewPage />} />
+              <Route path="/stores/list" element={<StoresListPage />} />
+              <Route path="/stores/domains" element={<StoreDomainsPage />} />
+              <Route path="/stores/reports" element={<StoreReportsPage />} />
+              <Route path="/stores/controls" element={<StoreControlsPage />} />
+              <Route path="/stores/:id" element={<StoreDetailPage />} />
 
               <Route path="/mobile" element={<MobileOverviewPage />} />
               <Route path="/mobile/devices" element={<MobileDevicesPage />} />

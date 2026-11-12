@@ -127,6 +127,8 @@ import { StockHandoverService } from './stock-handover.service';
     TrackingMapService, CourierScoreService, AutomationService, CommerceSetupService, StockHandoverService,
     CampaignsService, ReviewsService, OnlineLoyaltyService, AffiliatesService,
     CallCenterService, ConversionService],
-  exports: [OnlineOrdersService, WebsiteCatalogService],
+  exports: [OnlineOrdersService, WebsiteCatalogService,
+    // Used by Nafaa Stores (integrations/stores).
+    PaymentLinksService, OrderToolsService, PortalService, AbandonedCartsService, ConversionService, ShopifyService],
 })
 export class OnlineOrdersModule {}

@@ -246,7 +246,7 @@ export class EntitlementsService {
       this.prisma.metaConnection.findUnique({ where: { tenantId }, select: { status: true } }),
     ]);
     const byType: Record<string, string> = {
-      SHOPIFY: 'shopify', WOOCOMMERCE: 'woocommerce', DARAZ: 'daraz', CUSTOM_WEBSITE: 'website', FOODPANDA: 'foodpanda',
+      SHOPIFY: 'shopify', WOOCOMMERCE: 'woocommerce', DARAZ: 'daraz', CUSTOM_WEBSITE: 'website', NAFAA_STORE: 'website', FOODPANDA: 'foodpanda',
       TCS_COURIER: 'courier', LEOPARDS_COURIER: 'courier', CALLCOURIER: 'courier', MANUAL: 'online_store',
     };
     for (const i of integrations) {
@@ -316,6 +316,7 @@ export const CHANNEL_ADDON: Record<string, { feature: string; addOn: string; lab
   WOOCOMMERCE: { feature: 'integration.woocommerce', addOn: 'woocommerce', label: 'WooCommerce' },
   DARAZ: { feature: 'integration.daraz', addOn: 'daraz', label: 'Daraz' },
   CUSTOM_WEBSITE: { feature: 'integration.website', addOn: 'website', label: 'Apni website' },
+  NAFAA_STORE: { feature: 'integration.website', addOn: 'website', label: 'Nafaa website' },
   FOODPANDA: { feature: 'integration.foodpanda', addOn: 'foodpanda', label: 'Foodpanda' },
   TCS_COURIER: { feature: 'courier', addOn: 'courier', label: 'Courier' },
   LEOPARDS_COURIER: { feature: 'courier', addOn: 'courier', label: 'Courier' },

@@ -112,7 +112,7 @@ export function actionSourceOf(channelType: string, manualSource?: string | null
     if (['WHATSAPP', 'INSTAGRAM', 'FACEBOOK', 'TIKTOK'].includes(s)) return 'chat';
     return 'other';
   }
-  return ['SHOPIFY', 'WOOCOMMERCE', 'CUSTOM_WEBSITE'].includes(channelType) ? 'website' : 'other';
+  return ['SHOPIFY', 'WOOCOMMERCE', 'CUSTOM_WEBSITE', 'NAFAA_STORE'].includes(channelType) ? 'website' : 'other';
 }
 
 const absUrl = (u: string | null | undefined) => (u && /^https?:\/\//i.test(u) ? u.slice(0, 1000) : undefined);

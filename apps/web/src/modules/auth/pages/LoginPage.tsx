@@ -49,6 +49,13 @@ function writeRemember(on: boolean): void {
   try { localStorage.setItem(REMEMBER_KEY, on ? '1' : '0'); } catch { /* storage blocked */ }
 }
 
+/** A same-origin app path from `?next=` (starts with "/", never "//" or "/\\"), else null. */
+function safeNextPath(next: string | null): string | null {
+  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return null;
+  if (/[\u0000-\u001f]/.test(next)) return null;
+  return next;
+}
+
 export default function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -88,7 +95,7 @@ export default function LoginPage() {
         if (data?.user && data?.tenant) {
           setSession({ user: data.user, tenant: data.tenant, accessToken: access, refreshToken: refresh });
           toast.success(tr('Impersonating {{name}}', { name: data.tenant.name }));
-          navigate('/dashboard', { replace: true });
+          navigate(safeNextPath(searchParams.get('next')) ?? '/dashboard', { replace: true });
         }
       } catch {
         toast.error(tr('Impersonation nahi ho saki'));

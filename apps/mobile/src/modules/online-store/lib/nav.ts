@@ -8,7 +8,7 @@
 import type { LucideIcon } from 'lucide-react-native';
 import {
   Activity, BadgePercent, BarChart3, Calculator, FileSpreadsheet, Globe, LayoutDashboard, Megaphone, MessageCircle, PackageCheck, PackagePlus, PackageX,
-  Printer, ScanLine, Send, Share2, ShieldAlert, ShoppingBag, ShoppingCart, TrendingUp, Truck, Users, Wallet, Zap, Award, Star, UsersRound,
+  Printer, ScanLine, Send, Share2, ShieldAlert, ShoppingBag, ShoppingCart, TrendingUp, Truck, Users, Wallet, Zap, Award, Star, UsersRound, MonitorSmartphone,
 } from 'lucide-react-native';
 import { msg } from '@/core/i18n';
 import { PERMISSIONS as P } from '@/core/permissions';
@@ -53,6 +53,7 @@ export const COMMERCE_GROUPS: OnlineGroup[] = [
       { href: '/online/products', label: msg('Products & stock'), icon: PackageCheck, permission: P.ONLINE_PRODUCTS_VIEW },
       { href: '/online/price-calculator', label: msg('Price calculator'), icon: BadgePercent, permission: P.COST_VIEW },
       { href: '/online/channels', label: msg('Channels'), icon: Globe, permission: P.SETTINGS_VIEW },
+      { href: '/online/website', label: msg('Website'), icon: MonitorSmartphone, permission: P.ONLINE_PRODUCTS_VIEW, hint: msg('Apni website: halat aur switches') },
     ],
   },
   {

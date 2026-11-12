@@ -17519,6 +17519,8 @@ enum IntegrationType {
   RAAST
   /// Orders the shop types in itself (WhatsApp, Instagram, phone); one per tenant.
   MANUAL
+  /// A Nafaa Stores website (integrations/stores); one per store.
+  NAFAA_STORE
 }
 
 enum IntegrationCategory {
@@ -26296,4 +26298,385 @@ model InvoiceItem {
   invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Nafaa Stores (website builder). A store is a NAFAA_STORE sales
+// channel; orders go through the normal channel intake.
+// ═══════════════════════════════════════════════════════════════
+
+/// One online store. settings/checkout/shipping/policies are JSON documents
+/// read through the defaults in integrations/stores/store-settings.ts.
+model NafaaStore {
+  id            String    @id @default(uuid())
+  tenantId      String
+  integrationId String    @unique
+  shopId        String?
+  slug          String    @unique
+  name          String
+  /// DRAFT | PASSWORD | LIVE | CLOSED
+  status        String    @default("DRAFT")
+  themeId       String    @default("fashion")
+  passwordHash  String?
+  settings      Json      @default("{}")
+  checkout      Json      @default("{}")
+  shipping      Json      @default("{}")
+  policies      Json      @default("{}")
+  /// Last "Shopify se aayein" run.
+  migration     Json?
+  launchedAt    DateTime?
+  /// Set by the Nafaa admin: the storefront shows a neutral "unavailable" page.
+  suspendedAt   DateTime?
+  suspendReason String?
+  /// Admin keeps the store in password mode; the merchant cannot go live.
+  forcedPassword Boolean  @default(false)
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  themeVersions StoreThemeVersion[]
+  pages         StorePage[]
+  menus         StoreMenu[]
+  collections   StoreCollection[]
+  products      StoreProduct[]
+  redirects     StoreRedirect[]
+  domains       StoreDomain[]
+  customers     StoreCustomer[]
+  carts         StoreCart[]
+  blogPosts     StoreBlogPost[]
+  analytics     StoreAnalyticsDaily[]
+  abuseReports  StoreAbuseReport[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("nafaa_stores")
+}
+
+/// Theme document versions: one DRAFT per store, PUBLISHED is live, older ones ARCHIVED for rollback.
+model StoreThemeVersion {
+  id            String    @id @default(uuid())
+  storeId       String
+  tenantId      String
+  version       Int
+  /// DRAFT | PUBLISHED | ARCHIVED
+  status        String
+  themeId       String
+  doc           Json
+  note          String?
+  publishedAt   DateTime?
+  publishedById String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId, status])
+  @@index([storeId, version])
+  @@map("store_theme_versions")
+}
+
+model StorePage {
+  id             String    @id @default(uuid())
+  storeId        String
+  tenantId       String
+  handle         String
+  title          String
+  /// ABOUT | CONTACT | FAQ | CUSTOM
+  kind           String    @default("CUSTOM")
+  bodyHtml       String    @default("") @db.Text
+  seoTitle       String?
+  seoDescription String?
+  isPublished    Boolean   @default(true)
+  sortOrder      Int       @default(0)
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, handle])
+  @@index([tenantId])
+  @@map("store_pages")
+}
+
+/// Navigation menu (main-menu, footer, …); items is a nested JSON list.
+model StoreMenu {
+  id        String   @id @default(uuid())
+  storeId   String
+  tenantId  String
+  handle    String
+  title     String
+  items     Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, handle])
+  @@map("store_menus")
+}
+
+model StoreCollection {
+  id              String    @id @default(uuid())
+  storeId         String
+  tenantId        String
+  handle          String
+  title           String
+  descriptionHtml String    @default("") @db.Text
+  imageUrl        String?
+  /// MANUAL | AUTOMATIC
+  kind            String    @default("MANUAL")
+  /// { match: 'all' | 'any', conditions: [...] } for AUTOMATIC
+  rules           Json?
+  sort            String    @default("manual")
+  seoTitle        String?
+  seoDescription  String?
+  isPublished     Boolean   @default(true)
+  sortOrder       Int       @default(0)
+  /// Shopify collection id when imported.
+  externalId      String?
+  archivedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  store    NafaaStore               @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products StoreCollectionProduct[]
+
+  @@unique([storeId, handle])
+  @@index([tenantId])
+  @@map("store_collections")
+}
+
+model StoreCollectionProduct {
+  collectionId String
+  productId    String
+  position     Int    @default(0)
+
+  collection StoreCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, productId])
+  @@index([productId])
+  @@map("store_collection_products")
+}
+
+/// Website-only fields of a Nafaa product on one store. POS fields stay on Product.
+model StoreProduct {
+  id                String   @id @default(uuid())
+  storeId           String
+  tenantId          String
+  productId         String
+  handle            String
+  /// null = follow the store's catalog mode
+  visible           Boolean?
+  seoTitle          String?
+  seoDescription    String?
+  webDescription    String?  @db.Text
+  imageOrder        String[] @default([])
+  badges            String[] @default([])
+  relatedProductIds String[] @default([])
+  compareAtPrice    Float?
+  tabs              Json?
+  sizeChart         Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, productId])
+  @@unique([storeId, handle])
+  @@index([storeId, visible])
+  @@map("store_products")
+}
+
+model StoreRedirect {
+  id        String   @id @default(uuid())
+  storeId   String
+  tenantId  String
+  fromPath  String
+  toPath    String
+  /// MANUAL | SHOPIFY | HANDLE
+  source    String   @default("MANUAL")
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, fromPath])
+  @@map("store_redirects")
+}
+
+model StoreDomain {
+  id            String    @id @default(uuid())
+  storeId       String
+  tenantId      String
+  hostname      String    @unique
+  isPrimary     Boolean   @default(false)
+  /// PENDING | VERIFYING | ACTIVE | ERROR
+  status        String    @default("PENDING")
+  /// Host this one sends visitors to (apex → www); null = serves the store.
+  redirectTo    String?
+  /// DNS records and Vercel verification challenges, as shown to the merchant.
+  records       Json      @default("[]")
+  error         String?
+  lastCheckedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId])
+  @@index([status])
+  @@map("store_domains")
+}
+
+/// A shopper of one store, linked to the shop's Customer by phone when known.
+model StoreCustomer {
+  id               String    @id @default(uuid())
+  storeId          String
+  tenantId         String
+  customerId       String?
+  name             String?
+  phone            String?
+  email            String?
+  addresses        Json      @default("[]")
+  acceptsMarketing Boolean   @default(false)
+  /// SIGNUP | CHECKOUT | NEWSLETTER | SHOPIFY
+  source           String    @default("CHECKOUT")
+  externalId       String?
+  lastLoginAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, phone])
+  @@unique([storeId, email])
+  @@index([tenantId])
+  @@map("store_customers")
+}
+
+/// One-time login codes (hashed), short lived.
+model StoreOtp {
+  id         String    @id @default(uuid())
+  storeId    String
+  target     String
+  channel    String
+  codeHash   String
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([storeId, target, createdAt])
+  @@index([expiresAt])
+  @@map("store_otps")
+}
+
+/// Server-side cart; an idle cart with a phone or email becomes an abandoned checkout.
+model StoreCart {
+  id              String    @id @default(uuid())
+  storeId         String
+  tenantId        String
+  token           String    @unique
+  lines           Json      @default("[]")
+  contact         Json?
+  address         Json?
+  notes           String?
+  couponCode      String?
+  shippingRateId  String?
+  paymentMethod   String?
+  attribution     Json?
+  /// OPEN | CONVERTED
+  status          String    @default("OPEN")
+  channelOrderId  String?
+  abandonedSentAt DateTime?
+  lastActivityAt  DateTime  @default(now())
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([storeId, status, lastActivityAt])
+  @@map("store_carts")
+}
+
+model StoreBlogPost {
+  id             String    @id @default(uuid())
+  storeId        String
+  tenantId       String
+  blog           String    @default("news")
+  handle         String
+  title          String
+  bodyHtml       String    @default("") @db.Text
+  excerpt        String?
+  imageUrl       String?
+  tags           String[]  @default([])
+  author         String?
+  seoTitle       String?
+  seoDescription String?
+  isPublished    Boolean   @default(true)
+  publishedAt    DateTime?
+  externalId     String?
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, blog, handle])
+  @@index([storeId, publishedAt])
+  @@map("store_blog_posts")
+}
+
+/// Visitor counts per store per day (PKT). Small JSON maps hold sources, devices, products and searches.
+model StoreAnalyticsDaily {
+  id           String   @id @default(uuid())
+  storeId      String
+  tenantId     String
+  day          DateTime @db.Date
+  visitors     Int      @default(0)
+  sessions     Int      @default(0)
+  pageViews    Int      @default(0)
+  productViews Int      @default(0)
+  addToCart    Int      @default(0)
+  checkouts    Int      @default(0)
+  purchases    Int      @default(0)
+  revenue      Float    @default(0)
+  sources      Json     @default("{}")
+  devices      Json     @default("{}")
+  products     Json     @default("{}")
+  searches     Json     @default("{}")
+  updatedAt    DateTime @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, day])
+  @@map("store_analytics_daily")
+}
+
+/// "Report this store" from a storefront; reviewed in the admin panel.
+model StoreAbuseReport {
+  id           String    @id @default(uuid())
+  storeId      String
+  tenantId     String
+  /// SCAM | FAKE_PRODUCTS | NOT_DELIVERED | OFFENSIVE | COPYRIGHT | OTHER
+  reason       String
+  details      String?
+  reporterName String?
+  contact      String?
+  pageUrl      String?
+  ipHash       String?
+  /// OPEN | REVIEWING | ACTIONED | DISMISSED
+  status       String    @default("OPEN")
+  adminNote    String?
+  resolvedById String?
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  store NafaaStore @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([storeId])
+  @@map("store_abuse_reports")
 }

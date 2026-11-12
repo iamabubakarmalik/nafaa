@@ -147,6 +147,7 @@ import { WhatsappModule } from './integrations/whatsapp/whatsapp.module';
 import { IntegrationCoreModule } from './integrations/core/integration.module';
 import { CustomWebsiteModule } from './integrations/channels/custom-website/custom-website.module';
 import { OnlineOrdersModule } from './integrations/online-orders/online-orders.module';
+import { StoresModule } from './integrations/stores/stores.module';
 import { AccountingModule } from './integrations/accounting/accounting.module';
 import { PublicApiModule } from './integrations/public-api/public-api.module';
 import { PayQrModule } from './integrations/pay-qr/pay-qr.controller';
@@ -298,6 +299,7 @@ import { SyncModule } from './modules/sync/sync.module';
     // ─── Integration Framework ───
     IntegrationCoreModule,
     OnlineOrdersModule,
+    StoresModule,
     AccountingModule,
     PublicApiModule,
     PayQrModule,

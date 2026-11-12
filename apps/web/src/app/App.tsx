@@ -32,6 +32,12 @@ import {
   CodReconcilePage, OrderCostsPage, CourierRulesPage, PackPage, ReturnScanPage, AddOrderPage, EditOrderPage,
 } from '@integrations/online-orders';
 import { AbandonedCartsPage, PaymentHealthPage, ProfitPage, WaTemplatesPage } from '@integrations/online-orders';
+import {
+  WebsiteHomePage, SetupWizardPage, ThemeEditorPage, PagesPage as WebsitePagesPage, ContentEditPage as WebsiteContentEditPage, NavigationPage as WebsiteNavigationPage,
+  CollectionsPage as WebsiteCollectionsPage, CollectionEditPage as WebsiteCollectionEditPage, WebsiteProductsPage, DomainsPage as WebsiteDomainsPage,
+  CheckoutPage as WebsiteCheckoutPage, ShippingPage as WebsiteShippingPage, PoliciesPage as WebsitePoliciesPage, PreferencesPage as WebsitePreferencesPage,
+  WebsiteAnalyticsPage, ShopifyMovePage,
+} from '@integrations/stores';
 import { CallCenterPage, ConversionPage } from '@integrations/online-orders';
 import { InternationalPage, ProductRadarPage } from '@integrations/online-orders';
 import { AffiliatesPage, CampaignQueuePage, CampaignsPage, OnlineLoyaltyPage, PublicRatePage, ReviewsPage } from '@integrations/online-orders';
@@ -505,6 +511,24 @@ export default function App() {
                   <Route path="/online-orders/radar" element={secure(PERMISSIONS.SALES_VIEW, <ProductRadarPage />)} />
                   <Route path="/online-orders/international" element={secure(PERMISSIONS.SALES_VIEW, <InternationalPage />)} />
                   <Route path="/online-store/whatsapp-templates" element={secure(PERMISSIONS.SALES_VIEW, <WaTemplatesPage />)} />
+                  {/* Nafaa Stores: the shop's own website (integrations/stores) */}
+                  <Route path="/online-store/site" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteHomePage />)} />
+                  <Route path="/online-store/site/setup" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <SetupWizardPage />)} />
+                  <Route path="/online-store/site/theme" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <ThemeEditorPage />)} />
+                  <Route path="/online-store/site/pages" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsitePagesPage />)} />
+                  <Route path="/online-store/site/pages/:itemId" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteContentEditPage kind="page" />)} />
+                  <Route path="/online-store/site/blog/:itemId" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteContentEditPage kind="post" />)} />
+                  <Route path="/online-store/site/navigation" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteNavigationPage />)} />
+                  <Route path="/online-store/site/collections" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteCollectionsPage />)} />
+                  <Route path="/online-store/site/collections/:cid" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteCollectionEditPage />)} />
+                  <Route path="/online-store/site/products" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteProductsPage />)} />
+                  <Route path="/online-store/site/domains" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteDomainsPage />)} />
+                  <Route path="/online-store/site/checkout" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteCheckoutPage />)} />
+                  <Route path="/online-store/site/shipping" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteShippingPage />)} />
+                  <Route path="/online-store/site/policies" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsitePoliciesPage />)} />
+                  <Route path="/online-store/site/preferences" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsitePreferencesPage />)} />
+                  <Route path="/online-store/site/analytics" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteAnalyticsPage />)} />
+                  <Route path="/online-store/site/shopify" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <ShopifyMovePage />)} />
                   <Route path="/online-store/whatsapp-business" element={secure(PERMISSIONS.ONLINE_ORDERS_VIEW, <WhatsAppBusinessPage />)} />
                   <Route path="/online-store/foodpanda" element={secure(PERMISSIONS.SETTINGS_VIEW, <FoodpandaPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />

@@ -16,6 +16,7 @@ import {
   KeyRound, MapPinCheck, Radio, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
   Timer, ToggleRight, Wrench, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
+import { Flag, Link2 } from 'lucide-react';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
 
 type IconType = ComponentType<{ className?: string; style?: CSSProperties }>;
@@ -214,7 +215,7 @@ export const WORKSPACES: AdminWorkspace[] = [
     icon: Store,
     tone: 'bg-cyan-600 text-white',
     root: '/commerce',
-    prefixes: ['/commerce'],
+    prefixes: ['/commerce', '/stores'],
     groups: [
       {
         id: 'commerce',
@@ -227,6 +228,18 @@ export const WORKSPACES: AdminWorkspace[] = [
           { to: '/commerce/jobs', label: 'Catalog jobs', icon: ListChecks, keywords: 'sync import queue' },
           { to: '/commerce/couriers', label: 'Couriers', icon: Truck, keywords: 'tcs leopards postex trax' },
           { to: '/commerce/controls', label: 'Controls', icon: Power, keywords: 'kill switch pause sync' },
+        ],
+      },
+      {
+        id: 'stores',
+        label: 'Websites',
+        icon: Globe,
+        items: [
+          { to: '/stores', label: 'Websites overview', icon: Globe, exact: true, keywords: 'nafaa stores website builder storefront gmv visitors' },
+          { to: '/stores/list', label: 'Stores', icon: Store, keywords: 'nafaa stores websites suspend password impersonate' },
+          { to: '/stores/domains', label: 'Domains', icon: Link2, keywords: 'custom domain dns ssl verify hosting' },
+          { to: '/stores/reports', label: 'Abuse reports', icon: Flag, keywords: 'report scam fake moderation queue' },
+          { to: '/stores/controls', label: 'Website controls', icon: SlidersHorizontal, keywords: 'checkout kill switch banner maintenance themes payments blocked policy' },
         ],
       },
     ],
@@ -432,7 +445,7 @@ const AREA_BY_PREFIX: Array<[string, string]> = [
   ['/products', 'merchant_data'], ['/sales', 'merchant_data'], ['/customers', 'merchant_data'], ['/bulk-actions', 'bulk'],
   ['/billing/settings', 'plans'], ['/billing', 'billing'], ['/invoices', 'billing'], ['/revenue', 'billing'], ['/setups', 'tenants'], ['/addons', 'plans'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
   ['/platform-discounts', 'promos'], ['/referrals', 'promos'],
-  ['/commerce', 'online_store'], ['/marketing', 'marketing'],
+  ['/commerce', 'online_store'], ['/stores', 'stores'], ['/marketing', 'marketing'],
   ['/broadcast', 'communications'], ['/bulk-communications', 'communications'], ['/email-templates', 'communications'],
   ['/email-logs', 'communications'], ['/sms-templates', 'communications'], ['/sms-logs', 'communications'],
   ['/mobile', 'mobile'], ['/health', 'system'], ['/system', 'system'], ['/activity', 'system'], ['/ai-usage', 'system'], ['/exports', 'exports'],

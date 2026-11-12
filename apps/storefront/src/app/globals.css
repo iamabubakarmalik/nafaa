@@ -1,0 +1,265 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Storefront base styles. Every value reads the theme variables written on
+ * <body> by the shop layout (lib/theme/tokens.ts), so the same markup takes
+ * each theme's colours, fonts, corners and spacing.
+ * data-btn (solid | outline | pill), data-card (plain | bordered | shadow)
+ * and data-case (normal | upper) on <body> switch the variants below.
+ */
+
+@layer base {
+  :root {
+    --c-bg: 255 255 255;
+    --c-surface: 245 245 244;
+    --c-fg: 28 25 23;
+    --c-muted: 120 113 108;
+    --c-line: 231 229 228;
+    --c-primary: 28 25 23;
+    --c-primary-fg: 255 255 255;
+    --c-accent: 180 83 9;
+    --c-accent-fg: 255 255 255;
+    --c-secondary: 28 25 23;
+    --c-secondary-fg: 255 255 255;
+    --c-sale: 185 28 28;
+    --c-ok: 22 128 60;
+    --c-warn: 184 110 0;
+    --r-card: 12px;
+    --r-btn: 10px;
+    --r-input: 10px;
+    --r-badge: 6px;
+    --sy: 60px;
+    --section-y: var(--sy);
+    --page-width: 1280px;
+    --img-ratio: 1/1;
+    --font-heading: system-ui;
+    --font-body: system-ui;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-bg text-fg font-body;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  html[dir='rtl'] body {
+    font-family: var(--font-urdu), var(--font-body), serif;
+    line-height: 2;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-heading;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  html[dir='rtl'] h1, html[dir='rtl'] h2, html[dir='rtl'] h3, html[dir='rtl'] h4 {
+    font-family: var(--font-urdu), serif;
+    line-height: 1.8;
+    letter-spacing: 0;
+  }
+
+  [data-case='upper'] .h-display {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-primary));
+    outline-offset: 2px;
+  }
+
+  input, select, textarea {
+    font: inherit;
+  }
+
+  ::selection {
+    background: rgb(var(--c-primary) / 0.15);
+  }
+}
+
+@layer components {
+  /* Section colour schemes (setting colorScheme) and spacing (setting padding). */
+  .scheme-inverse, .scheme-accent {
+    background-color: rgb(var(--c-bg));
+    color: rgb(var(--c-fg));
+  }
+  .scheme-inverse {
+    --c-bg: var(--c-inv-bg); --c-fg: var(--c-inv-fg); --c-muted: var(--c-inv-muted); --c-line: var(--c-inv-line);
+    --c-surface: var(--c-inv-surface); --c-primary: var(--c-inv-primary); --c-primary-fg: var(--c-inv-primary-fg);
+  }
+  .scheme-accent {
+    --c-bg: var(--c-acc-bg); --c-fg: var(--c-acc-fg); --c-muted: var(--c-acc-muted); --c-line: var(--c-acc-line);
+    --c-surface: var(--c-acc-surface); --c-primary: var(--c-acc-primary); --c-primary-fg: var(--c-acc-primary-fg);
+  }
+  .scheme-muted {
+    --c-bg: var(--c-surface-base); --c-surface: var(--c-bg-base);
+    background-color: rgb(var(--c-bg));
+  }
+  .pad-small { --section-y: calc(var(--sy) * 0.5); }
+  .pad-large { --section-y: calc(var(--sy) * 1.5); }
+  .pad-none { --section-y: 0px; }
+
+  .page {
+    width: 100%;
+    max-width: var(--page-width);
+    margin-inline: auto;
+    padding-inline: 16px;
+  }
+  @media (min-width: 768px) {
+    .page { padding-inline: 28px; }
+  }
+  @media (min-width: 1280px) {
+    .page { padding-inline: 40px; }
+  }
+
+  .section-y {
+    padding-block: calc(var(--section-y) * 0.7);
+  }
+  @media (min-width: 768px) {
+    .section-y { padding-block: var(--section-y); }
+  }
+
+  .h-section {
+    @apply font-heading text-2xl md:text-[2rem];
+    font-weight: 600;
+  }
+  [data-case='upper'] .h-section {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    font-size: 1.25rem;
+  }
+  @media (min-width: 768px) {
+    [data-case='upper'] .h-section { font-size: 1.5rem; }
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-semibold transition-all duration-150 select-none;
+    border-radius: var(--r-btn);
+    min-height: 48px;
+    padding: 0 22px;
+    font-size: 15px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .btn:disabled { @apply opacity-50 cursor-not-allowed; }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn-sm { min-height: 38px; padding: 0 14px; font-size: 14px; }
+  .btn-lg { min-height: 54px; padding: 0 28px; font-size: 16px; }
+  .btn-block { @apply w-full; }
+  [data-case='upper'] .btn { text-transform: uppercase; letter-spacing: 0.1em; font-size: 13px; font-weight: 500; }
+
+  .btn-primary { @apply bg-primary text-primary-fg; }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.08); box-shadow: 0 6px 18px -6px rgb(var(--c-primary) / 0.55); }
+  [data-btn='outline'] .btn-primary { @apply bg-transparent text-primary; box-shadow: inset 0 0 0 1.5px rgb(var(--c-primary)); }
+  [data-btn='outline'] .btn-primary:hover:not(:disabled) { @apply bg-primary text-primary-fg; }
+
+  .btn-outline { @apply bg-transparent text-fg; box-shadow: inset 0 0 0 1.5px rgb(var(--c-fg) / 0.85); }
+  .btn-outline:hover:not(:disabled) { @apply bg-fg text-bg; }
+
+  .btn-ghost { @apply bg-transparent text-fg; }
+  .btn-ghost:hover:not(:disabled) { @apply bg-fg/5; }
+
+  .btn-light { @apply bg-white text-neutral-900; }
+  .btn-light:hover:not(:disabled) { @apply bg-white/90; }
+  .btn-on-dark { @apply bg-transparent text-white; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.85); }
+  .btn-on-dark:hover:not(:disabled) { @apply bg-white text-neutral-900; }
+
+  .btn-wa { background: #25d366; color: #06281a; }
+  .btn-wa:hover:not(:disabled) { background: #1fbe5b; }
+
+  .icon-btn {
+    @apply inline-flex items-center justify-center rounded-full transition-colors;
+    width: 42px;
+    height: 42px;
+  }
+  .icon-btn:hover { background: rgb(var(--c-fg) / 0.08); }
+
+  /* Form fields */
+  .field {
+    @apply block w-full bg-bg text-fg placeholder:text-muted/70 transition-shadow;
+    border-radius: var(--r-input);
+    border: 1px solid rgb(var(--c-line));
+    min-height: 50px;
+    padding: 12px 14px;
+    font-size: 16px;
+  }
+  .field:focus { outline: none; border-color: rgb(var(--c-primary)); box-shadow: 0 0 0 3px rgb(var(--c-primary) / 0.15); }
+  .field[aria-invalid='true'] { border-color: rgb(var(--c-sale)); }
+  .label { @apply mb-1.5 block text-[13px] font-medium text-fg/80; }
+
+  /* Cards */
+  .card { border-radius: var(--r-card); }
+  [data-card='bordered'] .card-frame { background: rgb(var(--c-bg)); box-shadow: inset 0 0 0 1px rgb(var(--c-line)); }
+  [data-card='shadow'] .card-frame { background: rgb(var(--c-bg)); box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px -10px rgb(0 0 0 / 0.14); }
+  [data-card='plain'] .card-frame { background: transparent; }
+  [data-card='plain'] .card-pad { padding-inline: 0; }
+
+  .img-frame {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: var(--img-ratio);
+    background: rgb(var(--c-surface));
+    border-radius: var(--r-card);
+  }
+  [data-card='bordered'] .card-frame .img-frame,
+  [data-card='shadow'] .card-frame .img-frame { border-end-start-radius: 0; border-end-end-radius: 0; }
+
+  .badge {
+    @apply inline-flex items-center gap-1 font-semibold;
+    border-radius: var(--r-badge);
+    padding: 3px 8px;
+    font-size: 11px;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+  }
+  [data-case='upper'] .badge { text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; }
+
+  /* Rich text from the merchant (sanitised by the API). */
+  .rte { @apply text-fg/85; line-height: 1.75; }
+  .rte > * + * { margin-top: 0.9em; }
+  .rte h2 { @apply text-xl font-semibold text-fg; margin-top: 1.6em; }
+  .rte h3 { @apply text-lg font-semibold text-fg; margin-top: 1.4em; }
+  .rte h4 { @apply font-semibold text-fg; margin-top: 1.2em; }
+  .rte a { @apply text-primary underline underline-offset-2; }
+  .rte ul { list-style: disc; padding-inline-start: 1.3em; }
+  .rte ol { list-style: decimal; padding-inline-start: 1.3em; }
+  .rte li + li { margin-top: 0.35em; }
+  .rte blockquote { @apply border-s-4 border-line ps-4 italic text-muted; }
+  .rte img { border-radius: var(--r-card); }
+  .rte table { @apply w-full text-sm; border-collapse: collapse; }
+  .rte th, .rte td { @apply border border-line px-3 py-2 text-start; }
+  .rte th { @apply bg-surface font-semibold text-fg; }
+  .rte iframe { width: 100%; aspect-ratio: 16/9; border-radius: var(--r-card); }
+
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  .snap-row {
+    @apply flex snap-x snap-mandatory overflow-x-auto no-scrollbar;
+    scroll-padding-inline: 16px;
+    overscroll-behavior-x: contain;
+  }
+
+  .skeleton { @apply animate-pulse bg-fg/10; }
+}
+
+/* Lift the WhatsApp button above sticky bottom bars (product add bar, checkout button) on phones. */
+@media (max-width: 1023px) {
+  .nf-bar .wa-float { bottom: 88px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

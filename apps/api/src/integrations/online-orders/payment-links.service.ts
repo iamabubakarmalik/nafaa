@@ -143,6 +143,34 @@ export class PaymentLinksService {
     return { ...link, url: `${this.web()}/pay/${this.token(order.id, ref)}` };
   }
 
+  /** Gateways a shop has connected and switched on (Nafaa Stores checkout). */
+  async activeGateways(tenantId: string): Promise<Array<{ code: string; name: string; methods: string[] }>> {
+    const out = [];
+    for (const [code, g] of Object.entries(PAY_GATEWAYS)) {
+      const a = await this.readAccount(tenantId, code);
+      if (a?.active) out.push({ code, name: g.name, methods: g.methods });
+    }
+    return out;
+  }
+
+  /**
+   * Link for an order placed on a Nafaa Store checkout (no staff user): the
+   * full amount or an advance. Same link, page and verification as createLink.
+   */
+  async createForCheckout(tenantId: string, orderId: string, provider: string, amount: number, kind: 'FULL' | 'ADVANCE') {
+    const order = await this.prisma.channelOrder.findFirst({ where: { id: orderId, tenantId } });
+    if (!order) throw new NotFoundException('Order nahi mila');
+    const code = String(provider).toUpperCase();
+    this.gatewayOrThrow(code);
+    const a = await this.readAccount(tenantId, code);
+    if (!a?.active) throw new BadRequestException('Payment method is not available');
+    const ref = `NP${Date.now().toString(36).toUpperCase()}${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
+    const meta = (order.metadata ?? {}) as any;
+    const link: PaymentLink = { ref, provider: code, amount: Math.max(1, Math.round(amount)), kind, status: 'PENDING', createdAt: new Date().toISOString(), by: null };
+    await this.prisma.channelOrder.update({ where: { id: order.id }, data: { metadata: { ...meta, payments: [...(meta.payments ?? []), link].slice(-20) } } });
+    return { ...link, url: `${this.web()}/pay/${this.token(order.id, ref)}` };
+  }
+
   /** Customer ka pay safha — sirf zaroori maloomat */
   async publicInfo(token: string) {
     const { order, link } = await this.byToken(token);

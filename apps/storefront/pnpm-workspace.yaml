@@ -1,0 +1,9 @@
+# Standalone pnpm project, same as apps/site. This file makes apps/storefront
+# its own pnpm root, so a Vercel install here uses apps/storefront/pnpm-lock.yaml
+# and never pulls in the monorepo's expo/electron dependencies. The root
+# workspace still lists it (apps/*), so the root lockfile carries it too.
+packages: []
+
+allowBuilds:
+  sharp: true
+  unrs-resolver: true

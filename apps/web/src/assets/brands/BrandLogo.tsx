@@ -17,7 +17,7 @@
  */
 
 import type { CSSProperties } from 'react';
-import { Bike, Globe, Plug, type LucideIcon } from 'lucide-react';
+import { Bike, Globe, Plug, Store, type LucideIcon } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import shopify from './shopify.svg';
 import woocommerce from './woocommerce.svg';
@@ -54,7 +54,7 @@ import run from './run.png';
 import xtreme from './xtreme.png';
 
 export type BrandName =
-  | 'shopify' | 'woocommerce' | 'wordpress' | 'daraz' | 'foodpanda' | 'indolj' | 'website'
+  | 'shopify' | 'woocommerce' | 'wordpress' | 'daraz' | 'foodpanda' | 'indolj' | 'website' | 'nafaa_store'
   | 'tcs' | 'leopards' | 'postex' | 'trax' | 'mnp' | 'callcourier' | 'blueex' | 'daewoo' | 'tpl' | 'rider'
   | 'swyft' | 'tranzo' | 'barqraftar' | 'zoom' | 'instaworld' | 'shipnoc' | 'bykea' | 'movex' | 'forrun'
   | 'pakpost' | 'xtreme' | 'run'
@@ -88,6 +88,7 @@ export const BRANDS: Record<BrandName, Brand> = {
   foodpanda: { label: 'foodpanda', color: '#D70F64', src: foodpanda },
   indolj: { label: 'Indolj', color: '#B80000', src: indolj, pad: 0.1 },
   website: { label: 'Website', color: '#0EA5E9', icon: Globe },
+  nafaa_store: { label: 'Nafaa Store', color: '#DB2777', icon: Store },
   tcs: { label: 'TCS', color: '#D40511', src: tcs, pad: 0.08 },
   leopards: { label: 'Leopards', color: '#FFD000', src: leopards, pad: 0.08 },
   postex: { label: 'PostEx', color: '#92CF4E', src: postex, bg: '#111827', pad: 0.1 },
@@ -132,6 +133,7 @@ export function brandForChannel(type?: string | null, opts: { platform?: string 
     case 'WOOCOMMERCE': return 'woocommerce';
     case 'DARAZ': return 'daraz';
     case 'FOODPANDA': return 'foodpanda';
+    case 'NAFAA_STORE': return 'nafaa_store';
     case 'CUSTOM_WEBSITE':
     case undefined:
     case null:

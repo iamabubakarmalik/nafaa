@@ -7,7 +7,7 @@
 
 import { Image, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { Bike, Globe, Plug } from 'lucide-react-native';
+import { Bike, Globe, Plug, Store } from 'lucide-react-native';
 import { useTheme } from '../theme/ThemeProvider';
 import { Icon } from '../components/Icon';
 import { Text } from '../components/Text';
@@ -36,7 +36,7 @@ const PNG: Record<string, number> = {
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 export type BrandName =
-  | 'shopify' | 'woocommerce' | 'wordpress' | 'daraz' | 'foodpanda' | 'indolj' | 'website'
+  | 'shopify' | 'woocommerce' | 'wordpress' | 'daraz' | 'foodpanda' | 'indolj' | 'website' | 'nafaa_store'
   | 'tcs' | 'leopards' | 'postex' | 'trax' | 'mnp' | 'callcourier' | 'blueex' | 'daewoo' | 'tpl' | 'rider'
   | 'swyft' | 'tranzo' | 'barqraftar' | 'zoom' | 'instaworld' | 'shipnoc' | 'bykea' | 'movex' | 'forrun'
   | 'pakpost' | 'xtreme' | 'run'
@@ -51,6 +51,7 @@ const BRANDS: Record<BrandName, { label: string; color: string; bg?: string; pad
   foodpanda: { label: 'foodpanda', color: '#D70F64' },
   indolj: { label: 'Indolj', color: '#B80000', pad: 0.1 },
   website: { label: 'Website', color: '#0EA5E9' },
+  nafaa_store: { label: 'Nafaa Store', color: '#DB2777' },
   tcs: { label: 'TCS', color: '#D40511', pad: 0.08 },
   leopards: { label: 'Leopards', color: '#FFD000', pad: 0.08 },
   postex: { label: 'PostEx', color: '#92CF4E', bg: '#111827', pad: 0.1 },
@@ -98,6 +99,7 @@ export function brandForChannel(type?: string | null, opts: { platform?: string 
     case 'WOOCOMMERCE': return 'woocommerce';
     case 'DARAZ': return 'daraz';
     case 'FOODPANDA': return 'foodpanda';
+    case 'NAFAA_STORE': return 'nafaa_store';
     case 'CUSTOM_WEBSITE': case undefined: case null:
       if (opts.platform === 'shopify') return 'shopify';
       if (opts.platform === 'woocommerce') return 'woocommerce';
@@ -131,7 +133,7 @@ export function BrandLogo({ name, size = 32 }: { name: BrandName; size?: number 
       </View>
     );
   }
-  const icon = name === 'website' ? Globe : name === 'rider' ? Bike : name === 'other' ? Plug : null;
+  const icon = name === 'website' ? Globe : name === 'nafaa_store' ? Store : name === 'rider' ? Bike : name === 'other' ? Plug : null;
   return (
     <View accessibilityLabel={b.label} style={{
       width: size, height: size, borderRadius: radius, alignItems: 'center', justifyContent: 'center',
