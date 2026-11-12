@@ -2,14 +2,16 @@
  * Domains monitor: every custom domain on Nafaa Stores websites with its
  * hosting status, DNS records and last check. Retry re-adds a domain on
  * hosting when it is missing and checks it again; "Remove from hosting"
- * detaches a stuck domain while the store and its data stay.
+ * detaches a stuck domain while the store and its data stay; only Retry
+ * puts such a domain back. "Attach store addresses" adds every store's free
+ * address to hosting once (stores made before hosting was connected).
  */
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CheckCircle2, Globe, Lightbulb, RefreshCw, Search, Server, Tag, Unplug, XCircle } from 'lucide-react';
+import { CheckCircle2, Globe, Lightbulb, Link2, RefreshCw, Search, Server, Tag, Unplug, XCircle } from 'lucide-react';
 import {
   Alert, Button, Drawer, FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, confirmDialog, heroButton,
 } from '@/design-system/components';
@@ -58,6 +60,23 @@ export default function StoreDomainsPage() {
     onSuccess: () => { toast.success('Removed from hosting. The store and its data stay.'); done(); },
     onError: (e) => toast.error(apiError(e)),
   });
+  const attachAll = useMutation({
+    mutationFn: () => adminStoresApi.attachAllSubdomains(),
+    onSuccess: (r) => {
+      if (!r.ready) return void toast.error('Hosting is not connected on the server');
+      const msg = `${num(r.total)} stores: ${num(r.alreadyLive + r.live)} live, ${num(r.waiting)} waiting for DNS, ${num(r.failed)} failed`;
+      if (r.failed) toast.warning(`${msg}. Failed ones are retried on their own.`);
+      else toast.success(msg);
+    },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const askAttachAll = async () => {
+    if (await confirmDialog({
+      title: 'Attach all store addresses?',
+      text: 'Adds every store\'s free address (shop.stores domain) to hosting. Safe to run again: addresses already on hosting are skipped. Needed once for stores made before hosting was connected.',
+      yes: 'Attach all',
+    })) attachAll.mutate();
+  };
   const askDetach = async (r: DomainMonitorRow) => {
     if (await confirmDialog({
       title: `Remove ${r.hostname} from hosting?`,
@@ -73,9 +92,18 @@ export default function StoreDomainsPage() {
       <PageHero
         title="Domains"
         chip={data ? `${num(data.total)} shown` : undefined}
-        busy={isFetching || retry.isPending || detach.isPending}
+        busy={isFetching || retry.isPending || detach.isPending || attachAll.isPending}
         loading={overview.isLoading}
-        actions={<button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>}
+        actions={
+          <>
+            {canManage && data?.ready && (
+              <button type="button" className={heroButton} onClick={askAttachAll} disabled={attachAll.isPending}>
+                <Link2 className="h-4 w-4" /> {attachAll.isPending ? 'Attaching…' : 'Attach store addresses'}
+              </button>
+            )}
+            <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          </>
+        }
         stats={d ? [
           { label: 'Active', value: num(d.active) },
           { label: 'Pending', value: num(d.pending), hint: 'Waiting for DNS or SSL' },
@@ -195,7 +223,7 @@ export default function StoreDomainsPage() {
           steps={[
             { icon: Tag, color: '#4f46e5', title: 'Filter by status', text: 'Pending domains wait for DNS. Errors need a look: wrong records, or the domain is used elsewhere.' },
             { icon: Search, color: '#0284c7', title: 'Open a domain', text: 'Click a row to see the DNS records the shop must set and which ones were found.' },
-            { icon: RefreshCw, color: '#059669', title: 'Retry or remove', text: 'Retry re-adds the domain on hosting and checks it. Remove detaches a stuck domain; store data stays.' },
+            { icon: RefreshCw, color: '#059669', title: 'Retry or remove', text: 'Retry re-adds the domain on hosting and checks it. Remove detaches a stuck domain; store data stays, and the shop cannot put it back. Only Retry here does.' },
           ]}
           tips={['The free store address always works, even when a custom domain fails.', 'Pending checks run on their own; Retry only speeds one up.']}
           shortcuts={[['/', 'Search'], ['G', 'This guide']]}

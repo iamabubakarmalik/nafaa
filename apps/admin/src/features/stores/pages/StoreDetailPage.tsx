@@ -191,7 +191,9 @@ export default function StoreDetailPage() {
             )}
           </Card>
 
-          <Card flush title="Theme publish history" description="Every saved and published version of the website design">
+          <Card flush title="Theme publish history" description={s?.lastThemeImport
+            ? `Last theme import: ${s.lastThemeImport.source === 'shopify' ? 'Shopify' : 'Nafaa file'} "${s.lastThemeImport.themeName}"${s.lastThemeImport.themeVersion ? ` ${s.lastThemeImport.themeVersion}` : ''} on ${dateTime(s.lastThemeImport.importedAt)} (${s.lastThemeImport.status}, ${s.lastThemeImport.sections} sections, ${s.lastThemeImport.skipped} skipped)`
+            : 'Every saved and published version of the website design'}>
             {history.isLoading ? <div className="p-4"><Skeleton className="h-24 rounded-xl" /></div>
               : !history.data?.items.length ? <Empty>{history.isError ? 'Could not load the history.' : 'No theme versions yet.'}</Empty> : (
                 <div className="mt-3">

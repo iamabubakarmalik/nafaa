@@ -77,6 +77,8 @@ export interface AdminStoreDetail extends AdminStoreRow {
   recentOrders: Array<{ id: string; orderNumber: string; total: number; status: string; receivedAt: string }>;
   reports: Array<{ id: string; reason: ReportReason; status: ReportStatus; createdAt: string }>;
   impersonate: { tenantId: string; path: string };
+  /** Last theme file import (Shopify theme zip or Nafaa theme file). */
+  lastThemeImport?: { importedAt: string; source: 'shopify' | 'nafaa'; themeName: string; themeVersion: string | null; status: string; skipped: number; sections: number } | null;
 }
 
 export interface ThemeVersionRow { id: string; version: number; status: string; note: string | null; themeId: ThemeId; publishedAt: string | null; publishedBy: string | null; updatedAt: string }
@@ -86,7 +88,12 @@ export interface DnsRecord { type: 'A' | 'CNAME' | 'TXT'; name: string; value: s
 export interface StoreDomain {
   id: string; hostname: string; isPrimary: boolean; kind: 'apex' | 'www' | 'sub'; status: DomainStatus; redirectTo: string | null;
   records: DnsRecord[]; error: string | null; lastCheckedAt: string | null; sslReady: boolean;
+  /** Detached by the Nafaa admin; only Retry puts it back on hosting. */
+  removedByNafaa?: boolean;
 }
+
+/** Result of attaching every store's free `<slug>.<root>` address to hosting. */
+export interface AttachSubdomainsResult { ready: boolean; total: number; alreadyLive: number; live: number; waiting: number; failed: number }
 
 export interface DomainMonitorRow extends StoreDomain {
   createdAt: string;
@@ -134,6 +141,7 @@ export const adminStoresApi = {
   domains: (q: { status?: DomainStatus; search?: string; page?: number }) =>
     get<ListPage<DomainMonitorRow> & { ready: boolean }>('/admin/stores/domains', q as Record<string, unknown>),
   retryDomain: (domainId: string) => post<StoreDomain>(`/admin/stores/domains/${domainId}/retry`),
+  attachAllSubdomains: () => post<AttachSubdomainsResult>('/admin/stores/subdomains/attach-all'),
 
   controls: () => get<StoreControlsView>('/admin/stores/controls'),
   saveControls: (body: Partial<StoreControls>) => put<StoreControls>('/admin/stores/controls', body),

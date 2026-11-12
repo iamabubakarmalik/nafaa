@@ -4,7 +4,9 @@
  * scrolls both ways. A channel cell shows the sync dot, the channel price
  * (own price marked, sale price struck), the stock sent and the Listed
  * switch; price and stock change in place. Not linked = an empty cell with
- * "Link" on hover. ↑ ↓ move between rows, Enter opens the product panel.
+ * "Link" on hover. A Nafaa website column is always linked: it shows the
+ * Nafaa price and stock read-only and a "show on website" switch per product.
+ * ↑ ↓ move between rows, Enter opens the product panel.
  * On phones each product is a card with its channels listed inside.
  */
 
@@ -13,7 +15,7 @@ import { AlertTriangle, ChevronRight, Link2, Package } from 'lucide-react';
 import { Switch } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
-import type { GridCell, GridItem, GridRow, LinkedCell, OnlineChannel } from '../../api/online-products.api';
+import { isStoreCell, isStoreChannel, type GridCell, type GridItem, type GridRow, type LinkedCell, type OnlineChannel, type StoreCell } from '../../api/online-products.api';
 import { timeAgo } from '../../lib/labels';
 import { ChannelMark, channelName, lastPushText, rs } from './meta';
 import { InlineEdit } from './InlineEdit';
@@ -28,6 +30,8 @@ export interface GridHandlers {
   onLink: (c: OnlineChannel, item: GridItem, row: GridRow) => void;
   onListed: (mappingId: string, listed: boolean) => void;
   onSizeLess: (mappingId: string, c: OnlineChannel) => void;
+  /** Nafaa website column: show or hide the product on the website. */
+  onWebsite: (c: OnlineChannel, productId: string, visible: boolean) => void;
 }
 
 const isSized = (item: GridItem) => item.hasVariants && item.rows.some((r) => r.variantId);
@@ -140,6 +144,63 @@ function ListedSwitch({ c, cell, canManage, onListed }: { c: OnlineChannel; cell
   );
 }
 
+/* ─── Nafaa website cells ─── */
+
+export function storeDot(c: OnlineChannel, visible: boolean): { cls: string; label: string } {
+  if (!visible) return { cls: 'bg-slate-300', label: t('Website par chhupa hai') };
+  if (!c.live) return { cls: 'bg-amber-400', label: t('Website abhi live nahi') };
+  return { cls: 'bg-success-500', label: t('Website par dikh raha hai') };
+}
+
+/** Price and stock on the Nafaa website: read-only, straight from Nafaa. */
+function StoreCellBody({ c, cell, showDot = true }: { c: OnlineChannel; cell: StoreCell; showDot?: boolean }) {
+  const dot = storeDot(c, cell.visible);
+  const off = !cell.visible;
+  return (
+    <span className="flex min-w-0 flex-1 items-start gap-2" title={`${dot.label} · ${t('Price aur Stock Nafaa se')}`}>
+      {showDot && <span className="mt-[0.4rem]"><Dot {...dot} /></span>}
+      <span className="min-w-0 flex-1 leading-tight">
+        <span className="flex items-baseline gap-1.5">
+          <span className={cn('text-[0.8125rem] font-semibold tabular-nums', off ? 'text-slate-400' : 'text-slate-900')}>{rs(cell.price)}</span>
+          {cell.compareAtPrice ? <span className="text-[0.6875rem] tabular-nums text-slate-400 line-through">{rs(cell.compareAtPrice).replace('Rs ', '')}</span> : null}
+        </span>
+        <span className="mt-0.5 flex items-center gap-1 text-[0.71875rem] text-slate-500">
+          {off ? <span className="font-semibold text-slate-400">{t('Chhupa')}</span>
+            : <span className={cn('font-semibold', cell.stock <= 0 && !cell.backorderOn ? 'text-rose-600' : 'text-slate-700')}>{t('Stock {{qty}}', { qty: cell.stock })}</span>}
+        </span>
+      </span>
+    </span>
+  );
+}
+
+/** "Show on website" for one product (sizes follow the product). */
+function WebsiteSwitch({ c, productId, visible, canManage, onWebsite }: { c: OnlineChannel; productId: string; visible: boolean; canManage: boolean; onWebsite: GridHandlers['onWebsite'] }) {
+  return (
+    <span onClick={stop} className="shrink-0">
+      <Switch size="sm" checked={visible} disabled={!canManage} onChange={(e) => onWebsite(c, productId, e.target.checked)}
+        aria-label={visible ? t('{{channelName}} se chhupayein', { channelName: channelName(c) }) : t('{{channelName}} par dikhayein', { channelName: channelName(c) })} />
+    </span>
+  );
+}
+
+/** Parent row of a product with sizes on the Nafaa website: shown or hidden, and the total stock. */
+function StoreSizedSummary({ item, c, canManage, onWebsite }: { item: GridItem; c: OnlineChannel; canManage: boolean; onWebsite: GridHandlers['onWebsite'] }) {
+  const cells = item.rows.map((r) => r.cells[c.id]).filter(isStoreCell);
+  if (!cells.length) return <span className="text-[0.75rem] text-slate-300">—</span>;
+  const visible = cells[0].visible;
+  const dot = storeDot(c, visible);
+  const stock = cells.reduce((n, x) => n + Math.max(0, x.stock), 0);
+  return (
+    <span className="flex items-center gap-2 text-[0.75rem]">
+      <Dot {...dot} />
+      <span className={cn('min-w-0 flex-1 truncate', visible ? 'text-slate-700' : 'font-semibold text-slate-400')}>
+        {visible ? t('Stock {{sent}}', { sent: stock }) : t('Chhupa')}
+      </span>
+      <WebsiteSwitch c={c} productId={item.productId} visible={visible} canManage={canManage} onWebsite={onWebsite} />
+    </span>
+  );
+}
+
 function OpenCell({ c, canManage, onLink }: { c: OnlineChannel; canManage: boolean; onLink: () => void }) {
   if (!(canManage && c.canFetch)) return <span className="text-[0.75rem] text-slate-300">—</span>;
   return (
@@ -150,10 +211,20 @@ function OpenCell({ c, canManage, onLink }: { c: OnlineChannel; canManage: boole
   );
 }
 
-function ChannelCell({ c, cell, canManage, onLink, onListed }: {
+function ChannelCell({ c, cell, canManage, onLink, onListed, website }: {
   c: OnlineChannel; cell?: GridCell; canManage: boolean; onLink: () => void; onListed: GridHandlers['onListed'];
+  /** Nafaa website: the product's switch (left out on size rows; the product row holds it). */
+  website?: { productId: string; onWebsite: GridHandlers['onWebsite'] };
 }) {
   if (!cell) return null;
+  if (isStoreCell(cell)) {
+    return (
+      <span className="flex items-start gap-2">
+        <StoreCellBody c={c} cell={cell} />
+        {website && <WebsiteSwitch c={c} productId={website.productId} visible={cell.visible} canManage={canManage} onWebsite={website.onWebsite} />}
+      </span>
+    );
+  }
   if (!cell.linked) return <OpenCell c={c} canManage={canManage} onLink={onLink} />;
   return (
     <span className="flex items-start gap-2">
@@ -253,8 +324,9 @@ const ProductRows = memo(function ProductRows({ item, cols, canManage, picked, o
         </td>
         {cols.map((c) => (
           <td key={c.id} className={cn(td, pickedBg, 'px-3 py-2 align-middle')}>
-            {sized ? <SizedSummary item={item} c={c} canManage={canManage} onSizeLess={h.onSizeLess} />
-              : <ChannelCell c={c} cell={first?.cells[c.id]} canManage={canManage} onLink={() => h.onLink(c, item, first)} onListed={h.onListed} />}
+            {sized ? (isStoreChannel(c) ? <StoreSizedSummary item={item} c={c} canManage={canManage} onWebsite={h.onWebsite} /> : <SizedSummary item={item} c={c} canManage={canManage} onSizeLess={h.onSizeLess} />)
+              : <ChannelCell c={c} cell={first?.cells[c.id]} canManage={canManage} onLink={() => h.onLink(c, item, first)} onListed={h.onListed}
+                website={{ productId: item.productId, onWebsite: h.onWebsite }} />}
           </td>
         ))}
         <td className={cn(td, pickedBg)} />
@@ -356,8 +428,9 @@ const ProductCard = memo(function ProductCard({ item, cols, canManage, picked, h
               <ChannelMark channel={c} size="sm" />
               <span className="w-20 shrink-0 truncate text-[0.75rem] font-medium text-slate-600">{channelName(c)}</span>
               <span className="flex min-w-0 flex-1 items-start justify-end gap-2">
-                {sized ? <SizedSummary item={item} c={c} canManage={canManage} onSizeLess={h.onSizeLess} />
+                {sized ? (isStoreChannel(c) ? <StoreSizedSummary item={item} c={c} canManage={canManage} onWebsite={h.onWebsite} /> : <SizedSummary item={item} c={c} canManage={canManage} onSizeLess={h.onSizeLess} />)
                   : !cell ? null
+                    : isStoreCell(cell) ? <><StoreCellBody c={c} cell={cell} /><WebsiteSwitch c={c} productId={item.productId} visible={cell.visible} canManage={canManage} onWebsite={h.onWebsite} /></>
                     : cell.linked ? <><CellBody c={c} cell={cell} canManage={canManage} compact /><ListedSwitch c={c} cell={cell} canManage={canManage} onListed={h.onListed} /></>
                       : canManage && c.canFetch
                         ? <button type="button" onClick={() => h.onLink(c, item, first)} className="inline-flex items-center gap-1 text-[0.75rem] font-semibold text-brand-700"><Link2 className="h-3.5 w-3.5" />{t('Link')}</button>

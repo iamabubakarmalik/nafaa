@@ -40,12 +40,14 @@ export function ruleText(rule: PriceRule): string {
 export function priceText(c: OnlineChannel): string {
   if (c.mode === 'indolj') return t('Price Indolj panel se badlein');
   if (c.mode === 'website') return t('Nafaa price — website khud leti hai');
+  if (c.mode === 'nafaa_store') return t('Nafaa price — branch ki Price ho to wo');
   return c.pushPrice ? ruleText(c.priceRule) : t('Channel par haath se badlein');
 }
 
 /** Where the channel's stock comes from, in one short line. */
 export function stockText(c: OnlineChannel): string {
   if (c.mode === 'indolj') return t('Stock Indolj par track nahi');
+  if (c.mode === 'nafaa_store') return c.shopName ? t('{{shop}} ka poora Stock', { shop: c.shopName }) : t('Nafaa se, poora');
   const kept = c.stockBuffer ? t(', {{stockBuffer}} rakh kar', { stockBuffer: c.stockBuffer }) : '';
   if (c.mode === 'website') return t('Website Nafaa se leti hai{{kept}}', { kept });
   if (c.canPush && !c.pushStock) return t('Bhejna band hai — channel par haath se');

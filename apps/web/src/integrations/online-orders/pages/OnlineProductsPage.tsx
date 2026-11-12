@@ -33,7 +33,7 @@ import { categoriesApi } from '@modules/inventory/categories/api/categories.api'
 import { brandsApi } from '@modules/inventory/brands/api/brands.api';
 import { apiErrorMessage, onlineOrdersApi } from '../api/online-orders.api';
 import {
-  ONLINE_PRODUCTS_KEY, onlineProductsApi, type GridFilter, type GridItem, type GridRow, type LinkedCell, type OnlineChannel, type Selection,
+  ONLINE_PRODUCTS_KEY, isStoreCell, onlineProductsApi, type GridFilter, type GridItem, type GridRow, type LinkedCell, type OnlineChannel, type Selection,
 } from '../api/online-products.api';
 import { downloadCsv } from '../lib/orders';
 import { channelName, kindOf, refreshOnlineProducts } from '../components/online-products/meta';
@@ -220,6 +220,12 @@ export default function OnlineProductsPage() {
     onSuccess: (_r, v) => { refresh(); toast.success(v.listed ? tr('Listed — channel par dikhega') : tr('Band — channel par chhup jayega')); },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
+  const setWebsite = useMutation({
+    mutationFn: ({ c, productId, visible }: { c: OnlineChannel; productId: string; visible: boolean }) =>
+      onlineProductsApi.websiteVisibility(c.id, { selection: { productIds: [productId] }, visible }),
+    onSuccess: (_r, v) => { refresh(); toast.success(v.visible ? tr('{{name}} par dikhega', { name: channelName(v.c) }) : tr('{{name}} se chhup gaya', { name: channelName(v.c) })); },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
   const unlinkSizeLess = useMutation({
     mutationFn: (mappingId: string) => onlineProductsApi.unlink(mappingId),
     onSuccess: () => { refresh(); qc.invalidateQueries({ queryKey: ISSUES_KEY }); toast.success(tr('Bina size wala link hata diya — ab har size jorein')); },
@@ -232,6 +238,8 @@ export default function OnlineProductsPage() {
   listedRef.current = setListed.mutate;
   const sizeLessRef = useRef(unlinkSizeLess.mutate);
   sizeLessRef.current = unlinkSizeLess.mutate;
+  const websiteRef = useRef(setWebsite.mutate);
+  websiteRef.current = setWebsite.mutate;
   const h: GridHandlers = useMemo(() => ({
     onPick: (id) => { setAllMatching(false); setPicked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; }); },
     onOpen: (item, ch) => setPanel({ item, channelId: ch }),
@@ -241,6 +249,7 @@ export default function OnlineProductsPage() {
       setOpen({ kind: 'link', channel: c, focus: { productId: item.productId, variantId: row?.variantId ?? null, title } });
     },
     onListed: (mappingId, listed) => listedRef.current({ mappingId, listed }),
+    onWebsite: (c, productId, visible) => websiteRef.current({ c, productId, visible }),
     onSizeLess: async (mappingId, c) => {
       if (await confirmDialog({ title: tr('Bina size wala link hatayein?'), text: tr('Is product ke sizes hain, magar {{channelName}} par poora product ek saath jura hai — is se bill par "Available: 0" aata hai. Hata kar har size alag jorein.', { channelName: channelName(c) }), danger: true })) sizeLessRef.current(mappingId);
     },
@@ -297,6 +306,7 @@ export default function OnlineProductsPage() {
         i.name, r.label ?? '', r.sku ?? i.sku ?? '', r.price, r.nafaaStock ?? '',
         ...chans.flatMap((c) => {
           const cell = r.cells[c.id];
+          if (isStoreCell(cell)) return [cell.price, cell.stock, cell.visible ? tr('Website par') : tr('Chhupa')];
           if (!cell?.linked) return ['', '', tr('Jura nahi')];
           const lc = cell as LinkedCell;
           return [lc.price, lc.stock ?? '', lc.listed === false ? tr('Band') : lc.hold ? tr('Stock milana baqi') : lc.priceHold ? tr('Qeemat ka faisla baqi') : lc.tracksStock === false && !lc.countOptIn ? tr('Ginti nahi') : lc.status === 'FAILED' ? causeInfo(syncCause(lc.error)).title : tr('Jura hua')];

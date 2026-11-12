@@ -9,10 +9,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
 import {
-  CheckCircle2, Cloud, CloudOff, ExternalLink, GraduationCap, History, Layers, Loader2, MousePointerClick, Palette, Redo2, Rocket, Undo2,
+  CheckCircle2, Cloud, CloudOff, ExternalLink, GraduationCap, History, Import, Layers, Loader2, MousePointerClick, Palette, Redo2, Rocket, Undo2,
 } from 'lucide-react';
 import { PageShell, Select, Skeleton, confirmDialog, heroButton, heroIconButton, heroPrimaryButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
@@ -225,6 +226,7 @@ function Editor({ ctx }: { ctx: StoreCtx }) {
           <button type="button" onClick={doc.undo} disabled={!doc.canUndo} title={t('Undo (Ctrl+Z)')} aria-label={t('Undo')} className={`${heroIconButton} disabled:opacity-40`}><Undo2 className="h-4 w-4" /></button>
           <button type="button" onClick={doc.redo} disabled={!doc.canRedo} title={t('Redo (Ctrl+Shift+Z)')} aria-label={t('Redo')} className={`${heroIconButton} disabled:opacity-40`}><Redo2 className="h-4 w-4" /></button>
           <button type="button" onClick={() => setHistoryOpen(true)} className={heroButton}><History className="h-4 w-4" />{t('History')}</button>
+          <Link to="/online-store/site/theme/import" className={heroButton}><Import className="h-4 w-4" />{t('Theme laayein')}</Link>
           <a href={storeLink(ctx.store, ctx.list.storefrontUrl)} target="_blank" rel="noreferrer" className={heroButton}><ExternalLink className="h-4 w-4" />{t('Store dekhein')}</a>
           <button type="button" onClick={() => setPublishOpen(true)} disabled={!d || !unpublished} className={`${heroPrimaryButton} disabled:opacity-50`}>
             <Rocket className="h-4 w-4" />{unpublished ? t('Publish') : t('Live hai')}

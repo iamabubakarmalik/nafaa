@@ -14,6 +14,7 @@ import { Coupon, readForm } from '../online-orders/storefront.service';
 import { StoreAccessService, StoreCtx } from './store-access.service';
 import { StoreCatalogService } from './store-catalog.service';
 import { StoreRevalidateService } from './store-revalidate.service';
+import { StoreDomainsService } from './store-domains.service';
 import { StoreThemeService } from './store-theme.service';
 import {
   POLICY_KINDS, POLICY_TITLES, PolicyKind, mergeSettings, money, policyKindOf, readCheckout, readPolicies, readSettings, readShipping, str,
@@ -45,6 +46,7 @@ export class StoresService {
     private readonly theme: StoreThemeService,
     private readonly revalidate: StoreRevalidateService,
     private readonly payments: PaymentLinksService,
+    private readonly domains: StoreDomainsService,
   ) {}
 
   private async writable(user: AuthenticatedUser, id: string, manager = false): Promise<StoreCtx> {
@@ -163,6 +165,8 @@ export class StoresService {
       });
       return s;
     });
+    // Free address on the storefront project; background, never blocks creation.
+    this.domains.queueSubdomain(store.id, store.slug);
     return this.full(await this.access.requireStore(user, store.id));
   }
 
@@ -209,6 +213,7 @@ export class StoresService {
       if (!p && ctx.store.status === 'PASSWORD') throw new BadRequestException('Pehle website ko "Live" ya "Draft" karein, phir password hatayein');
     }
     await this.prisma.nafaaStore.update({ where: { id: ctx.store.id }, data });
+    if (typeof data.slug === 'string') this.domains.queueSubdomain(ctx.store.id, data.slug, ctx.store.slug);
     if (data.name) await this.prisma.integration.update({ where: { id: ctx.integration.id }, data: { displayName: data.name as string } });
     this.changed(ctx);
     return this.full(await this.access.requireStore(user, id));

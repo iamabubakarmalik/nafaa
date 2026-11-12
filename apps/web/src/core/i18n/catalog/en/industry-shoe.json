@@ -47,6 +47,7 @@
   "Article number": "Article number",
   "Baby shoes": "Baby shoes",
   "Bachay": "Kids",
+  "Bachon ke joggers": "Kids' joggers",
   "Badla hua maal": "Goods exchanged",
   "Badlein": "Change",
   "Band": "Off",
@@ -132,6 +133,7 @@
   "Formal": "Formal",
   "Geela na karein, polish karein": "Don't get it wet, polish it",
   "Gents": "Gents",
+  "Gents khussa": "Men's khussa",
   "Gents, ladies aur bachon ka PK/UK, EU, US aur cm. Customer ka EU size bataye to yahan se PK size dekhein.": "PK/UK, EU, US and cm for gents, ladies and kids. If a customer gives an EU size, find the PK size here.",
   "guide": "guide",
   "Guide (G)": "Guide (G)",
@@ -189,6 +191,8 @@
   "Koi khuli farmaish nahi": "No open requests",
   "Kuch ghalat ho gaya": "Something went wrong",
   "Ladies": "Ladies",
+  "Ladies joggers": "Ladies' joggers",
+  "Ladies khussa": "Ladies' khussa",
   "Larke": "Boys",
   "Larkiyan": "Girls",
   "Le gaya": "Taken",
@@ -341,9 +345,5 @@
   "WhatsApp": "WhatsApp",
   "WhatsApp se message bhejein aur \"Bata diya\" dabayein.": "Send a WhatsApp message and press \"Told\".",
   "Ya article / naam": "Or article / name",
-  "Ye brand aadha size chhota chalta hai": "This brand runs half a size small",
-  "Gents khussa": "Men's khussa",
-  "Ladies khussa": "Ladies' khussa",
-  "Ladies joggers": "Ladies' joggers",
-  "Bachon ke joggers": "Kids' joggers"
+  "Ye brand aadha size chhota chalta hai": "This brand runs half a size small"
 }

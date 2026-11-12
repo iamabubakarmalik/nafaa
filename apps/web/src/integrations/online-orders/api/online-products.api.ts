@@ -7,9 +7,13 @@ export type PriceRuleMode = 'NONE' | 'PERCENT' | 'FIXED';
 export type PriceRounding = 'NONE' | 'NEAREST_10' | 'END_9';
 export interface PriceRule { mode: PriceRuleMode; value: number; rounding: PriceRounding }
 
-export type ChannelType = 'WOOCOMMERCE' | 'SHOPIFY' | 'DARAZ' | 'CUSTOM_WEBSITE';
-/** How the channel works with products; Indolj and developer-built sites are both CUSTOM_WEBSITE. */
-export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
+export type ChannelType = 'WOOCOMMERCE' | 'SHOPIFY' | 'DARAZ' | 'CUSTOM_WEBSITE' | 'NAFAA_STORE';
+/**
+ * How the channel works with products; Indolj and developer-built sites are both CUSTOM_WEBSITE.
+ * nafaa_store = the shop's own Nafaa website: every product is on it, price and stock come from
+ * Nafaa, only "show on website" changes here.
+ */
+export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website' | 'nafaa_store';
 
 export type StockMode = 'ALL' | 'PERCENT' | 'FIXED';
 export type SyncFrom = 'NAFAA' | 'WEBSITE' | 'LATEST' | 'NONE';
@@ -76,7 +80,13 @@ export interface OnlineChannel {
   lastSyncStatus: string | null;
   linked?: number;
   failed?: number;
+  /** Nafaa website (mode nafaa_store) only. */
+  storeId?: string;
+  /** DRAFT, PASSWORD, LIVE, CLOSED or SUSPENDED. */
+  storeStatus?: string;
 }
+
+export const isStoreChannel = (c: Pick<OnlineChannel, 'mode'>) => c.mode === 'nafaa_store';
 
 export interface LinkedCell {
   linked: true;
@@ -129,7 +139,19 @@ export type HoldReason = 'link' | 'import' | 'guard';
 export interface StockHoldInfo { since: string; channelStock: number | null; nafaaStock: number; reason: HoldReason }
 export interface LastPush { at: string; what: Array<'stock' | 'price' | 'content' | 'status' | 'publish'>; ok: boolean; error: string | null }
 export interface OpenCell { linked: false; price: number; stock: number | null; nafaaStock: number }
-export type GridCell = LinkedCell | OpenCell;
+/** A Nafaa website cell: read-only price and stock from Nafaa, and "show on website" (per product). */
+export interface StoreCell {
+  linked: true;
+  store: true;
+  visible: boolean;
+  price: number;
+  compareAtPrice: number | null;
+  stock: number;
+  nafaaStock: number;
+  backorderOn?: boolean;
+}
+export type GridCell = LinkedCell | OpenCell | StoreCell;
+export const isStoreCell = (cell: GridCell | undefined): cell is StoreCell => !!cell && (cell as StoreCell).store === true;
 
 export interface GridRow {
   variantId: string | null; label: string | null; sku: string | null; price: number; cells: Record<string, GridCell>;
@@ -397,6 +419,9 @@ export const onlineProductsApi = {
     apiClient.post(`/online-products/channels/${channelId}/fix-size-less`, {}).then((r) => unwrap<{ removed: number }>(r)),
   updateLink: (mappingId: string, patch: LinkPatch) =>
     apiClient.put(`/online-products/links/${mappingId}`, patch).then((r) => unwrap<{ success: boolean; link: LinkPatch }>(r)),
+  /** Nafaa website: show or hide products (same flag as the website's products page). */
+  websiteVisibility: (channelId: string, body: { selection: Selection; visible: boolean }) =>
+    apiClient.post(`/online-products/channels/${channelId}/website-visibility`, body, { timeout: 120_000 }).then((r) => unwrap<{ updated: number }>(r)),
   bulk: (body: { selection: Selection; action: BulkAction; channelId?: string | null; value?: unknown }) =>
     apiClient.post('/online-products/bulk', body, { timeout: 120_000 }).then((r) => unwrap<JobStart & { updated: number; skipped?: number }>(r)),
   importAll: (channelId: string) =>

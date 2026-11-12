@@ -26,7 +26,7 @@ export interface StoreHome {
 }
 export interface StoreFull extends StoreSummary {
   hasPassword: boolean;
-  settings: { showOutOfStock: boolean; whatsappButton: { enabled: boolean; number: string | null; message: string | null; position: 'left' | 'right' } };
+  settings: { showOutOfStock: boolean; whatsappButton: { enabled: boolean; number: string | null; message: string | null; position: 'left' | 'right' }; languages?: { default: 'en' | 'ur'; enabled: Array<'en' | 'ur'> } };
   checkout: { codConfirmWhatsApp: boolean; payments: { cod: boolean; SAFEPAY: boolean; JAZZCASH: boolean; EASYPAISA: boolean } };
 }
 

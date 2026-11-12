@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowRight, CheckCircle2, Circle, Globe, GraduationCap, Loader2, Lock, MinusCircle, PackageCheck, Rocket, ShieldCheck, XCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Circle, Globe, GraduationCap, Loader2, Lock, MinusCircle, PackageCheck, Palette, Rocket, ShieldCheck, XCircle } from 'lucide-react';
 import { Badge, Button, Card, Checkbox, EmptyState, PageShell, Skeleton, heroIconButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
@@ -153,6 +153,17 @@ function Move({ ctx }: { ctx: StoreCtx }) {
                 onClick={() => start.mutate()} leftIcon={<Rocket className="h-4 w-4" />}>
                 {running ? t('Laa rahe hain...') : run?.status === 'DONE' ? t('Dobara laayein (naye hi aayenge)') : t('Shopify se laayein')}
               </Button>
+            </Card>
+
+            <Card>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-700"><Palette className="h-5 w-5" /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[0.875rem] font-semibold text-slate-900">{t('Shopify ka design bhi laayein')}</p>
+                  <p className="text-[0.8125rem] text-slate-600">{t('Shopify se theme file download karein aur yahan daalein. Rang, fonts, logo, banners aur text aa jayenge.')}</p>
+                </div>
+                <Link to="/online-store/site/theme/import" className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-[0.8125rem] font-semibold text-white">{t('Theme laayein')}<ArrowRight className="h-4 w-4 rtl-flip" /></Link>
+              </div>
             </Card>
           </div>
 

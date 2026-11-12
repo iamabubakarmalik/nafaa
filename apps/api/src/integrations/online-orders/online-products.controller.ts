@@ -215,6 +215,12 @@ export class OnlineProductsController {
     return this.svc.updateLink(user, mappingId, body ?? {});
   }
 
+  @Post('channels/:id/website-visibility')
+  @ApiOperation({ summary: 'Nafaa Store column: show or hide picked products on the website' })
+  websiteVisibility(@GetUser() user: AuthenticatedUser, @Param('id') id: string, @Body() body: { selection?: Selection; productIds?: string[]; visible?: boolean }) {
+    return this.svc.setStoreVisible(user, id, body ?? {});
+  }
+
   @Post('bulk')
   @ApiOperation({ summary: 'One action on picked products (or all matching): listed, stock share, price, sale price, push, publish' })
   async bulk(@GetUser() user: AuthenticatedUser, @Body() body: { selection?: Selection; action?: BulkAction | 'backorder'; channelId?: string | null; value?: unknown }) {

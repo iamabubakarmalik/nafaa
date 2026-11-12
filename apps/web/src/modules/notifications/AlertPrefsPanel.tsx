@@ -15,7 +15,7 @@ import {
 import { Alert, Button, Input, Segmented, Skeleton, Switch } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t as tr } from '@core/i18n';
-import { notificationsApi, type AlertEvent, type AlertSound, type TestPushStatus } from './api/notifications.api';
+import { notificationsApi, type AlertEvent, type AlertSound, type OnlineOrderRing, type TestPushStatus } from './api/notifications.api';
 import { playTone, toneLabel, useAlertPrefs } from './alertPrefs';
 
 type Icon = ComponentType<{ className?: string }>;
@@ -94,6 +94,7 @@ export function AlertPrefsPanel() {
   }
   const sale = prefs.events.find((e) => e.event === 'sale');
   const discount = prefs.events.find((e) => e.event === 'bigDiscount');
+  const online = prefs.events.find((e) => e.event === 'onlineOrder');
   const shown = result ? TEST_TEXT[result.status] : null;
 
   return (
@@ -155,6 +156,35 @@ export function AlertPrefsPanel() {
           </div>
         )}
       </Block>
+
+      {online && (
+        <Block icon={ShoppingBag} title={tr('Naya online order')} desc={tr('Website, Shopify, Daraz waghera se order aaye to is computer par kya ho')}>
+          {!online.inApp ? (
+            <p className="text-sm text-slate-600">{tr('Online order ki khabar App me band hai. Upar "Online order" ka App switch on karein.')}</p>
+          ) : (
+            <div className="space-y-4">
+              <Switch label={tr('Kone me card dikhayein')} description={tr('Accept + bill aur Dekhein ke button ke saath')}
+                checked={prefs.onlineOrderPopup ?? true} onChange={(ev) => save({ onlineOrderPopup: ev.target.checked })} />
+              <div className="space-y-2">
+                <div className="text-sm font-semibold text-slate-800">{tr('Ghanti')}</div>
+                <Segmented value={prefs.onlineOrderRing ?? 'once'} onChange={(v) => save({ onlineOrderRing: v as OnlineOrderRing })}
+                  items={[
+                    { value: 'once', label: tr('Ek dafa') },
+                    { value: 'repeat', label: tr('Jab tak koi na dekhe') },
+                    { value: 'off', label: tr('Band') },
+                  ]} />
+                <p className="text-xs text-slate-500">
+                  {(prefs.onlineOrderRing ?? 'once') === 'repeat'
+                    ? tr('Har 2 minute baad, zyada se zyada 5 dafa. Card band karte hi ruk jati hai.')
+                    : (prefs.onlineOrderRing ?? 'once') === 'off'
+                      ? tr('Awaaz nahi aayegi, sirf card.')
+                      : tr('Naya order aate hi ek dafa. Purane orders par ghanti nahi bajti.')}
+                </p>
+              </div>
+            </div>
+          )}
+        </Block>
+      )}
 
       <Block icon={Volume2} title={tr('Awaaz')} desc={tr('Web par nayi notification aur phone ki push, dono isi awaaz se.')}>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

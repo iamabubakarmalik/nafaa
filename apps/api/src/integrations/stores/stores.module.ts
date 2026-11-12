@@ -16,6 +16,9 @@ import { StoreCustomersService } from './store-customers.service';
 import { StoreDomainsService } from './store-domains.service';
 import { StoreShopifyImportService } from './store-shopify-import.service';
 import { StorePublicService } from './store-public.service';
+import { StoreThemeImportController } from './store-theme-import.controller';
+import { StoreThemeImportService } from './store-theme-import.service';
+import { UploadsModule } from '../../modules/uploads/uploads.module';
 
 /**
  * Nafaa Stores: the website builder. Each store is a NAFAA_STORE sales
@@ -24,11 +27,12 @@ import { StorePublicService } from './store-public.service';
  * admin `/admin/stores`. Contract: ~/nafaa-backups/wip/website-builder-contract.md
  */
 @Module({
-  imports: [PrismaModule, OnlineOrdersModule],
-  controllers: [StoresController, StorefrontApiController, AdminStoresController],
+  imports: [PrismaModule, OnlineOrdersModule, UploadsModule],
+  controllers: [StoresController, StorefrontApiController, AdminStoresController, StoreThemeImportController],
   providers: [
     StoreAccessService, StoreCatalogService, StoreRevalidateService, StoreThemeService, StoresService, StoreAnalyticsService,
     StoreCheckoutService, StoreCustomersService, StoreDomainsService, StoreShopifyImportService, StorePublicService, AdminStoresService,
+    StoreThemeImportService,
   ],
   exports: [StoreRevalidateService],
 })

@@ -1,6 +1,6 @@
 import { pushText } from './alert-catalog';
 import {
-  deviceHasTones, digestWindow, eventSwitch, inQuietHours, inScope, normalizePrefs, prefsView, pushSound, sanitizePrefsInput,
+  deviceHasTones, digestWindow, eventSwitch, inQuietHours, inScope, normalizePrefs, prefsView, pushSound, sanitizePrefsInput, storedEvents,
   type AlertPerson,
 } from './alert-rules';
 import { StaffAlertsService } from './staff-alerts.service';
@@ -76,6 +76,22 @@ describe('alert rules: stored values', () => {
     expect(next.saleDigestMinutes).toBe(30);
     expect(next.events.sale).toEqual({ push: true, inApp: false });
     expect((next as unknown as Record<string, unknown>).role).toBeUndefined();
+  });
+});
+
+describe('alert rules: online order pop-up and ring', () => {
+  it('defaults to a pop-up and one ring, stores both inside the events JSON and reads them back', () => {
+    const d = normalizePrefs(null);
+    expect([d.onlineOrderPopup, d.onlineOrderRing]).toEqual([true, 'once']);
+    const next = sanitizePrefsInput({ onlineOrderRing: 'off', onlineOrderPopup: false, events: { onlineOrder: { push: false } } }, d);
+    const stored = storedEvents(next);
+    expect(stored.onlineOrder).toEqual({ push: false, popup: false, ring: 'off' });
+    const back = normalizePrefs({ events: stored });
+    expect([back.onlineOrderPopup, back.onlineOrderRing, back.events.onlineOrder]).toEqual([false, 'off', { push: false }]);
+  });
+  it('keeps the old ring for an unknown choice', () => {
+    const cur = { ...normalizePrefs(null), onlineOrderRing: 'repeat' as const };
+    expect(sanitizePrefsInput({ onlineOrderRing: 'loud' }, cur).onlineOrderRing).toBe('repeat');
   });
 });
 

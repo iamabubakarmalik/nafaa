@@ -11,8 +11,8 @@ export class AdminSettingsService {
    * it, one searched page, optionally for one category, plus the category list.
    */
   async list(q: { paged?: boolean; page?: number; limit?: number; search?: string; category?: string } = {}) {
-    // Appearance and per-user preference rows are not platform settings.
-    const base = { category: { notIn: ['appearance', 'preferences'] } };
+    // Appearance, per-user preference and per-store hosting rows are not platform settings.
+    const base = { category: { notIn: ['appearance', 'preferences', 'stores_hosting'] } };
     const include = { updatedBy: { select: { id: true, fullName: true } } };
     const orderBy = [{ category: 'asc' as const }, { key: 'asc' as const }];
     if (!q.paged) return this.prisma.systemSetting.findMany({ where: base, orderBy, include });

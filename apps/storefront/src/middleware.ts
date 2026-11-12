@@ -6,8 +6,9 @@
  *   verified custom domain            → h.<host> (the API maps it to a shop)
  *   localhost, *.vercel.app           → ?store=<slug> (remembered in a cookie),
  *                                       <slug>.localhost, or STORE_DEV_DEFAULT
- * A leading /ur selects Urdu. ?preview=<token> (theme editor) is remembered in
- * a cookie and makes every page render the draft theme, uncached.
+ * A leading /ur selects Urdu (307 to the English page when the shop has Urdu
+ * off). ?preview=<token> (theme editor) is remembered in a cookie and makes
+ * every page render the draft theme, uncached.
  *
  * /api/sf/* (browser → storefront calls) is not rewritten; it gets the same
  * site key in the x-nf-site request header.
@@ -30,27 +31,36 @@ const MOCK = process.env.STOREFRONT_MOCK === '1';
 const STORE_COOKIE = 'nf_store';
 const PREVIEW_COOKIE = 'nf_preview';
 
-type Resolved = { redirectTo: string | null; at: number };
+type Resolved = { redirectTo: string | null; languages: string[] | null; at: number };
 const resolveCache = new Map<string, Resolved>();
 
-/** The API's redirect for this host (apex↔www, old subdomain → custom), cached 60 s. */
-async function redirectFor(key: { slug?: string; host?: string }, host: string): Promise<string | null> {
+/** The API's resolve answer for this host (redirect + languages), cached 60 s. */
+async function resolveFor(key: { slug?: string; host?: string }, host: string): Promise<Resolved | null> {
   if (MOCK) return null;
   const k = key.slug ? `s:${key.slug}` : `h:${key.host}`;
   const hit = resolveCache.get(k);
-  if (hit && Date.now() - hit.at < 60_000) return hit.redirectTo;
+  if (hit && Date.now() - hit.at < 60_000) return hit;
   try {
     const u = new URLSearchParams(key.slug ? { slug: key.slug, host } : { host: key.host ?? host });
     const res = await fetch(`${API}/storefront/v1/resolve?${u}`, { headers: { Accept: 'application/json' } });
     const json = res.ok ? await res.json() : null;
     const data = json && typeof json === 'object' && 'data' in json ? json.data : json;
-    const redirectTo = (data?.redirectTo as string | null) ?? null;
-    resolveCache.set(k, { redirectTo, at: Date.now() });
+    const out: Resolved = {
+      redirectTo: (data?.redirectTo as string | null) ?? null,
+      languages: Array.isArray(data?.languages) ? (data.languages as string[]) : null,
+      at: Date.now(),
+    };
+    resolveCache.set(k, out);
     if (resolveCache.size > 5000) resolveCache.clear();
-    return redirectTo;
+    return out;
   } catch {
     return null;
   }
+}
+
+/** The API's redirect for this host (apex↔www, old subdomain → custom). */
+async function redirectFor(key: { slug?: string; host?: string }, host: string): Promise<string | null> {
+  return (await resolveFor(key, host))?.redirectTo ?? null;
 }
 
 function isDevHost(host: string): boolean {
@@ -125,6 +135,13 @@ export async function middleware(req: NextRequest) {
   let lang = 'en';
   let rest = path;
   if (path === '/ur' || path.startsWith('/ur/')) {
+    // Urdu is switched off for this shop: send the visitor to the same page in English.
+    const langs = (await resolveFor(key, host))?.languages;
+    if (langs && !langs.includes('ur')) {
+      const to = url.clone();
+      to.pathname = path.slice(3) || '/';
+      return NextResponse.redirect(to, 307);
+    }
     lang = 'ur';
     rest = path.slice(3) || '/';
   }

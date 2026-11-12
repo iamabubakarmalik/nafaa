@@ -3,18 +3,18 @@
  * Listed on/off, Stock share, own Price, Sale price, push now and publish to
  * a channel. Each runs as a background job; progress shows in the jobs panel.
  * Picked products (not "all matching") can also be marked for channels that
- * make only marked products.
+ * make only marked products. With a Nafaa website: show or hide on it.
  */
 
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { BadgeDollarSign, Boxes, Download, Eye, EyeOff, Flag, Link2, PackageOpen, Percent, Send, Tag, Upload, X } from 'lucide-react';
+import { BadgeDollarSign, Boxes, Download, Eye, EyeOff, Flag, Globe, Link2, PackageOpen, Percent, Send, Tag, Upload, X } from 'lucide-react';
 import { Button, Input, Modal, confirmDialog } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 import { apiErrorMessage } from '../../api/online-orders.api';
-import { onlineProductsApi, type BulkAction, type OnlineChannel, type Selection } from '../../api/online-products.api';
+import { isStoreChannel, onlineProductsApi, type BulkAction, type OnlineChannel, type Selection } from '../../api/online-products.api';
 import { JOBS_KEY } from './ActivityDrawer';
 import { ChannelMark, channelName, refreshOnlineProducts } from './meta';
 
@@ -51,20 +51,50 @@ export function MasterBulkBar({ count, selection, channels, onClear, onLinkSure,
     if (ok) mark.mutate(markIds);
   };
 
-  if (!push.length) return null;
+  // Nafaa websites: the focused one, else all of them.
+  const stores = channels.filter((c) => isStoreChannel(c) && (!selection.channelId || selection.channelId === c.id));
+  const website = useMutation({
+    mutationFn: async (visible: boolean) => {
+      let updated = 0;
+      for (const c of stores) updated = Math.max(updated, (await onlineProductsApi.websiteVisibility(c.id, { selection, visible })).updated);
+      return updated;
+    },
+    onSuccess: (updated, visible) => {
+      refreshOnlineProducts(qc);
+      toast.success(visible ? t('{{count}} products website par dikhenge', { count: updated }) : t('{{count}} products website se chhup gaye', { count: updated }));
+      onClear();
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  const runWebsite = async (visible: boolean) => {
+    const ok = await confirmDialog({
+      title: visible ? t('Website par dikhayein?') : t('Website se chhupayein?'),
+      text: t('{{count}} products · {{channels}}', { count: count.toLocaleString('en-PK'), channels: stores.map(channelName).join(', ') }),
+      yes: visible ? t('Dikhayein') : t('Chhupayein'),
+    });
+    if (ok) website.mutate(visible);
+  };
+
+  if (!push.length && !stores.length) return null;
   const open = (action: BulkAction, value?: unknown) => setAsk({ action, value });
 
   return (
     <>
       <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-1.5 rounded-2xl bg-slate-900 px-3 py-2 text-white shadow-xl">
         <span className="me-1 text-[0.8125rem] font-semibold">{t('{{count}} products chune', { count: count.toLocaleString('en-PK') })}</span>
-        <BarButton icon={Eye} onClick={() => open('listed', true)}>{t('Listed')}</BarButton>
-        <BarButton icon={EyeOff} onClick={() => open('listed', false)}>{t('Band')}</BarButton>
-        <BarButton icon={Boxes} onClick={() => open('alloc')}>{t('Stock')}</BarButton>
-        <BarButton icon={BadgeDollarSign} onClick={() => open('price')}>{t('Price')}</BarButton>
-        <BarButton icon={Percent} onClick={() => open('pricePercent')}>{t('Price %')}</BarButton>
-        <BarButton icon={Tag} onClick={() => open('compareAt')}>{t('Sale price')}</BarButton>
-        <BarButton icon={Send} onClick={() => open('push')}>{t('Abhi bhejein')}</BarButton>
+        {stores.length > 0 && <>
+          <BarButton icon={Globe} onClick={() => void runWebsite(true)} busy={website.isPending}>{t('Website par dikhayein')}</BarButton>
+          <BarButton icon={EyeOff} onClick={() => void runWebsite(false)} busy={website.isPending}>{t('Website se chhupayein')}</BarButton>
+        </>}
+        {push.length > 0 && <>
+          <BarButton icon={Eye} onClick={() => open('listed', true)}>{t('Listed')}</BarButton>
+          <BarButton icon={EyeOff} onClick={() => open('listed', false)}>{t('Band')}</BarButton>
+          <BarButton icon={Boxes} onClick={() => open('alloc')}>{t('Stock')}</BarButton>
+          <BarButton icon={BadgeDollarSign} onClick={() => open('price')}>{t('Price')}</BarButton>
+          <BarButton icon={Percent} onClick={() => open('pricePercent')}>{t('Price %')}</BarButton>
+          <BarButton icon={Tag} onClick={() => open('compareAt')}>{t('Sale price')}</BarButton>
+          <BarButton icon={Send} onClick={() => open('push')}>{t('Abhi bhejein')}</BarButton>
+        </>}
         <BarButton icon={PackageOpen} onClick={() => open('backorder', true)}>{t('Backorder chalu')}</BarButton>
         <BarButton icon={PackageOpen} onClick={() => open('backorder', false)}>{t('Backorder band')}</BarButton>
         {push.some((c) => c.canPublish) && <BarButton icon={Upload} onClick={() => open('publish')}>{t('Channel par banayein')}</BarButton>}

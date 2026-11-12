@@ -21,3 +21,4 @@ export const PoliciesPage = lazy(() => import('./pages/PoliciesPage'));
 export const PreferencesPage = lazy(() => import('./pages/PreferencesPage'));
 export const WebsiteAnalyticsPage = lazy(() => import('./pages/WebsiteAnalyticsPage'));
 export const ShopifyMovePage = lazy(() => import('./pages/ShopifyMovePage'));
+export const ThemeImportPage = lazy(() => import('./pages/ThemeImportPage'));

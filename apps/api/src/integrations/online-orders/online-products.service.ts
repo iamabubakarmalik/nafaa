@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import { Integration, IntegrationStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
@@ -21,6 +22,8 @@ import { mappingKey } from './mapping-key';
 import { pausedMessage, pushPaused } from './commerce-controls';
 import { backorderRule, owedUnits } from './backorder';
 import { countOptedIn, readHold } from './stock-handover';
+import { readSettings } from '../stores/store-settings';
+import type { StoresService } from '../stores/stores.service';
 
 /** Channels whose products Nafaa links, prices and keeps in stock. */
 export const PRODUCT_CHANNEL_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'CUSTOM_WEBSITE'] as const;
@@ -34,8 +37,11 @@ const PUSH_TYPES = ['WOOCOMMERCE', 'SHOPIFY', 'DARAZ'] as const;
  *    prices are set in the Indolj panel and Indolj does not track stock.
  *  - website: a developer-built site. Nafaa cannot read it; it pulls stock and price
  *    (Nafaa price, no rule) from the website API, and links come from orders or CSV.
+ *  - nafaa_store: a Nafaa Stores website (NAFAA_STORE). Every product is on it by
+ *    definition; price and stock are read from Nafaa, only "show on website" changes.
+ *    It is never part of cols(), so linking, pushes and jobs never see it.
  */
-export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website';
+export type ChannelMode = 'woocommerce' | 'shopify' | 'daraz' | 'indolj' | 'website' | 'nafaa_store';
 
 export interface SuspectRow {
   mappingId: string; channelId: string; productId: string; variantId: string | null; name: string; variantName: string | null;
@@ -79,6 +85,14 @@ export interface Col {
   mode: ChannelMode;
 }
 
+/** A Nafaa Stores website shown as a read-only column (see ChannelMode). */
+export interface StoreCol extends Col {
+  storeId: string;
+  status: string;
+  suspended: boolean;
+  catalogMode: 'ALL' | 'CHOSEN';
+}
+
 const WEBSITE_LINKS_NOTE = 'Ye website apne products khud bhejti hai — order aane par ya CSV se jurte hain';
 
 const isPush = (mode: ChannelMode) => mode === 'woocommerce' || mode === 'shopify' || mode === 'daraz';
@@ -94,6 +108,7 @@ export class OnlineProductsService implements OnModuleInit {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly moduleRef: ModuleRef,
     private readonly setup: WebsiteSetupService,
     private readonly catalog: ChannelCatalogService,
     private readonly woo: WooCommerceService,
@@ -229,10 +244,94 @@ export class OnlineProductsService implements OnModuleInit {
     };
   }
 
+  // ─── Nafaa Stores websites (read-only columns) ───
+
+  private async storeCols(tenantId: string): Promise<StoreCol[]> {
+    const stores = await this.prisma.nafaaStore.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, integrationId: true, shopId: true, status: true, suspendedAt: true, settings: true },
+    });
+    if (!stores.length) return [];
+    const integrations = await this.prisma.integration.findMany({ where: { tenantId, type: 'NAFAA_STORE', id: { in: stores.map((s) => s.integrationId) } } });
+    const byId = new Map(integrations.map((i) => [i.id, i]));
+    return stores.flatMap((s) => {
+      const integration = byId.get(s.integrationId);
+      if (!integration) return [];
+      const cfg = readWebsiteConfig(integration.config);
+      return [{
+        integration, cfg, mode: 'nafaa_store' as const,
+        // Same branch the storefront sells from (StoreAccessService.build).
+        shopId: s.shopId ?? cfg.shopId ?? integration.shopId ?? null,
+        storeId: s.id, status: s.status, suspended: !!s.suspendedAt, catalogMode: readSettings(s.settings).catalogMode,
+      }];
+    });
+  }
+
+  /** Channel info for a store column: nothing to link, push, fetch or set. */
+  private storeInfo(s: StoreCol, shops: Map<string, string>) {
+    const i = s.integration;
+    return {
+      ...this.info(s, shops),
+      canFetch: false,
+      autoLink: false,
+      tracksStock: true,
+      syncChosen: true,
+      priceSource: 'NAFAA' as const,
+      live: i.isActive && !s.suspended && s.status === 'LIVE',
+      storeId: s.storeId,
+      /** DRAFT, PASSWORD, LIVE, CLOSED, or SUSPENDED (by the Nafaa admin). */
+      storeStatus: s.suspended ? 'SUSPENDED' : s.status,
+      catalogMode: s.catalogMode,
+    };
+  }
+
+  /**
+   * Products hidden on each store: the "show on website" flag (StoreProduct.visible),
+   * null following the store's catalog mode, as in StoresService.products().
+   */
+  private async storeHiddenWhere(stores: StoreCol[]): Promise<Prisma.ProductWhereInput[]> {
+    const out: Prisma.ProductWhereInput[] = [];
+    for (const s of stores) {
+      const rows = await this.prisma.storeProduct.findMany({ where: { storeId: s.storeId, visible: { not: null } }, select: { productId: true, visible: true } });
+      if (s.catalogMode === 'CHOSEN') out.push({ id: { notIn: rows.filter((r) => r.visible).map((r) => r.productId) } });
+      else out.push({ id: { in: rows.filter((r) => r.visible === false).map((r) => r.productId) } });
+    }
+    return out;
+  }
+
+  /**
+   * "Show on website" for picked products on one store. Goes through
+   * StoresService.bulkProducts so the add-on gate, caches and storefront
+   * revalidation are the same as on the website's own products page.
+   */
+  async setStoreVisible(user: AuthenticatedUser, channelId: string, body: { selection?: Selection; productIds?: string[]; visible?: boolean }) {
+    const store = await this.prisma.nafaaStore.findFirst({ where: { tenantId: user.tenantId, integrationId: channelId }, select: { id: true } });
+    if (!store) throw new NotFoundException('Website nahi mili');
+    const ids = await this.selectionIds(user, body?.selection ?? { productIds: body?.productIds ?? [] });
+    if (!ids.length) throw new BadRequestException('Koi product nahi chuna');
+    return (await this.stores()).bulkProducts(user, store.id, { action: body?.visible === false ? 'hide' : 'show', productIds: ids });
+  }
+
+  /**
+   * StoresService, looked up when first needed. The stores module imports this
+   * module, and a file-level import would close an import cycle
+   * (stores.service → storefront.service → … → this file).
+   */
+  private storesRef: StoresService | null = null;
+  private async stores(): Promise<StoresService> {
+    if (!this.storesRef) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { StoresService: Svc } = require('../stores/stores.service') as { StoresService: new (...a: any[]) => StoresService };
+      this.storesRef = this.moduleRef.get(Svc, { strict: false });
+    }
+    return this.storesRef as StoresService;
+  }
+
   async channels(user: AuthenticatedUser) {
-    const cols = await this.cols(user.tenantId);
+    const [cols, stores] = await Promise.all([this.cols(user.tenantId), this.storeCols(user.tenantId)]);
     const shops = await this.shopNames(user.tenantId);
-    if (!cols.length) return { channels: [], sellable: 0 };
+    if (!cols.length && !stores.length) return { channels: [], sellable: 0 };
     const [counts, failed, simple, sizes] = await Promise.all([
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: cols.map((c) => c.integration.id) } }, _count: { _all: true } }),
       this.prisma.productChannelMapping.groupBy({ by: ['integrationId'], where: { integrationId: { in: cols.map((c) => c.integration.id) }, syncStatus: 'FAILED' }, _count: { _all: true } }),
@@ -241,11 +340,15 @@ export class OnlineProductsService implements OnModuleInit {
     ]);
     return {
       sellable: simple + sizes,
-      channels: cols.map((c) => ({
-        ...this.info(c, shops),
-        linked: counts.find((x) => x.integrationId === c.integration.id)?._count._all ?? 0,
-        failed: failed.find((x) => x.integrationId === c.integration.id)?._count._all ?? 0,
-      })),
+      channels: [
+        ...cols.map((c) => ({
+          ...this.info(c, shops),
+          linked: counts.find((x) => x.integrationId === c.integration.id)?._count._all ?? 0,
+          failed: failed.find((x) => x.integrationId === c.integration.id)?._count._all ?? 0,
+        })),
+        // Every product is on a store by definition.
+        ...stores.map((s) => ({ ...this.storeInfo(s, shops), linked: simple + sizes, failed: 0 })),
+      ],
     };
   }
 
@@ -336,13 +439,22 @@ export class OnlineProductsService implements OnModuleInit {
   // GRID
   // ═══════════════════════════════════════════════════════════
 
-  private filterWhere(filter: GridFilter, cols: Col[]): Prisma.ProductWhereInput {
+  /**
+   * `stores` (Nafaa Stores columns) count only where they mean something:
+   * out of stock and backorder at their branch, and "unlisted" = hidden on the
+   * website (`storeHidden`, from storeHiddenWhere). With only stores in view,
+   * every product is linked and none is unlinked.
+   */
+  private filterWhere(filter: GridFilter, cols: Col[], stores: StoreCol[] = [], storeHidden: Prisma.ProductWhereInput[] = []): Prisma.ProductWhereInput {
     const ids = cols.map((c) => c.integration.id);
-    const shops = [...new Set(cols.map((c) => c.shopId).filter(Boolean))] as string[];
+    const shops = [...new Set([...cols, ...stores].map((c) => c.shopId).filter(Boolean))] as string[];
+    const storesOnly = !cols.length && stores.length > 0;
     switch (filter) {
       case 'linked':
+        if (storesOnly) return {};
         return { channelMappings: { some: { integrationId: { in: ids } } } };
       case 'unlinked':
+        if (!ids.length) return { id: { in: [] } };
         return {
           OR: ids.flatMap((id) => [
             { hasVariants: false, channelMappings: { none: { integrationId: id } } },
@@ -357,7 +469,8 @@ export class OnlineProductsService implements OnModuleInit {
           ],
         };
       case 'unlisted':
-        return { channelMappings: { some: { integrationId: { in: ids }, listed: false } } };
+        if (!storeHidden.length) return { channelMappings: { some: { integrationId: { in: ids }, listed: false } } };
+        return { OR: [{ channelMappings: { some: { integrationId: { in: ids }, listed: false } } }, ...storeHidden] };
       case 'hold':
         return { channelMappings: { some: { integrationId: { in: ids }, NOT: { stockHold: { equals: Prisma.DbNull } } } } };
       case 'price-hold':
@@ -443,25 +556,27 @@ export class OnlineProductsService implements OnModuleInit {
     };
   }
 
-  private async gridWhere(tenantId: string, cols: Col[], search: string | undefined, filter: GridFilter, scope?: GridScope): Promise<Prisma.ProductWhereInput> {
-    const where: Prisma.ProductWhereInput = { AND: [{ tenantId, isActive: true }, this.searchWhere(search), this.filterWhere(filter, cols), this.scopeWhere(scope)] };
+  private async gridWhere(tenantId: string, cols: Col[], search: string | undefined, filter: GridFilter, scope?: GridScope, stores: StoreCol[] = []): Promise<Prisma.ProductWhereInput> {
+    const hidden = filter === 'unlisted' && stores.length ? await this.storeHiddenWhere(stores) : [];
+    const where: Prisma.ProductWhereInput = { AND: [{ tenantId, isActive: true }, this.searchWhere(search), this.filterWhere(filter, cols, stores, hidden), this.scopeWhere(scope)] };
     if (filter === 'price') (where.AND as Prisma.ProductWhereInput[]).push({ id: { in: [...(await this.priceDiffIds(cols))] } });
     return where;
   }
 
   async grid(user: AuthenticatedUser, q: { page?: number; limit?: number; search?: string; filter?: GridFilter; channelId?: string } & GridScope) {
-    const all = await this.cols(user.tenantId);
+    const [all, allStores] = await Promise.all([this.cols(user.tenantId), this.storeCols(user.tenantId)]);
     const cols = q.channelId ? all.filter((c) => c.integration.id === q.channelId) : all;
+    const stores = q.channelId ? allStores.filter((c) => c.integration.id === q.channelId) : allStores;
     const page = Math.max(1, Number(q.page) || 1);
     const limit = Math.min(100, Math.max(5, Number(q.limit) || 30));
     const filter: GridFilter = GRID_FILTERS.includes(q.filter as GridFilter) ? (q.filter as GridFilter) : 'all';
     const shops = await this.shopNames(user.tenantId);
-    if (!cols.length) return { channels: [], items: [], total: 0, page, pages: 0, limit };
+    if (!cols.length && !stores.length) return { channels: [], items: [], total: 0, page, pages: 0, limit };
 
-    const where = await this.gridWhere(user.tenantId, cols, q.search, filter, q);
+    const where = await this.gridWhere(user.tenantId, cols, q.search, filter, q, stores);
 
     const ids = cols.map((c) => c.integration.id);
-    const shopIds = [...new Set(cols.map((c) => c.shopId).filter(Boolean))] as string[];
+    const shopIds = [...new Set([...cols, ...stores].map((c) => c.shopId).filter(Boolean))] as string[];
     const [total, products] = await Promise.all([
       this.prisma.product.count({ where }),
       this.prisma.product.findMany({
@@ -470,9 +585,9 @@ export class OnlineProductsService implements OnModuleInit {
         skip: (page - 1) * limit,
         take: limit,
         select: {
-          id: true, name: true, sku: true, barcode: true, price: true, hasVariants: true, backorder: true, backorderMax: true,
+          id: true, name: true, sku: true, barcode: true, price: true, stock: true, hasVariants: true, backorder: true, backorderMax: true,
           images: { take: 1, orderBy: { sortOrder: 'asc' }, select: { url: true } },
-          variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, sku: true, price: true, imageUrl: true, backorder: true } },
+          variants: { where: { isActive: true }, orderBy: { sortOrder: 'asc' }, select: { id: true, name: true, sku: true, price: true, stock: true, imageUrl: true, backorder: true } },
           channelMappings: {
             where: { integrationId: { in: ids } },
             select: {
@@ -486,9 +601,18 @@ export class OnlineProductsService implements OnModuleInit {
       }),
     ]);
 
+    // Website-only facts of the page's products on each store: shown or hidden, sale price.
+    const web = stores.length && products.length
+      ? await this.prisma.storeProduct.findMany({
+          where: { storeId: { in: stores.map((s) => s.storeId) }, productId: { in: products.map((p) => p.id) } },
+          select: { storeId: true, productId: true, visible: true, compareAtPrice: true },
+        })
+      : [];
+    const webOf = new Map(web.map((w) => [`${w.storeId}:${w.productId}`, w]));
+
     const items = products.map((p) => {
       const stocks = (p as any).shopStocks as Array<{ shopId: string; variantId: string | null; stock: number; shopPrice: number | null }> | undefined ?? [];
-      const rowOf = (variantId: string | null, label: string | null, sku: string | null, price: number, variantBackorder: boolean | null = null) => {
+      const rowOf = (variantId: string | null, label: string | null, sku: string | null, price: number, variantBackorder: boolean | null = null, own: { price: number; stock: number } | null = null) => {
         const cells: Record<string, unknown> = {};
         const linkOf = (c: Col) => p.channelMappings.find((x) => x.integrationId === c.integration.id && (x.variantId ?? null) === variantId);
         // Stock split per branch: the pushed channels drawing from it share its stock.
@@ -548,16 +672,36 @@ export class OnlineProductsService implements OnModuleInit {
             lastSyncedAt: m.lastSyncedAt,
           };
         }
-        const mainShop = cols.find((c) => c.shopId)?.shopId ?? null;
+        // Nafaa Stores: read-only; price and stock as the storefront computes them (StoreCatalogService.lines).
+        for (const s of stores) {
+          const ss = s.shopId ? stocks.find((x) => x.shopId === s.shopId && (x.variantId ?? null) === variantId) : undefined;
+          const base = Number(own?.price ?? price) || Number(p.price) || 0;
+          const shown = ss?.shopPrice && Number(ss.shopPrice) > 0 ? Number(ss.shopPrice) : base;
+          const stock = s.shopId ? Number(ss?.stock ?? 0) : Number(own?.stock ?? p.stock ?? 0);
+          const w = webOf.get(`${s.storeId}:${p.id}`);
+          const compareAt = w?.compareAtPrice && w.compareAtPrice > shown ? w.compareAtPrice : null;
+          cells[s.integration.id] = {
+            linked: true,
+            store: true,
+            /** "Show on website": own flag, else the store's catalog mode. */
+            visible: w?.visible ?? s.catalogMode === 'ALL',
+            price: Math.round(shown * 100) / 100,
+            compareAtPrice: compareAt,
+            stock,
+            nafaaStock: stock,
+            backorderOn: backorderRule(p, { backorder: variantBackorder }).enabled === true,
+          };
+        }
+        const mainShop = [...cols, ...stores].find((c) => c.shopId)?.shopId ?? null;
         const nafaaStock = mainShop ? Number(stocks.find((s) => s.shopId === mainShop && (s.variantId ?? null) === variantId)?.stock ?? 0) : null;
         // Units owed to customers across the channels' branches (stock below zero).
-        const owed = [...new Set(cols.map((c) => c.shopId).filter(Boolean) as string[])]
+        const owed = [...new Set([...cols, ...stores].map((c) => c.shopId).filter(Boolean) as string[])]
           .reduce((t, shopId) => t + owedUnits(Number(stocks.find((s) => s.shopId === shopId && (s.variantId ?? null) === variantId)?.stock ?? 0)), 0);
         const backorder = backorderRule(p, { backorder: variantBackorder }).enabled === true;
         return { variantId, label, sku, price, cells, nafaaStock, scaled, backorder, owed };
       };
       const rows = p.hasVariants && p.variants.length
-        ? p.variants.map((v) => rowOf(v.id, v.name, v.sku, Number(v.price ?? p.price), v.backorder))
+        ? p.variants.map((v) => rowOf(v.id, v.name, v.sku, Number(v.price ?? p.price), v.backorder, { price: Number(v.price) || Number(p.price), stock: Number(v.stock ?? 0) }))
         : [rowOf(null, null, p.sku, Number(p.price))];
       // A product with sizes linked without a size: shown as a problem to fix.
       const sizeLess: Record<string, string> = {};
@@ -569,15 +713,17 @@ export class OnlineProductsService implements OnModuleInit {
       };
     });
 
-    return { channels: cols.map((c) => this.info(c, shops)), items, total, page, pages: Math.ceil(total / limit), limit };
+    return { channels: [...cols.map((c) => this.info(c, shops)), ...stores.map((s) => this.storeInfo(s, shops))], items, total, page, pages: Math.ceil(total / limit), limit };
   }
 
   async summary(user: AuthenticatedUser, channelId?: string, scope?: GridScope) {
-    const all = await this.cols(user.tenantId);
+    const [all, allStores] = await Promise.all([this.cols(user.tenantId), this.storeCols(user.tenantId)]);
     const cols = channelId ? all.filter((c) => c.integration.id === channelId) : all;
-    if (!cols.length) return { all: 0, linked: 0, unlinked: 0, errors: 0, price: 0, out: 0, unlisted: 0, backorder: 0, hold: 0, untracked: 0 };
+    const stores = channelId ? allStores.filter((c) => c.integration.id === channelId) : allStores;
+    if (!cols.length && !stores.length) return { all: 0, linked: 0, unlinked: 0, errors: 0, price: 0, out: 0, unlisted: 0, backorder: 0, hold: 0, untracked: 0 };
     const base: Prisma.ProductWhereInput = { tenantId: user.tenantId, isActive: true, ...this.scopeWhere(scope) };
-    const count = (f: GridFilter) => this.prisma.product.count({ where: { AND: [base, this.filterWhere(f, cols)] } });
+    const hidden = stores.length ? await this.storeHiddenWhere(stores) : [];
+    const count = (f: GridFilter) => this.prisma.product.count({ where: { AND: [base, this.filterWhere(f, cols, stores, hidden)] } });
     const [allN, linked, unlinked, errors, out, unlisted, price, backorder] = await Promise.all([
       count('all'), count('linked'), count('unlinked'), count('errors'), count('out'), count('unlisted'),
       this.priceDiffIds(cols).then(async (ids) => (ids.size ? this.prisma.product.count({ where: { ...base, id: { in: [...ids] } } }) : 0)),
@@ -1103,12 +1249,13 @@ export class OnlineProductsService implements OnModuleInit {
   /** Product ids picked on the grid: the given list, or every product matching the grid's search/filter. */
   async selectionIds(user: AuthenticatedUser, sel: Selection | undefined): Promise<string[]> {
     if (sel?.all) {
-      const all = await this.cols(user.tenantId);
+      const [all, allStores] = await Promise.all([this.cols(user.tenantId), this.storeCols(user.tenantId)]);
       const cols = sel.channelId ? all.filter((c) => c.integration.id === sel.channelId) : all;
-      if (!cols.length) return [];
+      const stores = sel.channelId ? allStores.filter((c) => c.integration.id === sel.channelId) : allStores;
+      if (!cols.length && !stores.length) return [];
       const filter: GridFilter = GRID_FILTERS.includes(sel.filter as GridFilter) ? (sel.filter as GridFilter) : 'all';
       const scope = { categoryId: sel.categoryId || undefined, brandId: sel.brandId || undefined };
-      const rows = await this.prisma.product.findMany({ where: await this.gridWhere(user.tenantId, cols, sel.search, filter, scope), select: { id: true }, orderBy: { id: 'asc' } });
+      const rows = await this.prisma.product.findMany({ where: await this.gridWhere(user.tenantId, cols, sel.search, filter, scope, stores), select: { id: true }, orderBy: { id: 'asc' } });
       return rows.map((r) => r.id);
     }
     const ids = [...new Set((sel?.productIds ?? []).map(String))];

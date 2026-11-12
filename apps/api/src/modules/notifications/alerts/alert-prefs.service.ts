@@ -9,7 +9,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AuthenticatedUser } from '../../auth/interfaces/jwt-payload.interface';
 import { ALERT_SOUNDS } from './alert-catalog';
-import { DIGEST_CHOICES, normalizePrefs, prefsView, sanitizePrefsInput, type AlertPerson, type AlertPrefs } from './alert-rules';
+import { DIGEST_CHOICES, ONLINE_RING_CHOICES, normalizePrefs, storedEvents, prefsView, sanitizePrefsInput, type AlertPerson, type AlertPrefs } from './alert-rules';
 
 @Injectable()
 export class AlertPrefsService {
@@ -36,6 +36,7 @@ export class AlertPrefsService {
       events: prefsView(p, p.prefs),
       sounds: ALERT_SOUNDS,
       digestChoices: DIGEST_CHOICES,
+      onlineRingChoices: ONLINE_RING_CHOICES,
     };
   }
 
@@ -46,7 +47,8 @@ export class AlertPrefsService {
   async update(user: AuthenticatedUser, body: unknown) {
     const p = await this.person(user);
     const next = sanitizePrefsInput(body, p.prefs);
-    const data = { ...next, events: next.events as Prisma.InputJsonValue };
+    const { onlineOrderPopup: _popup, onlineOrderRing: _ring, ...columns } = next;
+    const data = { ...columns, events: storedEvents(next) as Prisma.InputJsonValue };
     await this.prisma.userNotificationPref.upsert({
       where: { userId: user.id },
       create: { userId: user.id, tenantId: user.tenantId, ...data },

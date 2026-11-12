@@ -14,7 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
   ArrowLeft, ArrowRight, Banknote, Brush, Check, CheckCircle2, CreditCard, ExternalLink, Image as ImageIcon, Loader2, MapPin, PackageCheck,
-  Palette, PartyPopper, Rocket, Store, Truck, Type, Wand2,
+  Languages, Palette, PartyPopper, Rocket, Store, Truck, Type, Wand2,
 } from 'lucide-react';
 import { Button, Card, Input, PageHero, PageShell, Select, Skeleton, Switch } from '@/design-system/components';
 import { useAuthStore } from '@core/stores/auth.store';
@@ -23,12 +23,12 @@ import { cn } from '@core/lib/cn';
 import { apiErrorMessage } from '@integrations/online-orders/api/online-orders.api';
 import { CopyField } from '@integrations/online-orders/components/website/CopyField';
 import { BrandLogo, type BrandName } from '@/assets/brands/BrandLogo';
-import { storesApi, type ShippingSettings, type StoreGateway, type ThemeId, type ThemePreset, type ThemeTokens } from '../api/stores.api';
+import { storesApi, type Lang, type ShippingSettings, type StoreGateway, type ThemeId, type ThemePreset, type ThemeTokens } from '../api/stores.api';
 import { UpgradeCard, slugify } from '../components/StoreGate';
 import { ImageField } from '../components/ImageField';
 import { ColorInput } from '../components/SettingsForm';
 import { PreviewPane, type PreviewHandle } from '../components/theme/PreviewPane';
-import { SK, pickStore, storeLink, useCurrentStore, useThemeSchema } from '../lib/hooks';
+import { SK, pickStore, storeLink, useCurrentStore, useStoreFull, useThemeSchema } from '../lib/hooks';
 import { logoColors } from '../lib/logoColors';
 import { newId } from '../lib/sections';
 import { ALL_CITIES } from '../lib/pk-places';
@@ -44,7 +44,9 @@ const STEPS: Array<{ key: StepKey; label: string; icon: typeof Store; skippable:
   { key: 'launch', label: t('Live karein'), icon: Rocket, skippable: false },
 ];
 
-interface Saved { storeId: string | null; step: StepKey; done: StepKey[]; name: string; logoUrl: string | null; themeId: ThemeId | null; finished?: boolean }
+interface Saved { storeId: string | null; step: StepKey; done: StepKey[]; name: string; logoUrl: string | null; themeId: ThemeId | null; finished?: boolean; urdu?: boolean }
+/** Website languages from the wizard's choice (unset = leave the store's setting as it is). */
+const languagesOf = (urdu: boolean) => ({ default: 'en' as const, enabled: urdu ? (['en', 'ur'] as Lang[]) : (['en'] as Lang[]) });
 const KEY = 'nafaa.website.setup';
 const read = (): Partial<Saved> => { try { return JSON.parse(localStorage.getItem(KEY) ?? '{}'); } catch { return {}; } };
 const write = (s: Saved) => { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* private mode */ } };
@@ -81,6 +83,7 @@ export default function SetupWizardPage() {
     logoUrl: saved.current.logoUrl ?? null,
     themeId: saved.current.themeId ?? null,
     finished: saved.current.finished,
+    urdu: saved.current.urdu,
   }));
   const [busy, setBusy] = useState(false);
   const preview = useRef<PreviewHandle>(null);
@@ -175,7 +178,7 @@ export default function SetupWizardPage() {
                   <Button size="lg" loading={busy} disabled={step.key === 'name' && !state.name.trim()}
                     onClick={() => void run(async () => {
                       if (step.key === 'name' && storeId) {
-                        await storesApi.update(storeId, { name: state.name.trim(), settings: { logoUrl: state.logoUrl } });
+                        await storesApi.update(storeId, { name: state.name.trim(), settings: { logoUrl: state.logoUrl, ...(state.urdu !== undefined && { languages: languagesOf(state.urdu) }) } });
                         afterSave();
                       }
                       if (step.key === 'theme') {
@@ -183,7 +186,7 @@ export default function SetupWizardPage() {
                           const base = slugify(state.name) || 'store';
                           const chk = await storesApi.checkSlug(base);
                           const created = await storesApi.create({ name: state.name.trim(), slug: chk.available ? chk.slug : chk.suggestion ?? undefined, themeId: state.themeId ?? undefined });
-                          if (state.logoUrl) await storesApi.update(created.id, { settings: { logoUrl: state.logoUrl } });
+                          if (state.logoUrl || state.urdu) await storesApi.update(created.id, { settings: { ...(state.logoUrl ? { logoUrl: state.logoUrl } : {}), ...(state.urdu !== undefined && { languages: languagesOf(state.urdu) }) } });
                           pickStore(created.id);
                           setState((s) => ({ ...s, storeId: created.id }));
                           await qc.invalidateQueries({ queryKey: SK.list });
@@ -271,6 +274,22 @@ function NameStep({ state, setState, rootDomain, hasStore }: { state: Saved; set
         <Big active={textLogo} onClick={() => { setTextLogo(true); setState((s) => ({ ...s, logoUrl: null })); }} icon={Type} title={t('Logo baad me')} text={t('Abhi naam hi logo banega')} />
       </div>
       {!textLogo && <div className="mt-4"><ImageField label={t('Logo')} square value={state.logoUrl} onChange={(url) => setState((s) => ({ ...s, logoUrl: url }))} hint={t('PNG behtar hai, peeche ka rang na ho')} /></div>}
+      <LanguageChoice storeId={hasStore ? state.storeId : null} value={state.urdu} onChange={(urdu) => setState((s) => ({ ...s, urdu }))} />
+    </div>
+  );
+}
+
+/** One small question: English only (default) or English + Urdu with a switch on the website. */
+function LanguageChoice({ storeId, value, onChange }: { storeId: string | null; value: boolean | undefined; onChange: (urdu: boolean) => void }) {
+  const full = useStoreFull(storeId ?? undefined);
+  const urdu = value ?? !!full.data?.settings.languages.enabled.includes('ur');
+  return (
+    <div className="mt-6">
+      <p className="mb-2 text-[0.875rem] font-semibold text-slate-900">{t('Website ki zubaan')}</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Big active={!urdu} onClick={() => onChange(false)} icon={Type} title={t('Sirf English')} text={t('Zyada tar log yahi chunte hain')} badge={t('Behtar')} />
+        <Big active={urdu} onClick={() => onChange(true)} icon={Languages} title={t('English + Urdu')} text={t('Customer upar se zubaan badal sakega')} />
+      </div>
     </div>
   );
 }

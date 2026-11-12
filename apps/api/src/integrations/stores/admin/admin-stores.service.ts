@@ -12,7 +12,9 @@ import { StoreRevalidateService } from '../store-revalidate.service';
 import { StoreThemeService } from '../store-theme.service';
 import { loadControls, mergeControls, saveControls } from '../store-controls';
 import { readCheckout } from '../store-settings';
+import { themeImportSummary } from '../store-theme-import.service';
 import { rootDomain, storefrontUrl, subdomainHost } from '../lib/host';
+import { REMOVED_BY_NAFAA, isRemovedByNafaa } from '../lib/hosting';
 
 const CLOSED = ['CANCELLED', 'REJECTED'];
 const REPORT_STATUSES = ['OPEN', 'REVIEWING', 'ACTIONED', 'DISMISSED'];
@@ -164,6 +166,7 @@ export class AdminStoresService {
       recentOrders: recent.map((o) => ({ id: o.id, orderNumber: String(o.externalOrderNumber ?? o.externalOrderId).replace(/^#+/, ''), total: n(o.total), status: o.orderStatus, receivedAt: o.receivedAt.toISOString() })),
       reports: reports.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() })),
       impersonate: { tenantId: s.tenantId, path: `/online-store/site?store=${s.id}` },
+      lastThemeImport: themeImportSummary(s.migration),
     };
   }
 
@@ -227,10 +230,15 @@ export class AdminStoresService {
     return this.domains.present(out);
   }
 
-  /** Domains monitor "Retry": re-adds the host on Vercel when it is missing there, then verifies. No-op without the Vercel env. */
+  /**
+   * Domains monitor "Retry": re-adds the host on Vercel when it is missing
+   * there, then verifies. The only path that brings back a domain removed by
+   * Nafaa (the mark is cleared here). No-op without the Vercel env.
+   */
   async retryDomain(domainId: string) {
-    const d = await this.domain(null, domainId);
+    let d = await this.domain(null, domainId);
     if (!vercelReady()) return this.domains.present(d);
+    if (isRemovedByNafaa(d)) d = await this.prisma.storeDomain.update({ where: { id: d.id }, data: { status: 'PENDING', error: null } });
     try {
       await this.domains.ensureAttached(d);
     } catch (e: any) {
@@ -244,9 +252,14 @@ export class AdminStoresService {
   async removeFromVercel(storeId: string, domainId: string) {
     const d = await this.domain(storeId, domainId);
     if (vercelReady()) await this.domains.detach(d.hostname);
-    await this.prisma.storeDomain.update({ where: { id: d.id }, data: { status: 'ERROR', error: 'Removed by Nafaa', isPrimary: false, lastCheckedAt: new Date() } });
+    await this.prisma.storeDomain.update({ where: { id: d.id }, data: { status: 'ERROR', error: REMOVED_BY_NAFAA, isPrimary: false, lastCheckedAt: new Date() } });
     this.access.invalidate(d.storeId);
     return { ok: true };
+  }
+
+  /** One-time action: attaches the free `<slug>.<root>` address of every store to the storefront project. */
+  async attachAllSubdomains() {
+    return this.domains.attachAllSubdomains();
   }
 
   async domainsList(q: { status?: string; search?: string; page?: string }) {

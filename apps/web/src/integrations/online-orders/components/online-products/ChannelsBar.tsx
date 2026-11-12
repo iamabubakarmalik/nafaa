@@ -5,16 +5,17 @@
  * channel's work: bring in all, link sure matches, price and stock rules,
  * content settings, sync now, undo an import's stock damage, bring back
  * channel prices Nafaa overwrote, pause or resume,
- * and its own page.
+ * and its own page. A Nafaa website has none of that work (every product is
+ * on it, price and stock come from Nafaa): its menu only opens the website.
  */
 
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BadgeDollarSign, Download, ExternalLink, FileText, History, Link2, MoreHorizontal, Pause, Play, RefreshCw, Settings2 } from 'lucide-react';
+import { BadgeDollarSign, Download, ExternalLink, FileText, History, LayoutTemplate, Link2, MoreHorizontal, Pause, Play, RefreshCw, Settings2 } from 'lucide-react';
 import { Menu, MenuItem, MenuLabel, MenuSeparator } from '@/design-system/components';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
-import type { OnlineChannel } from '../../api/online-products.api';
+import { isStoreChannel, type OnlineChannel } from '../../api/online-products.api';
 import { ChannelMark, channelName, kindOf, priceText, stockText, WEBSITE_LINKS_NOTE } from './meta';
 
 export type ChannelAction = 'import' | 'link-all' | 'link' | 'rules' | 'content' | 'sync' | 'recover' | 'price-recover' | 'pause' | 'resume';
@@ -68,7 +69,8 @@ function Chip({ c, sellable, on, canManage, busy, onFocus, onAction }: {
   const failed = c.failed ?? 0;
   const off = c.paused || !c.live;
   const pick = (a: ChannelAction) => () => { setOpen(false); onAction(a); };
-  const state = c.paused ? t('Ruka hua') : !c.live ? t('Jura nahi') : null;
+  const store = isStoreChannel(c);
+  const state = c.paused ? t('Ruka hua') : store ? storeState(c.storeStatus) : !c.live ? t('Jura nahi') : null;
   return (
     <div className={cn('flex h-11 shrink-0 items-center rounded-2xl ring-1 transition',
       on ? 'bg-brand-50 ring-2 ring-brand-500' : 'bg-white ring-slate-200/80 hover:ring-slate-300', off && !on && 'bg-slate-50')}>
@@ -77,8 +79,10 @@ function Chip({ c, sellable, on, canManage, busy, onFocus, onAction }: {
         className="flex h-full min-w-0 items-center gap-2 rounded-s-2xl ps-2 pe-1.5">
         <ChannelMark channel={c} size="sm" className={cn(off && 'opacity-50 grayscale')} />
         <span className={cn('max-w-[10rem] truncate text-[0.8125rem] font-semibold', off ? 'text-slate-500' : 'text-slate-800')}>{channelName(c)}</span>
-        <Ring pct={pct} color={kindOf(c).color} />
-        <span className="text-[0.75rem] tabular-nums text-slate-500">{pct}%</span>
+        {!store && <>
+          <Ring pct={pct} color={kindOf(c).color} />
+          <span className="text-[0.75rem] tabular-nums text-slate-500">{pct}%</span>
+        </>}
         {failed > 0 && <span className="rounded-full bg-rose-600 px-1.5 text-[0.6875rem] font-bold tabular-nums text-white" title={t('{{failed}} masle', { failed })}>{failed}</span>}
         {state && <span className="rounded-full bg-slate-200/80 px-1.5 text-[0.6875rem] font-semibold text-slate-600">{state}</span>}
         {busy && <RefreshCw className="h-3.5 w-3.5 animate-spin text-brand-600" />}
@@ -89,6 +93,11 @@ function Chip({ c, sellable, on, canManage, busy, onFocus, onAction }: {
       </button>
       <Menu open={open} onClose={() => setOpen(false)} anchorRef={ref} width="w-72" label={channelName(c)}>
         <MenuLabel>{channelName(c)}</MenuLabel>
+        {store ? <>
+          <p className="px-2.5 pb-1.5 text-[0.75rem] text-slate-500">{t('Har product website par hai — Price aur Stock Nafaa se aate hain. Yahan sirf dikhana ya chhupana.')}</p>
+          <MenuItem icon={<LayoutTemplate />} onClick={() => { setOpen(false); navigate(`/online-store/site/products?store=${c.storeId ?? ''}`); }}>{t('Website ke products')}</MenuItem>
+          <MenuItem icon={<ExternalLink />} onClick={() => { setOpen(false); navigate(`/online-store/site?store=${c.storeId ?? ''}`); }}>{t('Website ka safha')}</MenuItem>
+        </> : <>
         {!c.canFetch && <p className="px-2.5 pb-1.5 text-[0.75rem] text-slate-500">{WEBSITE_LINKS_NOTE}</p>}
         {canManage && c.canFetch && <>
           <MenuItem icon={<Link2 />} onClick={pick('link')}>{t('Products jorein')}</MenuItem>
@@ -114,7 +123,19 @@ function Chip({ c, sellable, on, canManage, busy, onFocus, onAction }: {
           ? <MenuItem icon={<Play />} onClick={pick('resume')}>{t('Dobara chalayein')}</MenuItem>
           : <MenuItem icon={<Pause />} onClick={pick('pause')}>{t('Rok dein (pause)')}</MenuItem>)}
         <MenuItem icon={<ExternalLink />} onClick={() => { setOpen(false); navigate(`/online-store/channels/${c.id}`); }}>{t('Channel ka safha')}</MenuItem>
+        </>}
       </Menu>
     </div>
   );
+}
+
+/** Short state of a Nafaa website that is not live. */
+function storeState(status?: string): string | null {
+  switch (status) {
+    case 'DRAFT': return t('Draft');
+    case 'PASSWORD': return t('Password');
+    case 'CLOSED': return t('Band');
+    case 'SUSPENDED': return t('Ruki hui');
+    default: return null;
+  }
 }

@@ -35,6 +35,13 @@ const LABEL: Record<MigrateKey, string> = {
 export interface Step { key: MigrateKey; status: 'waiting' | 'running' | 'done' | 'skipped' | 'failed'; imported: number; skipped: number; note: string | null }
 export interface Run { id: string; status: 'RUNNING' | 'DONE' | 'FAILED'; channelId: string; startedAt: string; finishedAt: string | null; steps: Step[] }
 
+/** The stored Shopify run (the JSON may also hold only a theme import report). */
+const runOf = (m: unknown): Run | null => {
+  if (!m || typeof m !== 'object' || !Array.isArray((m as Run).steps)) return null;
+  const { themeImport: _ti, ...run } = m as Run & { themeImport?: unknown };
+  return run as Run;
+};
+
 const has = (granted: string[], need: string[] = []) => need.every((s) => granted.includes(s) || granted.includes(s.replace('read_', 'write_')));
 
 @Injectable()
@@ -73,13 +80,13 @@ export class StoreShopifyImportService {
           count: k === 'products' ? products : null,
         };
       }),
-      lastRun: (ctx.store.migration as unknown as Run) ?? null,
+      lastRun: runOf(ctx.store.migration),
     };
   }
 
   async status(user: AuthenticatedUser, id: string) {
     const ctx = await this.access.requireStore(user, id);
-    return { run: (ctx.store.migration as unknown as Run) ?? null };
+    return { run: runOf(ctx.store.migration) };
   }
 
   async start(user: AuthenticatedUser, id: string, body: { channelId?: string; include?: string[] }) {
@@ -99,8 +106,11 @@ export class StoreShopifyImportService {
     return { run };
   }
 
-  private save(storeId: string, run: Run) {
-    return this.prisma.nafaaStore.update({ where: { id: storeId }, data: { migration: run as unknown as Prisma.InputJsonValue } });
+  private async save(storeId: string, run: Run) {
+    // The same JSON also keeps the last theme file import (store-theme-import.service).
+    const prev = await this.prisma.nafaaStore.findUnique({ where: { id: storeId }, select: { migration: true } });
+    const themeImport = (prev?.migration as { themeImport?: unknown } | null)?.themeImport;
+    return this.prisma.nafaaStore.update({ where: { id: storeId }, data: { migration: { ...run, ...(themeImport ? { themeImport } : {}) } as unknown as Prisma.InputJsonValue } });
   }
 
   private async execute(ctx: StoreCtx, channel: Integration, client: ShopifyClient, run: Run, user: AuthenticatedUser) {

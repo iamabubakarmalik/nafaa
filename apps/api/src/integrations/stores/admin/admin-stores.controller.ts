@@ -24,6 +24,7 @@ export class AdminStoresController {
   // Fixed paths first, so `:id` never takes them.
   @Get('overview') overview(@Query('days') days?: string) { return this.svc.overview(days); }
   @Get('domains') domains(@Query() q: any) { return this.svc.domainsList(q ?? {}); }
+  @Post('subdomains/attach-all') @HttpCode(200) attachAllSubdomains() { return this.svc.attachAllSubdomains(); }
   @Post('domains/:domainId/retry') @HttpCode(200) retry(@Param('domainId') d: string) { return this.svc.retryDomain(d); }
   @Get('controls') controls() { return this.svc.controls(); }
   @Put('controls') saveControls(@Body() b: unknown) { return this.svc.saveControls(b ?? {}); }

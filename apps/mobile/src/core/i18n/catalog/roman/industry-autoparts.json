@@ -8,6 +8,7 @@
   "Band karein": "Close",
   "Cancel karein": "Cancel",
   "Chunein": "Select",
+  "Date": "Tareekh",
   "Gaari badlein — {{registrationNumber}}": "Edit gaari — {{registrationNumber}}",
   "Gaari ki type": "Gaari ki type",
   "Hatayein": "Delete",
@@ -26,6 +27,8 @@
   "Nayi company": "New company",
   "Nayi gaari": "New gaari",
   "Nayi gaari darj karein": "Add nayi gaari",
+  "Normal": "Aam",
   "Part jorein": "Add part",
+  "Quality": "Maiyaar",
   "Tajurba (saal)": "Experience (saal)"
 }

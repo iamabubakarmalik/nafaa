@@ -120,6 +120,8 @@ export function WebsiteScreen() {
                   onChange={(v) => guard(() => settings.mutate({ whatsappButton: { ...f.settings.whatsappButton, enabled: v } }))()} />
                 <Switch label={t('Khatam stock wale bhi dikhayein ("Sold out")')} value={f.settings.showOutOfStock}
                   onChange={(v) => guard(() => settings.mutate({ showOutOfStock: v }))()} />
+                <Switch label={t('Website par Urdu bhi (English hamesha)')} value={!!f.settings.languages?.enabled.includes('ur')}
+                  onChange={(v) => guard(() => settings.mutate({ languages: { default: 'en', enabled: v ? ['en', 'ur'] : ['en'] } }))()} />
                 <Button variant="secondary" icon={PackageCheck} loading={inStock.isPending} onPress={guard(() => inStock.mutate())} style={{ marginTop: th.space(2) }}>
                   {t('Sab in-stock dikhayein')}
                 </Button>

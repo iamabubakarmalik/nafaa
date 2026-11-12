@@ -102,6 +102,8 @@ export type AlertEvent =
   | 'sale' | 'bigDiscount' | 'voidRefund' | 'expense' | 'purchase' | 'lowStock' | 'khataPayment'
   | 'onlineOrder' | 'register' | 'lateCheckIn' | 'booking' | 'dailySummary' | 'account';
 export type AlertSound = 'chime' | 'cash' | 'bell' | 'alert' | 'silent';
+/** How the web app rings for a new online order. */
+export type OnlineOrderRing = 'once' | 'repeat' | 'off';
 export interface AlertEventPref { event: AlertEvent; inApp: boolean; push: boolean; default: { inApp: boolean; push: boolean } }
 
 /** The signed-in person's own choices, shared with the mobile app. */
@@ -117,6 +119,9 @@ export interface AlertPrefs {
   discountPercent: number;
   ownActionsInApp: boolean;
   ownActionsPush: boolean;
+  /** Pop-up card on the web for a new online order (older servers leave it out). */
+  onlineOrderPopup?: boolean;
+  onlineOrderRing?: OnlineOrderRing;
   sounds: AlertSound[];
   digestChoices: number[];
 }

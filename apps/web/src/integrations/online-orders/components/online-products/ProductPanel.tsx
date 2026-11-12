@@ -7,6 +7,8 @@
  * the channel yet, the last push with retry, and a link to it on the channel.
  * A held link (Nafaa and channel stock differ) shows both numbers and the
  * two ways to settle it; a held price (changed on the channel) the same.
+ * A Nafaa website section shows its price and stock (from Nafaa, read-only)
+ * and the "show on website" switch.
  * Below: the product's sync history, and "make it on the website too" where
  * a channel makes only marked products.
  */
@@ -20,12 +22,12 @@ import { Badge, Button, Drawer, Menu, MenuItem, MenuSeparator, Switch, confirmDi
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 import { apiErrorMessage } from '../../api/online-orders.api';
-import { ONLINE_PRODUCTS_KEY, onlineProductsApi, type GridItem, type GridRow, type LinkedCell, type OnlineChannel, type PushContent } from '../../api/online-products.api';
+import { ONLINE_PRODUCTS_KEY, isStoreCell, isStoreChannel, onlineProductsApi, type GridItem, type GridRow, type LinkedCell, type OnlineChannel, type PushContent } from '../../api/online-products.api';
 import { timeAgo } from '../../lib/labels';
 import { JOBS_KEY } from './ActivityDrawer';
 import { InlineEdit } from './InlineEdit';
 import { ChannelMark, channelName, channelProductUrl, kindOf, lastPushText, priceText, refreshOnlineProducts, rs, stockSplit, stockText, WEBSITE_LINKS_NOTE } from './meta';
-import { Dot, Thumb, UntrackedTag, dotOf, notCounted } from './ProductsGrid';
+import { Dot, Thumb, UntrackedTag, dotOf, notCounted, storeDot } from './ProductsGrid';
 import { causeInfo, isNafaaText, syncCause } from './syncErrors';
 import { BackorderSettings } from './BackorderSettings';
 import { HoldActions, holdNumbers, holdReasonText } from './StockHold';
@@ -104,8 +106,9 @@ export function ProductPanel({ item: seed, cols: seedCols, focusChannel, canMana
           <p className="mb-2 text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{t('Stock khatam hone par')}</p>
           <BackorderSettings productId={item.productId} canManage={canManage} compact />
         </section>
-        {ordered.map((c) => (
-          <ChannelSection key={c.id} c={c} item={item} sized={sized} canManage={canManage} focused={c.id === focusChannel} onLink={onLink} onDone={done} />
+        {ordered.map((c) => (isStoreChannel(c)
+          ? <StoreSection key={c.id} c={c} item={item} sized={sized} canManage={canManage} focused={c.id === focusChannel} />
+          : <ChannelSection key={c.id} c={c} item={item} sized={sized} canManage={canManage} focused={c.id === focusChannel} onLink={onLink} onDone={done} />
         ))}
         <SyncHistory productId={item.productId} channels={cols} />
       </div>
@@ -161,6 +164,61 @@ function SplitRow({ row, cols, label }: { row: GridRow; cols: OnlineChannel[]; l
         </div>
       ))}
     </div>
+  );
+}
+
+/* ─── The Nafaa website ─── */
+
+function StoreSection({ c, item, sized, canManage, focused }: { c: OnlineChannel; item: GridItem; sized: boolean; canManage: boolean; focused: boolean }) {
+  const qc = useQueryClient();
+  const rows = item.rows.map((r) => ({ row: r, cell: r.cells[c.id] })).filter((x) => isStoreCell(x.cell));
+  const visible = rows.length ? (rows[0].cell as { visible: boolean }).visible : false;
+  const dot = storeDot(c, visible);
+  const toggle = useMutation({
+    mutationFn: (v: boolean) => onlineProductsApi.websiteVisibility(c.id, { selection: { productIds: [item.productId] }, visible: v }),
+    onSuccess: (_r, v) => { refreshOnlineProducts(qc); toast.success(v ? t('{{name}} par dikhega', { name: channelName(c) }) : t('{{name}} se chhup gaya', { name: channelName(c) })); },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+  if (!rows.length) return null;
+  return (
+    <section className={cn('rounded-2xl bg-white ring-1', focused ? 'ring-2 ring-brand-400' : 'ring-slate-200/80')} aria-label={channelName(c)}>
+      <header className="flex items-center gap-2.5 border-b border-slate-100 px-3.5 py-2.5">
+        <ChannelMark channel={c} size="sm" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[0.875rem] font-semibold text-slate-900">{channelName(c)}</p>
+          <p className="truncate text-[0.71875rem] text-slate-500">{priceText(c)} · {stockText(c)}</p>
+        </div>
+        <Badge size="xs" variant={visible ? (c.live ? 'success' : 'warning') : 'default'} dot>{dot.label}</Badge>
+        {c.storeId && <Link to={`/online-store/site/products?store=${c.storeId}`} title={t('Website ke products')} aria-label={t('Website ke products')} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><ExternalLink className="h-4 w-4" /></Link>}
+      </header>
+      <div className="space-y-3 px-3.5 py-3">
+        <ul className={cn('divide-y divide-slate-100', sized && 'rounded-xl ring-1 ring-slate-100')}>
+          {rows.map(({ row, cell }) => {
+            if (!isStoreCell(cell)) return null;
+            return (
+              <li key={row.variantId ?? 'base'} className={cn('flex flex-wrap items-center gap-x-4 gap-y-2', sized ? 'px-2.5 py-2' : 'py-1')}>
+                {sized && <span className="w-20 shrink-0 truncate text-[0.75rem] font-semibold text-slate-800">{row.label}</span>}
+                <span className="flex min-w-[5.5rem] flex-col">
+                  <span className="text-[0.6875rem] text-slate-500">{t('Price')}</span>
+                  <span className="text-[0.8125rem] font-semibold tabular-nums text-slate-900">
+                    {rs(cell.price)}{cell.compareAtPrice ? <s className="ms-1.5 font-normal text-slate-400">{rs(cell.compareAtPrice)}</s> : null}
+                  </span>
+                </span>
+                <span className="flex min-w-[5.5rem] flex-col">
+                  <span className="text-[0.6875rem] text-slate-500">{t('Stock')}</span>
+                  <span className={cn('text-[0.8125rem] font-semibold tabular-nums', cell.stock <= 0 && !cell.backorderOn ? 'text-rose-600' : 'text-slate-900')}>{cell.stock}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="me-auto text-[0.75rem] text-slate-500">{t('Price aur Stock Nafaa se aate hain — product me badlein.')}</p>
+          <Switch size="sm" checked={visible} disabled={!canManage || toggle.isPending} onChange={(e) => toggle.mutate(e.target.checked)}
+            aria-label={t('Website par dikhayein')} label={<span className="text-[0.75rem] text-slate-600">{t('Website par dikhayein')}</span>} className="gap-2" />
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -243,7 +301,7 @@ function ChannelSection({ c, item, sized, canManage, focused, onLink, onDone }: 
               return (
                 <li key={row.variantId ?? 'base'} className={cn('flex flex-wrap items-center gap-x-3 gap-y-2', sized ? 'px-2.5 py-2' : 'py-1')}>
                   {sized && <span className="w-20 shrink-0 truncate text-[0.75rem] font-semibold text-slate-800">{row.label}</span>}
-                  {cell.linked ? <LinkedRow c={c} cell={cell} canManage={canManage} item={item} row={row} onLink={onLink} onDone={onDone} sized={sized} />
+                  {cell.linked && !isStoreCell(cell) ? <LinkedRow c={c} cell={cell} canManage={canManage} item={item} row={row} onLink={onLink} onDone={onDone} sized={sized} />
                     : (
                       <span className="flex flex-1 items-center justify-between gap-2 text-[0.8125rem] text-slate-500">
                         <span>{t('Jura nahi')}{cell.stock !== null ? ` · ${t('Stock {{qty}}', { qty: cell.stock })}` : ''}</span>

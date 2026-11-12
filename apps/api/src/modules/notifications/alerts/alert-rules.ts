@@ -13,6 +13,11 @@ import {
 
 export const DIGEST_CHOICES = [0, 5, 15, 30, 60] as const;
 
+/** How the web app rings for a new online order: once, a few times until seen, or not at all. */
+export const ONLINE_RING_CHOICES = ['once', 'repeat', 'off'] as const;
+export type OnlineOrderRing = (typeof ONLINE_RING_CHOICES)[number];
+const isOnlineRing = (v: unknown): v is OnlineOrderRing => typeof v === 'string' && (ONLINE_RING_CHOICES as readonly string[]).includes(v);
+
 export interface AlertPrefs {
   events: Partial<Record<AlertEvent, Partial<ChannelSwitch>>>;
   sound: AlertSound;
@@ -25,6 +30,10 @@ export interface AlertPrefs {
   discountPercent: number;
   ownActionsInApp: boolean;
   ownActionsPush: boolean;
+  /** Web pop-up card for a new online order. Stored inside events.onlineOrder (no extra column). */
+  onlineOrderPopup: boolean;
+  /** Web ring for a new online order. Stored inside events.onlineOrder (no extra column). */
+  onlineOrderRing: OnlineOrderRing;
 }
 
 export const DEFAULT_PREFS: AlertPrefs = {
@@ -39,6 +48,8 @@ export const DEFAULT_PREFS: AlertPrefs = {
   discountPercent: 20,
   ownActionsInApp: true,
   ownActionsPush: false,
+  onlineOrderPopup: true,
+  onlineOrderRing: 'once',
 };
 
 export interface AlertPerson {
@@ -64,6 +75,9 @@ export function normalizePrefs(row: Partial<Record<keyof AlertPrefs, unknown>> |
     events[key] = entry;
   }
   const num = (v: unknown, fallback: number) => (typeof v === 'number' && Number.isFinite(v) ? v : fallback);
+  const online = raw.onlineOrder && typeof raw.onlineOrder === 'object' ? (raw.onlineOrder as Record<string, unknown>) : {};
+  const popupIn = 'onlineOrderPopup' in row ? row.onlineOrderPopup : online.popup;
+  const ringIn = 'onlineOrderRing' in row ? row.onlineOrderRing : online.ring;
   return {
     events,
     sound: isAlertSound(row.sound) ? row.sound : DEFAULT_PREFS.sound,
@@ -76,6 +90,16 @@ export function normalizePrefs(row: Partial<Record<keyof AlertPrefs, unknown>> |
     discountPercent: Math.min(100, Math.max(1, Math.round(num(row.discountPercent, 20)))),
     ownActionsInApp: typeof row.ownActionsInApp === 'boolean' ? row.ownActionsInApp : DEFAULT_PREFS.ownActionsInApp,
     ownActionsPush: typeof row.ownActionsPush === 'boolean' ? row.ownActionsPush : DEFAULT_PREFS.ownActionsPush,
+    onlineOrderPopup: typeof popupIn === 'boolean' ? popupIn : DEFAULT_PREFS.onlineOrderPopup,
+    onlineOrderRing: isOnlineRing(ringIn) ? ringIn : DEFAULT_PREFS.onlineOrderRing,
+  };
+}
+
+/** The events JSON to store: the per-event switches plus the online order pop-up and ring. */
+export function storedEvents(prefs: AlertPrefs): Record<string, unknown> {
+  return {
+    ...prefs.events,
+    onlineOrder: { ...(prefs.events.onlineOrder ?? {}), popup: prefs.onlineOrderPopup, ring: prefs.onlineOrderRing },
   };
 }
 
@@ -83,7 +107,7 @@ export function normalizePrefs(row: Partial<Record<keyof AlertPrefs, unknown>> |
 export function sanitizePrefsInput(body: unknown, current: AlertPrefs): AlertPrefs {
   const src = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
   const merged: Record<string, unknown> = { ...current };
-  for (const key of ['sound', 'vibrate', 'quietHours', 'quietStart', 'quietEnd', 'saleMinAmount', 'saleDigestMinutes', 'discountPercent', 'ownActionsInApp', 'ownActionsPush'] as const) {
+  for (const key of ['sound', 'vibrate', 'quietHours', 'quietStart', 'quietEnd', 'saleMinAmount', 'saleDigestMinutes', 'discountPercent', 'ownActionsInApp', 'ownActionsPush', 'onlineOrderPopup', 'onlineOrderRing'] as const) {
     if (key in src) merged[key] = src[key];
   }
   const events: Record<string, unknown> = { ...current.events };
@@ -95,6 +119,7 @@ export function sanitizePrefsInput(body: unknown, current: AlertPrefs): AlertPre
   merged.events = events;
   const next = normalizePrefs(merged as Partial<Record<keyof AlertPrefs, unknown>>);
   // An invalid value keeps what was there, not the default.
+  if ('onlineOrderRing' in src && !isOnlineRing(src.onlineOrderRing)) next.onlineOrderRing = current.onlineOrderRing;
   if ('saleDigestMinutes' in src && !(DIGEST_CHOICES as readonly number[]).includes(src.saleDigestMinutes as number)) next.saleDigestMinutes = current.saleDigestMinutes;
   return next;
 }

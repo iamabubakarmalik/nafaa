@@ -108,13 +108,22 @@ function Domains({ ctx }: { ctx: StoreCtx }) {
       ) : (
         <>
           <Card title={t('Muft address')} description={t('Ye hamesha chalta hai. Apna domain lagane par ye us par bhej deta hai.')}
-            actions={!main && <Badge variant="success" size="sm"><Star className="me-1 h-3 w-3" />{t('Asal address')}</Badge>}>
+            actions={(!main || data.subdomain.status) && (
+              <span className="flex flex-wrap items-center gap-2">
+                {data.subdomain.status === 'ACTIVE' && <Badge variant="success" size="sm"><CheckCircle2 className="me-1 h-3 w-3" />{t('Chal raha hai')}</Badge>}
+                {data.subdomain.status === 'PENDING' && <Badge variant="warning" size="sm"><Clock className="me-1 h-3 w-3" />{t('Tayyar ho raha hai')}</Badge>}
+                {!main && <Badge variant="success" size="sm"><Star className="me-1 h-3 w-3" />{t('Asal address')}</Badge>}
+              </span>
+            )}>
             <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
               <CopyField label={t('Website ka muft address')} value={data.subdomain.url} />
               <a href={data.subdomain.url} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl px-3 text-[0.8125rem] font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-50">
                 <Globe className="h-4 w-4" />{t('Kholein')}
               </a>
             </div>
+            {data.subdomain.status === 'PENDING' && (
+              <p className="mt-2 text-[0.75rem] text-slate-500">{t('Naya address tayyar ho raha hai. Is me kuch minute se kuch ghante lag sakte hain, ye khud chal jayega.')}</p>
+            )}
           </Card>
 
           <Card title={t('Apna domain jorein')} description={t('Domain kisi bhi company se lein (PKNIC, GoDaddy, Namecheap, Hostinger) aur yahan likhein. Hum batayenge kya karna hai.')}>
@@ -175,6 +184,7 @@ function DomainCard({ d, checking, onVerify, onPrimary, primaryBusy, onRemove }:
   d: StoreDomain; checking: boolean; onVerify: () => void; onPrimary: () => void; primaryBusy: boolean; onRemove: () => void;
 }) {
   const st = STATUS[d.status] ?? STATUS.PENDING;
+  const removed = d.removedByNafaa === true;
   const copy = (v: string) => navigator.clipboard?.writeText(v).then(() => toast.success(t('Copy ho gaya')));
   return (
     <Card>
@@ -187,13 +197,17 @@ function DomainCard({ d, checking, onVerify, onPrimary, primaryBusy, onRemove }:
         {d.sslReady && <Badge variant="success" size="sm"><Lock className="me-1 h-3 w-3" />SSL</Badge>}
       </div>
 
-      {d.error && (
+      {removed ? (
+        <p className="mt-3 flex items-start gap-2 rounded-xl bg-rose-50 p-3 text-[0.8125rem] text-rose-800">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{t('Nafaa team ne ye domain website se hata diya hai. Wapis lagwane ke liye Nafaa team se rabta karein.')}
+        </p>
+      ) : d.error && (
         <p className="mt-3 flex items-start gap-2 rounded-xl bg-rose-50 p-3 text-[0.8125rem] text-rose-800">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />{d.error}
         </p>
       )}
 
-      {d.status !== 'ACTIVE' && !d.redirectTo && d.records.length > 0 && (
+      {!removed && d.status !== 'ACTIVE' && !d.redirectTo && d.records.length > 0 && (
         <div className="mt-4 rounded-xl bg-slate-50 p-3.5 ring-1 ring-slate-200/70">
           <p className="text-[0.875rem] text-slate-700">
             {t('Jahan se domain liya (GoDaddy, PKNIC, Namecheap...) wahan {{n}} cheez(ein) likhni hain. Phir ye page khud check karta rahega.', { n: d.records.length })}
@@ -230,8 +244,8 @@ function DomainCard({ d, checking, onVerify, onPrimary, primaryBusy, onRemove }:
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        {d.status !== 'ACTIVE' && <Button size="sm" variant="secondary" loading={checking} onClick={onVerify} leftIcon={<RefreshCw className="h-4 w-4" />}>{t('Abhi check karein')}</Button>}
-        {d.status === 'ACTIVE' && !d.isPrimary && !d.redirectTo && <Button size="sm" loading={primaryBusy} onClick={onPrimary} leftIcon={<Star className="h-4 w-4" />}>{t('Asal address banayein')}</Button>}
+        {d.status !== 'ACTIVE' && !removed && <Button size="sm" variant="secondary" loading={checking} onClick={onVerify} leftIcon={<RefreshCw className="h-4 w-4" />}>{t('Abhi check karein')}</Button>}
+        {d.status === 'ACTIVE' && !removed && !d.isPrimary && !d.redirectTo && <Button size="sm" loading={primaryBusy} onClick={onPrimary} leftIcon={<Star className="h-4 w-4" />}>{t('Asal address banayein')}</Button>}
         <span className="flex-1" />
         {d.lastCheckedAt && <span className="text-[0.75rem] text-slate-400">{t('Aakhri check {{time}}', { time: new Date(d.lastCheckedAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) })}</span>}
         <Button size="sm" variant="ghost" onClick={onRemove} leftIcon={<Trash2 className="h-4 w-4" />} className="text-rose-600">{t('Hatayein')}</Button>

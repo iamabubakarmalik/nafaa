@@ -50,7 +50,8 @@ export default function NotificationsPage() {
   const sound = useNotificationSound();
 
   const [group, setGroup] = useState<Group>('all');
-  const [prefsOpen, setPrefsOpen] = useState(false);
+  // `?prefs=1` opens the choices directly (link from the online order pop-up).
+  const [prefsOpen, setPrefsOpen] = useState(() => new URLSearchParams(window.location.search).get('prefs') === '1');
   const [read, setRead] = useState<ReadFilter>('all');
   const [range, setRange] = useState<DateRangeValue>(ALL_TIME);
   const [search, setSearch] = useState('');

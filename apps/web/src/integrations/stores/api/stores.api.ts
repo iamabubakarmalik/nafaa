@@ -262,8 +262,16 @@ export interface StoreDomain {
   error: string | null;
   lastCheckedAt: string | null;
   sslReady: boolean;
+  /** The Nafaa team took this domain off hosting; only they can bring it back. */
+  removedByNafaa?: boolean;
 }
-export interface DomainsState { ready: boolean; subdomain: { host: string; url: string }; rootDomain: string; domains: StoreDomain[] }
+export interface DomainsState {
+  ready: boolean;
+  /** status: null when domains are not set up on the server (no status shown). */
+  subdomain: { host: string; url: string; status?: 'ACTIVE' | 'PENDING' | null };
+  rootDomain: string;
+  domains: StoreDomain[];
+}
 
 // ─── Shipping, payments ───
 export interface ShippingRate { id: string; name: string; type: 'flat' | 'weight' | 'price'; price: number; min: number | null; max: number | null; freeAbove: number | null; eta: string | null }

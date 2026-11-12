@@ -36,7 +36,7 @@ import {
   WebsiteHomePage, SetupWizardPage, ThemeEditorPage, PagesPage as WebsitePagesPage, ContentEditPage as WebsiteContentEditPage, NavigationPage as WebsiteNavigationPage,
   CollectionsPage as WebsiteCollectionsPage, CollectionEditPage as WebsiteCollectionEditPage, WebsiteProductsPage, DomainsPage as WebsiteDomainsPage,
   CheckoutPage as WebsiteCheckoutPage, ShippingPage as WebsiteShippingPage, PoliciesPage as WebsitePoliciesPage, PreferencesPage as WebsitePreferencesPage,
-  WebsiteAnalyticsPage, ShopifyMovePage,
+  WebsiteAnalyticsPage, ShopifyMovePage, ThemeImportPage,
 } from '@integrations/stores';
 import { CallCenterPage, ConversionPage } from '@integrations/online-orders';
 import { InternationalPage, ProductRadarPage } from '@integrations/online-orders';
@@ -515,6 +515,7 @@ export default function App() {
                   <Route path="/online-store/site" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteHomePage />)} />
                   <Route path="/online-store/site/setup" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <SetupWizardPage />)} />
                   <Route path="/online-store/site/theme" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <ThemeEditorPage />)} />
+                  <Route path="/online-store/site/theme/import" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <ThemeImportPage />)} />
                   <Route path="/online-store/site/pages" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsitePagesPage />)} />
                   <Route path="/online-store/site/pages/:itemId" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteContentEditPage kind="page" />)} />
                   <Route path="/online-store/site/blog/:itemId" element={secure(PERMISSIONS.ONLINE_PRODUCTS_VIEW, <WebsiteContentEditPage kind="post" />)} />
