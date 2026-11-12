@@ -32,7 +32,7 @@ export function UserActions({ user, onChanged }: { user: UserActionTarget; onCha
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const done = () => { qc.invalidateQueries({ queryKey: ['admin'] }); onChanged?.(); };
 
-  const toggle = useMutation({ mutationFn: () => adminUsersApi.toggle(user.id), onSuccess: (u) => { toast.success(u.isActive ? 'Switched on' : 'Switched off'); done(); }, onError: (e) => toast.error(apiError(e)) });
+  const toggle = useMutation({ mutationFn: () => adminUsersApi.toggle(user.id), onSuccess: (u) => { toast.success(u.isActive ? 'User unpaused — can sign in' : 'User paused — cannot sign in'); done(); }, onError: (e) => toast.error(apiError(e)) });
   const signOut = useMutation({ mutationFn: () => adminUsersApi.signOut(user.id), onSuccess: (r) => { toast.success(`Signed out of ${r.ended} device${r.ended === 1 ? '' : 's'}`); done(); }, onError: (e) => toast.error(apiError(e)) });
   const reset = useMutation({ mutationFn: () => adminUsersApi.resetPassword(user.id), onSuccess: (r) => { setTempPassword(r.temporaryPassword); done(); }, onError: (e) => toast.error(apiError(e)) });
   const save = useMutation({
@@ -58,10 +58,13 @@ export function UserActions({ user, onChanged }: { user: UserActionTarget; onCha
           })}>Give a temporary password</MenuItem>
         )}
         <MenuSeparator />
-        <MenuItem icon={<Power className="h-4 w-4" />} tone={user.isActive ? 'danger' : 'default'} onClick={run(async () => {
-          if (user.isActive && !(await confirmDialog({ title: `Switch off ${user.fullName}?`, text: 'They cannot sign in until you switch them on again.', yes: 'Switch off', danger: true }))) return;
-          toggle.mutate();
-        })}>{user.isActive ? 'Switch off' : 'Switch on'}</MenuItem>
+        <MenuItem icon={<Power className="h-4 w-4" />} tone={user.isActive ? 'danger' : 'default'}
+          title={user.isActive ? 'Pause this user: they are signed out and cannot sign in until you unpause them' : 'Unpause this user so they can sign in again'}
+          hint={user.isActive ? 'Cannot sign in' : 'Can sign in again'}
+          onClick={run(async () => {
+            if (user.isActive && !(await confirmDialog({ title: `Pause ${user.fullName}?`, text: 'They cannot sign in until you unpause them. Their sales and records stay. To close the whole shop, use Pause shop on the shop page.', yes: 'Pause user', danger: true }))) return;
+            toggle.mutate();
+          })}>{user.isActive ? 'Pause user (cannot sign in)' : 'Unpause user'}</MenuItem>
       </Menu>
 
       <Modal open={editing} onClose={() => setEditing(false)} title={`Edit ${user.fullName}`}

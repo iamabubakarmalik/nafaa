@@ -15,7 +15,7 @@ import { t } from '@core/i18n';
 import {
   errorText, useAddOnActions, useBillingOverview, useCanManageBilling, useEntitlements, usePricingCatalog,
 } from '../hooks/usePricing';
-import { SERVICE_DETAILS, addOnAllowedOn, addOnPriceText, addOnState, daysLeft, fmtDate, isService, rs, servicePrice, unitText } from '../lib/catalog-meta';
+import { SERVICE_DETAILS, addOnAllowedOn, addOnPriceText, addOnState, fmtDate, fmtDateTime, isService, rs, servicePrice, timeLeftText, unitText } from '../lib/catalog-meta';
 import { AddOnIcon, QuantityStepper, StatePill } from './AddOnParts';
 
 const DAY = 86_400_000;
@@ -89,7 +89,7 @@ export function AddOnSheet({ addOnKey, onClose, startQuantity }: { addOnKey: str
         return;
       }
       toast.success(r.mode === 'resumed' ? t('{{name}} wapas chalu', { name: t(addOn.name) }) : t('{{name}} chalu ho gaya', { name: t(addOn.name) }), {
-        description: r.mode === 'free' && r.freeUntil ? t('{{date}} tak free. Menu me ab nazar aayega.', { date: fmtDate(r.freeUntil) }) : undefined,
+        description: r.mode === 'free' && r.freeUntil ? t('{{date}} tak free. Menu me ab nazar aayega.', { date: fmtDateTime(r.freeUntil) }) : undefined,
       });
       onClose();
     },
@@ -109,7 +109,7 @@ export function AddOnSheet({ addOnKey, onClose, startQuantity }: { addOnKey: str
     turnOff.mutate(addOn.key, {
       onSuccess: (r) => {
         const later = r.endsAt && new Date(r.endsAt).getTime() > Date.now() + 60_000;
-        toast.success(later ? t('{{name}} {{date}} ko band hoga', { name: t(addOn.name), date: fmtDate(r.endsAt) }) : t('{{name}} band ho gaya', { name: t(addOn.name) }));
+        toast.success(later ? t('{{name}} {{date}} ko band hoga', { name: t(addOn.name), date: fmtDateTime(r.endsAt) }) : t('{{name}} band ho gaya', { name: t(addOn.name) }));
         onClose();
       },
       onError: (e) => toast.error(errorText(e, t('Band nahi hua'))),
@@ -228,9 +228,9 @@ function WhatHappens({ mode, freeUntil, estimate, days, periodEnd, planName, one
   if (mode === 'blocked-plan') return box('warn', <Lock className="h-4 w-4" />, t('Ye aap ke plan par nahi milta'), t('Ye add-on {{plan}} plan par nahi milta. Bara plan chunein.', { plan: planName }));
   if (mode === 'free') {
     return box('ok', <Sparkles className="h-4 w-4" />, grandfathered ? t('Abhi free') : t('Trial me free'),
-      t('Abhi chalu ho jayega aur {{date}} tak free hai ({{days}} din). Us ke baad plan ke saath is ka bill aayega — ya kabhi bhi hata dein.', { date: fmtDate(freeUntil), days: daysLeft(freeUntil) }));
+      t('Abhi chalu ho jayega aur {{date}} tak free hai ({{left}}). Us ke baad plan ke saath is ka bill aayega — ya kabhi bhi hata dein.', { date: fmtDateTime(freeUntil), left: timeLeftText(freeUntil) }));
   }
   if (oneTime) return box('info', <CalendarClock className="h-4 w-4" />, t('Ek dafa ka kaam'), t('{{amount}} ka bill banega. Payment ke baad hamari team aap se rabta karegi.', { amount: rs(estimate) }));
   return box('info', <CalendarClock className="h-4 w-4" />, t('Abhi chalu, bill baad me'),
-    t('Abhi chalu ho jayega. Taqreeban {{amount}} ka bill banega ({{days}} din, {{date}} tak). Thore din me pay karein, warna ye khud band ho jayega.', { amount: rs(estimate), days, date: fmtDate(periodEnd) }));
+    t('Abhi chalu ho jayega. Taqreeban {{amount}} ka bill banega ({{days}} din, {{date}} tak). Thore din me pay karein, warna ye khud band ho jayega.', { amount: rs(estimate), days, date: fmtDateTime(periodEnd) }));
 }

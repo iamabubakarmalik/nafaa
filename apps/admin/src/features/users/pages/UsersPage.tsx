@@ -103,7 +103,7 @@ export default function UsersPage() {
         }
         stats={s ? [
           { label: 'Online now', value: num(s.onlineNow ?? 0), hint: `${num(s.activeToday ?? 0)} active today` },
-          { label: 'Active users', value: num(s.active), hint: `${num(s.inactive)} switched off` },
+          { label: 'Active users', value: num(s.active), hint: `${num(s.inactive)} paused` },
           { label: 'New this week', value: num(s.newThisWeek) },
           { label: 'Never signed in', value: num(s.neverSignedIn) },
         ] : undefined}
@@ -120,7 +120,7 @@ export default function UsersPage() {
         <FilterMenu icon={MonitorSmartphone} label="App" value={via} active={via !== 'ALL'} onChange={(v) => list.setFilter('via', v)} options={APPS} />
         <FilterMenu icon={ArrowDownUp} label="Sort" value={sort} onChange={(v) => list.setFilter('sort', v)} options={SORTS} align="right" />
         <FilterMenu icon={Tag} label="Status" value={status} active={status !== 'ALL'} onChange={(v) => list.setFilter('status', v)} align="right"
-          options={[{ value: 'ALL', label: 'All users' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Switched off' }]} />
+          options={[{ value: 'ALL', label: 'All users' }, { value: 'active', label: 'Active' }, { value: 'inactive', label: 'Paused' }]} />
       </FilterBar>
 
       <ListCard
@@ -161,7 +161,7 @@ export default function UsersPage() {
                 </Td>
                 <Td><Badge variant={ROLE_TONE[u.role]}>{statusLabel(u.role)}</Badge></Td>
                 <Td><LastSeen at={u.lastSeenAt ?? u.lastLoginAt} via={u.lastSeenVia} /></Td>
-                <Td><StatusBadge value={u.isActive ? 'ACTIVE' : 'DISABLED'} label={u.isActive ? 'Active' : 'Switched off'} /></Td>
+                <Td><StatusBadge value={u.isActive ? 'ACTIVE' : 'DISABLED'} label={u.isActive ? 'Active' : 'Paused'} /></Td>
                 <Td align="right" className="whitespace-nowrap text-slate-500" title={formatDateTime(u.createdAt)}>{formatDate(u.createdAt)}<div className="text-[0.6875rem] text-slate-400">{new Date(u.createdAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' })}</div></Td>
                 <Td align="right">
                   <UserActions user={u} />
@@ -181,14 +181,14 @@ export default function UsersPage() {
             { label: 'Shop owner signs up', icon: UserPlus, color: '#4f46e5' },
             { label: 'Adds staff', hint: 'Manager, cashier', icon: Users, color: '#0284c7' },
             { label: 'Signs in', icon: UserCheck, color: '#059669' },
-            { label: 'Switched off', hint: 'By you', icon: Power, color: '#e11d48' },
+            { label: 'Paused', hint: 'By you', icon: Power, color: '#e11d48' },
           ]}
           steps={[
             { icon: Tag, color: '#4f46e5', title: 'Find a person', text: 'Search by name, email or phone, or narrow by role and status.' },
-            { icon: Power, color: '#e11d48', title: 'Switch off', text: 'A switched-off user cannot sign in. Their sales and records stay.' },
+            { icon: Power, color: '#e11d48', title: 'Pause user', text: 'Row menu → “Pause user (cannot sign in)”. A paused user cannot sign in. Their sales and records stay.' },
             { icon: Download, color: '#059669', title: 'Export', text: 'Export CSV downloads every user that matches the filters.' },
           ]}
-          tips={['Click a shop name to open that shop.', 'Super admin accounts cannot be switched off here.']}
+          tips={['Click a shop name to open that shop.', 'Super admin accounts cannot be paused here.']}
           shortcuts={[['/', 'Search'], ['G', 'This guide']]}
           onClose={guide.close}
         />

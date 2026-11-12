@@ -20,7 +20,8 @@ import { adminSubscriptionsApi, type BillingInterval } from '@/api/admin-subscri
 import { useCan } from '@/lib/access';
 import { cn } from '@/lib/cn';
 import { apiError } from '@/lib/errors';
-import { formatDate, formatPKRFull, num } from '@/lib/format';
+import { formatDate, formatPKRFull, formatPkDateTime, formatTimeLeft, num } from '@/lib/format';
+import { planEndLine } from '../lib/plan-state';
 import { DetailList, StatusBadge, statusLabel } from '@/ui';
 import { FeatureChecklist } from '@/features/plans/components/FeatureChecklist';
 
@@ -71,8 +72,9 @@ export default function TenantPlanPanel({ tenantId, tenantName }: { tenantId: st
 
   return (
     <div className="space-y-4">
-      {e.state === 'expired' && <Alert tone="danger" title="This shop's plan has ended">The merchant apps are stopped except billing. Give or extend a plan to restore access.</Alert>}
-      {e.state === 'grace' && <Alert tone="warning" title={`In grace: ${e.graceDaysLeft ?? 0} day${e.graceDaysLeft === 1 ? '' : 's'} left`}>The app stops on {e.blocksAt ? formatDate(e.blocksAt) : '—'} unless the shop pays.</Alert>}
+      {e.paused && <Alert tone="danger" title={e.pausedUntil ? `Paused until ${formatPkDateTime(e.pausedUntil)} (${formatTimeLeft(e.pausedUntil)})` : 'Paused until an admin unpauses it'}>{e.pauseReason ? <>Reason shown to the shop: <b>{e.pauseReason}</b></> : 'No reason given.'}</Alert>}
+      {e.state === 'expired' && <Alert tone="danger" title={e.periodEnd ? `This shop's plan ended ${formatPkDateTime(e.periodEnd)} (${formatTimeLeft(e.periodEnd)})` : "This shop's plan has ended"}>The merchant apps are stopped except billing. Give or extend a plan to restore access.</Alert>}
+      {e.state === 'grace' && <Alert tone="warning" title={`In grace: ${e.graceDaysLeft ?? 0} day${e.graceDaysLeft === 1 ? '' : 's'} left`}>The app stops {e.blocksAt ? `${formatPkDateTime(e.blocksAt)} (${formatTimeLeft(e.blocksAt)})` : '—'} unless the shop pays.</Alert>}
 
       <div className="grid gap-4 xl:grid-cols-3">
         <Card className="xl:col-span-2" title="Current plan" description="What decides this shop’s access right now."
@@ -82,11 +84,15 @@ export default function TenantPlanPanel({ tenantId, tenantName }: { tenantId: st
               <Button size="sm" leftIcon={<Repeat className="h-4 w-4" />} onClick={() => setAssigning(true)}>Change plan</Button>
             </div>
           ) : undefined}>
+          <p className="mb-3 text-[0.9375rem] font-semibold text-slate-900">
+            {planEndLine(e.state, e.plan?.name, e.state === 'trial' ? e.trialEndsAt : e.periodEnd)}
+            {e.state !== 'free' && (e.state === 'trial' ? e.trialEndsAt : e.periodEnd) && <span className="ms-2 text-[0.8125rem] font-normal text-slate-500">{formatTimeLeft((e.state === 'trial' ? e.trialEndsAt : e.periodEnd)!)}</span>}
+          </p>
           <DetailList cols={3} items={[
-            { label: 'State', value: <Badge variant={state.variant}>{state.label}</Badge> },
+            { label: 'State', value: <span className="inline-flex flex-wrap gap-1.5"><Badge variant={state.variant}>{state.label}</Badge>{e.paused && <Badge variant="danger">Paused</Badge>}</span> },
             { label: 'Plan', value: e.plan ? `${e.plan.name}${e.interval ? ` · ${statusLabel(e.interval)}` : ''}` : 'No plan' },
-            { label: e.state === 'trial' ? 'Trial ends' : 'Period ends', value: e.state === 'free' ? 'Never' : e.periodEnd ? formatDate(e.periodEnd) : null },
-            { label: 'Stops on', value: e.state === 'free' ? 'Never' : e.blocksAt ? formatDate(e.blocksAt) : null },
+            { label: e.state === 'trial' ? 'Trial ends' : 'Period ends', value: e.state === 'free' ? 'Never' : (e.state === 'trial' ? e.trialEndsAt ?? e.periodEnd : e.periodEnd) ? formatPkDateTime((e.state === 'trial' ? e.trialEndsAt ?? e.periodEnd : e.periodEnd)!) : null },
+            { label: 'App stops', value: e.state === 'free' ? 'Never' : e.blocksAt ? formatPkDateTime(e.blocksAt) : null },
             { label: 'Grandfathered until', value: e.grandfatheredUntil ? formatDate(e.grandfatheredUntil) : 'No' },
             { label: 'Features on', value: num(e.features.length) },
           ]} />

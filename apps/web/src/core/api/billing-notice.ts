@@ -5,6 +5,8 @@
  *   upgrade dialog (modules/billing/pricing/components/UpsellHost).
  * - 402 TRIAL_EXPIRED / SUBSCRIPTION_EXPIRED / NO_SUBSCRIPTION mark the plan
  *   as ended, which shows the full-screen plan gate (PlanGate).
+ * - 403 SHOP_PAUSED marks the shop as paused by Nafaa, which shows the
+ *   full-screen paused notice (also in PlanGate).
  *
  * The axios interceptor in client.ts calls noteBillingResponse(); screens and
  * the sidebar may also open the dialog themselves with openUpsell().
@@ -34,6 +36,17 @@ export type PlanEndedCode = 'TRIAL_EXPIRED' | 'SUBSCRIPTION_EXPIRED' | 'NO_SUBSC
 export interface PlanEndedNotice {
   code: PlanEndedCode;
   message: string;
+  /** When the trial or plan ended, if the API said. */
+  expiredAt: string | null;
+}
+
+export interface ShopPausedNotice {
+  /** The reason Nafaa gave, or the API's default sentence. */
+  message: string;
+  /** When the pause ends; null = until Nafaa lifts it. */
+  until: string | null;
+  /** When this answer arrived (ms), to compare with fresher entitlements. */
+  at: number;
 }
 
 const ENDED_CODES = new Set<string>(['TRIAL_EXPIRED', 'SUBSCRIPTION_EXPIRED', 'NO_SUBSCRIPTION']);
@@ -57,14 +70,16 @@ function store<T>(initial: T) {
 
 const upsell = store<UpsellRequest | null>(null);
 const ended = store<PlanEndedNotice | null>(null);
+const paused = store<ShopPausedNotice | null>(null);
 
 export const openUpsell = (request: UpsellRequest) => upsell.set(request);
 export const closeUpsell = () => upsell.set(null);
 export const clearPlanEnded = () => ended.set(null);
+export const clearShopPaused = () => paused.set(null);
 
 /** Reads a refused request; returns true when it was a plan or add-on answer. */
 export function noteBillingResponse(status: number | undefined, body: unknown): boolean {
-  const b = body as { code?: unknown; message?: unknown; feature?: unknown; addOnKey?: unknown; limit?: unknown; current?: unknown; max?: unknown } | undefined;
+  const b = body as { code?: unknown; message?: unknown; feature?: unknown; addOnKey?: unknown; limit?: unknown; current?: unknown; max?: unknown; expiredAt?: unknown } | undefined;
   const code = typeof b?.code === 'string' ? b.code : null;
   if (!code) return false;
   const message = typeof b?.message === 'string' ? b.message : null;
@@ -72,7 +87,13 @@ export function noteBillingResponse(status: number | undefined, body: unknown): 
   const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null);
 
   if (status === 402 && ENDED_CODES.has(code)) {
-    if (!ended.get()) ended.set({ code: code as PlanEndedCode, message: message ?? '' });
+    if (!ended.get()) ended.set({ code: code as PlanEndedCode, message: message ?? '', expiredAt: str(b?.expiredAt) });
+    return true;
+  }
+  if (status === 403 && code === 'SHOP_PAUSED') {
+    const prev = paused.get();
+    const until = str(b?.expiredAt);
+    if (!prev || prev.message !== (message ?? '') || prev.until !== until) paused.set({ message: message ?? '', until, at: Date.now() });
     return true;
   }
   if (status === 403 && (code === 'ADDON_REQUIRED' || code === 'PLAN_FEATURE_REQUIRED')) {
@@ -92,4 +113,8 @@ export function useUpsellRequest(): UpsellRequest | null {
 
 export function usePlanEndedNotice(): PlanEndedNotice | null {
   return useSyncExternalStore(ended.subscribe, ended.get, () => null);
+}
+
+export function useShopPausedNotice(): ShopPausedNotice | null {
+  return useSyncExternalStore(paused.subscribe, paused.get, () => null);
 }

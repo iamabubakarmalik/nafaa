@@ -2,8 +2,9 @@
  * Shop 360: one shop's full picture — health score, sales trend, team and
  * devices, plan, add-ons and admin billing deals, invoices, the partner who brought it, online store, notes
  * and a timeline of shop and admin activity — with the admin actions (sign in
- * as the shop, suspend or reactivate, delete), each shown only to admins
- * allowed to use it.
+ * as the shop, pause or unpause, delete), each shown only to admins
+ * allowed to use it. Pausing closes the shop for everyone (optionally until a
+ * date) and shows them the reason; the old suspend now does the same.
  */
 
 import { useState } from 'react';
@@ -12,27 +13,29 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import {
-  Activity, Building2, CheckCircle2, CircleAlert, CreditCard, Gift, Globe, LogIn, LogOut, MessageSquare, Pencil, Package, Phone, Receipt,
+  Activity, Building2, CheckCircle2, CircleAlert, CreditCard, Gift, Globe, LogIn, LogOut, MessageSquare, PauseCircle, Pencil, Package, Phone, PlayCircle, Receipt,
   Puzzle, ShieldCheck, ShoppingCart, Smartphone, Store, Trash2, Truck, UserCog, Users, XCircle,
 } from 'lucide-react';
 import {
   Alert, Badge, Button, Card, Checkbox, EmptyState, Input, Select, KpiCard, KpiRow, Modal, PageHero, PageShell, Skeleton, Textarea, ViewTabs, confirmDialog,
   heroButton, heroPrimaryButton,
 } from '@/design-system/components';
-import { adminTenantsApi, type TenantStatus } from '@/api/admin-tenants.api';
+import { adminTenantsApi } from '@/api/admin-tenants.api';
+import { adminShopBillingApi } from '@/api/admin-billing-catalog.api';
 import { adminImpersonateApi } from '@/api/admin-impersonate.api';
 import TenantNotesPanel from '@/features/notes/pages/TenantNotesPanel';
 import TenantCommercePanel from '@/features/commerce/components/TenantCommercePanel';
 import TenantPlanPanel from '../components/TenantPlanPanel';
 import { useCan } from '@/lib/access';
 import { cn } from '@/lib/cn';
-import { formatDate, formatDateTime, formatPKR, formatPKRFull, formatRelative, num } from '@/lib/format';
+import { formatDate, formatDateTime, formatPKR, formatPKRFull, formatPkDateTime, formatRelative, formatTimeLeft, num } from '@/lib/format';
 import { BUSINESS_TYPES, industryForType } from '@/lib/industries';
 import { apiError } from '@/lib/errors';
 import { DetailList, LastSeen, OnlineDot, StatusBadge, isOnline, statusLabel } from '@/ui';
 import { BUSINESS_MODELS, BusinessModelChips } from '../components/BusinessModelChips';
 import { UserActions } from '@/features/users/components/UserActions';
 import { TenantPartnerCard } from '@/features/partners/components/TenantPartnerCard';
+import { PLAN_STATE, planEndHint, planEndLine } from '../lib/plan-state';
 
 type Tab = 'overview' | 'team' | 'plan' | 'billing' | 'online' | 'notes' | 'timeline';
 
@@ -49,17 +52,28 @@ function HealthRing({ score }: { score: number }) {
   );
 }
 
-function SuspendModal({ open, onClose, onConfirm, busy }: { open: boolean; onClose: () => void; onConfirm: (reason: string) => void; busy: boolean }) {
+/** "2026-11-12T13:04" typed as Pakistan time → ISO. */
+const pkInputToIso = (v: string) => new Date(`${v}:00+05:00`).toISOString();
+
+function PauseModal({ open, onClose, onConfirm, busy, shopName }: { open: boolean; onClose: () => void; onConfirm: (reason: string, until: string | null) => void; busy: boolean; shopName: string }) {
   const [reason, setReason] = useState('');
+  const [until, setUntil] = useState('');
+  const untilIso = until ? pkInputToIso(until) : null;
+  const untilBad = !!untilIso && new Date(untilIso).getTime() <= Date.now();
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="Suspend this shop?"
-      description="Its staff cannot sign in until you reactivate it. The owner gets a notification with your reason."
-      footer={<div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="danger" loading={busy} onClick={() => onConfirm(reason.trim())}>Suspend</Button></div>}
+      title={`Pause ${shopName}?`}
+      description="The shop cannot use Nafaa (web, desktop, mobile) until you unpause it, or until the end time you set."
+      footer={<div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="danger" loading={busy} disabled={untilBad} leftIcon={<PauseCircle className="h-4 w-4" />} onClick={() => onConfirm(reason.trim(), untilIso)}>Pause shop</Button></div>}
     >
-      <Textarea label="Reason (shown to the owner)" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Payment overdue for 2 months" />
+      <div className="space-y-3">
+        <Alert tone="warning" title="Everyone is signed out">Every user of this shop is signed out on every device right away. When they open the app they see “Aap ki dukaan rok di gayi hai” with your reason and the end time. Billing, help and profile stay open; no data is removed.</Alert>
+        <Textarea label="Reason (the shop sees this)" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Payment overdue for 2 months — please call support" />
+        <Input type="datetime-local" label="Until (optional, Pakistan time)" value={until} onChange={(e) => setUntil(e.target.value)}
+          hint={untilBad ? 'Pick a time in the future.' : untilIso ? `Opens again on its own ${formatPkDateTime(untilIso)} (${formatTimeLeft(untilIso)}).` : 'Leave empty to keep it paused until you unpause it.'} />
+      </div>
     </Modal>
   );
 }
@@ -99,16 +113,23 @@ export default function TenantDetailPage() {
   const qc = useQueryClient();
   const can = useCan();
   const [tab, setTab] = useState<Tab>('overview');
-  const [suspending, setSuspending] = useState(false);
+  const [pausing, setPausing] = useState(false);
   const [editing, setEditing] = useState(false);
 
   const detail = useQuery({ queryKey: ['admin', 'tenant', id], queryFn: () => adminTenantsApi.getOne(id!), enabled: !!id });
   const insights = useQuery({ queryKey: ['admin', 'tenant', id, 'insights'], queryFn: () => adminTenantsApi.insights(id!), enabled: !!id });
+  // Same query as the Plan & add-ons tab, so both stay in step.
+  const planBilling = useQuery({ queryKey: ['admin', 'tenant', id, 'plan-billing'], queryFn: () => adminShopBillingApi.get(id!), enabled: !!id });
 
   const refresh = () => { qc.invalidateQueries({ queryKey: ['admin', 'tenant', id] }); qc.invalidateQueries({ queryKey: ['admin', 'tenants'] }); };
-  const status = useMutation({
-    mutationFn: ({ s, reason }: { s: TenantStatus; reason?: string }) => adminTenantsApi.updateStatus(id!, s, reason),
-    onSuccess: (_, v) => { toast.success(v.s === 'SUSPENDED' ? 'Shop suspended' : 'Shop reactivated'); setSuspending(false); refresh(); },
+  const pause = useMutation({
+    mutationFn: ({ reason, until }: { reason: string; until: string | null }) => adminTenantsApi.pause(id!, { reason: reason || undefined, until }),
+    onSuccess: (r) => { toast.success(`Shop paused${r.pausedUntil ? ` until ${formatPkDateTime(r.pausedUntil)}` : ''} · ${r.signedOut} session${r.signedOut === 1 ? '' : 's'} ended`); setPausing(false); refresh(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const unpause = useMutation({
+    mutationFn: () => adminTenantsApi.unpause(id!),
+    onSuccess: () => { toast.success('Shop unpaused — it can work again'); refresh(); },
     onError: (e) => toast.error(apiError(e)),
   });
   const remove = useMutation({
@@ -142,6 +163,13 @@ export default function TenantDetailPage() {
   const ins = insights.data;
   const industry = industryForType(tenant.businessType ?? 'NONE');
   const activeSub = tenant.subscriptions.find((s: { status: string }) => ['ACTIVE', 'TRIAL', 'PENDING_PAYMENT', 'PAST_DUE'].includes(s.status));
+  const ent = planBilling.data?.entitlements;
+  const planEnd = ent ? (ent.state === 'trial' ? ent.trialEndsAt : ent.periodEnd) : null;
+  const pausedUntil: string | null = ent?.pausedUntil ?? tenant.pausedUntil ?? null;
+  const pauseReason: string | null = ent?.pauseReason ?? tenant.pauseReason ?? null;
+  const paused = ent?.paused ?? (!!tenant.pausedAt && (!pausedUntil || new Date(pausedUntil).getTime() > Date.now()));
+  // A shop suspended before pausing existed is closed too; Unpause reopens it.
+  const closed = paused || tenant.status === 'SUSPENDED';
   const profit = stats.totalRevenue - stats.totalCogs - stats.totalExpenses;
 
   const tabs = [
@@ -160,7 +188,9 @@ export default function TenantDetailPage() {
         title={tenant.name}
         back="/tenants"
         backLabel="Shops"
-        chip={statusLabel(tenant.status)}
+        chip={closed
+          ? <><span className="rounded-full bg-rose-600 px-2 py-px font-semibold text-white">Paused</span>{pausedUntil ? `until ${formatPkDateTime(pausedUntil, { short: true })}` : 'until unpaused'}</>
+          : statusLabel(tenant.status)}
         busy={detail.isFetching || insights.isFetching}
         meta={<span className="inline-flex flex-wrap items-center gap-x-2">@{tenant.slug}{tenant.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{tenant.phone}</span>}<span>· {industry.label}</span><span>· joined {formatDateTime(tenant.createdAt)}</span></span>}
         actions={
@@ -176,9 +206,11 @@ export default function TenantDetailPage() {
                 if (await confirmDialog({ title: `Sign everyone in ${tenant.name} out?`, text: 'Every user of this shop is signed out on every device and must sign in again. Nothing else changes.', yes: 'Sign everyone out' })) signOutAll.mutate();
               }}><LogOut className="h-4 w-4" /></button>
             )}
-            {can('tenants.manage') && (tenant.status === 'SUSPENDED'
-              ? <button type="button" className={heroButton} onClick={() => status.mutate({ s: 'ACTIVE' })}><CheckCircle2 className="h-4 w-4" /> Reactivate</button>
-              : <button type="button" className={heroButton} onClick={() => setSuspending(true)}><XCircle className="h-4 w-4" /> Suspend</button>)}
+            {can('tenants.manage') && (closed
+              ? <button type="button" className={heroButton} disabled={unpause.isPending} onClick={async () => {
+                if (await confirmDialog({ title: `Unpause ${tenant.name}?`, text: 'The shop can sign in and work again right away.', yes: 'Unpause' })) unpause.mutate();
+              }}><PlayCircle className="h-4 w-4" /> Unpause</button>
+              : <button type="button" className={heroButton} title="Close the shop for everyone, optionally until a date" onClick={() => setPausing(true)}><PauseCircle className="h-4 w-4" /> Pause shop</button>)}
             {can('tenants.delete') && (
               <button type="button" className={heroButton} aria-label="Delete shop" onClick={async () => {
                 if (await confirmDialog({ title: `Delete ${tenant.name} for ever?`, text: `This removes the shop with its ${num(tenant._count.products)} products, ${num(tenant._count.sales)} sales and ${num(tenant._count.customers)} customers. It cannot be undone.`, yes: 'Delete for ever', danger: true })) remove.mutate();
@@ -189,12 +221,19 @@ export default function TenantDetailPage() {
         stats={[
           { label: 'Health', value: ins ? `${ins.health.score}/100` : '—', hint: ins?.health.label },
           { label: 'Sales (7 days)', value: ins ? formatPKR(ins.sales.last7Total) : '—', hint: ins ? `${num(ins.sales.last7Bills)} bills` : undefined },
-          { label: 'Plan', value: activeSub ? activeSub.plan.name : 'No plan', hint: activeSub ? `${statusLabel(activeSub.status)} · ends ${formatDate(activeSub.currentPeriodEnd)}` : undefined },
+          ent
+            ? { label: `Plan · ${PLAN_STATE[ent.state].label}`, value: ent.plan?.name ?? 'No plan', hint: [planEndLine(ent.state, ent.plan?.name, planEnd), planEndHint(ent.state, planEnd)].filter(Boolean).join(' · ') }
+            : { label: 'Plan', value: activeSub ? activeSub.plan.name : 'No plan', hint: activeSub ? `${statusLabel(activeSub.status)} · ends ${formatPkDateTime(activeSub.currentPeriodEnd)}` : undefined },
           { label: 'Last active', value: isOnline(tenant.lastActiveAt) ? 'Online now' : tenant.lastActiveAt ? formatRelative(tenant.lastActiveAt) : 'Never', hint: `Last sale ${ins?.sales.lastSaleAt ? formatRelative(ins.sales.lastSaleAt) : 'never'}` },
         ]}
       />
 
-      {tenant.status === 'SUSPENDED' && <Alert tone="danger" title="This shop is suspended">Its staff cannot sign in. Reactivate it to restore access.</Alert>}
+      {closed && (
+        <Alert tone="danger" title={pausedUntil ? `This shop is paused until ${formatPkDateTime(pausedUntil)} (${formatTimeLeft(pausedUntil)})` : 'This shop is paused until you unpause it'}>
+          {pauseReason ? <>Reason shown to the shop: <b>{pauseReason}</b>. </> : 'No reason given; the shop sees the default message. '}
+          Its users cannot use Nafaa except billing, help and profile.
+        </Alert>
+      )}
 
       <ViewTabs tabs={tabs} value={tab} onChange={setTab} />
 
@@ -265,7 +304,7 @@ export default function TenantDetailPage() {
                     <OnlineDot online={isOnline(u.lastSeenAt)} className="absolute -bottom-0.5 -end-0.5 ring-2 ring-white rounded-full" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[0.875rem] font-medium text-slate-900">{u.fullName}{!u.isActive && <span className="ms-2 text-[0.75rem] text-rose-600">switched off</span>}</span>
+                    <span className="block truncate text-[0.875rem] font-medium text-slate-900">{u.fullName}{!u.isActive && <span className="ms-2 text-[0.75rem] text-rose-600">paused</span>}</span>
                     <span className="block truncate text-[0.75rem] text-slate-500">{u.email}{u.phone ? ` · ${u.phone}` : ''}</span>
                     <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.75rem]"><LastSeen at={u.lastSeenAt ?? u.lastLoginAt} via={u.lastSeenVia} never="Never signed in" /><span className="text-slate-400">· added {formatDateTime(u.createdAt)}</span></span>
                   </span>
@@ -312,7 +351,7 @@ export default function TenantDetailPage() {
               {tenant.subscriptions.map((s: { id: string; status: string; amount: number; interval: string; currentPeriodEnd: string; plan: { name: string } }) => (
                 <li key={s.id} className="flex items-center gap-3 px-4 py-3 sm:px-5">
                   <CreditCard className="h-4 w-4 text-slate-400" />
-                  <span className="min-w-0 flex-1"><span className="block text-[0.875rem] font-medium text-slate-900">{s.plan.name}</span><span className="block text-[0.75rem] text-slate-500">{formatPKRFull(s.amount)} / {statusLabel(s.interval)} · until {formatDate(s.currentPeriodEnd)}</span></span>
+                  <span className="min-w-0 flex-1"><span className="block text-[0.875rem] font-medium text-slate-900">{s.plan.name}</span><span className="block text-[0.75rem] text-slate-500">{formatPKRFull(s.amount)} / {statusLabel(s.interval)} · until {formatPkDateTime(s.currentPeriodEnd)}</span></span>
                   <StatusBadge value={s.status} />
                 </li>
               ))}
@@ -397,7 +436,7 @@ export default function TenantDetailPage() {
       )}
 
       <EditShopModal open={editing} onClose={() => setEditing(false)} tenant={tenant} onSaved={refresh} />
-      <SuspendModal open={suspending} onClose={() => setSuspending(false)} busy={status.isPending} onConfirm={(reason) => status.mutate({ s: 'SUSPENDED', reason: reason || undefined })} />
+      {pausing && <PauseModal open shopName={tenant.name} onClose={() => setPausing(false)} busy={pause.isPending} onConfirm={(reason, until) => pause.mutate({ reason, until })} />}
     </PageShell>
   );
 }

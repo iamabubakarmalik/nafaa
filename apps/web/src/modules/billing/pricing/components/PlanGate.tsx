@@ -6,20 +6,26 @@
  *
  * Shown when the API answers 402 TRIAL_EXPIRED / SUBSCRIPTION_EXPIRED /
  * NO_SUBSCRIPTION, or when freshly loaded entitlements say "expired".
+ *
+ * A shop paused by Nafaa (403 SHOP_PAUSED, or entitlements.paused) gets its
+ * own full-screen notice with the reason and the end date, if any. Only the
+ * billing, help and profile pages stay open while paused.
  */
 
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Clock, CreditCard, Gift, LogOut, MessageCircle, ShieldCheck, Sparkles } from 'lucide-react';
+import { CalendarClock, Clock, CreditCard, Gift, LogOut, MessageCircle, PauseCircle, ShieldCheck, Sparkles } from 'lucide-react';
 import { Button } from '@/design-system/components';
-import { usePlanEndedNotice } from '@core/api/billing-notice';
+import { usePlanEndedNotice, useShopPausedNotice } from '@core/api/billing-notice';
 import { t } from '@core/i18n';
 import { errorText, useAddOnActions, useBillingOverview, useCanManageBilling, useEntitlements, usePricingCatalog } from '../hooks/usePricing';
-import { fmtDate, rs } from '../lib/catalog-meta';
+import { fmtDateTime, rs, timeLeftText } from '../lib/catalog-meta';
 
 /** Pages that stay open while the plan has ended. */
 const OPEN_PATHS = ['/billing', '/plans', '/apps', '/plan-usage', '/help', '/profile'];
+/** Pages that stay open while the shop is paused. */
+const PAUSED_OPEN_PATHS = ['/billing', '/plan-usage', '/help', '/profile'];
 export const SUPPORT_WHATSAPP = '923241772933';
 export const SUPPORT_PHONE_TEXT = '0324-1772933';
 
@@ -27,17 +33,90 @@ export function usePlanEnded() {
   const notice = usePlanEndedNotice();
   const ent = useEntitlements();
   const expired = ent.isFetchedAfterMount && ent.data?.state === 'expired';
-  return { ended: !!notice || expired, code: notice?.code ?? null };
+  return { ended: !!notice || expired, code: notice?.code ?? null, expiredAt: notice?.expiredAt ?? null };
 }
+
+/** Paused by Nafaa: from a 403 SHOP_PAUSED answer, or from fresh entitlements. */
+export function useShopPaused() {
+  const notice = useShopPausedNotice();
+  const ent = useEntitlements();
+  const fresh = ent.isFetchedAfterMount ? ent.data : undefined;
+  // Entitlements loaded after the 403 and saying "not paused" win over it.
+  const noticeStale = !!notice && !!fresh && !fresh.paused && ent.dataUpdatedAt > notice.at;
+  const paused = (!!notice && !noticeStale) || !!fresh?.paused;
+  return {
+    paused,
+    reason: (notice && !noticeStale ? notice.message : null) || fresh?.pauseReason || null,
+    until: (notice && !noticeStale ? notice.until : null) ?? fresh?.pausedUntil ?? null,
+  };
+}
+
+const isOpen = (pathname: string, paths: string[]) => paths.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 
 export function PlanGate({ onLogout }: { onLogout: () => void }) {
   const { pathname } = useLocation();
-  const { ended, code } = usePlanEnded();
-  if (!ended || OPEN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
-  return <GateScreen code={code} onLogout={onLogout} />;
+  const { ended, code, expiredAt } = usePlanEnded();
+  const pause = useShopPaused();
+  if (pause.paused) {
+    return isOpen(pathname, PAUSED_OPEN_PATHS) ? null : <PausedScreen reason={pause.reason} until={pause.until} onLogout={onLogout} />;
+  }
+  if (!ended || isOpen(pathname, OPEN_PATHS)) return null;
+  return <GateScreen code={code} expiredAt={expiredAt} onLogout={onLogout} />;
 }
 
-function GateScreen({ code, onLogout }: { code: string | null; onLogout: () => void }) {
+function SupportRow({ onLogout }: { onLogout: () => void }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
+      <a href={`https://wa.me/${SUPPORT_WHATSAPP}`} target="_blank" rel="noreferrer"
+        className="inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-[0.875rem] font-semibold text-success-700 hover:bg-success-50">
+        <MessageCircle className="h-4 w-4" />{t('WhatsApp support')} <span className="dir-ltr tabular-nums">{SUPPORT_PHONE_TEXT}</span>
+      </a>
+      <button type="button" onClick={onLogout} className="inline-flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-[0.875rem] font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+        <LogOut className="h-4 w-4" />{t('Logout')}
+      </button>
+    </div>
+  );
+}
+
+function PausedScreen({ reason, until, onLogout }: { reason: string | null; until: string | null; onLogout: () => void }) {
+  return (
+    <div role="alertdialog" aria-modal="true" aria-labelledby="shop-paused-title" className="fixed inset-0 z-[90] overflow-y-auto bg-slate-950/60 backdrop-blur-sm">
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-slate-200">
+          <div className="relative overflow-hidden bg-gradient-to-br from-slate-800 to-rose-700 px-6 pb-6 pt-7 text-white">
+            <span className="pointer-events-none absolute -end-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" aria-hidden />
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/25"><PauseCircle className="h-6 w-6" /></span>
+            <h1 id="shop-paused-title" className="mt-4 text-[1.375rem] font-bold leading-tight">{t('Aap ki dukaan rok di gayi hai')}</h1>
+            <p className="mt-1.5 text-[0.9375rem] text-white/90">{t('Nafaa ne is dukaan ka kaam abhi rok diya hai.')}</p>
+          </div>
+
+          <div className="space-y-4 p-6">
+            <div className="rounded-2xl bg-rose-50 p-3.5 ring-1 ring-rose-200">
+              <p className="text-[0.75rem] font-semibold uppercase tracking-wide text-rose-700">{t('Wajah')}</p>
+              <p className="mt-0.5 whitespace-pre-line text-[0.9375rem] text-rose-950">{reason || t('Mazeed maloomat ke liye Nafaa support se rabta karein.')}</p>
+            </div>
+
+            <p className="flex items-start gap-2.5 rounded-2xl bg-slate-50 p-3 text-[0.875rem] text-slate-700 ring-1 ring-slate-200">
+              <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" />
+              {until
+                ? <span>{t('Kab tak: {{date}}', { date: fmtDateTime(until) })} <span className="text-slate-500">· {timeLeftText(until)}</span></span>
+                : t('Jab tak Nafaa support ise dobara chalu na kare.')}
+            </p>
+
+            <p className="flex items-start gap-2.5 rounded-2xl bg-success-50 p-3 text-[0.875rem] text-success-900 ring-1 ring-success-200">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-success-700" />
+              {t('Aap ka sara data mehfooz hai. Dukaan chalu hote hi sab waisa hi milega.')}
+            </p>
+
+            <SupportRow onLogout={onLogout} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GateScreen({ code, expiredAt, onLogout }: { code: string | null; expiredAt: string | null; onLogout: () => void }) {
   const navigate = useNavigate();
   const canManage = useCanManageBilling();
   const ent = useEntitlements().data;
@@ -51,6 +130,7 @@ function GateScreen({ code, onLogout }: { code: string | null; onLogout: () => v
   const planInvoice = overview?.openInvoices.find((i) => !!i.subscriptionId) ?? overview?.openInvoices[0] ?? null;
   const inReview = overview?.openInvoices.some((i) => i.inReview);
   const freePlan = catalog?.plans.find((p) => p.isFree);
+  const endedAt = expiredAt ?? (trial ? ent?.trialEndsAt : ent?.periodEnd) ?? null;
 
   const pay = () => navigate(planInvoice ? `/billing/invoice/${planInvoice.id}/pay` : '/plans');
   const toFree = () => {
@@ -109,16 +189,12 @@ function GateScreen({ code, onLogout }: { code: string | null; onLogout: () => v
               <p className="rounded-2xl bg-slate-50 p-3 text-[0.875rem] text-slate-700 ring-1 ring-slate-200">{t('Dukaan ke malik se kahein ke plan renew karein. Phir app khud khul jayegi.')}</p>
             )}
 
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
-              <a href={`https://wa.me/${SUPPORT_WHATSAPP}`} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-[0.875rem] font-semibold text-success-700 hover:bg-success-50">
-                <MessageCircle className="h-4 w-4" />{t('WhatsApp support')} <span className="dir-ltr tabular-nums">{SUPPORT_PHONE_TEXT}</span>
-              </a>
-              <button type="button" onClick={onLogout} className="inline-flex items-center gap-1.5 rounded-xl px-2 py-1.5 text-[0.875rem] font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800">
-                <LogOut className="h-4 w-4" />{t('Logout')}
-              </button>
-            </div>
-            {ent?.periodEnd && <p className="text-center text-[0.75rem] text-slate-400">{t('Plan {{date}} ko khatam hua', { date: fmtDate(ent.periodEnd) })}</p>}
+            <SupportRow onLogout={onLogout} />
+            {endedAt && (
+              <p className="text-center text-[0.75rem] text-slate-400">
+                {trial ? t('Trial {{date}} ko khatam hua', { date: fmtDateTime(endedAt) }) : t('Plan {{date}} ko khatam hua', { date: fmtDateTime(endedAt) })}
+              </p>
+            )}
           </div>
         </div>
       </div>

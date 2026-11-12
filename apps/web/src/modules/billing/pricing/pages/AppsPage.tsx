@@ -17,7 +17,7 @@ import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
 import type { CatalogAddOn } from '../api/pricing.api';
 import { useBillingOverview, useEntitlements, usePricingCatalog, useRefreshBilling } from '../hooks/usePricing';
-import { SECTIONS, addOnState, daysLeft, fmtDate, rs, sectionOf, type SectionId } from '../lib/catalog-meta';
+import { SECTIONS, addOnState, fmtDate, fmtDateTime, rs, sectionOf, timeLeftText, type SectionId } from '../lib/catalog-meta';
 import { AddOnCard } from '../components/AddOnParts';
 import { AddOnSheet } from '../components/AddOnSheet';
 import { ServiceCards } from '../components/ServiceCards';
@@ -75,10 +75,10 @@ export default function AppsPage() {
           { label: t('Add-ons ka kharcha'), value: trial ? t('Free') : rs(monthly), hint: trial ? t('Trial me') : t('har mahina') },
           { label: t('Aap ka plan'), value: ent?.plan?.name ?? '—', hint: ent ? stateHint(ent.state) : undefined },
           trial
-            ? { label: t('Trial khatam'), value: fmtDate(ent?.trialEndsAt), hint: t('{{days}} din baqi', { days: daysLeft(ent?.trialEndsAt) }) }
+            ? { label: t('Trial khatam'), value: fmtDateTime(ent?.trialEndsAt), hint: timeLeftText(ent?.trialEndsAt) }
             : grandfathered
               ? { label: t('Purane customer'), value: fmtDate(ent?.grandfatheredUntil), hint: t('tak sab free') }
-              : { label: t('Plan ki tareekh'), value: fmtDate(ent?.periodEnd), hint: ent?.state === 'free' ? t('Free plan') : undefined },
+              : { label: t('Plan ki tareekh'), value: ent?.state === 'free' ? t('Hamesha') : fmtDateTime(ent?.periodEnd), hint: ent?.state === 'free' ? t('Free plan') : ent?.periodEnd ? timeLeftText(ent.periodEnd) : undefined },
         ]}
       />
 
@@ -86,7 +86,7 @@ export default function AppsPage() {
         <div className="flex items-start gap-3 rounded-2xl bg-sky-50 p-4 ring-1 ring-sky-200">
           <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-sky-700" />
           <div className="min-w-0 text-[0.875rem] text-sky-900">
-            <p className="font-semibold">{trial ? t('Trial me har add-on free hai — {{date}} tak', { date: fmtDate(ent?.trialEndsAt) }) : t('Purane customer: {{date}} tak sab free', { date: fmtDate(ent?.grandfatheredUntil) })}</p>
+            <p className="font-semibold">{trial ? t('Trial me har add-on free hai — {{date}} tak', { date: fmtDateTime(ent?.trialEndsAt) }) : t('Purane customer: {{date}} tak sab free', { date: fmtDate(ent?.grandfatheredUntil) })}</p>
             <p className="mt-0.5 text-sky-800">{t('Jo chalu karein woh menu me aa jayega. Baad me rakhna ho to plan ke saath us ka bill aayega.')}</p>
           </div>
         </div>

@@ -12,7 +12,7 @@ import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 import type { BillingOverview, CatalogAddOn, PricingCatalog } from '../api/pricing.api';
 import { useCanManageBilling } from '../hooks/usePricing';
-import { LIMITS, SERVICE_DETAILS, UNLIMITED, addOnPriceText, addOnState, daysLeft, featureLabel, fmtDate, isService, limitText, rs } from '../lib/catalog-meta';
+import { LIMITS, SERVICE_DETAILS, UNLIMITED, addOnPriceText, addOnState, endsAtText, featureLabel, fmtDate, fmtDateTime, isService, limitText, rs, timeLeftText } from '../lib/catalog-meta';
 import { AddOnIcon, StatePill } from './AddOnParts';
 import { AddOnSheet } from './AddOnSheet';
 
@@ -35,16 +35,17 @@ export function MyPlanOverview({ overview, catalog, loading }: { overview: Billi
 
   const look = STATE_LOOK[overview.state];
   const planInvoice = overview.openInvoices.find((i) => !!i.subscriptionId) ?? overview.openInvoices[0] ?? null;
-  const headline = overview.state === 'trial' ? t('Trial: {{count}} din baqi', { count: daysLeft(overview.trialEndsAt) })
-    : overview.state === 'active' ? t('{{date}} tak chalu', { date: fmtDate(overview.periodEnd) })
+  const headline = overview.state === 'trial' ? t('Trial: {{left}}', { left: timeLeftText(overview.trialEndsAt) })
+    : overview.state === 'active' ? t('{{date}} tak chalu', { date: fmtDateTime(overview.periodEnd) })
       : overview.state === 'grace' ? t('Payment baqi — {{count}} din me app band', { count: overview.graceDaysLeft ?? 0 })
         : overview.state === 'free' ? t('Hamesha free')
           : t('Plan khatam ho gaya');
-  const sub = overview.state === 'trial' ? t('Trial {{date}} ko khatam hoga. Sab features aur add-ons abhi free hain.', { date: fmtDate(overview.trialEndsAt) })
-    : overview.state === 'active' ? t('Renew ka bill {{date}} se pehle aa jayega.', { date: fmtDate(overview.periodEnd) })
-      : overview.state === 'grace' ? t('Plan {{date}} ko khatam hua. Pay karein taake kaam na ruke — data mehfooz hai.', { date: fmtDate(overview.periodEnd) })
+  const sub = overview.state === 'trial' ? t('Trial {{date}} ko khatam hoga. Sab features aur add-ons abhi free hain.', { date: fmtDateTime(overview.trialEndsAt) })
+    : overview.state === 'active' ? t('Plan {{when}} ({{left}}). Renew ka bill is se pehle aa jayega.', { when: endsAtText(overview.periodEnd), left: timeLeftText(overview.periodEnd) })
+      : overview.state === 'grace' ? t('Plan {{date}} ko khatam hua. Pay karein taake kaam na ruke — data mehfooz hai.', { date: fmtDateTime(overview.periodEnd) })
         : overview.state === 'free' ? t('Choti dukaan ke liye. Barhne par plan barhayein.')
-          : t('Renew karein ya Free plan par jayein. Aap ka data mehfooz hai.');
+          : overview.periodEnd ? t('Plan {{date}} ko khatam hua. Renew karein ya Free plan par jayein — data mehfooz hai.', { date: fmtDateTime(overview.periodEnd) })
+            : t('Renew karein ya Free plan par jayein. Aap ka data mehfooz hai.');
 
   const catalogByKey = new Map<string, CatalogAddOn>((catalog?.addOns ?? []).map((a) => [a.key, a]));
   const myAddOns = (catalog?.addOns ?? []).map((a) => ({ a, s: addOnState(a, { ...overview, addOns: overview.addOns }, overview, catalog?.addOns ?? []) }))

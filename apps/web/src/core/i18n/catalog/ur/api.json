@@ -3822,5 +3822,9 @@
   "🔔 Test Notification": "",
   "🚫 Bill void hua": "🚫 بل منسوخ ہوا",
   "🛍️ Naya online order #{{num}}": "🛍️ نیا آن لائن آرڈر #{{num}}",
-  "🧾 Naya Expense": "🧾 نیا ایکسپینس"
+  "🧾 Naya Expense": "🧾 نیا ایکسپینس",
+  "Aap ki dukaan dobara chalu": "آپ کی دکان دوبارہ چالو",
+  "Aap ki dukaan ka Nafaa account abhi rok diya gaya hai. Nafaa support se rabta karein: 0324-1772933.": "آپ کی دکان کا نفع اکاؤنٹ ابھی روک دیا گیا ہے۔ نفع سپورٹ سے رابطہ کریں: 0324-1772933۔",
+  "Nafaa ne aap ki dukaan {{date}} tak rok di hai.": "نفع نے آپ کی دکان {{date}} تک روک دی ہے۔",
+  "Pause ka waqt khatam ho gaya. Aap ki dukaan dobara chalu hai.": "روکنے کا وقت ختم ہو گیا۔ آپ کی دکان دوبارہ چالو ہے۔"
 }

@@ -21,6 +21,12 @@ export interface AdminTenant {
     sales: number;
     customers: number;
   };
+  /** Paused by an admin; the shop cannot work until unpaused or pausedUntil. */
+  pausedAt?: string | null;
+  pausedUntil?: string | null;
+  pauseReason?: string | null;
+  /** The plan the shop is really on (not a newer unpaid renewal bill). */
+  billing?: TenantBillingSummary;
   subscriptions: Array<{
     id: string;
     status: string;
@@ -29,6 +35,16 @@ export interface AdminTenant {
     currentPeriodEnd: string;
     plan: { id: string; name: string; slug: string };
   }>;
+}
+
+export interface TenantBillingSummary {
+  planName: string | null;
+  planSlug: string | null;
+  state: 'trial' | 'active' | 'free' | 'expired';
+  endsAt: string | null;
+  paused: boolean;
+  pausedUntil: string | null;
+  pauseReason: string | null;
 }
 
 export interface TenantsResponse {
@@ -74,6 +90,11 @@ export const adminTenantsApi = {
     apiClient
       .patch<{ data: AdminTenant }>(`/admin/tenants/${id}/status`, { status, reason })
       .then(unwrap),
+  /** Pause: closes the shop (signs everyone out) until unpaused, or until `until`. */
+  pause: (id: string, body: { reason?: string; until?: string | null }) =>
+    apiClient.post<{ data: { paused: boolean; pausedUntil: string | null; signedOut: number } }>(`/admin/tenants/${id}/pause`, body).then(unwrap),
+  unpause: (id: string) =>
+    apiClient.post<{ data: { paused: boolean } }>(`/admin/tenants/${id}/unpause`).then(unwrap),
   remove: (id: string) =>
     apiClient
       .delete<{ data: { message: string } }>(`/admin/tenants/${id}`)

@@ -17,7 +17,9 @@ import {
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
 import { adminTenantsApi, type AdminTenant, type TenantStatus } from '@/api/admin-tenants.api';
 import { BUSINESS_TYPES, industryForType } from '@/lib/industries';
-import { formatDate, formatDateTime } from '@/lib/format';
+import { formatDate, formatDateTime, formatPkDateTime, formatTimeLeft } from '@/lib/format';
+import { Badge } from '@/design-system/components';
+import { PLAN_STATE } from '../lib/plan-state';
 import { LastSeen, ListCard, StatusBadge, downloadCsv, fetchAllPages, statusLabel, useListParams } from '@/ui';
 import { BUSINESS_MODELS, BusinessModelChips } from '../components/BusinessModelChips';
 import { num } from '@/lib/format';
@@ -75,7 +77,9 @@ export default function TenantsListPage() {
         { label: 'Status', value: (t) => t.status },
         { label: 'Industry', value: (t) => industryForType(t.businessType ?? 'NONE').label },
         { label: 'Sells', value: (t) => (t.businessModels ?? []).join(' ') },
-        { label: 'Plan', value: (t) => t.subscriptions[0]?.plan.name },
+        { label: 'Plan', value: (t) => t.billing?.planName ?? t.subscriptions[0]?.plan.name },
+        { label: 'Plan state', value: (t) => (t.billing ? (t.billing.paused ? 'Paused' : PLAN_STATE[t.billing.state].label) : '') },
+        { label: 'Plan ends', value: (t) => (t.billing?.endsAt ? formatPkDateTime(t.billing.endsAt) : '') },
         { label: 'Users', value: (t) => t._count.users },
         { label: 'Products', value: (t) => t._count.products },
         { label: 'Sales', value: (t) => t._count.sales },
@@ -169,6 +173,8 @@ export default function TenantsListPage() {
           <TBody>
             {rows.map((t) => {
               const sub = t.subscriptions[0];
+              const bill = t.billing;
+              const look = bill ? PLAN_STATE[bill.paused ? 'paused' : bill.state] : null;
               const ind = industryForType(t.businessType ?? 'NONE');
               return (
                 <Tr key={t.id} interactive onClick={() => navigate(`/tenants/${t.id}`)}>
@@ -187,7 +193,23 @@ export default function TenantsListPage() {
                     </div>
                   </Td>
                   <Td>
-                    {sub ? (
+                    {bill && look ? (
+                      <>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="font-medium text-slate-900">{bill.planName ?? 'No plan'}</span>
+                          <Badge variant={look.variant}>{look.label}</Badge>
+                          {bill.paused && <Badge variant={PLAN_STATE[bill.state].variant}>{PLAN_STATE[bill.state].label}</Badge>}
+                        </div>
+                        {bill.paused ? (
+                          <div className="text-[0.75rem] text-rose-600" title={bill.pauseReason ?? undefined}>{bill.pausedUntil ? `Paused until ${formatPkDateTime(bill.pausedUntil, { short: true })}` : 'Paused until unpaused'}</div>
+                        ) : bill.endsAt ? (
+                          <div className="whitespace-nowrap text-[0.75rem] text-slate-500" title={formatPkDateTime(bill.endsAt)}>
+                            {bill.state === 'expired' ? 'Ended' : 'Ends'} {formatPkDateTime(bill.endsAt, { short: new Date(bill.endsAt).getFullYear() === new Date().getFullYear() })}
+                            <span className="text-slate-400"> · {formatTimeLeft(bill.endsAt)}</span>
+                          </div>
+                        ) : bill.state === 'free' ? <div className="text-[0.75rem] text-slate-500">Never ends</div> : null}
+                      </>
+                    ) : sub ? (
                       <>
                         <div className="font-medium text-slate-900">{sub.plan.name}</div>
                         <div className="text-[0.75rem] text-slate-500">{statusLabel(sub.status)} · {statusLabel(sub.interval)}</div>
@@ -215,11 +237,11 @@ export default function TenantsListPage() {
             { label: 'Signs up', hint: 'Trial starts', icon: UserPlus, color: '#4f46e5' },
             { label: 'Trial', hint: 'Free days', icon: Store, color: '#0284c7' },
             { label: 'Active', hint: 'Paid plan', icon: Building2, color: '#059669' },
-            { label: 'Suspended / expired', hint: 'Cannot sign in', icon: Tag, color: '#e11d48' },
+            { label: 'Paused / expired', hint: 'App stopped', icon: Tag, color: '#e11d48' },
           ]}
           steps={[
             { icon: Tag, color: '#4f46e5', title: 'Filter', text: 'Narrow by status, industry and way of selling. Filters stay in the address, so you can share the link.' },
-            { icon: Building2, color: '#0284c7', title: 'Open a shop', text: 'Click a row for the shop’s profile, plan, staff and activity, and to suspend or reactivate it.' },
+            { icon: Building2, color: '#0284c7', title: 'Open a shop', text: 'Click a row for the shop’s profile, plan, staff and activity, and to pause or unpause it.' },
             { icon: Download, color: '#059669', title: 'Export', text: 'Export CSV downloads every shop that matches the filters, not only this page.' },
           ]}
           tips={['Press / to jump to the search box.', 'Use ↑ ↓ to move between rows and Enter to open one.']}

@@ -84,6 +84,10 @@ export interface ShopBilling {
     features: string[];
     limits: Record<LimitKey, number>;
     apps: string[];
+    /** Paused by an admin (older APIs leave these out). */
+    paused?: boolean;
+    pausedUntil?: string | null;
+    pauseReason?: string | null;
   };
   usage: Record<LimitKey, number>;
   plan: { id: string; name: string; slug: string; isFree: boolean; features: string[]; limits: Record<'users' | 'shops' | 'products' | 'salesPerMonth', number>; priceMonthly: number } | null;

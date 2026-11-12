@@ -3825,5 +3825,9 @@
   "🔔 Test Notification": "",
   "🚫 Bill void hua": "🚫 Bill voided",
   "🛍️ Naya online order #{{num}}": "🛍️ New online order #{{num}}",
-  "🧾 Naya Expense": "🧾 New expense"
+  "🧾 Naya Expense": "🧾 New expense",
+  "Aap ki dukaan dobara chalu": "Your shop is back on",
+  "Aap ki dukaan ka Nafaa account abhi rok diya gaya hai. Nafaa support se rabta karein: 0324-1772933.": "Your shop’s Nafaa account has been paused. Please contact Nafaa support: 0324-1772933.",
+  "Nafaa ne aap ki dukaan {{date}} tak rok di hai.": "Nafaa has paused your shop until {{date}}.",
+  "Pause ka waqt khatam ho gaya. Aap ki dukaan dobara chalu hai.": "The pause has ended. Your shop is back on."
 }

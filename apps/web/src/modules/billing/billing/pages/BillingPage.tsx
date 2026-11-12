@@ -27,7 +27,7 @@ import { InvoiceList, InvoiceModal } from '../components/InvoiceList';
 import { PaymentList, PaymentModal } from '../components/PaymentList';
 import { MyPlanOverview } from '@modules/billing/pricing/components/MyPlanOverview';
 import { useBillingOverview, usePricingCatalog, useRefreshBilling } from '@modules/billing/pricing/hooks/usePricing';
-import { addOnState, daysLeft, fmtDate, rs } from '@modules/billing/pricing/lib/catalog-meta';
+import { addOnState, fmtDateTime, rs, timeLeftText } from '@modules/billing/pricing/lib/catalog-meta';
 import { billingDoc } from '../components/print';
 import { t as tr } from '@core/i18n';
 
@@ -134,7 +134,7 @@ export function BillingCenter({ defaultTab = 'overview' }: { defaultTab?: Billin
         </>}
         stats={b.can.billing ? [
           { label: tr('Aap ka plan'), value: ov?.plan?.name ?? sub?.plan?.name ?? '—', hint: ov ? STATE_LABEL[ov.state] : undefined },
-          { label: ov?.state === 'trial' ? tr('Trial khatam') : tr('Plan ki tareekh'), value: ov?.state === 'free' ? tr('Hamesha') : fmtDate(endDate), hint: endDate && ov?.state !== 'free' ? tr('{{days}} din baqi', { days: daysLeft(endDate) }) : undefined },
+          { label: ov?.state === 'trial' ? tr('Trial khatam') : tr('Plan ki tareekh'), value: ov?.state === 'free' ? tr('Hamesha') : fmtDateTime(endDate), hint: endDate && ov?.state !== 'free' ? timeLeftText(endDate) : undefined },
           { label: tr('Dena hai'), value: rs(b.totals.due), hint: b.totals.open.length ? tr('{{count}} bill', { count: b.totals.open.length }) : tr('kuch nahi') },
           { label: tr('Add-ons'), value: String(activeAddOns), hint: tr('chalu') },
         ] : undefined}

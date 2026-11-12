@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@core/stores/auth.store';
 import { usePermission } from '@core/hooks/usePermission';
 import { PERMISSIONS } from '@core/lib/permissions';
-import { clearPlanEnded } from '@core/api/billing-notice';
+import { clearPlanEnded, clearShopPaused } from '@core/api/billing-notice';
 import { pricingApi, type Entitlements } from '../api/pricing.api';
 
 export const ENTITLEMENTS_KEY = 'entitlements';
@@ -27,6 +27,7 @@ export function useEntitlements() {
     queryFn: async () => {
       const e = await pricingApi.entitlements();
       if (e && e.state !== 'expired') clearPlanEnded();
+      if (e && !e.paused) clearShopPaused();
       return e;
     },
     enabled: signedIn && !!tenantId,

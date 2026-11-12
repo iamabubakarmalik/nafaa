@@ -28,6 +28,68 @@ export const fmtDate = (v: string | null | undefined) =>
 export const daysLeft = (v: string | null | undefined) =>
   v ? Math.max(0, Math.ceil((new Date(v).getTime() - Date.now()) / 86_400_000)) : 0;
 
+// ─── Exact end times (Pakistan time) ────────────────────────────
+
+const PK_TZ = 'Asia/Karachi';
+const HOUR = 3_600_000;
+const DAY = 86_400_000;
+
+function pkParts(d: Date, opts: Intl.DateTimeFormatOptions) {
+  const parts = new Intl.DateTimeFormat('en-US', { timeZone: PK_TZ, ...opts }).formatToParts(d);
+  return (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? '';
+}
+
+/** "1:04 PM" in Pakistan time. */
+export const fmtTime = (v: string | null | undefined) => {
+  if (!v) return '—';
+  const p = pkParts(new Date(v), { hour: 'numeric', minute: '2-digit', hour12: true });
+  return `${p('hour')}:${p('minute')} ${p('dayPeriod').toUpperCase()}`;
+};
+
+/** "12 Nov 2026, 1:04 PM" in Pakistan time. */
+export const fmtDateTime = (v: string | null | undefined) => {
+  if (!v) return '—';
+  const p = pkParts(new Date(v), { day: 'numeric', month: 'short', year: 'numeric' });
+  return `${p('day')} ${p('month')} ${p('year')}, ${fmtTime(v)}`;
+};
+
+/** Calendar days between today and the date, both in Pakistan time (0 = today, 1 = tomorrow). */
+export const pkDayOffset = (v: string | null | undefined) => {
+  if (!v) return null;
+  const key = (d: Date) => {
+    const p = pkParts(d, { year: 'numeric', month: '2-digit', day: '2-digit' });
+    return Date.UTC(Number(p('year')), Number(p('month')) - 1, Number(p('day')));
+  };
+  return Math.round((key(new Date(v)) - key(new Date())) / DAY);
+};
+
+/** Milliseconds until the date; negative once it has passed. */
+export const msLeft = (v: string | null | undefined) => (v ? new Date(v).getTime() - Date.now() : null);
+
+/**
+ * Time left in words: "25 minute baqi", "2 ghante baqi", "3 din baqi",
+ * or "Khatam ho gaya". Under a day it counts hours, never "1 din".
+ */
+export const timeLeftText = (v: string | null | undefined) => {
+  const ms = msLeft(v);
+  if (ms == null) return '';
+  if (ms <= 0) return t('Khatam ho gaya');
+  if (ms < HOUR) return t('{{count}} minute baqi', { count: Math.max(1, Math.floor(ms / 60_000)) });
+  if (ms < DAY) return t('{{count}} ghante baqi', { count: Math.floor(ms / HOUR) });
+  return t('{{count}} din baqi', { count: Math.floor(ms / DAY) });
+};
+
+/** "aaj 1:04 PM par khatam" / "kal 1:04 PM par khatam" / "12 Nov 2026, 1:04 PM par khatam". */
+export const endsAtText = (v: string | null | undefined) => {
+  if (!v) return '';
+  const ms = msLeft(v) ?? 0;
+  const off = pkDayOffset(v);
+  if (ms <= 0) return t('{{date}} ko khatam hua', { date: fmtDateTime(v) });
+  if (off === 0) return t('aaj {{time}} par khatam', { time: fmtTime(v) });
+  if (off === 1) return t('kal {{time}} par khatam', { time: fmtTime(v) });
+  return t('{{date}} par khatam', { date: fmtDateTime(v) });
+};
+
 // ─── Sections of the add-on store ───────────────────────────────
 
 export type SectionId = 'online' | 'operations' | 'capacity' | 'services';

@@ -73,6 +73,10 @@ export interface Entitlements {
   blocksAt: string | null;
   graceDaysLeft: number | null;
   grandfatheredUntil: string | null;
+  /** Paused by Nafaa: the app is closed until unpaused or pausedUntil. Older APIs leave these out. */
+  paused?: boolean;
+  pausedUntil?: string | null;
+  pauseReason?: string | null;
   features: string[];
   limits: Record<LimitKey, number>;
   /** Optional modules turned on or already in use (add-on keys). */

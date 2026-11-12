@@ -49,3 +49,30 @@ export const num = (n: number | null | undefined) => (n ?? 0).toLocaleString('en
 /** Date with time, e.g. "11 Nov 2026, 4:05 pm" (Pakistan locale). */
 export const formatDateTime = (date: string | Date) =>
   new Intl.DateTimeFormat('en-PK', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }).format(typeof date === 'string' ? new Date(date) : date);
+
+const PK_TZ = 'Asia/Karachi';
+
+/** Exact Pakistan time, e.g. "12 Nov 2026, 1:04 PM" (or "12 Nov, 1:04 PM" with short). */
+export const formatPkDateTime = (date: string | Date, opts: { short?: boolean } = {}) => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: PK_TZ, day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true,
+  }).formatToParts(d);
+  const p = (type: Intl.DateTimeFormatPartTypes) => parts.find((x) => x.type === type)?.value ?? '';
+  const day = opts.short ? `${p('day')} ${p('month')}` : `${p('day')} ${p('month')} ${p('year')}`;
+  return `${day}, ${p('hour')}:${p('minute')} ${p('dayPeriod').toUpperCase()}`;
+};
+
+/**
+ * Time to or since a moment in plain words: "in 25 min", "in 5 h", "in 3 days",
+ * "2 h ago", "4 days ago". Under a day it counts hours, never "1 day".
+ */
+export const formatTimeLeft = (date: string | Date) => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const ms = d.getTime() - Date.now();
+  const abs = Math.abs(ms);
+  const word = abs < 3_600_000 ? `${Math.max(1, Math.floor(abs / 60_000))} min`
+    : abs < 86_400_000 ? `${Math.floor(abs / 3_600_000)} h`
+      : `${Math.floor(abs / 86_400_000)} day${Math.floor(abs / 86_400_000) === 1 ? '' : 's'}`;
+  return ms >= 0 ? `in ${word}` : `${word} ago`;
+};

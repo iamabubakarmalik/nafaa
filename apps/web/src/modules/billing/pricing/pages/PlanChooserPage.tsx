@@ -17,7 +17,7 @@ import type { BillingInterval } from '@modules/billing/subscriptions/api/subscri
 import { pricingApi, type CatalogAddOn, type CatalogPlan } from '../api/pricing.api';
 import { errorText, useAddOnActions, useBillingOverview, useCanManageBilling, useEntitlements, usePricingCatalog, useRefreshBilling } from '../hooks/usePricing';
 import {
-  FEATURE_GROUPS, INTERVAL_MONTHS, LIMITS, SECTIONS, SERVICE_DETAILS, addOnAllowedOn, checkoutTotal, featureLabel, fmtDate, isService, limitText, planPrice, planSaving, rs, sectionOf, servicePrice, unitText,
+  FEATURE_GROUPS, INTERVAL_MONTHS, LIMITS, SECTIONS, SERVICE_DETAILS, addOnAllowedOn, checkoutTotal, featureLabel, fmtDate, fmtDateTime, isService, limitText, planPrice, planSaving, rs, sectionOf, servicePrice, unitText,
 } from '../lib/catalog-meta';
 import { AddOnIcon, QuantityStepper } from '../components/AddOnParts';
 
@@ -136,7 +136,7 @@ export default function PlanChooserPage() {
         loading={catalogQ.isLoading}
         actions={<button type="button" onClick={() => navigate('/apps')} className={heroButton}><Layers className="h-4 w-4" />{t('Apps & add-ons')}</button>}
         stats={[
-          { label: t('Abhi ka plan'), value: ent?.plan?.name ?? '—', hint: ent?.state === 'trial' ? t('Trial {{date}} tak', { date: fmtDate(ent.trialEndsAt) }) : ent?.periodEnd ? t('{{date}} tak', { date: fmtDate(ent.periodEnd) }) : undefined },
+          { label: t('Abhi ka plan'), value: ent?.plan?.name ?? '—', hint: ent?.state === 'trial' ? t('Trial {{date}} tak', { date: fmtDateTime(ent.trialEndsAt) }) : ent?.periodEnd && ent.state !== 'free' ? t('{{date}} tak', { date: fmtDateTime(ent.periodEnd) }) : undefined },
           { label: t('Chuna hua'), value: plan?.name ?? '—', hint: pickedCount ? t('+ {{count}} add-ons', { count: pickedCount }) : t('koi add-on nahi') },
           { label: t('Kul'), value: total ? rs(total.total) : '—', hint: t('har {{per}}', { per: t(PER[interval]) }) },
           { label: t('Bachat'), value: bestSaving ? `${bestSaving}%` : '—', hint: interval === 'MONTHLY' ? t('3 mahine ya saalana par') : t('mahana ke muqable') },
