@@ -83,7 +83,15 @@ export async function middleware(req: NextRequest) {
   let key: SiteKey | null = null;
   let rememberSlug: string | null = null;
   if (host === ROOT || host === `www.${ROOT}`) {
-    return NextResponse.rewrite(new URL('/nafaa-stores', req.url));
+    // The theme editor previews a draft here (?store=<slug>&preview=<token>) before
+    // the shop's own subdomain is attached; plain visits get the Nafaa Stores page.
+    const q = url.searchParams.get('store')?.toLowerCase();
+    const hasPreview = !!url.searchParams.get('preview') || !!req.cookies.get(PREVIEW_COOKIE)?.value;
+    const fromCookie = req.cookies.get(STORE_COOKIE)?.value;
+    const slug = hasPreview ? ((q && isValidSlug(q) && q) || (fromCookie && isValidSlug(fromCookie) && fromCookie) || '') : '';
+    if (!slug) return NextResponse.rewrite(new URL('/nafaa-stores', req.url));
+    if (q && isValidSlug(q)) rememberSlug = q;
+    key = { slug };
   } else if (host.endsWith(`.${ROOT}`)) {
     const sub = host.slice(0, -(ROOT.length + 1));
     if (isValidSlug(sub)) key = { slug: sub };

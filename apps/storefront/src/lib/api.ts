@@ -537,7 +537,7 @@ const S = (id: string) => `${V1}/s/${encodeURIComponent(id)}`;
 const enc = encodeURIComponent;
 
 function apiBase(): string {
-  return (process.env.NAFAA_API_URL || 'http://localhost:4000/api').replace(/\/+$/, '');
+  return (process.env.NAFAA_API_URL || (process.env.NODE_ENV === 'production' ? 'https://api.nafaa.pk/api' : 'http://localhost:4000/api')).replace(/\/+$/, '');
 }
 
 function unwrap<T>(json: unknown): T {

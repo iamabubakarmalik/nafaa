@@ -4,7 +4,9 @@
  */
 
 export const rootDomain = () => (process.env.STORE_ROOT_DOMAIN || 'stores.nafaa.pk').toLowerCase().replace(/^\.+|\.+$/g, '');
-export const storefrontUrl = () => (process.env.STOREFRONT_URL || 'http://localhost:3300').replace(/\/+$/, '');
+/** Storefront base URL. Production falls back to the root domain, never to a local address. */
+export const storefrontUrl = () =>
+  (process.env.STOREFRONT_URL || (process.env.NODE_ENV === 'production' ? `https://${rootDomain()}` : 'http://localhost:3300')).replace(/\/+$/, '');
 
 export function normalizeHost(raw: unknown): string {
   let s = String(raw ?? '').trim().toLowerCase();
