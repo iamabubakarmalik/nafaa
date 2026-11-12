@@ -75,7 +75,7 @@ export function Header({ section, ctx }: { section: Section; ctx: SiteContext })
   return (
     <header
       data-transparent={transparent ? '1' : undefined}
-      className={`nf-header ${height} ${sticky ? 'sticky top-0' : 'relative'} ${scheme} z-40 border-b border-fg/10 bg-bg/95 text-fg backdrop-blur supports-[backdrop-filter]:bg-bg/85`}
+      className={`nf-header ${height} ${sticky ? 'sticky top-0' : 'relative'} ${scheme} z-40 border-b border-fg/10 bg-bg text-fg`}
     >
       {transparent && <HeaderScroll />}
       <div className="page">
