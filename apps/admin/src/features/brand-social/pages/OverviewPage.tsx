@@ -102,7 +102,7 @@ export default function OverviewPage() {
                               <span className="flex items-center gap-1 truncate text-[0.8125rem] font-medium text-slate-900">{p.title}{p.aiMade && <Bot className="h-3.5 w-3.5 shrink-0 text-violet-500" />}</span>
                               <span className="flex items-center gap-2"><PlatformStack platforms={p.platforms} size={12} /><PillarDot pillar={p.pillar} pillars={pillars} withLabel /></span>
                             </span>
-                            <PostStatusBadge status={p.status} size="xs" />
+                            <PostStatusBadge status={p.status} post={p} size="xs" />
                           </Link>
                         ))}
                       </div>

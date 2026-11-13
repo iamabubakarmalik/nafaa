@@ -353,7 +353,7 @@ function ListView({ posts, pillars }: { posts: SocialPost[]; pillars: Parameters
                     </span>
                     <span className="mt-0.5 flex items-center gap-2"><PillarDot pillar={p.pillar} pillars={pillars} withLabel />{['PUBLISHED', 'PARTIAL', 'FAILED', 'PUBLISHING'].includes(p.status) ? <PublishChips post={p} /> : <PlatformStack platforms={p.platforms} size={14} />}</span>
                   </span>
-                  <PostStatusBadge status={p.status} size="xs" />
+                  <PostStatusBadge status={p.status} post={p} size="xs" />
                 </Link>
               </li>
             ))}

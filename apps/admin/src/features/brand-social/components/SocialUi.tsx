@@ -8,7 +8,15 @@ import { cn } from '@/lib/cn';
 import { apiError } from '@/lib/errors';
 import { PLATFORM, PlatformMark, STATUS } from '../lib/platforms';
 
-export function PostStatusBadge({ status, size }: { status: PostStatus; size?: 'xs' | 'sm' }) {
+/** True when a post is only waiting on platforms a person has to finish by hand. */
+export function waitingOnHand(post?: Pick<SocialPost, 'status' | 'publishState'> | null): boolean {
+  if (!post || post.status !== 'PUBLISHING' || !post.publishState) return false;
+  const open = Object.values(post.publishState).filter((x) => x && !['PUBLISHED', 'SKIPPED'].includes(x.status));
+  return open.length > 0 && open.every((x) => x.status === 'HANDOFF');
+}
+
+export function PostStatusBadge({ status, size, post }: { status: PostStatus; size?: 'xs' | 'sm'; post?: Pick<SocialPost, 'status' | 'publishState'> | null }) {
+  if (waitingOnHand(post)) return <Badge variant="warning" size={size ?? 'sm'} dot>Waiting for you</Badge>;
   const s = STATUS[status] ?? { label: status, variant: 'default' as const };
   return <Badge variant={s.variant} size={size ?? 'sm'} dot>{s.label}</Badge>;
 }

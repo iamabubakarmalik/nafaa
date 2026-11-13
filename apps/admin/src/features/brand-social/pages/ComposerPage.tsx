@@ -273,7 +273,7 @@ export default function ComposerPage() {
         backLabel="Calendar"
         loading={loading}
         chip={isNew ? 'Draft' : <><span>{post ? `#${post.code}` : '…'}</span></>}
-        meta={post ? <span className="inline-flex items-center gap-2"><PostStatusBadge status={post.status} size="xs" />{dirty && <span>Unsaved changes</span>}{(post.aiMade || post.createdByKey) && <span className="inline-flex items-center gap-1"><Bot className="h-3.5 w-3.5" />AI marketer</span>}</span> : dirty ? 'Unsaved changes' : undefined}
+        meta={post ? <span className="inline-flex items-center gap-2"><PostStatusBadge status={post.status} post={post} size="xs" />{dirty && <span>Unsaved changes</span>}{(post.aiMade || post.createdByKey) && <span className="inline-flex items-center gap-1"><Bot className="h-3.5 w-3.5" />AI marketer</span>}</span> : dirty ? 'Unsaved changes' : undefined}
         actions={<>
           {!readOnly && (
             <button type="button" className={heroButton} disabled={busy} onClick={() => run.mutate('draft')} title="Save (Ctrl+S)">

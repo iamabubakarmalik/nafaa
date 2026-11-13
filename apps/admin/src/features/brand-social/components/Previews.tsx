@@ -203,7 +203,7 @@ function VerticalVideo({ d, flavour }: { d: PreviewData; flavour: 'reel' | 'tikt
           <PlatformMark p={flavour === 'reel' ? 'INSTAGRAM' : flavour === 'tiktok' ? 'TIKTOK' : 'YOUTUBE'} size={16} />
         </div>
         <div className="absolute bottom-16 end-2 flex flex-col items-center gap-3.5 text-white">
-          {[[Heart, '2.4K'], [MessageCircle, '86'], [flavour === 'reel' ? Send : Share2, 'Share']].map(([Icon, n], i) => {
+          {[[Heart, ''], [MessageCircle, ''], [flavour === 'reel' ? Send : Share2, 'Share']].map(([Icon, n], i) => {
             const I = Icon as typeof Heart;
             return <span key={i} className="flex flex-col items-center gap-0.5 text-[0.625rem] font-semibold"><I className="h-6 w-6 drop-shadow" />{n as string}</span>;
           })}
@@ -247,7 +247,7 @@ function XPost({ d }: { d: PreviewData }) {
             <span className="flex items-center gap-1.5"><MessageCircle className="h-4 w-4" /></span>
             <span className="flex items-center gap-1.5"><Repeat2 className="h-4 w-4" /></span>
             <span className="flex items-center gap-1.5"><Heart className="h-4 w-4" /></span>
-            <span className="flex items-center gap-1.5"><BarChart2 className="h-4 w-4" />9.1K</span>
+            <span className="flex items-center gap-1.5"><BarChart2 className="h-4 w-4" /></span>
             <span className="flex items-center gap-2"><Bookmark className="h-4 w-4" /><Share className="h-4 w-4" /></span>
           </div>
         </div>
