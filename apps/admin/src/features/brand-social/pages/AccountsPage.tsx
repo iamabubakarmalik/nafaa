@@ -57,10 +57,6 @@ export function usePlatformConnect() {
   });
 }
 
-const PRIVACY_LABEL: Record<string, string> = {
-  PUBLIC_TO_EVERYONE: 'Everyone', MUTUAL_FOLLOW_FRIENDS: 'Friends', FOLLOWER_OF_CREATOR: 'Followers', SELF_ONLY: 'Only me',
-};
-
 export default function AccountsPage() {
   const q = useAccounts();
   const can = useCan();
@@ -284,7 +280,7 @@ function ManualModal({ value, onClose }: { value: { platform: SocialPlatform; ac
 function SettingsSummary({ account: a }: { account: SocialAccount }) {
   const s = a.settings ?? {};
   const line = a.platform === 'YOUTUBE' ? `Uploads as ${s.youtubePrivacy ?? 'private'}`
-    : a.platform === 'TIKTOK' ? (s.tiktokMode === 'DIRECT' ? `Posts directly · ${PRIVACY_LABEL[s.tiktokPrivacy ?? 'SELF_ONLY'] ?? s.tiktokPrivacy}` : 'Sends to TikTok drafts')
+    : a.platform === 'TIKTOK' ? (s.tiktokMode === 'DIRECT' ? 'Posts directly · privacy chosen on each post' : 'Sends to TikTok drafts')
       : a.platform === 'PINTEREST' ? (s.pinterestBoardId ? `Pins to ${s.pinterestBoardName ?? 'the chosen board'}` : 'No board chosen yet')
         : null;
   if (!line) return null;
@@ -308,7 +304,6 @@ function AccountSettingsModal({ account, onClose }: { account: SocialAccount | n
     onError: (e) => toast.error(apiError(e)),
   });
   const p = account?.platform;
-  const privacy = q.data?.tiktok?.privacyOptions ?? [];
   const boards = q.data?.boards ?? [];
   return (
     <Modal open={!!account} onClose={onClose} size="sm" title={p ? <span className="flex items-center gap-2"><PlatformMark p={p} size={20} />{PLATFORM[p].label} settings</span> : ''}
@@ -329,11 +324,11 @@ function AccountSettingsModal({ account, onClose }: { account: SocialAccount | n
                 <Segmented value={form.tiktokMode ?? 'INBOX'} label="TikTok mode" onChange={(v) => setForm({ ...form, tiktokMode: v as 'INBOX' | 'DIRECT' })}
                   items={[{ value: 'INBOX', label: 'Send to TikTok drafts' }, { value: 'DIRECT', label: 'Post directly' }]} />
               </div>
-              {form.tiktokMode === 'DIRECT' && (
-                <Select label="Who can see it" value={form.tiktokPrivacy ?? 'SELF_ONLY'} onChange={(e) => setForm({ ...form, tiktokPrivacy: e.target.value })}
-                  hint="Until TikTok audits the Nafaa app, only Only me works."
-                  options={(privacy.length ? privacy : ['SELF_ONLY']).map((v) => ({ value: v, label: PRIVACY_LABEL[v] ?? v }))} />
-              )}
+              <div className="space-y-2 rounded-lg bg-slate-50 px-3 py-2.5 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">
+                <p><b className="text-slate-800">Send to TikTok drafts</b> (recommended for now): the video lands in the TikTok app&apos;s inbox, and a person finishes and posts it there.</p>
+                <p><b className="text-slate-800">Post directly</b>: Nafaa posts it for you. Each post then gets its own TikTok settings in the composer: who can see it, comments, duets, stitches and content disclosure.</p>
+                <p>TikTok must review and audit the Nafaa app before direct posts can be public. Until then, only &quot;Only me&quot; works: direct posts stay private on the profile, and other choices are refused.</p>
+              </div>
             </>
           )}
           {p === 'PINTEREST' && (

@@ -2,8 +2,9 @@
  * Composer (/social/posts/new, /social/posts/:id): one post for every chosen
  * platform. Shared caption with per-platform versions, media from the
  * library or dropped in, carousel order, link with UTM tags, PKT schedule
- * with best-time suggestions, live previews and inline checks. The action
- * row follows the post's status and the admin's permissions.
+ * with best-time suggestions, live previews and inline checks. TikTok posts
+ * to a "Post directly" account get their own TikTok settings. The action row
+ * follows the post's status and the admin's permissions.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -18,7 +19,7 @@ import {
 } from '@/design-system/components';
 import { isDialogOpen } from '@core/lib/shortcuts';
 import {
-  brandSocialApi, POST_KINDS, type PostInput, type PostKind, type PostMedia, type SocialPlatform, type SocialPost,
+  brandSocialApi, POST_KINDS, type PostInput, type PostKind, type PostMedia, type PostOptions, type SocialPlatform, type SocialPost,
 } from '@/api/admin-brand-social.api';
 import { useCan } from '@/lib/access';
 import { cn } from '@/lib/cn';
@@ -27,12 +28,14 @@ import { PromptModal } from '@/features/marketing/lib/kit';
 import { KIND_LABEL, PLATFORM, PlatformMark } from '../lib/platforms';
 import { captionFor, copyText, fullText, localWarnings, utmLink, type LocalWarning } from '../lib/post';
 import { KEYS, useAccounts, useInvalidate, useSettings } from '../lib/queries';
+import { tiktokDirectAccount, tiktokWarnings } from '../lib/tiktok';
 import { fmtDateTime, pkToIso } from '../lib/time';
 import { LoadError, PostStatusBadge, SectionLabel } from '../components/SocialUi';
 import { PlatformPicker } from '../components/composer/PlatformPicker';
 import { CaptionEditor } from '../components/composer/CaptionEditor';
 import { MediaStrip } from '../components/composer/MediaStrip';
 import { SchedulePicker } from '../components/composer/SchedulePicker';
+import { TikTokConsent, TikTokSettings } from '../components/composer/TikTokSettings';
 import { PreviewPanel, type PreviewData } from '../components/Previews';
 
 interface Form {
@@ -49,21 +52,22 @@ interface Form {
   platforms: SocialPlatform[];
   scheduledAt: string | null;
   notes: string;
+  options: PostOptions;
 }
 
 const EMPTY: Form = {
-  title: '', kind: 'POST', pillar: '', campaign: '', caption: '', captions: {}, hashtags: [], firstComment: '', link: '', media: [], platforms: [], scheduledAt: null, notes: '',
+  title: '', kind: 'POST', pillar: '', campaign: '', caption: '', captions: {}, hashtags: [], firstComment: '', link: '', media: [], platforms: [], scheduledAt: null, notes: '', options: {},
 };
 
 const fromPost = (p: SocialPost): Form => ({
   title: p.title, kind: p.kind, pillar: p.pillar ?? '', campaign: p.campaign ?? '', caption: p.caption, captions: p.captions ?? {}, hashtags: p.hashtags,
-  firstComment: p.firstComment ?? '', link: p.link ?? '', media: p.media, platforms: p.platforms, scheduledAt: p.scheduledAt, notes: p.notes ?? '',
+  firstComment: p.firstComment ?? '', link: p.link ?? '', media: p.media, platforms: p.platforms, scheduledAt: p.scheduledAt, notes: p.notes ?? '', options: p.options ?? {},
 });
 
 const toInput = (f: Form): PostInput => ({
   title: f.title.trim() || 'Untitled post', kind: f.kind, pillar: f.pillar || null, campaign: f.campaign || null, caption: f.caption,
   captions: Object.fromEntries(Object.entries(f.captions).filter(([, v]) => v?.trim())), hashtags: f.hashtags, firstComment: f.firstComment.trim() || null,
-  link: f.link.trim() || null, media: f.media, platforms: f.platforms, scheduledAt: f.scheduledAt, notes: f.notes.trim() || null,
+  link: f.link.trim() || null, media: f.media, platforms: f.platforms, scheduledAt: f.scheduledAt, notes: f.notes.trim() || null, options: f.options,
 });
 
 const LOCKED = ['PUBLISHING', 'PUBLISHED', 'PARTIAL', 'FAILED', 'ARCHIVED'];
@@ -136,6 +140,25 @@ export default function ComposerPage() {
   const readOnly = locked || !canEdit;
   const requireApproval = settings?.requireApproval ?? true;
 
+  // TikTok "Post directly": the post needs its own TikTok settings, built from creator_info.
+  const tiktokAccount = tiktokDirectAccount(accounts);
+  const tiktokDirect = !!tiktokAccount && form.platforms.includes('TIKTOK');
+  const creatorQ = useQuery({
+    queryKey: ['brand-social', 'tiktok-creator', tiktokAccount?.id],
+    queryFn: () => brandSocialApi.tiktokCreatorInfo(tiktokAccount!.id),
+    enabled: tiktokDirect && !locked,
+    staleTime: 3 * 60_000,
+  });
+  const [creatorRefreshing, setCreatorRefreshing] = useState(false);
+  const refreshCreator = async () => {
+    if (!tiktokAccount) return;
+    setCreatorRefreshing(true);
+    try { qc.setQueryData(['brand-social', 'tiktok-creator', tiktokAccount.id], await brandSocialApi.tiktokCreatorInfo(tiktokAccount.id, true)); } catch (e) { toast.error(apiError(e)); }
+    setCreatorRefreshing(false);
+  };
+  const firstVideo = form.media.find((m) => m.kind === 'video');
+  const tiktokPhoto = !firstVideo;
+
   // Warn before leaving with unsaved changes.
   useEffect(() => {
     if (!dirty) return;
@@ -163,7 +186,13 @@ export default function ComposerPage() {
       if (action === 'publish') {
         const ok = await confirmDialog({
           title: 'Publish now?',
-          text: 'Facebook and Instagram go live within a minute. Platforms posted by hand go to the "To post by hand" queue.',
+          text: tiktokDirect
+            ? <>
+                <span className="block">Facebook and Instagram go live within a minute. Platforms posted by hand go to the &quot;To post by hand&quot; queue.</span>
+                <span className="mt-2 block">TikTok may take a few minutes to process the post before it shows on the profile.</span>
+                <TikTokConsent branded={!!form.options.tiktok?.disclose && !!form.options.tiktok?.brandedContent} className="mt-2 block text-[0.8125rem] text-slate-600" />
+              </>
+            : 'Facebook and Instagram go live within a minute. Platforms posted by hand go to the "To post by hand" queue.',
           yes: 'Publish now',
         });
         if (!ok) return null;
@@ -223,10 +252,16 @@ export default function ComposerPage() {
   // ─── Checks ──────────────────────────────────────────────────────────
   const warnings: LocalWarning[] = useMemo(() => {
     const local = localWarnings({ ...form });
+    if (tiktokDirect && !locked) {
+      const creator = creatorQ.data;
+      // A refusal right now is advice: a later time may still work.
+      local.push(...tiktokWarnings(form.options.tiktok, { photo: tiktokPhoto, durationSec: firstVideo?.durationSec }, creator)
+        .map((w) => (w.code === 'tiktok_cannot_post' ? { ...w, level: 'warning' as const } : w)));
+    }
     const server = !dirty && post ? post.warnings : [];
     const seen = new Set(local.map((w) => w.message));
     return [...local, ...server.filter((w) => !seen.has(w.message))];
-  }, [form, dirty, post]);
+  }, [form, dirty, post, tiktokDirect, locked, creatorQ.data, tiktokPhoto, firstVideo?.durationSec]);
   const errors = warnings.filter((w) => w.level === 'error');
 
   // ─── Previews ────────────────────────────────────────────────────────
@@ -285,7 +320,7 @@ export default function ComposerPage() {
           )}
           {primary && (
             <button type="button" className={heroPrimaryButton} disabled={busy || (primary.action !== 'submit' && errors.length > 0)} onClick={() => run.mutate(primary.action)}
-              title={primary.action !== 'submit' && errors.length ? 'Fix the problems in Checks first' : undefined}>
+              title={primary.action !== 'submit' && errors.length ? `Fix the problems in Checks first: ${errors.map((e) => e.message).join(' ')}` : undefined}>
               <primary.icon className="h-4 w-4" />{primary.label}
             </button>
           )}
@@ -370,6 +405,14 @@ export default function ComposerPage() {
               )}
               {form.link && form.platforms.includes('INSTAGRAM') && <p className="mt-2 text-[0.75rem] text-slate-500">Instagram captions cannot hold a clickable link; the tracked link is used in the first comment or bio instead.</p>}
             </Card>
+
+            {tiktokDirect && tiktokAccount && (
+              <TikTokSettings
+                account={tiktokAccount} creator={creatorQ.data} loading={creatorQ.isLoading && !locked} refreshing={creatorRefreshing} onRefresh={refreshCreator}
+                value={form.options.tiktok} onChange={(v) => set('options', { ...form.options, tiktok: v })}
+                photo={tiktokPhoto} durationSec={firstVideo?.durationSec ?? null} disabled={readOnly}
+              />
+            )}
 
             <Card title="Schedule" description="Pakistan time.">
               <SchedulePicker value={form.scheduledAt} onChange={(v) => set('scheduledAt', v)} platforms={form.platforms} settings={settings} disabled={readOnly} />

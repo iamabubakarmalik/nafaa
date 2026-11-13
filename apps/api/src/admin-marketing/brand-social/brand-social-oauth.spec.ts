@@ -5,7 +5,7 @@
  */
 import * as crypto from 'crypto';
 import {
-  buildAuthorizeUrl, evenChunks, needsRefresh, OAUTH, pickTikTokPrivacy, pinterestRoute, pkceChallenge, pkceVerifier, platformFromSlug,
+  buildAuthorizeUrl, evenChunks, needsRefresh, OAUTH, pinterestRoute, pkceChallenge, pkceVerifier, platformFromSlug,
   platformRedirectUri, platformTextLength, signOAuthState, threadsLength, threadsRoute, tiktokChunks, tiktokRoute, verifyOAuthState, xLength, xRoute,
   youtubeRoute, youtubeSafe,
 } from './brand-social-oauth.logic';
@@ -151,11 +151,6 @@ describe('media routes', () => {
     expect(threadsRoute([]).type).toBe('TEXT');
     expect(threadsRoute([vid()]).type).toBe('VIDEO');
     expect(threadsRoute([img(), vid()]).type).toBe('CAROUSEL');
-  });
-  it('TikTok privacy: chosen if offered, else SELF_ONLY', () => {
-    expect(pickTikTokPrivacy(['PUBLIC_TO_EVERYONE', 'SELF_ONLY'], 'PUBLIC_TO_EVERYONE')).toBe('PUBLIC_TO_EVERYONE');
-    expect(pickTikTokPrivacy(['SELF_ONLY'], 'PUBLIC_TO_EVERYONE')).toBe('SELF_ONLY');
-    expect(pickTikTokPrivacy([], null)).toBeNull();
   });
 });
 

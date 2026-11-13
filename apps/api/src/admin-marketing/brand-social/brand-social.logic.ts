@@ -8,10 +8,11 @@
 import { zonedToUtc } from '../../common/helpers/business-time.helper';
 import type { MetaErrorKind, GraphErrorBody } from '../../integrations/meta/meta-graph';
 import { platformTextLength } from './brand-social-oauth.logic';
+import { normalizePostOptions, normalizeTikTokOptions, tiktokOptionIssues } from './brand-social-tiktok.logic';
 import {
   API_PLATFORMS, BRAND_PLATFORMS, POST_KINDS, POST_STATUSES,
   type BrandPlatform, type BrandPostKind, type BrandPostStatus, type BrandSocialSettings, type ContentPack,
-  type PlatformPublishState, type PostMediaItem, type PostWarning, type PublishStateMap,
+  type PlatformPublishState, type PostMediaItem, type PostOptions, type PostWarning, type PublishStateMap,
 } from './brand-social.types';
 
 export const isPlatform = (v: unknown): v is BrandPlatform => typeof v === 'string' && (BRAND_PLATFORMS as readonly string[]).includes(v);
@@ -141,6 +142,9 @@ export interface ValidationInput extends TextSource {
   platforms: BrandPlatform[];
   media: PostMediaItem[];
   firstComment?: string | null;
+  options?: PostOptions | null;
+  /** The TikTok account posts directly, so the post's TikTok settings are required. */
+  tiktokDirect?: boolean;
 }
 
 /** Problems per platform; level "error" means that platform will not publish as is. */
@@ -205,6 +209,9 @@ export function validatePost(p: ValidationInput, utm?: { medium?: string; defaul
       case 'TIKTOK':
         if (!video && !images.length) add(platform, 'error', 'needs_media', 'TikTok needs a video or photos.');
         else if (!video) add(platform, 'warning', 'tiktok_photos', 'TikTok takes photo posts only from a verified domain; if it refuses, the post goes to "To post by hand".');
+        if (p.tiktokDirect) {
+          for (const i of tiktokOptionIssues(normalizeTikTokOptions(p.options?.tiktok), { photo: !video, durationSec: video?.durationSec })) add(platform, 'error', i.code, i.message);
+        }
         break;
       case 'YOUTUBE':
         if (p.kind !== 'VIDEO' && p.kind !== 'REEL') add(platform, 'warning', 'youtube_kind', 'YouTube takes video and reel posts only; set the kind to Video or Reel, or this post is skipped there.');
@@ -231,6 +238,9 @@ export function validatePost(p: ValidationInput, utm?: { medium?: string; defaul
 
 const ratio = (m: { width?: number | null; height?: number | null } | undefined) =>
   m?.width && m?.height && m.width > 0 && m.height > 0 ? m.width / m.height : null;
+
+/** TikTok settings problems: they block approving, scheduling and publishing now. */
+export const tiktokSettingErrors = (w: PostWarning[]) => w.filter((x) => x.level === 'error' && x.platform === 'TIKTOK' && x.code.startsWith('tiktok_'));
 
 export const blockingErrors = (w: PostWarning[], platform?: BrandPlatform) =>
   w.filter((x) => x.level === 'error' && (platform ? x.platform === platform || x.platform === null : true));
@@ -412,6 +422,7 @@ export interface ParsedPackPost {
   scheduledAt: Date | null;
   media: string[];
   notes: string | null;
+  options: PostOptions;
 }
 
 export interface ParsedPack {
@@ -482,6 +493,7 @@ export function parsePack(raw: unknown, files: Set<string>, now = Date.now()): P
       scheduledAt,
       media,
       notes: typeof p.notes === 'string' && p.notes.trim() ? p.notes.slice(0, 4000) : null,
+      options: normalizePostOptions(p.options),
     });
   });
   return { campaign, posts, skipped };

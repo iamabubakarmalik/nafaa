@@ -27,7 +27,7 @@ import { BrandSocialSettingsService } from './brand-social-settings.service';
 import { BrandSocialPlatformsService } from './brand-social-platforms.service';
 import { isOAuthPlatform } from './brand-social-oauth.logic';
 import {
-  blockingErrors, CONTAINER_WAIT_MS, dispatchFor, duePlatforms, isKind, isPlatform, linkFor, missedWindow, PLATFORM_LABEL, retryAt, STUCK_MS, summarize, textFor,
+  blockingErrors, CONTAINER_WAIT_MS, tiktokSettingErrors, dispatchFor, duePlatforms, isKind, isPlatform, linkFor, missedWindow, PLATFORM_LABEL, retryAt, STUCK_MS, summarize, textFor,
 } from './brand-social.logic';
 import type { BrandPlatform, BrandPostView, MarkPostedInput, PlatformPublishState, PostMediaItem, PublishStateMap } from './brand-social.types';
 
@@ -91,7 +91,8 @@ export class BrandSocialPublisherService {
     const state = stateOf(post);
     for (const p of Object.keys(state) as BrandPlatform[]) if (state[p]?.status === 'FAILED') delete state[p];
     const view = (await this.posts.views([post], false))[0];
-    if (blockingErrors(view.warnings).some((w) => w.platform === null)) throw new BadRequestException(`Fix these first: ${blockingErrors(view.warnings).filter((w) => w.platform === null).map((w) => w.message).join(' ')}`);
+    const stop = [...blockingErrors(view.warnings).filter((w) => w.platform === null), ...tiktokSettingErrors(view.warnings)];
+    if (stop.length) throw new BadRequestException(`Fix these first: ${stop.map((w) => w.message).join(' ')}`);
     await this.prisma.brandSocialPost.update({
       where: { id },
       data: {

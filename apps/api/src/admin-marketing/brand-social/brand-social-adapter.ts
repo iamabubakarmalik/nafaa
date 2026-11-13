@@ -11,7 +11,7 @@ import * as http from 'http';
 import { Readable } from 'stream';
 import { SocialGraphError } from './brand-social-graph.service';
 import { PLATFORM_LABEL } from './brand-social.logic';
-import type { AccountPlatformSettings, BrandPostKind, OAuthPlatform, PlatformPublishState, PostMediaItem } from './brand-social.types';
+import type { AccountPlatformSettings, BrandPostKind, OAuthPlatform, PlatformPublishState, PostMediaItem, PostOptions } from './brand-social.types';
 
 /* ───────────────────────── contract ───────────────────────── */
 
@@ -43,7 +43,7 @@ export interface PublishContext {
   externalId: string;
   handle: string | null;
   settings: AccountPlatformSettings;
-  post: { id: string; code: string; title: string; kind: BrandPostKind; firstComment: string | null };
+  post: { id: string; code: string; title: string; kind: BrandPostKind; firstComment: string | null; options: PostOptions };
   /** The full text for this platform (caption, hashtags, tagged link where it belongs). */
   text: string;
   /** The same text without the link (Pinterest keeps the link separately). */

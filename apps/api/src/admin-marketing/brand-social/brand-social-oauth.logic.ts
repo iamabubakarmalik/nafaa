@@ -294,15 +294,5 @@ export function evenChunks(total: number, size = 4 * 1024 * 1024): Array<[number
   return out;
 }
 
-/**
- * The TikTok privacy level for a direct post: the account's choice when the
- * creator offers it, else SELF_ONLY, else the first option.
- */
-export function pickTikTokPrivacy(options: string[], wanted?: string | null): string | null {
-  if (wanted && options.includes(wanted)) return wanted;
-  if (options.includes('SELF_ONLY')) return 'SELF_ONLY';
-  return options[0] ?? null;
-}
-
 /** YouTube refuses < and > in titles and descriptions. */
 export const youtubeSafe = (s: string, max: number) => String(s ?? '').replace(/[<>]/g, '').trim().slice(0, max);

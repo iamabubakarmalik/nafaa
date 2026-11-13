@@ -11,9 +11,10 @@ import { BrandSocialPost, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BrandSocialSettingsService } from './brand-social-settings.service';
 import {
-  approvedStatus, blockingErrors, canTransition, cleanHashtags, EDITABLE, isKind, isPlatform, isStatus, linkFor, newPostCode,
+  approvedStatus, blockingErrors, canTransition, tiktokSettingErrors, cleanHashtags, EDITABLE, isKind, isPlatform, isStatus, linkFor, newPostCode,
   parsePktDateTime, platformFrom, statusAfterEdit, textFor, validatePost,
 } from './brand-social.logic';
+import { isTikTokDirect, mergePostOptions, normalizePostOptions } from './brand-social-tiktok.logic';
 import type {
   BrandPlatform, BrandPostKind, BrandPostStatus, BrandPostView, BulkInput, BulkResponse, PostInput, PostListQuery, PostMediaItem,
   PostMetricView, PublishStateMap, BrandSocialSettings,
@@ -22,7 +23,7 @@ import type {
 /** Who is acting: an admin user, or an automation key ("key:<id>"). */
 export interface SocialActor { id: string; automation?: boolean }
 
-const CONTENT_FIELDS = ['title', 'kind', 'caption', 'captions', 'hashtags', 'firstComment', 'link', 'media', 'platforms'] as const;
+const CONTENT_FIELDS = ['title', 'kind', 'caption', 'captions', 'hashtags', 'firstComment', 'link', 'media', 'platforms', 'options'] as const;
 const LOCKED: readonly BrandPostStatus[] = ['PUBLISHING', 'PUBLISHED', 'PARTIAL', 'ARCHIVED'];
 const PAST_GRACE_MS = 60_000;
 
@@ -40,10 +41,11 @@ export class BrandSocialPostsService {
     const s = await this.settings.get();
     const userIds = new Set<string>();
     for (const r of rows) for (const id of [r.createdById, r.approvedById, r.rejectedById]) if (id && !id.startsWith('key:')) userIds.add(id);
-    const [users, keyNames, metrics] = await Promise.all([
+    const [users, keyNames, metrics, tiktokDirect] = await Promise.all([
       userIds.size ? this.prisma.user.findMany({ where: { id: { in: [...userIds] } }, select: { id: true, fullName: true } }) : Promise.resolve([]),
       rows.some((r) => [r.createdById, r.approvedById].some((x) => x?.startsWith('key:'))) ? this.settings.keyNames() : Promise.resolve(new Map<string, string>()),
       withMetrics ? this.latestMetrics(rows.filter((r) => r.publishedAt).map((r) => r.id)) : Promise.resolve(new Map<string, Partial<Record<BrandPlatform, PostMetricView>>>()),
+      rows.some((r) => r.platforms.includes('TIKTOK')) ? this.tiktokDirect() : Promise.resolve(false),
     ]);
     const names = new Map(users.map((u) => [u.id, u.fullName]));
     const person = (id: string | null) => {
@@ -51,17 +53,24 @@ export class BrandSocialPostsService {
       if (id.startsWith('key:')) return { id, name: `${keyNames.get(id.slice(4)) ?? 'Automation'} (automation)` };
       return { id, name: names.get(id) ?? 'Admin' };
     };
-    return rows.map((r) => this.view(r, s, person, metrics.get(r.id)));
+    return rows.map((r) => this.view(r, s, person, tiktokDirect, metrics.get(r.id)));
+  }
+
+  /** True when the TikTok account posts directly, so every TikTok post needs its TikTok settings. */
+  private async tiktokDirect(): Promise<boolean> {
+    const rows = await this.prisma.brandSocialAccount.findMany({ where: { platform: 'TIKTOK', status: 'CONNECTED', autoPublish: true } });
+    return rows.some(isTikTokDirect);
   }
 
   private view(
-    r: BrandSocialPost, s: BrandSocialSettings, person: (id: string | null) => { id: string; name: string } | null,
+    r: BrandSocialPost, s: BrandSocialSettings, person: (id: string | null) => { id: string; name: string } | null, tiktokDirect: boolean,
     metrics?: Partial<Record<BrandPlatform, PostMetricView>>,
   ): BrandPostView {
     const platforms = r.platforms.filter(isPlatform);
     const media = asArr<PostMediaItem>(r.media);
     const captions = asObj<Partial<Record<BrandPlatform, string>>>(r.captions, {});
     const src = { code: r.code, caption: r.caption, captions, hashtags: r.hashtags, link: r.link, campaign: r.campaign, media };
+    const options = normalizePostOptions(r.options);
     const texts: BrandPostView['texts'] = {};
     const links: BrandPostView['links'] = {};
     for (const p of platforms) {
@@ -93,10 +102,11 @@ export class BrandSocialPostsService {
       rejectReason: r.rejectReason,
       aiMade: r.aiMade,
       notes: r.notes,
+      options,
       createdBy: person(r.createdById),
       createdAt: r.createdAt.toISOString(),
       updatedAt: r.updatedAt.toISOString(),
-      warnings: validatePost({ ...src, kind: (isKind(r.kind) ? r.kind : 'POST'), platforms, media, firstComment: r.firstComment }, s.utm),
+      warnings: validatePost({ ...src, kind: (isKind(r.kind) ? r.kind : 'POST'), platforms, media, firstComment: r.firstComment, options, tiktokDirect }, s.utm),
       texts,
       links,
       ...(metrics ? { metrics } : {}),
@@ -223,7 +233,7 @@ export class BrandSocialPostsService {
   }
 
   /** Clean column values for the fields present in the input. */
-  private async data(input: PostInput): Promise<Prisma.BrandSocialPostUncheckedUpdateInput> {
+  private async data(input: PostInput, savedOptions: unknown = null): Promise<Prisma.BrandSocialPostUncheckedUpdateInput> {
     const d: Prisma.BrandSocialPostUncheckedUpdateInput = {};
     const has = (k: keyof PostInput) => Object.prototype.hasOwnProperty.call(input ?? {}, k);
     const opt = (v: unknown, max: number) => (typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null);
@@ -247,6 +257,10 @@ export class BrandSocialPostsService {
     }
     if (has('platforms')) d.platforms = await this.platformsFrom(input.platforms);
     if (has('notes')) d.notes = typeof input.notes === 'string' && input.notes.trim() ? input.notes.slice(0, 8_000) : null;
+    if (has('options')) {
+      const o = mergePostOptions(savedOptions, input.options);
+      d.options = Object.keys(o).length ? (o as unknown as Prisma.InputJsonValue) : Prisma.DbNull;
+    }
     return d;
   }
 
@@ -288,7 +302,7 @@ export class BrandSocialPostsService {
     if (actor.automation && !['IDEA', 'DRAFT', 'IN_REVIEW', 'REJECTED'].includes(status)) {
       throw new ForbiddenException('Automation keys can only edit posts that are not approved yet.');
     }
-    const d = await this.data(input ?? {});
+    const d = await this.data(input ?? {}, post.options);
     const contentChanged = CONTENT_FIELDS.some((k) => Object.prototype.hasOwnProperty.call(input ?? {}, k));
     if (contentChanged && !EDITABLE.includes(status)) throw new BadRequestException(`A ${status.toLowerCase().replace('_', ' ')} post cannot be edited. Duplicate it instead.`);
     if (LOCKED.includes(status) && Object.prototype.hasOwnProperty.call(input ?? {}, 'scheduledAt')) throw new BadRequestException('This post is already out; its time cannot change.');
@@ -325,6 +339,12 @@ export class BrandSocialPostsService {
         ...(next !== 'REJECTED' && status === 'REJECTED' ? { rejectReason: null, rejectedById: null } : {}),
       },
     });
+    // An approved post edited without review must still carry its TikTok settings, or it goes back to draft.
+    if (next === 'APPROVED' || next === 'SCHEDULED') {
+      const view = await this.one(id);
+      if (!tiktokSettingErrors(view.warnings).length) return view;
+      await this.prisma.brandSocialPost.update({ where: { id }, data: { status: 'DRAFT', nextRunAt: null, approvedById: null, approvedAt: null } });
+    }
     return this.one(id);
   }
 
@@ -344,6 +364,7 @@ export class BrandSocialPostsService {
         kind: p.kind, pillar: p.pillar, campaign: p.campaign, caption: p.caption,
         captions: p.captions as Prisma.InputJsonValue, hashtags: p.hashtags, firstComment: p.firstComment, link: p.link,
         media: p.media as Prisma.InputJsonValue, assetIds: p.assetIds, platforms: p.platforms,
+        options: p.options == null ? Prisma.DbNull : (p.options as Prisma.InputJsonValue),
         status: 'DRAFT', notes: p.notes, aiMade: p.aiMade, createdById: actor.id,
       },
     });
@@ -409,6 +430,10 @@ export class BrandSocialPostsService {
     let next = status;
     if ((status === 'APPROVED' || status === 'FAILED') && at) next = 'SCHEDULED';
     if (status === 'SCHEDULED' && !at) next = 'APPROVED';
+    if (next === 'SCHEDULED') {
+      const missing = tiktokSettingErrors((await this.views([post], false))[0].warnings);
+      if (missing.length) throw new BadRequestException(`Fix these first: ${missing.map((e) => e.message).join(' ')}`);
+    }
     await this.prisma.brandSocialPost.update({
       where: { id },
       data: {

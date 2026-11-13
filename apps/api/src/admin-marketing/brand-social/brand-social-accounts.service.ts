@@ -25,7 +25,7 @@ import { BrandSocialPlatformsService } from './brand-social-platforms.service';
 import { isOAuthPlatform, platformFromSlug } from './brand-social-oauth.logic';
 import { isApiPlatform, isPlatform, PLATFORM_LABEL } from './brand-social.logic';
 import type {
-  AccountOptionsResponse, AccountPatchInput, AccountPlatformSettings, AccountsResponse, BrandAccountStatus, BrandAccountView, BrandPlatform, MetaCallbackResponse,
+  AccountOptionsResponse, AccountPatchInput, AccountPlatformSettings, AccountsResponse, BrandAccountStatus, BrandAccountView, BrandPlatform, MetaCallbackResponse, TikTokCreatorInfoResponse,
   MetaConnectUrlResponse, MetaPageChoice, OAuthPlatform, PlatformCallbackResponse, PlatformConnectUrlResponse, TokenHealthView,
 } from './brand-social.types';
 
@@ -220,6 +220,13 @@ export class BrandSocialAccountsService {
 
   async options(id: string): Promise<AccountOptionsResponse> {
     return this.platforms.options(await this.get(id));
+  }
+
+  /** TikTok creator_info for the composer (cached a few minutes; fresh = read it again). */
+  async tiktokCreatorInfo(id: string, fresh = false): Promise<TikTokCreatorInfoResponse> {
+    const a = await this.get(id);
+    if (a.platform !== 'TIKTOK' || !a.accessTokenEnc) throw new BadRequestException('This is not a connected TikTok account.');
+    return this.platforms.tiktokCreatorInfo(a, fresh);
   }
 
   /* ───────────────────────── Meta OAuth ───────────────────────── */

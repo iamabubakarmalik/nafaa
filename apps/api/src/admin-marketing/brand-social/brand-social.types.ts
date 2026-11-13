@@ -154,7 +154,10 @@ export interface AccountPlatformSettings {
   youtubePrivacy?: 'private' | 'unlisted' | 'public';
   /** TikTok: INBOX sends to the TikTok drafts inbox; DIRECT posts at once. */
   tiktokMode?: 'INBOX' | 'DIRECT';
-  /** TikTok direct posts: one of the creator's privacy options. Unaudited apps can only use SELF_ONLY. */
+  /**
+   * Old account-wide privacy for direct posts. No longer used: TikTok asks for
+   * a privacy choice on every post (PostOptions.tiktok.privacyLevel).
+   */
   tiktokPrivacy?: string | null;
   /** Pinterest: the board new pins go to. */
   pinterestBoardId?: string | null;
@@ -168,6 +171,27 @@ export interface AccountOptionsResponse {
   boards?: Array<{ id: string; name: string }>;
   tiktok?: { privacyOptions: string[]; maxDurationSec: number | null; username: string | null };
   notes: string[];
+}
+
+/**
+ * GET accounts/:id/tiktok/creator-info: the TikTok creator's posting limits
+ * (creator_info), cached for a few minutes. The composer builds its TikTok
+ * settings from it. canPost is false when TikTok says the account cannot post
+ * right now (reason says why).
+ */
+export interface TikTokCreatorInfoResponse {
+  accountId: string;
+  nickname: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+  privacyLevelOptions: TikTokPrivacyLevel[];
+  commentDisabled: boolean;
+  duetDisabled: boolean;
+  stitchDisabled: boolean;
+  maxVideoPostDurationSec: number | null;
+  canPost: boolean;
+  reason: string | null;
+  fetchedAt: string;
 }
 
 /** POST accounts/manual */
@@ -196,6 +220,35 @@ export interface MetaSelectInput { pageId: string }
 export interface MetaSelectResponse { accounts: BrandAccountView[] }
 
 /* ───────────────────────── posts ───────────────────────── */
+
+export const TIKTOK_PRIVACY_LEVELS = ['PUBLIC_TO_EVERYONE', 'MUTUAL_FOLLOW_FRIENDS', 'FOLLOWER_OF_CREATOR', 'SELF_ONLY'] as const;
+export type TikTokPrivacyLevel = (typeof TIKTOK_PRIVACY_LEVELS)[number];
+
+/**
+ * TikTok choices for one post, used when the TikTok account is set to
+ * "Post directly". TikTok's rules: privacy has no default, and comments,
+ * duets and stitches start off until a person turns them on.
+ */
+export interface TikTokPostOptions {
+  /** One of the creator's privacy_level_options; null until a person picks one. */
+  privacyLevel: TikTokPrivacyLevel | null;
+  allowComment: boolean;
+  /** Videos only. */
+  allowDuet: boolean;
+  /** Videos only. */
+  allowStitch: boolean;
+  /** "Disclose post content" is on. */
+  disclose: boolean;
+  /** Promotes the creator's own business; TikTok labels it "Promotional content". */
+  yourBrand: boolean;
+  /** Promotes a third party; TikTok labels it "Paid partnership". Cannot be "Only me". */
+  brandedContent: boolean;
+}
+
+/** Per-post platform options (brand_social_posts.options). */
+export interface PostOptions {
+  tiktok?: TikTokPostOptions;
+}
 
 export interface PostMediaItem {
   assetId?: string | null;
@@ -241,6 +294,8 @@ export interface BrandPostView {
   rejectReason: string | null;
   aiMade: boolean;
   notes: string | null;
+  /** Per-platform options (TikTok privacy, interactions, content disclosure). */
+  options: PostOptions;
   createdBy: { id: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
@@ -286,6 +341,8 @@ export interface PostInput {
   platforms?: string[];
   scheduledAt?: string | null;
   notes?: string | null;
+  /** Per-platform options; a platform key left out keeps its saved options, null clears them all. */
+  options?: PostOptions | null;
   /** Only IDEA or DRAFT here; other moves use their own routes. */
   status?: 'IDEA' | 'DRAFT';
 }
@@ -365,6 +422,8 @@ export interface ContentPack {
     /** File names inside the zip (any folder). */
     media?: string[];
     notes?: string;
+    /** Per-platform options, as in PostInput.options (e.g. { tiktok: { privacyLevel: "SELF_ONLY", ... } }). */
+    options?: PostOptions;
   }>;
 }
 export interface ImportReport {
@@ -478,7 +537,7 @@ export type AdsOverviewResponse =
  *
  * Routes (scope in brackets):
  *   GET  posts, GET posts/:id, GET accounts, GET settings, GET analytics, GET assets   [read]
- *   POST posts, PATCH posts/:id                                                        [posts]
+ *   POST posts, PATCH posts/:id (body as PostInput, options included)                  [posts]
  *   POST posts/:id/comment-draft { text }                                              [comments]
  *   POST assets/presign, POST assets, POST assets/upload                               [assets]
  *   POST import (multipart "file")                                                     [import]

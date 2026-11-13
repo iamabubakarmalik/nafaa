@@ -31,7 +31,8 @@ import { expiryFrom, parseSignedRequest } from '../../integrations/meta/meta-gra
 import { BrandSocialGraphService, SocialGraphError, toSocialError } from './brand-social-graph.service';
 import { BrandSocialThreadsService } from './brand-social-threads.service';
 import { BrandSocialYoutubeService } from './brand-social-youtube.service';
-import { BrandSocialTiktokService } from './brand-social-tiktok.service';
+import { BrandSocialTiktokService, creatorLimits } from './brand-social-tiktok.service';
+import { normalizePostOptions } from './brand-social-tiktok.logic';
 import { BrandSocialXService } from './brand-social-x.service';
 import { BrandSocialPinterestService } from './brand-social-pinterest.service';
 import { AdapterResult, PlatformApp, PublishContext, SocialAdapter } from './brand-social-adapter';
@@ -41,7 +42,7 @@ import {
 import { engagementOf, isKind, linkFor, PLATFORM_LABEL, textFor } from './brand-social.logic';
 import {
   OAUTH_PLATFORMS, type AccountOptionsResponse, type AccountPlatformSettings, type BrandPlatform, type OAuthPlatform, type PlatformAppInput,
-  type PlatformAppView, type PlatformConnectUrlResponse, type PlatformPublishState, type PostMediaItem, type PublishStateMap,
+  type PlatformAppView, type PlatformConnectUrlResponse, type PlatformPublishState, type PostMediaItem, type PublishStateMap, type TikTokCreatorInfoResponse,
 } from './brand-social.types';
 
 export const APPS_KEY = 'brand_social_apps';
@@ -86,9 +87,12 @@ const asJson = (v: OAuthMeta) => v as unknown as Prisma.InputJsonValue;
 const metaOf = (a: Pick<BrandSocialAccount, 'meta'>): OAuthMeta => (a.meta && typeof a.meta === 'object' && !Array.isArray(a.meta) ? { ...(a.meta as OAuthMeta) } : {});
 const DEFAULT_SETTINGS: Partial<Record<OAuthPlatform, AccountPlatformSettings>> = {
   YOUTUBE: { youtubePrivacy: 'private' },
-  TIKTOK: { tiktokMode: 'INBOX', tiktokPrivacy: 'SELF_ONLY' },
+  TIKTOK: { tiktokMode: 'INBOX' },
   PINTEREST: { pinterestBoardId: null, pinterestBoardName: null },
 };
+
+/** How long a TikTok creator_info answer is reused by the composer. */
+const CREATOR_INFO_TTL_MS = 3 * 60_000;
 
 export type PublishOutcome = { result: AdapterResult; commentId?: string | null; commentError?: string | null };
 
@@ -97,6 +101,7 @@ export class BrandSocialPlatformsService {
   private readonly logger = new Logger('BrandSocialPlatforms');
   private readonly adapters: Record<OAuthPlatform, SocialAdapter>;
   private refreshing = false;
+  private readonly creatorCache = new Map<string, { at: number; value: TikTokCreatorInfoResponse }>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -398,7 +403,6 @@ export class BrandSocialPlatformsService {
       if (p === 'TIKTOK') {
         const c = await (this.adapters.TIKTOK as BrandSocialTiktokService).creatorInfo(token);
         out.tiktok = { privacyOptions: c.privacy_level_options ?? [], maxDurationSec: c.max_video_post_duration_sec ?? null, username: c.creator_username ?? null };
-        out.notes.push('Until TikTok audits the app, direct posts can only be private (Only me). "Send to TikTok drafts" works without the audit: a person finishes the post in the app.');
       }
     } catch (e) {
       out.notes.push(toSocialError(e).text);
@@ -406,6 +410,36 @@ export class BrandSocialPlatformsService {
     if (p === 'YOUTUBE') out.notes.push('Google keeps uploads from an unverified API project private. Switch to unlisted or public after the project passes Google\'s audit.');
     if (p === 'X') out.notes.push('Posting needs an X developer plan or credits that include writes.');
     return out;
+  }
+
+  /**
+   * TikTok creator_info for the composer's TikTok settings, kept for a few
+   * minutes. A refusal (posting limit reached, account blocked, token) comes
+   * back as canPost false with the reason, and is not kept.
+   */
+  async tiktokCreatorInfo(a: BrandSocialAccount, fresh = false): Promise<TikTokCreatorInfoResponse> {
+    if (a.platform !== 'TIKTOK') throw new BadRequestException('This is not a TikTok account.');
+    const hit = this.creatorCache.get(a.id);
+    if (!fresh && hit && Date.now() - hit.at < CREATOR_INFO_TTL_MS) return hit.value;
+    const base: TikTokCreatorInfoResponse = {
+      accountId: a.id, nickname: a.name, username: a.handle?.replace(/^@/, '') ?? null, avatarUrl: a.avatarUrl,
+      privacyLevelOptions: [], commentDisabled: false, duetDisabled: false, stitchDisabled: false, maxVideoPostDurationSec: null,
+      canPost: false, reason: null, fetchedAt: new Date().toISOString(),
+    };
+    try {
+      const c = await (this.adapters.TIKTOK as BrandSocialTiktokService).creatorInfo(await this.accessToken(a));
+      const value: TikTokCreatorInfoResponse = {
+        ...base, ...creatorLimits(c),
+        nickname: c.creator_nickname || base.nickname, username: c.creator_username ?? base.username, avatarUrl: c.creator_avatar_url ?? base.avatarUrl,
+        canPost: true,
+      };
+      this.creatorCache.set(a.id, { at: Date.now(), value });
+      return value;
+    } catch (e) {
+      this.creatorCache.delete(a.id);
+      const err = toSocialError(e);
+      return { ...base, reason: err.kind === 'token' || err.kind === 'permission' ? err.text : `${err.text} Try again later.` };
+    }
   }
 
   /* ───────────────────────── publishing ───────────────────────── */
@@ -419,7 +453,7 @@ export class BrandSocialPlatformsService {
         externalId: account.externalId,
         handle: account.handle,
         settings: { ...(DEFAULT_SETTINGS[p] ?? {}), ...(metaOf(account).settings ?? {}) },
-        post: { id: post.id, code: post.code, title: post.title, kind: isKind(post.kind) ? post.kind : 'POST', firstComment: post.firstComment },
+        post: { id: post.id, code: post.code, title: post.title, kind: isKind(post.kind) ? post.kind : 'POST', firstComment: post.firstComment, options: normalizePostOptions(post.options) },
         text: textFor(src, p, utm),
         textNoLink: textFor({ ...src, link: null }, p, utm),
         link: linkFor(src, p, utm),

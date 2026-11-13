@@ -251,7 +251,7 @@ export class BrandSocialMediaService {
           title: p.title, kind: p.kind, pillar: p.pillar, campaign: pack.campaign, caption: p.caption, captions: p.captions,
           hashtags: p.hashtags, firstComment: p.firstComment, link: p.link, platforms: p.platforms,
           media: p.media.map((m) => ({ assetId: assetOf.get(fileKey(m))!, url: '', kind: 'image' as const })),
-          scheduledAt: p.scheduledAt?.toISOString() ?? null, notes: p.notes,
+          scheduledAt: p.scheduledAt?.toISOString() ?? null, notes: p.notes, options: p.options,
         }, actor, actor.automation ? {} : { status: 'IN_REVIEW' });
         let status: BrandPostStatus = view.status;
         if (!actor.automation && !s.requireApproval && !blockingErrors(view.warnings).length) {

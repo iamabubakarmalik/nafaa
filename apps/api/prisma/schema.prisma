@@ -26756,6 +26756,8 @@ model BrandSocialPost {
   rejectReason   String?
   aiMade         Boolean   @default(false)
   notes          String?   @db.Text
+  /// Per-platform options: { tiktok: { privacyLevel, allowComment, allowDuet, allowStitch, disclose, yourBrand, brandedContent } }
+  options        Json?
   insightsAt     DateTime?
   createdById    String?
   createdAt      DateTime  @default(now())

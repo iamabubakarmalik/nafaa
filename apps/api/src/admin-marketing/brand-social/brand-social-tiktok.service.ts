@@ -3,8 +3,11 @@
  * account:
  * - INBOX (default): the video goes to the TikTok drafts inbox; the post then
  *   waits in "To post by hand" until a person finishes it in the TikTok app;
- * - DIRECT: posted at once with a privacy level from creator_info. TikTok
- *   keeps posts from an unaudited app private (SELF_ONLY).
+ * - DIRECT: posted at once with the post's own TikTok settings (privacy,
+ *   interactions, content disclosure; PostOptions.tiktok). creator_info is
+ *   read again right before posting, and a choice TikTok no longer allows
+ *   stops the post with a plain reason. TikTok keeps posts from an unaudited
+ *   app private (SELF_ONLY).
  * Videos use FILE_UPLOAD, sent in chunks read from the media URL (PULL_FROM_URL
  * needs a verified domain and the media is on Cloudinary). Photo posts only
  * accept PULL_FROM_URL; when TikTok refuses the domain the post is handed to a
@@ -13,7 +16,9 @@
 
 import { Injectable } from '@nestjs/common';
 import { SocialGraphError } from './brand-social-graph.service';
-import { pickTikTokPrivacy, tiktokChunks, tiktokRoute } from './brand-social-oauth.logic';
+import { tiktokChunks, tiktokRoute } from './brand-social-oauth.logic';
+import { isTikTokPrivacy, tiktokPostInfo, type TikTokCreatorLimits } from './brand-social-tiktok.logic';
+import type { TikTokPrivacyLevel } from './brand-social.types';
 import {
   AdapterResult, CONTAINER_TIMEOUT_MS, errorParts, httpJson, HttpOptions, kindOf, mediaHead, mediaRange, PlatformApp, platformErrorText, ProfileInfo,
   PublishContext, sleep, SocialAdapter, TokenSet, videoMime,
@@ -22,8 +27,8 @@ import {
 const API = 'https://open.tiktokapis.com/v2';
 
 const PLAIN: Record<string, string> = {
-  unaudited_client_can_only_post_to_private_accounts: 'TikTok only lets an unaudited app post privately. Set the TikTok account to "Send to TikTok drafts", or make the privacy "Only me", until TikTok audits the app.',
-  privacy_level_option_mismatch: 'The chosen TikTok privacy is not offered for this account. Pick another on the Accounts page.',
+  unaudited_client_can_only_post_to_private_accounts: 'TikTok only lets an unaudited app post privately. Choose "Only me" in the post\'s TikTok settings, or set the TikTok account to "Send to TikTok drafts", until TikTok audits the app.',
+  privacy_level_option_mismatch: 'TikTok does not offer the chosen privacy for this account. Pick another in the post\'s TikTok settings.',
   spam_risk_too_many_posts: 'TikTok says this account has posted too much today. Try again tomorrow.',
   spam_risk_too_many_pending_share: 'TikTok allows at most 5 drafts waiting in the inbox per day. Finish or delete some drafts in the TikTok app.',
   spam_risk_user_banned_from_posting: 'TikTok has blocked this account from posting.',
@@ -44,10 +49,19 @@ const check = <T extends { error?: { code?: string } }>(r: T): T => {
   return r;
 };
 
-interface CreatorInfo {
+export interface CreatorInfo {
   creator_username?: string; creator_nickname?: string; creator_avatar_url?: string;
   privacy_level_options?: string[]; comment_disabled?: boolean; duet_disabled?: boolean; stitch_disabled?: boolean; max_video_post_duration_sec?: number;
 }
+
+/** creator_info limits in the shape the rules use. */
+export const creatorLimits = (c: CreatorInfo): TikTokCreatorLimits & { privacyLevelOptions: TikTokPrivacyLevel[] } => ({
+  privacyLevelOptions: (c.privacy_level_options ?? []).filter(isTikTokPrivacy),
+  commentDisabled: !!c.comment_disabled,
+  duetDisabled: !!c.duet_disabled,
+  stitchDisabled: !!c.stitch_disabled,
+  maxVideoPostDurationSec: c.max_video_post_duration_sec ?? null,
+});
 
 @Injectable()
 export class BrandSocialTiktokService implements SocialAdapter {
@@ -122,28 +136,22 @@ export class BrandSocialTiktokService implements SocialAdapter {
     const route = tiktokRoute(ctx.media);
     if (!route.ok) throw new SocialGraphError('media', route.reason);
     const direct = ctx.settings.tiktokMode === 'DIRECT';
-    const creator = direct ? await this.creatorInfo(ctx.accessToken) : null;
-    const privacy = creator ? pickTikTokPrivacy(creator.privacy_level_options ?? [], ctx.settings.tiktokPrivacy) : null;
-    if (direct && !privacy) throw new SocialGraphError('permission', 'TikTok offered no privacy level for this account. Reconnect TikTok.');
+    // Direct posts: read creator_info again now, and check the post's choices against it.
+    let postInfo: Record<string, string | boolean> = {};
+    if (direct) {
+      const creator = creatorLimits(await this.creatorInfo(ctx.accessToken));
+      const plan = tiktokPostInfo(ctx.post.options?.tiktok, creator, { photo: !route.video, durationSec: route.video?.durationSec });
+      if (!plan.ok) throw new SocialGraphError('media', plan.reason);
+      postInfo = plan.info;
+    }
 
     let publishId: string;
     if (route.video) {
       const v = route.video;
-      const max = creator?.max_video_post_duration_sec;
-      if (max && v.durationSec && v.durationSec > max) throw new SocialGraphError('media', `This TikTok account can post videos up to ${max} seconds; this one is ${Math.round(v.durationSec)} s.`);
       const head = await mediaHead('TIKTOK', v.url);
       const plan = tiktokChunks(head.size);
       const source_info = { source: 'FILE_UPLOAD', video_size: head.size, chunk_size: plan.chunkSize, total_chunk_count: plan.ranges.length };
-      const body = direct
-        ? {
-            post_info: {
-              title: ctx.text.slice(0, 2200), privacy_level: privacy,
-              disable_comment: !!creator?.comment_disabled, disable_duet: !!creator?.duet_disabled, disable_stitch: !!creator?.stitch_disabled,
-              brand_organic_toggle: true, brand_content_toggle: false,
-            },
-            source_info,
-          }
-        : { source_info };
+      const body = direct ? { post_info: { title: ctx.text.slice(0, 2200), ...postInfo }, source_info } : { source_info };
       const init = await this.call<{ data?: { publish_id?: string; upload_url?: string } }>(direct ? 'post/publish/video/init/' : 'post/publish/inbox/video/init/', ctx.accessToken, { method: 'POST', json: body });
       const uploadUrl = init.data?.upload_url;
       publishId = String(init.data?.publish_id ?? '');
@@ -169,7 +177,7 @@ export class BrandSocialTiktokService implements SocialAdapter {
             post_mode: direct ? 'DIRECT_POST' : 'MEDIA_UPLOAD',
             post_info: {
               title: (ctx.post.title || ctx.text.split('\n')[0]).slice(0, 90), description: ctx.text.slice(0, 4000),
-              ...(direct ? { privacy_level: privacy, disable_comment: !!creator?.comment_disabled, auto_add_music: true, brand_organic_toggle: true, brand_content_toggle: false } : {}),
+              ...(direct ? { ...postInfo, auto_add_music: true } : {}),
             },
             source_info: { source: 'PULL_FROM_URL', photo_images: route.images.map((m) => m.url), photo_cover_index: 0 },
           },

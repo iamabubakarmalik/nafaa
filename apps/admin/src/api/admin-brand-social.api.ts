@@ -93,6 +93,38 @@ export interface AccountPlatformSettings {
   pinterestBoardName?: string | null;
 }
 
+/** GET accounts/:id/tiktok/creator-info: the TikTok creator's posting limits (cached a few minutes on the API). */
+export interface TikTokCreatorInfo {
+  accountId: string;
+  nickname: string | null;
+  username: string | null;
+  avatarUrl: string | null;
+  privacyLevelOptions: TikTokPrivacyLevel[];
+  commentDisabled: boolean;
+  duetDisabled: boolean;
+  stitchDisabled: boolean;
+  maxVideoPostDurationSec: number | null;
+  /** False when TikTok says the account cannot post right now; reason says why. */
+  canPost: boolean;
+  reason: string | null;
+  fetchedAt: string;
+}
+
+export type TikTokPrivacyLevel = 'PUBLIC_TO_EVERYONE' | 'MUTUAL_FOLLOW_FRIENDS' | 'FOLLOWER_OF_CREATOR' | 'SELF_ONLY';
+
+/** TikTok choices for one post ("Post directly" accounts). Privacy has no default; interactions start off. */
+export interface TikTokPostOptions {
+  privacyLevel: TikTokPrivacyLevel | null;
+  allowComment: boolean;
+  allowDuet: boolean;
+  allowStitch: boolean;
+  disclose: boolean;
+  yourBrand: boolean;
+  brandedContent: boolean;
+}
+
+export interface PostOptions { tiktok?: TikTokPostOptions }
+
 export interface AccountOptions {
   platform: SocialPlatform;
   settings: AccountPlatformSettings;
@@ -192,6 +224,7 @@ export interface SocialPost {
   rejectReason: string | null;
   aiMade: boolean;
   notes: string | null;
+  options: PostOptions;
   createdBy: Person | null;
   createdAt: string;
   updatedAt: string;
@@ -219,6 +252,7 @@ export interface PostInput {
   platforms?: SocialPlatform[];
   scheduledAt?: string | null;
   notes?: string | null;
+  options?: PostOptions | null;
   status?: 'IDEA' | 'DRAFT';
 }
 
@@ -377,6 +411,8 @@ export const brandSocialApi = {
   updateAccount: (id: string, body: { autoPublish?: boolean; name?: string; settings?: AccountPlatformSettings }) =>
     apiClient.patch(`${BASE}/accounts/${id}`, body).then(unwrap<SocialAccount>),
   accountOptions: (id: string) => apiClient.get(`${BASE}/accounts/${id}/options`).then(unwrap<AccountOptions>),
+  tiktokCreatorInfo: (id: string, fresh = false) =>
+    apiClient.get(`${BASE}/accounts/${id}/tiktok/creator-info`, { params: fresh ? { fresh: 1 } : undefined }).then(unwrap<TikTokCreatorInfo>),
   platformConnectUrl: (p: OAuthPlatform) => apiClient.get(`${BASE}/accounts/${p.toLowerCase()}/connect-url`).then(unwrap<{ url: string; redirectUri: string }>),
   platformCallback: (p: OAuthPlatform, body: { code?: string; state?: string; error?: string; error_description?: string }) =>
     apiClient.post(`${BASE}/accounts/${p.toLowerCase()}/callback`, body).then(unwrap<{ account: SocialAccount; upgraded: boolean }>),

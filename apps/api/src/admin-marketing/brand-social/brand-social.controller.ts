@@ -75,6 +75,9 @@ export class BrandSocialController {
   platformCallback(@GetUser() u: AuthenticatedUser, @Param('platform') p: string, @Body() b: Record<string, string>) { return this.accounts.platformCallback(p, u.id, b ?? {}); }
   @Get('accounts/:id/options') @AdminPermission('social.connect')
   accountOptions(@Param('id') id: string) { return this.accounts.options(id); }
+  /** Readable by anyone with social.view: the composer needs it to show the TikTok settings. */
+  @Get('accounts/:id/tiktok/creator-info')
+  tiktokCreatorInfo(@Param('id') id: string, @Query('fresh') fresh?: string) { return this.accounts.tiktokCreatorInfo(id, fresh === '1'); }
   @Patch('accounts/:id') @AdminPermission('social.connect')
   patchAccount(@Param('id') id: string, @Body() b: AccountPatchInput) { return this.accounts.patch(id, b ?? {}); }
   @Delete('accounts/:id') @AdminPermission('social.connect')
