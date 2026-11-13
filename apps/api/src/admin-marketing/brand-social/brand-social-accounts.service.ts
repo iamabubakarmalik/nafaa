@@ -74,9 +74,13 @@ export class BrandSocialAccountsService {
 
   /* ───────────────────────── views ───────────────────────── */
 
-  health(a: Pick<BrandSocialAccount, 'accessTokenEnc' | 'tokenExpiresAt' | 'status'>): TokenHealthView {
+  health(a: Pick<BrandSocialAccount, 'accessTokenEnc' | 'tokenExpiresAt' | 'status' | 'meta'>): TokenHealthView {
     if (!a.accessTokenEnc) return 'none';
     if (a.status === 'NEEDS_RECONNECT') return 'expired';
+    // Short-lived access tokens (YouTube, X, TikTok, Pinterest) are renewed
+    // from the stored refresh token before use, so they are healthy.
+    const meta = a.meta && typeof a.meta === 'object' && !Array.isArray(a.meta) ? (a.meta as Record<string, unknown>) : null;
+    if (meta?.refreshTokenEnc) return 'ok';
     return tokenHealth(a.tokenExpiresAt);
   }
 
