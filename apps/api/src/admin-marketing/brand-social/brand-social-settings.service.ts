@@ -10,7 +10,7 @@ import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { DEFAULT_SETTINGS, normalizeSettings } from './brand-social.logic';
 import {
-  AUTOMATION_SCOPES, type AutomationKeyCreated, type AutomationKeyView, type AutomationScope, type BrandSocialSettings,
+  AUTOMATION_SCOPES, DEFAULT_AUTOMATION_SCOPES, type AutomationKeyCreated, type AutomationKeyView, type AutomationScope, type BrandSocialSettings,
 } from './brand-social.types';
 
 export const SETTINGS_KEY = 'brand_social_settings';
@@ -132,7 +132,7 @@ export class BrandSocialSettingsService {
     const name = String(body?.name ?? '').trim().slice(0, 80);
     if (!name) throw new BadRequestException('Give the key a name.');
     const asked = Array.isArray(body?.scopes) ? body.scopes.filter((s): s is AutomationScope => (AUTOMATION_SCOPES as readonly string[]).includes(s)) : [];
-    const scopes = asked.length ? [...new Set(asked)] : [...AUTOMATION_SCOPES];
+    const scopes = asked.length ? [...new Set(asked)] : [...DEFAULT_AUTOMATION_SCOPES];
     const keys = await this.keys(true);
     if (keys.filter((k) => !k.revokedAt).length >= 20) throw new BadRequestException('At most 20 active keys. Revoke one first.');
     const plain = `nsk_${crypto.randomBytes(32).toString('base64url')}`;

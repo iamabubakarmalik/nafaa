@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Alert, Badge, Button, Card, Input, Modal, PageHero, PageShell, Skeleton, Switch, Textarea, confirmDialog, heroPrimaryButton } from '@/design-system/components';
 import {
-  AUTOMATION_SCOPES, brandSocialApi, SOCIAL_PLATFORMS, type AutomationScope, type CreatedKey, type ImportReport, type PlatformApp, type SocialPlatform, type SocialSettings,
+  AUTOMATION_SCOPES, DEFAULT_AUTOMATION_SCOPES, brandSocialApi, SOCIAL_PLATFORMS, type AutomationScope, type CreatedKey, type ImportReport, type PlatformApp, type SocialPlatform, type SocialSettings,
 } from '@/api/admin-brand-social.api';
 import { useCan } from '@/lib/access';
 import { cn } from '@/lib/cn';
@@ -459,14 +459,14 @@ function AiPlan({ pillars }: { pillars: string[] }) {
 
 // ─── Automation keys ────────────────────────────────────────────────────
 
-const SCOPE_LABEL: Record<AutomationScope, string> = { read: 'Read', posts: 'Create drafts', assets: 'Upload media', import: 'Import packs', comments: 'Draft comments' };
+const SCOPE_LABEL: Record<AutomationScope, string> = { read: 'Read', posts: 'Create drafts', assets: 'Upload media', import: 'Import packs', comments: 'Draft comments', schedule: 'Schedule imports without review' };
 
 function AutomationKeys() {
   const invalidate = useInvalidate();
   const q = useQuery({ queryKey: [...KEYS.all, 'keys'], queryFn: brandSocialApi.keys });
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
-  const [scopes, setScopes] = useState<AutomationScope[]>([...AUTOMATION_SCOPES]);
+  const [scopes, setScopes] = useState<AutomationScope[]>([...DEFAULT_AUTOMATION_SCOPES]);
   const [created, setCreated] = useState<CreatedKey | null>(null);
   const create = useMutation({
     mutationFn: () => brandSocialApi.createKey({ name: name.trim(), scopes }),

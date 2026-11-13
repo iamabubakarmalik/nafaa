@@ -381,7 +381,8 @@ export interface ImportReport {
 export interface AiCaptionResult { captions: string[]; hashtags: string[]; smart: boolean }
 export interface AiPlanResult { created: number; smart: boolean; posts: SocialPost[] }
 
-export const AUTOMATION_SCOPES = ['read', 'posts', 'assets', 'import', 'comments'] as const;
+export const AUTOMATION_SCOPES = ['read', 'posts', 'assets', 'import', 'comments', 'schedule'] as const;
+export const DEFAULT_AUTOMATION_SCOPES = ['read', 'posts', 'assets', 'import', 'comments'] as const;
 export type AutomationScope = (typeof AUTOMATION_SCOPES)[number];
 
 export interface AutomationKey {

@@ -542,7 +542,9 @@ export type AdsOverviewResponse =
  *   POST assets/presign, POST assets, POST assets/upload                               [assets]
  *   POST import (multipart "file")                                                     [import]
  */
-export const AUTOMATION_SCOPES = ['read', 'posts', 'assets', 'import', 'comments'] as const;
+export const AUTOMATION_SCOPES = ['read', 'posts', 'assets', 'import', 'comments', 'schedule'] as const;
+/** Scopes a new key gets when none are asked for. "schedule" is never given by default. */
+export const DEFAULT_AUTOMATION_SCOPES = ['read', 'posts', 'assets', 'import', 'comments'] as const;
 export type AutomationScope = (typeof AUTOMATION_SCOPES)[number];
 
 export interface AutomationKeyView {

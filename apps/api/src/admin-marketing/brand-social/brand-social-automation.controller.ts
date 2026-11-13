@@ -108,7 +108,7 @@ export class AutomationAuditInterceptor implements NestInterceptor {
 /** The automation key behind the request (set by AutomationKeyGuard). */
 export const AutomationActorParam = createParamDecorator((_: unknown, ctx: ExecutionContext) => ctx.switchToHttp().getRequest<AutomationRequest>().automation);
 
-const actorOf = (a: AutomationActor): SocialActor => ({ id: `key:${a.keyId}`, automation: true });
+const actorOf = (a: AutomationActor): SocialActor => ({ id: `key:${a.keyId}`, automation: true, canSchedule: a.scopes.includes('schedule') });
 
 @ApiTags('Nafaa Social - automation')
 @ApiBearerAuth()

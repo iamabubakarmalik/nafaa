@@ -21,7 +21,12 @@ import type {
 } from './brand-social.types';
 
 /** Who is acting: an admin user, or an automation key ("key:<id>"). */
-export interface SocialActor { id: string; automation?: boolean }
+export interface SocialActor {
+  id: string;
+  automation?: boolean;
+  /** Automation key with the "schedule" scope: its content-pack imports are scheduled without review. */
+  canSchedule?: boolean;
+}
 
 const CONTENT_FIELDS = ['title', 'kind', 'caption', 'captions', 'hashtags', 'firstComment', 'link', 'media', 'platforms', 'options'] as const;
 const LOCKED: readonly BrandPostStatus[] = ['PUBLISHING', 'PUBLISHED', 'PARTIAL', 'ARCHIVED'];

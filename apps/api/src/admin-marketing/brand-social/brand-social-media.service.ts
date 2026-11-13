@@ -254,7 +254,9 @@ export class BrandSocialMediaService {
           scheduledAt: p.scheduledAt?.toISOString() ?? null, notes: p.notes, options: p.options,
         }, actor, actor.automation ? {} : { status: 'IN_REVIEW' });
         let status: BrandPostStatus = view.status;
-        if (!actor.automation && !s.requireApproval && !blockingErrors(view.warnings).length) {
+        // People skip review when approval is off; a key skips it only with the "schedule" scope.
+        const skipReview = actor.automation ? !!actor.canSchedule : !s.requireApproval;
+        if (skipReview && !blockingErrors(view.warnings).length) {
           status = p.scheduledAt ? 'SCHEDULED' : 'APPROVED';
           await this.prisma.brandSocialPost.update({
             where: { id: view.id },
