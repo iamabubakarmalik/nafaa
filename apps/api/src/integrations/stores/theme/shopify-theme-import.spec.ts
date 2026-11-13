@@ -103,10 +103,14 @@ describe('Shopify theme file: reading the zip', () => {
   it('refuses a zip without a theme', () => {
     expect(() => readThemeZip(zipSync({ 'notes.txt': strToU8('hi') }))).toThrow(/Shopify theme nahi mila/);
   });
-  it('stops a zip bomb: one file too big once unzipped', () => {
-    const bomb = zipSync({ 'config/settings_data.json': new Uint8Array(ZIP_LIMITS.maxJsonBytes + 10).fill(32) }, { level: 9 });
+  it('skips (never unpacks) one file that is too big once unzipped, and lists it', () => {
+    const limits = { ...ZIP_LIMITS, maxJsonBytes: 50_000 };
+    const bomb = zipSync({ 'config/settings_data.json': new Uint8Array(limits.maxJsonBytes + 10).fill(32), 'templates/index.json': strToU8('{"sections":{},"order":[]}') }, { level: 9 });
     expect(bomb.length).toBeLessThan(100_000);
-    expect(() => readThemeZip(bomb)).toThrow(/bohat bari/);
+    const files = readThemeZip(bomb, limits);
+    expect(files.json.has('config/settings_data.json')).toBe(false);
+    expect(files.broken[0]).toMatch(/^config\/settings_data\.json \(\d+ MB\)$/);
+    expect(files.json.has('templates/index.json')).toBe(true);
   });
   it('stops a zip bomb: total size and entry count caps', () => {
     const many: Record<string, Uint8Array> = { 'config/settings_data.json': strToU8('{}') };

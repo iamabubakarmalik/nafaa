@@ -22,10 +22,10 @@ export const ZIP_LIMITS = {
   maxZipBytes: 50 * 1024 * 1024,
   /** Entries in the archive (Shopify themes have a few hundred). */
   maxEntries: 5000,
-  /** One settings/template file once unzipped. */
-  maxJsonBytes: 5 * 1024 * 1024,
+  /** One settings/template file once unzipped (big premium themes keep many presets in settings_data). */
+  maxJsonBytes: 40 * 1024 * 1024,
   /** All text files read, once unzipped. */
-  maxTotalBytes: 30 * 1024 * 1024,
+  maxTotalBytes: 120 * 1024 * 1024,
   /** One image from assets/. */
   maxImageBytes: 10 * 1024 * 1024,
   /** Images read from assets/. */
@@ -69,6 +69,7 @@ export function readThemeZip(buf: Uint8Array, limits: ZipLimits = ZIP_LIMITS): T
 
   let entries = 0;
   let total = 0;
+  const skippedBig: string[] = [];
   let root: string | null = null;
   let files: Record<string, Uint8Array>;
   try {
@@ -79,8 +80,9 @@ export function readThemeZip(buf: Uint8Array, limits: ZipLimits = ZIP_LIMITS): T
         const r = rootOf(f.name);
         if (!r || !WANTED.test(r.rel)) return false;
         if (root === null && r.rel === 'config/settings_data.json') root = r.root;
-        const cap = r.rel === 'layout/theme.liquid' ? 1024 * 1024 : limits.maxJsonBytes;
-        if (f.originalSize > cap) throw new ThemeImportError(`"${r.rel}" bohat bari hai`);
+        const cap = r.rel === 'layout/theme.liquid' ? 4 * 1024 * 1024 : limits.maxJsonBytes;
+        // A file that is too big is skipped (listed in the report), not a reason to stop the import.
+        if (f.originalSize > cap) { skippedBig.push(`${r.rel} (${Math.round(f.originalSize / 1048576)} MB)`); return false; }
         total += f.originalSize;
         if (total > limits.maxTotalBytes) throw new ThemeImportError('Theme file khulne par bohat bari ho jati hai');
         return f.compression === 0 || f.compression === 8;
@@ -97,7 +99,7 @@ export function readThemeZip(buf: Uint8Array, limits: ZipLimits = ZIP_LIMITS): T
     if (!index) throw new ThemeImportError('Is file me Shopify theme nahi mila (config/settings_data.json nahi hai)');
     root = index.root;
   }
-  const out: ThemeFiles = { root, json: new Map(), text: new Map(), broken: [] };
+  const out: ThemeFiles = { root, json: new Map(), text: new Map(), broken: [...skippedBig] };
   const decoder = new TextDecoder('utf-8', { fatal: false });
   for (const name of names) {
     if (!name.startsWith(root)) continue;
