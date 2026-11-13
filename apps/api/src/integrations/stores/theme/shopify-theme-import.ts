@@ -10,7 +10,7 @@
  * Everything in this file is pure: unzip with limits, parse, map. The
  * service resolves images and writes the result as a draft.
  */
-import { unzipSync } from 'fflate';
+import { listZip, readEntry } from './zip-reader';
 import { FONTS, SECTION_BY_TYPE, TemplateKey } from './section-schema';
 import { Block, Section, ThemeDoc, ThemeId, ThemeTokens, THEME_IDS } from './theme-doc';
 import { PRESETS, presetDoc } from './presets';
@@ -67,30 +67,29 @@ export function readThemeZip(buf: Uint8Array, limits: ZipLimits = ZIP_LIMITS): T
   if (buf.length > limits.maxZipBytes) throw new ThemeImportError(`File ${Math.round(limits.maxZipBytes / 1048576)} MB se bari hai`);
   if (!isZip(buf)) throw new ThemeImportError('Ye zip file nahi lagti. Shopify se aayi hui theme file (.zip) chunein.');
 
-  let entries = 0;
+  const list = listZip(buf, limits.maxEntries);
+  if (list === 'too_many') throw new ThemeImportError('Is file me bohat zyada cheezein hain — ye Shopify theme nahi lagti');
+  if (!list) throw new ThemeImportError('Ye zip file khul nahi saki. Shopify se dobara download karein.');
+
   let total = 0;
-  const skippedBig: string[] = [];
   let root: string | null = null;
-  let files: Record<string, Uint8Array>;
-  try {
-    files = unzipSync(buf, {
-      filter: (f) => {
-        entries += 1;
-        if (entries > limits.maxEntries) throw new ThemeImportError('Is file me bohat zyada cheezein hain — ye Shopify theme nahi lagti');
-        const r = rootOf(f.name);
-        if (!r || !WANTED.test(r.rel)) return false;
-        if (root === null && r.rel === 'config/settings_data.json') root = r.root;
-        const cap = r.rel === 'layout/theme.liquid' ? 4 * 1024 * 1024 : limits.maxJsonBytes;
-        // A file that is too big is skipped (listed in the report), not a reason to stop the import.
-        if (f.originalSize > cap) { skippedBig.push(`${r.rel} (${Math.round(f.originalSize / 1048576)} MB)`); return false; }
-        total += f.originalSize;
-        if (total > limits.maxTotalBytes) throw new ThemeImportError('Theme file khulne par bohat bari ho jati hai');
-        return f.compression === 0 || f.compression === 8;
-      },
-    });
-  } catch (e) {
-    if (e instanceof ThemeImportError) throw e;
-    throw new ThemeImportError('Ye zip file khul nahi saki. Shopify se dobara download karein.');
+  const skippedBig: string[] = [];
+  const files: Record<string, Uint8Array> = {};
+  for (const entry of list) {
+    const r = rootOf(entry.name);
+    if (!r || !WANTED.test(r.rel)) continue;
+    if (root === null && r.rel === 'config/settings_data.json') root = r.root;
+    const cap = r.rel === 'layout/theme.liquid' ? 4 * 1024 * 1024 : limits.maxJsonBytes;
+    // Sizes in the archive are only hints (Shopify writes "unknown"); the real output is counted.
+    const data = readEntry(buf, entry, Math.min(cap, limits.maxTotalBytes - total));
+    if (data === 'too_big') {
+      if (total + cap > limits.maxTotalBytes) throw new ThemeImportError('Theme file khulne par bohat bari ho jati hai');
+      skippedBig.push(r.rel);
+      continue;
+    }
+    if (!data) { skippedBig.push(r.rel); continue; }
+    total += data.length;
+    files[entry.name] = data;
   }
 
   const names = Object.keys(files);
@@ -124,19 +123,16 @@ export function readZipAssets(buf: Uint8Array, root: string, names: Iterable<str
   const want = new Map<string, string>();
   for (const n of names) if (IMAGE_EXT.test(n) && !n.includes('/')) want.set(`${root}assets/${n}`.toLowerCase(), n);
   if (!want.size || !isZip(buf)) return new Map();
+  const list = listZip(buf, limits.maxEntries);
+  if (!list || list === 'too_many') return new Map();
   let taken = 0;
-  let files: Record<string, Uint8Array> = {};
-  try {
-    files = unzipSync(buf, {
-      filter: (f) => {
-        if (!want.has(f.name.toLowerCase())) return false;
-        if (f.originalSize > limits.maxImageBytes || taken >= limits.maxImages) return false;
-        taken += 1;
-        return f.compression === 0 || f.compression === 8;
-      },
-    });
-  } catch {
-    return new Map();
+  const files: Record<string, Uint8Array> = {};
+  for (const entry of list) {
+    if (taken >= limits.maxImages || !want.has(entry.name.toLowerCase())) continue;
+    const data = readEntry(buf, entry, limits.maxImageBytes);
+    if (!data || data === 'too_big') continue;
+    taken += 1;
+    files[entry.name] = data;
   }
   const out = new Map<string, Uint8Array>();
   for (const [name, data] of Object.entries(files)) out.set(want.get(name.toLowerCase())!, data);

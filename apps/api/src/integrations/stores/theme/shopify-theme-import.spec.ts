@@ -109,8 +109,25 @@ describe('Shopify theme file: reading the zip', () => {
     expect(bomb.length).toBeLessThan(100_000);
     const files = readThemeZip(bomb, limits);
     expect(files.json.has('config/settings_data.json')).toBe(false);
-    expect(files.broken[0]).toMatch(/^config\/settings_data\.json \(\d+ MB\)$/);
+    expect(files.broken).toContain('config/settings_data.json');
     expect(files.json.has('templates/index.json')).toBe(true);
+  });
+  it('reads Shopify exports whose sizes say "unknown" (0xFFFFFFFF)', () => {
+    const z = zipSync({ 'config/settings_data.json': strToU8('{"current":{"x":1}}'), 'templates/index.json': strToU8('{"sections":{},"order":[]}') }, { level: 6 });
+    // Mark every size in the central directory as unknown, the second file's compressed size too.
+    let seen = 0;
+    for (let i = 0; i < z.length - 4; i++) {
+      if (z[i] === 0x50 && z[i + 1] === 0x4b && z[i + 2] === 1 && z[i + 3] === 2) {
+        z.fill(0xff, i + 24, i + 28);
+        if (seen === 1) z.fill(0xff, i + 20, i + 24);
+        seen += 1;
+      }
+    }
+    expect(seen).toBe(2);
+    const files = readThemeZip(z);
+    expect(files.json.get('config/settings_data.json')).toEqual({ current: { x: 1 } });
+    expect(files.json.has('templates/index.json')).toBe(true);
+    expect(files.broken).toEqual([]);
   });
   it('stops a zip bomb: total size and entry count caps', () => {
     const many: Record<string, Uint8Array> = { 'config/settings_data.json': strToU8('{}') };
