@@ -1,16 +1,22 @@
 /**
  * Accounts (/social/accounts): Facebook and Instagram through Meta (OAuth
- * redirect, finished on /social/accounts/callback), plus manual accounts for
- * every other platform. Per-account auto-publish, token health, refresh,
- * reconnect and disconnect.
+ * redirect, finished on /social/accounts/callback); Threads, YouTube, TikTok,
+ * X and Pinterest through their own apps (saved on the Settings page,
+ * finished on /social/accounts/callback/<platform>); manual accounts for
+ * every platform. Per-account auto-publish, publishing settings, token
+ * health, refresh, reconnect and disconnect.
  */
 
 import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, CheckCircle2, Copy, ExternalLink, Hand, Plug, Plus, RefreshCw, Unplug, Zap } from 'lucide-react';
-import { Alert, Badge, Button, Card, EmptyState, Input, Modal, PageHero, PageShell, Skeleton, Switch, confirmDialog, heroPrimaryButton, type BadgeVariant } from '@/design-system/components';
-import { brandSocialApi, SOCIAL_PLATFORMS, type MetaConnection, type SocialAccount, type SocialPlatform, type TokenHealth } from '@/api/admin-brand-social.api';
+import { Link } from 'react-router-dom';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { AlertTriangle, CheckCircle2, Copy, ExternalLink, Hand, Plug, Plus, RefreshCw, Settings2, Unplug, Zap } from 'lucide-react';
+import { Alert, Badge, Button, Card, EmptyState, Input, Modal, PageHero, PageShell, Segmented, Select, Skeleton, Switch, confirmDialog, heroPrimaryButton, type BadgeVariant } from '@/design-system/components';
+import {
+  brandSocialApi, isOAuthPlatform, OAUTH_PLATFORMS, SOCIAL_PLATFORMS, type AccountPlatformSettings, type MetaConnection, type OAuthPlatform, type SocialAccount,
+  type SocialPlatform, type TokenHealth,
+} from '@/api/admin-brand-social.api';
 import { useCan } from '@/lib/access';
 import { apiError } from '@/lib/errors';
 import { num } from '@/lib/format';
@@ -42,16 +48,35 @@ export function useMetaConnect() {
   });
 }
 
+/** Starts the sign-in with a platform's own app (Threads, YouTube, TikTok, X, Pinterest). */
+export function usePlatformConnect() {
+  return useMutation({
+    mutationFn: (p: OAuthPlatform) => brandSocialApi.platformConnectUrl(p),
+    onSuccess: (r) => { window.location.assign(r.url); },
+    onError: (e) => toast.error(apiError(e, 'Could not start the connection.')),
+  });
+}
+
+const PRIVACY_LABEL: Record<string, string> = {
+  PUBLIC_TO_EVERYONE: 'Everyone', MUTUAL_FOLLOW_FRIENDS: 'Friends', FOLLOWER_OF_CREATOR: 'Followers', SELF_ONLY: 'Only me',
+};
+
 export default function AccountsPage() {
   const q = useAccounts();
   const can = useCan();
   const canConnect = can('social.connect');
   const connect = useMetaConnect();
+  const platformConnect = usePlatformConnect();
   const [manual, setManual] = useState<{ platform: SocialPlatform; account?: SocialAccount } | null>(null);
+  const [settingsFor, setSettingsFor] = useState<SocialAccount | null>(null);
   const accounts = q.data?.accounts ?? [];
   const live = accounts.filter((a) => a.status !== 'DISCONNECTED');
   const meta = q.data?.meta;
-  const missing = SOCIAL_PLATFORMS.filter((p) => !PLATFORM[p].api && !live.some((a) => a.platform === p));
+  const appReady = (p: SocialPlatform) => !!q.data?.apps?.some((x) => x.platform === p && x.configured);
+  const missing = SOCIAL_PLATFORMS.filter((p) => p !== 'FACEBOOK' && p !== 'INSTAGRAM' && !live.some((a) => a.platform === p));
+  // OAuth platforms with no account holding a token yet.
+  const toConnect = OAUTH_PLATFORMS.filter((p) => !live.some((a) => a.platform === p && a.oauth));
+  const reconnect = (a: SocialAccount) => (isOAuthPlatform(a.platform) ? platformConnect.mutate(a.platform) : connect.mutate());
 
   return (
     <PageShell>
@@ -80,10 +105,36 @@ export default function AccountsPage() {
 
           {live.length ? (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {live.map((a) => <AccountCard key={a.id} account={a} canConnect={canConnect} onEdit={() => setManual({ platform: a.platform, account: a })} onReconnect={() => connect.mutate()} />)}
+              {live.map((a) => (
+                <AccountCard key={a.id} account={a} canConnect={canConnect} appReady={appReady(a.platform)} connecting={platformConnect.isPending}
+                  onEdit={() => setManual({ platform: a.platform, account: a })} onReconnect={() => reconnect(a)} onSettings={() => setSettingsFor(a)} />
+              ))}
             </div>
           ) : (
             <Card><EmptyState icon={<Plug className="h-6 w-6" />} title="No accounts yet" description="Connect Facebook and Instagram to publish automatically, and add the other platforms so their posts land in the hand-posting queue." /></Card>
+          )}
+
+          {canConnect && toConnect.length > 0 && (
+            <Card title="Connect to publish automatically" description="Each platform uses its own developer app. Save the app once on the Settings page, then connect. A hand-posted account for the same platform is upgraded in place.">
+              <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {toConnect.map((p) => {
+                  const ready = appReady(p);
+                  const manualRow = live.find((a) => a.platform === p);
+                  return (
+                    <li key={p} className="flex items-center gap-3 rounded-xl bg-white px-3 py-2.5 ring-1 ring-slate-200">
+                      <PlatformMark p={p} size={22} />
+                      <span className="min-w-0 flex-1">
+                        <b className="block text-[0.875rem] text-slate-900">{PLATFORM[p].label}</b>
+                        <span className="block truncate text-[0.75rem] text-slate-500">{!ready ? 'App not saved yet' : manualRow ? `Upgrades ${manualRow.handle ?? manualRow.name}` : 'Ready to connect'}</span>
+                      </span>
+                      {ready
+                        ? <Button size="xs" leftIcon={<Plug className="h-3.5 w-3.5" />} loading={platformConnect.isPending && platformConnect.variables === p} onClick={() => platformConnect.mutate(p)}>Connect</Button>
+                        : <Link to="/social/settings#platform-apps"><Button size="xs" variant="secondary">Set up app</Button></Link>}
+                    </li>
+                  );
+                })}
+              </ul>
+            </Card>
           )}
 
           {canConnect && missing.length > 0 && (
@@ -101,6 +152,7 @@ export default function AccountsPage() {
       )}
 
       <ManualModal value={manual} onClose={() => setManual(null)} />
+      <AccountSettingsModal account={settingsFor} onClose={() => setSettingsFor(null)} />
     </PageShell>
   );
 }
@@ -132,7 +184,9 @@ function MetaCard({ meta, canConnect, onConnect, connecting }: { meta: MetaConne
   );
 }
 
-function AccountCard({ account: a, canConnect, onEdit, onReconnect }: { account: SocialAccount; canConnect: boolean; onEdit: () => void; onReconnect: () => void }) {
+function AccountCard({ account: a, canConnect, appReady, connecting, onEdit, onReconnect, onSettings }: {
+  account: SocialAccount; canConnect: boolean; appReady: boolean; connecting: boolean; onEdit: () => void; onReconnect: () => void; onSettings: () => void;
+}) {
   const invalidate = useInvalidate();
   const st = STATUS[a.status];
   const h = HEALTH[a.tokenHealth] ?? HEALTH.none;
@@ -180,10 +234,13 @@ function AccountCard({ account: a, canConnect, onEdit, onReconnect }: { account:
       ) : (
         <p className="mt-3 flex items-center gap-1.5 text-[0.75rem] text-slate-500"><Hand className="h-3.5 w-3.5" />Posts land in "To post by hand" when due.</p>
       )}
+      {a.oauth && a.settings && <SettingsSummary account={a} />}
       <p className="mt-2 text-[0.6875rem] text-slate-400">{a.lastCheckedAt ? `Checked ${relative(a.lastCheckedAt)}` : `Added ${relative(a.createdAt)}`}{a.tokenExpiresAt ? ` · token until ${fmtDateTime(a.tokenExpiresAt)}` : ''}</p>
       {canConnect && (
         <div className="mt-3 flex flex-wrap gap-1.5 border-t border-slate-100 pt-3">
-          {a.status === 'NEEDS_RECONNECT' && <Button size="xs" leftIcon={<Plug className="h-3.5 w-3.5" />} onClick={onReconnect}>Reconnect</Button>}
+          {a.status === 'NEEDS_RECONNECT' && (isOAuthPlatform(a.platform) ? appReady : true) && <Button size="xs" loading={connecting} leftIcon={<Plug className="h-3.5 w-3.5" />} onClick={onReconnect}>Reconnect</Button>}
+          {a.status === 'MANUAL' && isOAuthPlatform(a.platform) && appReady && <Button size="xs" loading={connecting} leftIcon={<Plug className="h-3.5 w-3.5" />} onClick={onReconnect}>Connect</Button>}
+          {a.oauth && a.status !== 'MANUAL' && (a.platform === 'YOUTUBE' || a.platform === 'TIKTOK' || a.platform === 'PINTEREST') && <Button size="xs" variant="secondary" leftIcon={<Settings2 className="h-3.5 w-3.5" />} onClick={onSettings}>Settings</Button>}
           {a.api && a.status !== 'MANUAL' && <Button size="xs" variant="secondary" loading={refresh.isPending} leftIcon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => refresh.mutate()}>Check now</Button>}
           {(a.status === 'MANUAL' || !a.api) && <Button size="xs" variant="secondary" onClick={onEdit}>Edit</Button>}
           <Button size="xs" variant="ghost" className="ms-auto text-rose-600" loading={disconnect.isPending} leftIcon={<Unplug className="h-3.5 w-3.5" />} onClick={() => disconnect.mutate()}>Disconnect</Button>
@@ -220,6 +277,73 @@ function ManualModal({ value, onClose }: { value: { platform: SocialPlatform; ac
         <Input label="Profile URL" value={form.url} placeholder={p && form.handle ? PLATFORM[p].profile(form.handle.replace(/^@/, '')) : 'https://'} onChange={(e) => setForm({ ...form, url: e.target.value })} />
         <Input label="Display name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
       </div>
+    </Modal>
+  );
+}
+
+function SettingsSummary({ account: a }: { account: SocialAccount }) {
+  const s = a.settings ?? {};
+  const line = a.platform === 'YOUTUBE' ? `Uploads as ${s.youtubePrivacy ?? 'private'}`
+    : a.platform === 'TIKTOK' ? (s.tiktokMode === 'DIRECT' ? `Posts directly · ${PRIVACY_LABEL[s.tiktokPrivacy ?? 'SELF_ONLY'] ?? s.tiktokPrivacy}` : 'Sends to TikTok drafts')
+      : a.platform === 'PINTEREST' ? (s.pinterestBoardId ? `Pins to ${s.pinterestBoardName ?? 'the chosen board'}` : 'No board chosen yet')
+        : null;
+  if (!line) return null;
+  const warn = a.platform === 'PINTEREST' && !s.pinterestBoardId;
+  return <p className={`mt-2 text-[0.75rem] ${warn ? 'font-medium text-amber-700' : 'text-slate-500'}`}>{line}</p>;
+}
+
+function AccountSettingsModal({ account, onClose }: { account: SocialAccount | null; onClose: () => void }) {
+  const invalidate = useInvalidate();
+  const q = useQuery({ queryKey: ['brand-social', 'account-options', account?.id], queryFn: () => brandSocialApi.accountOptions(account!.id), enabled: !!account });
+  const [form, setForm] = useState<AccountPlatformSettings>({});
+  const [openFor, setOpenFor] = useState<string | null>(null);
+  const key = account && q.data ? account.id : null;
+  if (key !== openFor) {
+    setOpenFor(key);
+    if (q.data) setForm(q.data.settings);
+  }
+  const save = useMutation({
+    mutationFn: () => brandSocialApi.updateAccount(account!.id, { settings: form }),
+    onSuccess: () => { toast.success('Saved'); invalidate(); onClose(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const p = account?.platform;
+  const privacy = q.data?.tiktok?.privacyOptions ?? [];
+  const boards = q.data?.boards ?? [];
+  return (
+    <Modal open={!!account} onClose={onClose} size="sm" title={p ? <span className="flex items-center gap-2"><PlatformMark p={p} size={20} />{PLATFORM[p].label} settings</span> : ''}
+      footer={<>
+        <Button variant="secondary" onClick={onClose}>Cancel</Button>
+        <Button loading={save.isPending} disabled={!q.data} leftIcon={<CheckCircle2 className="h-4 w-4" />} onClick={() => save.mutate()}>Save</Button>
+      </>}>
+      {q.error ? <p className="text-[0.8125rem] text-rose-600">{apiError(q.error, 'Could not load the choices.')}</p> : !q.data ? <Skeleton className="h-28 rounded-xl" /> : (
+        <div className="space-y-4">
+          {p === 'YOUTUBE' && (
+            <Select label="Privacy of new uploads" value={form.youtubePrivacy ?? 'private'} onChange={(e) => setForm({ ...form, youtubePrivacy: e.target.value as AccountPlatformSettings['youtubePrivacy'] })}
+              options={[{ value: 'private', label: 'Private' }, { value: 'unlisted', label: 'Unlisted' }, { value: 'public', label: 'Public' }]} />
+          )}
+          {p === 'TIKTOK' && (
+            <>
+              <div>
+                <span className="mb-1 block text-[0.75rem] font-medium text-slate-600">How posts go out</span>
+                <Segmented value={form.tiktokMode ?? 'INBOX'} label="TikTok mode" onChange={(v) => setForm({ ...form, tiktokMode: v as 'INBOX' | 'DIRECT' })}
+                  items={[{ value: 'INBOX', label: 'Send to TikTok drafts' }, { value: 'DIRECT', label: 'Post directly' }]} />
+              </div>
+              {form.tiktokMode === 'DIRECT' && (
+                <Select label="Who can see it" value={form.tiktokPrivacy ?? 'SELF_ONLY'} onChange={(e) => setForm({ ...form, tiktokPrivacy: e.target.value })}
+                  hint="Until TikTok audits the Nafaa app, only Only me works."
+                  options={(privacy.length ? privacy : ['SELF_ONLY']).map((v) => ({ value: v, label: PRIVACY_LABEL[v] ?? v }))} />
+              )}
+            </>
+          )}
+          {p === 'PINTEREST' && (
+            <Select label="Board" value={form.pinterestBoardId ?? ''} placeholder="Choose a board"
+              onChange={(e) => { const b = boards.find((x) => x.id === e.target.value); setForm({ ...form, pinterestBoardId: b?.id ?? null, pinterestBoardName: b?.name ?? null }); }}
+              options={[{ value: '', label: boards.length ? 'Choose a board' : 'No boards found' }, ...boards.map((b) => ({ value: b.id, label: b.name }))]} />
+          )}
+          {q.data.notes.map((n) => <p key={n} className="rounded-lg bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">{n}</p>)}
+        </div>
+      )}
     </Modal>
   );
 }

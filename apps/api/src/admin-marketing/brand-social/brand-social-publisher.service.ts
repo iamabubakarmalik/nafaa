@@ -5,6 +5,11 @@
  *  - Facebook / Instagram with a connected account and auto-publish on →
  *    published through the Graph API (plans from meta-graph.ts), then the
  *    first comment;
+ *  - Threads, YouTube, TikTok, X, Pinterest with a connected account and
+ *    auto-publish on → published through the platform's adapter
+ *    (BrandSocialPlatformsService). An adapter can also hand a post to a
+ *    person (HANDOFF with the reason) or skip a kind the platform does not
+ *    take (SKIPPED with the reason);
  *  - every other platform, or auto-publish off → HANDOFF (posted by a person
  *    from the "To post by hand" queue, then marked posted).
  * Transient failures retry after 5, 15 and 60 minutes. Nothing runs while
@@ -19,6 +24,8 @@ import { containerState, facebookPlan, instagramPlan, PublishInput, retryable } 
 import { BrandSocialGraphService, SocialGraphError, toSocialError } from './brand-social-graph.service';
 import { BrandSocialPostsService, SocialActor } from './brand-social-posts.service';
 import { BrandSocialSettingsService } from './brand-social-settings.service';
+import { BrandSocialPlatformsService } from './brand-social-platforms.service';
+import { isOAuthPlatform } from './brand-social-oauth.logic';
 import {
   blockingErrors, CONTAINER_WAIT_MS, dispatchFor, duePlatforms, isKind, isPlatform, linkFor, missedWindow, PLATFORM_LABEL, retryAt, STUCK_MS, summarize, textFor,
 } from './brand-social.logic';
@@ -44,6 +51,7 @@ export class BrandSocialPublisherService {
     private readonly graph: BrandSocialGraphService,
     private readonly posts: BrandSocialPostsService,
     private readonly settings: BrandSocialSettingsService,
+    private readonly platforms: BrandSocialPlatformsService,
   ) {}
 
   @Cron('20 * * * * *')
@@ -169,6 +177,23 @@ export class BrandSocialPublisherService {
       if (errors.length) { state[platform] = { status: 'FAILED', error: errors.map((e) => e.message).join(' '), attempts: prev.attempts, at: now(), willRetry: false }; continue; }
       const account = accounts.find((a) => a.platform === platform && a.autoPublish && a.status === 'CONNECTED')!;
       try {
+        if (isOAuthPlatform(platform)) {
+          const out = await this.platforms.publish(post, platform, account, prev, s.utm, absUrl);
+          const r = out.result;
+          if ('waiting' in r) {
+            state[platform] = { status: 'WAITING', containerId: r.containerId, attempts: prev.attempts, at: prev.status === 'WAITING' ? prev.at : now(), nextAt: new Date(Date.now() + 60_000).toISOString(), error: null };
+          } else if ('handoff' in r) {
+            state[platform] = { status: 'HANDOFF', error: r.handoff, attempts: prev.attempts + 1, at: now() };
+          } else if ('skipped' in r) {
+            state[platform] = { status: 'SKIPPED', error: r.skipped, attempts: prev.attempts, at: now() };
+          } else {
+            state[platform] = {
+              status: 'PUBLISHED', postId: r.postId, permalink: r.permalink ?? null, attempts: prev.attempts + 1, at: now(), error: null,
+              ...(out.commentId ? { commentId: out.commentId } : {}), ...(out.commentError ? { commentError: out.commentError } : {}),
+            };
+          }
+          continue;
+        }
         const res = await this.publishOne(post, platform, account, prev, s.utm);
         if (res.waiting) {
           state[platform] = { status: 'WAITING', containerId: res.containerId, attempts: prev.attempts, at: prev.status === 'WAITING' ? prev.at : now(), nextAt: new Date(Date.now() + 60_000).toISOString(), error: null };

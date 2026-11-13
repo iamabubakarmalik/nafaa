@@ -5,7 +5,7 @@
  * are written to the admin audit log by the AdminAuditInterceptor.
  * Types: brand-social.types.ts.
  */
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, Patch, Post, Put, Query, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { memoryStorage } from 'multer';
@@ -21,8 +21,10 @@ import { BrandSocialMediaService, MEDIA_MAX_BYTES, PACK_MAX_BYTES } from './bran
 import { BrandSocialPostsService, SocialActor } from './brand-social-posts.service';
 import { BrandSocialPublisherService } from './brand-social-publisher.service';
 import { BrandSocialSettingsService } from './brand-social-settings.service';
+import { BrandSocialPlatformsService } from './brand-social-platforms.service';
+import { platformFromSlug } from './brand-social-oauth.logic';
 import type {
-  AccountPatchInput, AiCaptionInput, AiPlanInput, AssetInput, AssetPatchInput, AutomationKeyInput, BulkInput, ManualAccountInput,
+  AccountPatchInput, PlatformAppInput, AiCaptionInput, AiPlanInput, AssetInput, AssetPatchInput, AutomationKeyInput, BulkInput, ManualAccountInput,
   MarkPostedInput, MetaSelectInput, PostInput, PostListQuery, RejectInput, RetryInput, ScheduleInput,
 } from './brand-social.types';
 
@@ -42,7 +44,14 @@ export class BrandSocialController {
     private readonly media: BrandSocialMediaService,
     private readonly ai: BrandSocialAiService,
     private readonly settings: BrandSocialSettingsService,
+    private readonly platforms: BrandSocialPlatformsService,
   ) {}
+
+  private app(slug: string) {
+    const p = platformFromSlug(slug);
+    if (!p) throw new NotFoundException('Unknown platform app.');
+    return p;
+  }
 
   /* ───── overview ───── */
   @Get('overview') overview() { return this.insights.overview(); }
@@ -60,6 +69,12 @@ export class BrandSocialController {
   callbackPost(@GetUser() u: AuthenticatedUser, @Body() b: Record<string, string>) { return this.accounts.callback(u.id, b ?? {}); }
   @Post('accounts/meta/select') @HttpCode(200) @AdminPermission('social.connect')
   select(@GetUser() u: AuthenticatedUser, @Body() b: MetaSelectInput) { return this.accounts.select(u.id, b ?? ({} as MetaSelectInput)); }
+  @Get('accounts/:platform/connect-url') @AdminPermission('social.connect')
+  platformConnectUrl(@GetUser() u: AuthenticatedUser, @Param('platform') p: string) { return this.accounts.platformConnectUrl(p, u.id); }
+  @Post('accounts/:platform/callback') @HttpCode(200) @AdminPermission('social.connect')
+  platformCallback(@GetUser() u: AuthenticatedUser, @Param('platform') p: string, @Body() b: Record<string, string>) { return this.accounts.platformCallback(p, u.id, b ?? {}); }
+  @Get('accounts/:id/options') @AdminPermission('social.connect')
+  accountOptions(@Param('id') id: string) { return this.accounts.options(id); }
   @Patch('accounts/:id') @AdminPermission('social.connect')
   patchAccount(@Param('id') id: string, @Body() b: AccountPatchInput) { return this.accounts.patch(id, b ?? {}); }
   @Delete('accounts/:id') @AdminPermission('social.connect')
@@ -131,6 +146,12 @@ export class BrandSocialController {
   @Get('settings') getSettings() { return this.settings.get(true); }
   @Put('settings') @AdminPermission('social.settings')
   saveSettings(@GetUser() u: AuthenticatedUser, @Body() b: unknown) { return this.settings.save(b ?? {}, u.id); }
+  @Get('apps') @AdminPermission('social.settings')
+  apps() { return this.platforms.listApps(); }
+  @Put('apps/:platform') @AdminPermission('social.settings')
+  saveApp(@GetUser() u: AuthenticatedUser, @Param('platform') p: string, @Body() b: PlatformAppInput) { return this.platforms.saveApp(this.app(p), b ?? {}, u.id); }
+  @Delete('apps/:platform') @AdminPermission('social.settings')
+  removeApp(@GetUser() u: AuthenticatedUser, @Param('platform') p: string) { return this.platforms.removeApp(this.app(p), u.id); }
   @Get('keys') @AdminPermission('social.settings')
   keys() { return this.settings.listKeys(); }
   @Post('keys') @AdminPermission('social.settings')

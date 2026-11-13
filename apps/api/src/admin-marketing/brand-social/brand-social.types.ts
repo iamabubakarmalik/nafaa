@@ -13,8 +13,15 @@ export const BRAND_PLATFORMS = [
 ] as const;
 export type BrandPlatform = (typeof BRAND_PLATFORMS)[number];
 
+/** Platforms connected through the Meta app (one sign-in for both). */
+export const META_PLATFORMS: readonly BrandPlatform[] = ['FACEBOOK', 'INSTAGRAM'];
+
+/** Platforms with their own OAuth app, entered on the Settings page (SystemSetting "brand_social_apps"). */
+export const OAUTH_PLATFORMS = ['THREADS', 'YOUTUBE', 'TIKTOK', 'X', 'PINTEREST'] as const;
+export type OAuthPlatform = (typeof OAUTH_PLATFORMS)[number];
+
 /** Platforms Nafaa can publish to through an API. Every other platform is posted by hand. */
-export const API_PLATFORMS: readonly BrandPlatform[] = ['FACEBOOK', 'INSTAGRAM'];
+export const API_PLATFORMS: readonly BrandPlatform[] = [...META_PLATFORMS, ...OAUTH_PLATFORMS];
 
 export const POST_KINDS = ['POST', 'CAROUSEL', 'REEL', 'STORY', 'VIDEO', 'TEXT'] as const;
 export type BrandPostKind = (typeof POST_KINDS)[number];
@@ -31,10 +38,12 @@ export type BrandAccountStatus = (typeof ACCOUNT_STATUSES)[number];
  * Per-platform publish status:
  * - PUBLISHING: the publisher is working on it;
  * - WAITING: Instagram is still processing the video;
- * - HANDOFF: a person must post it by hand (manual platform, or auto-publish off);
+ * - HANDOFF: a person must post it by hand (manual platform, auto-publish off,
+ *   or the platform API cannot take this post; `error` then says why);
  * - PUBLISHED: live (by the API, or marked posted by hand);
  * - FAILED: failed (willRetry says whether another try is planned);
- * - SKIPPED: the team chose not to post on this platform.
+ * - SKIPPED: the team chose not to post on this platform, or the platform does
+ *   not take this kind of post (`error` says why).
  */
 export type PlatformPublishStatus = 'PUBLISHING' | 'WAITING' | 'HANDOFF' | 'PUBLISHED' | 'FAILED' | 'SKIPPED';
 
@@ -74,8 +83,12 @@ export interface BrandAccountView {
   avatarUrl: string | null;
   externalId: string;
   status: BrandAccountStatus;
-  /** True for platforms Nafaa can post to through an API (Facebook, Instagram). */
+  /** True when the account holds an API token for a platform Nafaa can post to. */
   api: boolean;
+  /** Connected through the platform's own OAuth app (Threads, YouTube, TikTok, X, Pinterest). */
+  oauth: boolean;
+  /** Per-account publishing choices (OAuth platforms). */
+  settings: AccountPlatformSettings | null;
   autoPublish: boolean;
   tokenHealth: TokenHealthView;
   tokenExpiresAt: string | null;
@@ -101,12 +114,66 @@ export interface AccountsResponse {
     /** The redirect URI to add in the Meta app (Valid OAuth Redirect URIs). */
     redirectUri: string;
   };
+  /** Which OAuth platforms have their app saved (the Connect button shows only then). */
+  apps: Array<{ platform: OAuthPlatform; configured: boolean; redirectUri: string }>;
+}
+
+/* ───────────────────────── platform apps and OAuth ───────────────────────── */
+
+/**
+ * GET apps: one row per OAuth platform. The secret is never sent back.
+ * PUT apps/:platform { clientId, clientSecret? } (secret optional when one is
+ * already saved), DELETE apps/:platform. Platform keys are lower case in the
+ * route (threads, youtube, tiktok, x, pinterest).
+ */
+export interface PlatformAppView {
+  platform: OAuthPlatform;
+  /** What the platform calls the public id: App ID, Client ID or Client key. */
+  idLabel: string;
+  clientId: string | null;
+  secretSet: boolean;
+  /** Paste this into the platform's app settings as the redirect / callback URL. */
+  redirectUri: string;
+  /** Where the app is made. */
+  consoleUrl: string;
+  howTo: string;
+  /** Extra URLs the platform asks for (Threads uninstall and delete callbacks). */
+  extraUrls: Array<{ label: string; url: string }>;
+  updatedAt: string | null;
+}
+export interface PlatformAppInput { clientId?: string; clientSecret?: string }
+
+/** GET accounts/:platform/connect-url */
+export interface PlatformConnectUrlResponse { url: string; redirectUri: string }
+/** POST accounts/:platform/callback { code, state } */
+export interface PlatformCallbackResponse { account: BrandAccountView; upgraded: boolean }
+
+/** Per-account choices kept in brand_social_accounts.meta.settings. */
+export interface AccountPlatformSettings {
+  /** YouTube: privacy of new uploads. Google keeps uploads private until the API project passes its audit. */
+  youtubePrivacy?: 'private' | 'unlisted' | 'public';
+  /** TikTok: INBOX sends to the TikTok drafts inbox; DIRECT posts at once. */
+  tiktokMode?: 'INBOX' | 'DIRECT';
+  /** TikTok direct posts: one of the creator's privacy options. Unaudited apps can only use SELF_ONLY. */
+  tiktokPrivacy?: string | null;
+  /** Pinterest: the board new pins go to. */
+  pinterestBoardId?: string | null;
+  pinterestBoardName?: string | null;
+}
+
+/** GET accounts/:id/options: choices the platform offers for the settings above. */
+export interface AccountOptionsResponse {
+  platform: BrandPlatform;
+  settings: AccountPlatformSettings;
+  boards?: Array<{ id: string; name: string }>;
+  tiktok?: { privacyOptions: string[]; maxDurationSec: number | null; username: string | null };
+  notes: string[];
 }
 
 /** POST accounts/manual */
 export interface ManualAccountInput { platform: BrandPlatform; handle: string; url?: string | null; name?: string | null; avatarUrl?: string | null }
 /** PATCH accounts/:id */
-export interface AccountPatchInput { autoPublish?: boolean; name?: string }
+export interface AccountPatchInput { autoPublish?: boolean; name?: string; settings?: AccountPlatformSettings }
 
 /** GET accounts/meta/connect-url */
 export interface MetaConnectUrlResponse { url: string; redirectUri: string }

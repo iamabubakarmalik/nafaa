@@ -447,7 +447,7 @@ function PublishResults({ post, onRetry, retrying, canPublish, handoff }: { post
                   )}
                 </span>
               </div>
-              {s?.error && <p className="mt-1 text-[0.75rem] text-rose-700">{s.error}{s.attempts ? ` (try ${s.attempts})` : ''}{s.nextAt ? ` · next try ${fmtDateTime(s.nextAt)}` : ''}</p>}
+              {s?.error && <p className={`mt-1 text-[0.75rem] ${s.status === 'FAILED' ? 'text-rose-700' : 'text-amber-700'}`}>{s.error}{s.attempts ? ` (try ${s.attempts})` : ''}{s.nextAt ? ` · next try ${fmtDateTime(s.nextAt)}` : ''}</p>}
               {s?.commentError && <p className="mt-1 text-[0.75rem] text-amber-700">First comment: {s.commentError}</p>}
               {m && (
                 <p className="mt-1 flex flex-wrap gap-x-3 text-[0.75rem] tabular-nums text-slate-500">

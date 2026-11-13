@@ -20,6 +20,7 @@ import { BrandSocialGraphService, toSocialError } from './brand-social-graph.ser
 import { BrandSocialAccountsService } from './brand-social-accounts.service';
 import { BrandSocialPostsService } from './brand-social-posts.service';
 import { BrandSocialSettingsService } from './brand-social-settings.service';
+import { BrandSocialPlatformsService } from './brand-social-platforms.service';
 import { jobsDisabled } from './brand-social-publisher.service';
 import { engagementOf, parsePktDateTime, rate } from './brand-social.logic';
 import type { AdsOverviewResponse, AnalyticsResponse, BrandPlatform, OverviewResponse, PostMediaItem, PublishStateMap } from './brand-social.types';
@@ -41,20 +42,26 @@ export class BrandSocialInsightsService {
     private readonly posts: BrandSocialPostsService,
     private readonly accounts: BrandSocialAccountsService,
     private readonly settings: BrandSocialSettingsService,
+    private readonly platforms: BrandSocialPlatformsService,
   ) {}
 
   /* ───────────────────────── job ───────────────────────── */
 
   @Cron('0 17 * * * *')
   async hourly() {
-    if (this.running || jobsDisabled() || !this.graph.configured()) return;
+    if (this.running || jobsDisabled()) return;
     if (await this.settings.paused()) return;
     this.running = true;
     try {
-      const accounts = await this.prisma.brandSocialAccount.findMany({ where: { status: 'CONNECTED', platform: { in: ['FACEBOOK', 'INSTAGRAM'] }, accessTokenEnc: { not: null } } });
-      if (!accounts.length) return;
-      await this.postInsights(accounts);
-      for (const a of accounts) await this.accountDay(a).catch((e) => this.logger.warn(`Account day ${a.id}: ${(e as Error).message}`));
+      if (this.graph.configured()) {
+        const accounts = await this.prisma.brandSocialAccount.findMany({ where: { status: 'CONNECTED', platform: { in: ['FACEBOOK', 'INSTAGRAM'] }, accessTokenEnc: { not: null } } });
+        if (accounts.length) {
+          await this.postInsights(accounts);
+          for (const a of accounts) await this.accountDay(a).catch((e) => this.logger.warn(`Account day ${a.id}: ${(e as Error).message}`));
+        }
+      }
+      // Threads, YouTube, X, Pinterest: post numbers and followers (every 3 hours).
+      await this.platforms.insightsRun().catch((e) => this.logger.warn(`Platform insights: ${(e as Error).message}`));
     } finally {
       this.running = false;
     }

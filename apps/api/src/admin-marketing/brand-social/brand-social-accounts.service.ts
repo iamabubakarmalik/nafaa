@@ -8,6 +8,10 @@
  * token and the page list are kept (encrypted) in a SystemSetting until the
  * owner picks the Page (accounts/meta/select). Page tokens made from a
  * long-lived user token do not expire. Auto-publish starts OFF.
+ *
+ * Threads, YouTube, TikTok, X and Pinterest connect through their own OAuth
+ * apps; that flow is in brand-social-platforms.service.ts and is exposed here
+ * as accounts/<platform>/connect-url and accounts/<platform>/callback.
  */
 
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
@@ -17,9 +21,12 @@ import { decrypt, encrypt } from '../../core/lib/crypto';
 import { DIALOG_BASE, expiryFrom, signState, tokenHealth, verifyState } from '../../integrations/meta/meta-graph';
 import { BrandSocialGraphService, SocialGraphError, toSocialError } from './brand-social-graph.service';
 import { BrandSocialSettingsService, StoredMetaUser } from './brand-social-settings.service';
+import { BrandSocialPlatformsService } from './brand-social-platforms.service';
+import { isOAuthPlatform, platformFromSlug } from './brand-social-oauth.logic';
 import { isApiPlatform, isPlatform, PLATFORM_LABEL } from './brand-social.logic';
 import type {
-  AccountsResponse, BrandAccountStatus, BrandAccountView, BrandPlatform, MetaCallbackResponse, MetaConnectUrlResponse, MetaPageChoice, TokenHealthView,
+  AccountOptionsResponse, AccountPatchInput, AccountPlatformSettings, AccountsResponse, BrandAccountStatus, BrandAccountView, BrandPlatform, MetaCallbackResponse,
+  MetaConnectUrlResponse, MetaPageChoice, OAuthPlatform, PlatformCallbackResponse, PlatformConnectUrlResponse, TokenHealthView,
 } from './brand-social.types';
 
 /** Permissions asked for in the Meta dialog. */
@@ -62,6 +69,7 @@ export class BrandSocialAccountsService {
     private readonly prisma: PrismaService,
     private readonly graph: BrandSocialGraphService,
     private readonly settings: BrandSocialSettingsService,
+    private readonly platforms: BrandSocialPlatformsService,
   ) {}
 
   /* ───────────────────────── views ───────────────────────── */
@@ -84,6 +92,8 @@ export class BrandSocialAccountsService {
       externalId: a.externalId,
       status: a.status as BrandAccountStatus,
       api: isPlatform(a.platform) && isApiPlatform(a.platform) && !!a.accessTokenEnc,
+      oauth: isOAuthPlatform(a.platform) && !!a.accessTokenEnc,
+      settings: isOAuthPlatform(a.platform) ? ((meta.settings && typeof meta.settings === 'object' ? meta.settings : {}) as AccountPlatformSettings) : null,
       autoPublish: a.autoPublish,
       tokenHealth: this.health(a),
       tokenExpiresAt: a.tokenExpiresAt?.toISOString() ?? null,
@@ -124,6 +134,7 @@ export class BrandSocialAccountsService {
         adsRead: !!user?.scopes?.some((s) => s === 'ads_read' || s === 'ads_management'),
         redirectUri: brandRedirectUri(),
       },
+      apps: await this.platforms.appsSummary(),
     };
   }
 
@@ -163,13 +174,14 @@ export class BrandSocialAccountsService {
     return this.view(row);
   }
 
-  async patch(id: string, body: { autoPublish?: boolean; name?: string }) {
-    const a = await this.get(id);
+  async patch(id: string, body: AccountPatchInput) {
+    let a = await this.get(id);
+    if (body?.settings && typeof body.settings === 'object') a = await this.platforms.saveSettings(a, body.settings);
     const data: Prisma.BrandSocialAccountUpdateInput = {};
     if (typeof body?.name === 'string' && body.name.trim()) data.name = body.name.trim().slice(0, 120);
     if (typeof body?.autoPublish === 'boolean') {
       if (body.autoPublish && !(isPlatform(a.platform) && isApiPlatform(a.platform))) throw new BadRequestException(`${PLATFORM_LABEL[a.platform as BrandPlatform] ?? a.platform} has no publishing API; its posts are always handed to a person.`);
-      if (body.autoPublish && a.status !== 'CONNECTED') throw new BadRequestException('Reconnect this account before turning on auto-publish.');
+      if (body.autoPublish && (a.status !== 'CONNECTED' || !a.accessTokenEnc)) throw new BadRequestException(a.status === 'MANUAL' ? 'Connect this account first, then turn on auto-publish.' : 'Reconnect this account before turning on auto-publish.');
       data.autoPublish = body.autoPublish;
     }
     return this.view(await this.prisma.brandSocialAccount.update({ where: { id }, data }));
@@ -177,11 +189,33 @@ export class BrandSocialAccountsService {
 
   /** Soft disconnect: keeps the row and every post; drops the token and turns publishing off. */
   async disconnect(id: string) {
-    await this.get(id);
+    const a = await this.get(id);
+    if (isOAuthPlatform(a.platform)) await this.platforms.dropTokens(a);
     const row = await this.prisma.brandSocialAccount.update({
       where: { id }, data: { status: 'DISCONNECTED', autoPublish: false, accessTokenEnc: null, tokenExpiresAt: null },
     });
     return this.view(row);
+  }
+
+  /* ───────────────────────── platform OAuth ───────────────────────── */
+
+  private oauthPlatform(slug: string): OAuthPlatform {
+    const p = platformFromSlug(slug);
+    if (!p) throw new NotFoundException('This platform does not connect through its own app.');
+    return p;
+  }
+
+  platformConnectUrl(slug: string, userId: string): Promise<PlatformConnectUrlResponse> {
+    return this.platforms.connectUrl(this.oauthPlatform(slug), userId);
+  }
+
+  async platformCallback(slug: string, userId: string, q: { code?: string; state?: string; error?: string; error_description?: string }): Promise<PlatformCallbackResponse> {
+    const { row, upgraded } = await this.platforms.callback(this.oauthPlatform(slug), userId, q ?? {});
+    return { account: this.view(row), upgraded };
+  }
+
+  async options(id: string): Promise<AccountOptionsResponse> {
+    return this.platforms.options(await this.get(id));
   }
 
   /* ───────────────────────── Meta OAuth ───────────────────────── */
@@ -308,6 +342,7 @@ export class BrandSocialAccountsService {
   /** Checks the token and reads the profile again (name, picture, followers). */
   async refresh(id: string) {
     const a = await this.get(id);
+    if (isOAuthPlatform(a.platform) && a.accessTokenEnc) return this.view(await this.platforms.check(a));
     if (!a.accessTokenEnc || !isPlatform(a.platform) || !isApiPlatform(a.platform)) {
       return this.view(await this.prisma.brandSocialAccount.update({ where: { id }, data: { lastCheckedAt: new Date() } }));
     }

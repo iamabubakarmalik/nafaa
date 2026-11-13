@@ -110,6 +110,7 @@ const SocialMediaPage = lazy(() => import('@/features/brand-social/pages/MediaPa
 const SocialAnalyticsPage = lazy(() => import('@/features/brand-social/pages/AnalyticsPage'));
 const SocialAccountsPage = lazy(() => import('@/features/brand-social/pages/AccountsPage'));
 const SocialMetaCallbackPage = lazy(() => import('@/features/brand-social/pages/MetaCallbackPage'));
+const SocialPlatformCallbackPage = lazy(() => import('@/features/brand-social/pages/PlatformCallbackPage'));
 const SocialSettingsPage = lazy(() => import('@/features/brand-social/pages/SettingsPage'));
 const SocialAdsPage = lazy(() => import('@/features/brand-social/pages/AdsPage'));
 
@@ -228,6 +229,7 @@ export default function App() {
               <Route path="/social/ads" element={<SocialAdsPage />} />
               <Route path="/social/accounts" element={<SocialAccountsPage />} />
               <Route path="/social/accounts/callback" element={<SocialMetaCallbackPage />} />
+              <Route path="/social/accounts/callback/:platform" element={<SocialPlatformCallbackPage />} />
               <Route path="/social/settings" element={<SocialSettingsPage />} />
 
               {/* Marketing site workspace */}

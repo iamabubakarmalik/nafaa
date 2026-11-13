@@ -148,6 +148,7 @@ function PlatformRow({ post, platform }: { post: SocialPost; platform: SocialPla
         <span className="text-[0.875rem] font-semibold text-slate-900">{PLATFORM[platform].label}</span>
         <span className={cn('ms-auto text-[0.6875rem] tabular-nums', [...text].length > limit ? 'font-semibold text-rose-600' : 'text-slate-400')}>{[...text].length}/{limit}</span>
       </div>
+      {post.publishState?.[platform]?.error && <p className="mt-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[0.75rem] text-amber-800 ring-1 ring-amber-200">{post.publishState[platform]!.error}</p>}
       <pre className="mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap break-words rounded-lg bg-white p-2.5 font-sans text-[0.8125rem] leading-relaxed text-slate-700 ring-1 ring-slate-200">{text || <span className="text-slate-400">No caption</span>}</pre>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <Button size="xs" variant="secondary" leftIcon={<Clipboard className="h-3.5 w-3.5" />} onClick={async () => { if (await copyText(text)) toast.success('Caption copied'); }}>Copy caption</Button>

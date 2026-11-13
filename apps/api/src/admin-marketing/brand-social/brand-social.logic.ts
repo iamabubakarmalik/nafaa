@@ -7,6 +7,7 @@
 
 import { zonedToUtc } from '../../common/helpers/business-time.helper';
 import type { MetaErrorKind, GraphErrorBody } from '../../integrations/meta/meta-graph';
+import { platformTextLength } from './brand-social-oauth.logic';
 import {
   API_PLATFORMS, BRAND_PLATFORMS, POST_KINDS, POST_STATUSES,
   type BrandPlatform, type BrandPostKind, type BrandPostStatus, type BrandSocialSettings, type ContentPack,
@@ -161,7 +162,11 @@ export function validatePost(p: ValidationInput, utm?: { medium?: string; defaul
     const name = PLATFORM_LABEL[platform];
     const text = textFor(p, platform, utm);
     const limit = CAPTION_LIMITS[platform];
-    if (text.length > limit) add(platform, 'error', 'caption_long', `${name} allows ${limit.toLocaleString('en-US')} characters; this text has ${text.length.toLocaleString('en-US')}.`);
+    const length = platformTextLength(platform, text);
+    if (length > limit) {
+      const how = platform === 'X' ? ' (X counts each link as 23 and each emoji as 2)' : platform === 'THREADS' ? ' (Threads counts emoji by their bytes)' : '';
+      add(platform, 'error', 'caption_long', `${name} allows ${limit.toLocaleString('en-US')} characters; this text has ${length.toLocaleString('en-US')}${how}.`);
+    }
     const tagLimit = HASHTAG_LIMITS[platform];
     const tagCount = countHashtags(text);
     if (tagLimit && tagCount > tagLimit) add(platform, platform === 'INSTAGRAM' ? 'error' : 'warning', 'hashtags_many', `${name} allows ${tagLimit} hashtag${tagLimit === 1 ? '' : 's'}; this text has ${tagCount}.`);
@@ -199,13 +204,19 @@ export function validatePost(p: ValidationInput, utm?: { medium?: string; defaul
         break;
       case 'TIKTOK':
         if (!video && !images.length) add(platform, 'error', 'needs_media', 'TikTok needs a video or photos.');
+        else if (!video) add(platform, 'warning', 'tiktok_photos', 'TikTok takes photo posts only from a verified domain; if it refuses, the post goes to "To post by hand".');
         break;
       case 'YOUTUBE':
+        if (p.kind !== 'VIDEO' && p.kind !== 'REEL') add(platform, 'warning', 'youtube_kind', 'YouTube takes video and reel posts only; set the kind to Video or Reel, or this post is skipped there.');
         if (!video) add(platform, 'error', 'needs_video', 'YouTube needs a video.');
         else if (p.kind === 'REEL' && (video.durationSec ?? 0) > 180) add(platform, 'warning', 'short_length', 'YouTube Shorts are up to 3 minutes.');
         break;
       case 'PINTEREST':
         if (!p.media.length) add(platform, 'error', 'needs_media', 'Pinterest needs an image or video.');
+        else if (!video && images.length > 5) add(platform, 'warning', 'too_many', 'Pinterest takes up to 5 images in one pin; the rest are left out.');
+        break;
+      case 'THREADS':
+        if (p.media.length > 20) add(platform, 'warning', 'too_many', 'Threads takes up to 20 items in a carousel.');
         break;
       case 'LINKEDIN':
         if (p.media.length > 20) add(platform, 'warning', 'too_many', 'LinkedIn takes up to 20 images.');
@@ -285,7 +296,7 @@ export type DispatchAction = { action: 'auto' } | { action: 'handoff' } | { acti
 
 /**
  * What the publisher does for one platform: publish through the API (a
- * connected Facebook / Instagram account with auto-publish on), hand it to a
+ * connected account of an API platform with auto-publish on), hand it to a
  * person (manual platforms, or auto-publish off), or fail with a reason.
  */
 export function dispatchFor(platform: BrandPlatform, accounts: AccountForDispatch[]): DispatchAction {

@@ -71,7 +71,7 @@ export default function MetaCallbackPage() {
         ) : done ? (
           <Card>
             <EmptyState icon={<CheckCircle2 className="h-8 w-8 text-success-600" />} title="All set"
-              description="These accounts now publish automatically when a post is approved and due."
+              description="These accounts are connected. Turn on Auto-publish for each one on the Accounts page, and approved posts will then go out on their own when due."
               action={<Button onClick={() => navigate('/social/accounts')}>Open accounts</Button>} />
             <ul className="mx-auto mt-2 max-w-sm space-y-2 pb-4">
               {done.map((a) => (

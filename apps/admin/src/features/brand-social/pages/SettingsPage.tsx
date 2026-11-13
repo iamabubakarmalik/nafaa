@@ -10,11 +10,11 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  AlertTriangle, Bot, CheckCircle2, Copy, FileArchive, KeyRound, Pause, Play, Plus, Save, Sparkles, Trash2, UploadCloud, X, XCircle,
+  AlertTriangle, AppWindow, Bot, CheckCircle2, Copy, ExternalLink, FileArchive, KeyRound, Pause, Play, Plus, Save, Sparkles, Trash2, UploadCloud, X, XCircle,
 } from 'lucide-react';
 import { Alert, Badge, Button, Card, Input, Modal, PageHero, PageShell, Skeleton, Switch, Textarea, confirmDialog, heroPrimaryButton } from '@/design-system/components';
 import {
-  AUTOMATION_SCOPES, brandSocialApi, SOCIAL_PLATFORMS, type AutomationScope, type CreatedKey, type ImportReport, type SocialPlatform, type SocialSettings,
+  AUTOMATION_SCOPES, brandSocialApi, SOCIAL_PLATFORMS, type AutomationScope, type CreatedKey, type ImportReport, type PlatformApp, type SocialPlatform, type SocialSettings,
 } from '@/api/admin-brand-social.api';
 import { useCan } from '@/lib/access';
 import { cn } from '@/lib/cn';
@@ -127,6 +127,7 @@ export default function SettingsPage() {
             {can('social.edit') && <ImportPack />}
             {can('social.edit') && <AiPlan pillars={d.pillars.map((p) => p.key)} />}
           </div>
+          {canSet && <PlatformApps />}
           {canSet && <AutomationKeys />}
         </>
       )}
@@ -135,6 +136,75 @@ export default function SettingsPage() {
 }
 
 // ─── Editors ─────────────────────────────────────────────────────────────
+
+function CopyRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5 ring-1 ring-slate-200">
+      <span className="shrink-0 text-[0.6875rem] font-medium text-slate-500">{label}</span>
+      <code className="min-w-0 flex-1 truncate text-[0.75rem] text-slate-700" title={value}>{value}</code>
+      <button type="button" onClick={async () => { if (await copyText(value)) toast.success('Copied'); }} className="rounded p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700" aria-label={`Copy ${label}`}><Copy className="h-3.5 w-3.5" /></button>
+    </div>
+  );
+}
+
+/** Developer apps for Threads, YouTube, TikTok, X and Pinterest. Secrets are stored encrypted and never shown again. */
+function PlatformApps() {
+  const q = useQuery({ queryKey: [...KEYS.all, 'apps'], queryFn: brandSocialApi.apps });
+  return (
+    <div id="platform-apps">
+      <Card title={<span className="flex items-center gap-2"><AppWindow className="h-4 w-4 text-sky-600" />Platform apps</span>}
+        description="Each platform needs its own developer app before its account can be connected. Paste the app's id and secret here; the secret is stored encrypted and never shown again.">
+        {q.error ? <p className="text-[0.8125rem] text-rose-600">{apiError(q.error, 'Could not load the apps.')}</p>
+          : q.isLoading ? <Skeleton className="h-40 rounded-xl" />
+            : <div className="grid gap-3 lg:grid-cols-2">{(q.data ?? []).map((a) => <PlatformAppRow key={a.platform} app={a} />)}</div>}
+      </Card>
+    </div>
+  );
+}
+
+function PlatformAppRow({ app }: { app: PlatformApp }) {
+  const invalidate = useInvalidate();
+  const [clientId, setClientId] = useState(app.clientId ?? '');
+  const [secret, setSecret] = useState('');
+  useEffect(() => { setClientId(app.clientId ?? ''); }, [app.clientId]);
+  const saved = !!app.clientId && app.secretSet;
+  const changed = clientId.trim() !== (app.clientId ?? '') || !!secret.trim();
+  const save = useMutation({
+    mutationFn: () => brandSocialApi.saveApp(app.platform, { clientId: clientId.trim(), clientSecret: secret.trim() || undefined }),
+    onSuccess: () => { setSecret(''); toast.success(`${PLATFORM[app.platform].label} app saved`); invalidate(); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const remove = useMutation({
+    mutationFn: async () => {
+      const ok = await confirmDialog({ title: `Remove the ${PLATFORM[app.platform].label} app?`, text: 'Connected accounts stop refreshing their tokens and cannot be reconnected until an app is saved again.', yes: 'Remove', danger: true });
+      return ok ? brandSocialApi.removeApp(app.platform) : null;
+    },
+    onSuccess: (r) => { if (r) { setClientId(''); setSecret(''); toast.success('App removed'); invalidate(); } },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  return (
+    <div className="space-y-2.5 rounded-xl bg-white p-3 ring-1 ring-slate-200">
+      <div className="flex items-center gap-2">
+        <PlatformMark p={app.platform} size={20} />
+        <b className="flex-1 text-[0.875rem] text-slate-900">{PLATFORM[app.platform].label}</b>
+        <Badge size="xs" variant={saved ? 'success' : 'default'} dot>{saved ? 'Saved' : 'Not saved'}</Badge>
+        <a href={app.consoleUrl} target="_blank" rel="noreferrer" className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Open the developer console"><ExternalLink className="h-3.5 w-3.5" /></a>
+      </div>
+      <p className="text-[0.75rem] leading-relaxed text-slate-500">{app.howTo}</p>
+      <CopyRow label="Redirect URI" value={app.redirectUri} />
+      {app.extraUrls.map((u) => <CopyRow key={u.label} label={u.label} value={u.url} />)}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <Input size="sm" label={app.idLabel} value={clientId} autoComplete="off" spellCheck={false} onChange={(e) => setClientId(e.target.value)} />
+        <Input size="sm" label="Secret" type="password" autoComplete="new-password" value={secret} placeholder={app.secretSet ? 'Saved (leave empty to keep)' : ''} onChange={(e) => setSecret(e.target.value)} />
+      </div>
+      <div className="flex items-center gap-2">
+        {app.updatedAt && <span className="text-[0.6875rem] text-slate-400">Updated {relative(app.updatedAt)}</span>}
+        {saved && <Button size="xs" variant="ghost" className="ms-auto text-rose-600" loading={remove.isPending} leftIcon={<Trash2 className="h-3.5 w-3.5" />} onClick={() => remove.mutate()}>Remove</Button>}
+        <Button size="xs" className={saved ? '' : 'ms-auto'} disabled={!changed || !clientId.trim() || (!app.secretSet && !secret.trim())} loading={save.isPending} onClick={() => save.mutate()}>Save</Button>
+      </div>
+    </div>
+  );
+}
 
 function BestTimes({ value, onChange, disabled }: { value: SocialSettings['bestTimes']; onChange: (v: SocialSettings['bestTimes']) => void; disabled: boolean }) {
   const [adding, setAdding] = useState<Partial<Record<SocialPlatform, string>>>({});

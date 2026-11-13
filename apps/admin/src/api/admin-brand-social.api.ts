@@ -27,6 +27,10 @@ export const SOCIAL_PLATFORMS = [
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];
 
 export type AccountStatus = 'CONNECTED' | 'MANUAL' | 'NEEDS_RECONNECT' | 'DISCONNECTED';
+/** Platforms with their own OAuth app (saved on the Settings page). */
+export const OAUTH_PLATFORMS = ['THREADS', 'YOUTUBE', 'TIKTOK', 'X', 'PINTEREST'] as const;
+export type OAuthPlatform = (typeof OAUTH_PLATFORMS)[number];
+export const isOAuthPlatform = (p: string): p is OAuthPlatform => (OAUTH_PLATFORMS as readonly string[]).includes(p);
 export const POST_KINDS = ['POST', 'CAROUSEL', 'REEL', 'STORY', 'VIDEO', 'TEXT'] as const;
 export type PostKind = (typeof POST_KINDS)[number];
 export const POST_STATUSES = [
@@ -49,6 +53,10 @@ export interface SocialAccount {
   externalId: string;
   status: AccountStatus;
   api: boolean;
+  /** Connected through the platform's own OAuth app. */
+  oauth: boolean;
+  /** Per-account publishing choices (OAuth platforms). */
+  settings: AccountPlatformSettings | null;
   autoPublish: boolean;
   tokenHealth: TokenHealth;
   tokenExpiresAt: string | null;
@@ -71,7 +79,40 @@ export interface MetaConnection {
   redirectUri: string;
 }
 
-export interface AccountsResponse { accounts: SocialAccount[]; meta: MetaConnection }
+export interface AccountsResponse {
+  accounts: SocialAccount[];
+  meta: MetaConnection;
+  apps: Array<{ platform: OAuthPlatform; configured: boolean; redirectUri: string }>;
+}
+
+export interface AccountPlatformSettings {
+  youtubePrivacy?: 'private' | 'unlisted' | 'public';
+  tiktokMode?: 'INBOX' | 'DIRECT';
+  tiktokPrivacy?: string | null;
+  pinterestBoardId?: string | null;
+  pinterestBoardName?: string | null;
+}
+
+export interface AccountOptions {
+  platform: SocialPlatform;
+  settings: AccountPlatformSettings;
+  boards?: Array<{ id: string; name: string }>;
+  tiktok?: { privacyOptions: string[]; maxDurationSec: number | null; username: string | null };
+  notes: string[];
+}
+
+/** One OAuth platform app; the secret never comes back. */
+export interface PlatformApp {
+  platform: OAuthPlatform;
+  idLabel: string;
+  clientId: string | null;
+  secretSet: boolean;
+  redirectUri: string;
+  consoleUrl: string;
+  howTo: string;
+  extraUrls: Array<{ label: string; url: string }>;
+  updatedAt: string | null;
+}
 
 export interface MetaPageChoice {
   pageId: string;
@@ -333,8 +374,12 @@ export const brandSocialApi = {
   accounts: () => apiClient.get(`${BASE}/accounts`).then(unwrap<AccountsResponse>),
   saveManualAccount: (body: { platform: SocialPlatform; handle: string; url?: string | null; name?: string | null; avatarUrl?: string | null }) =>
     apiClient.post(`${BASE}/accounts/manual`, clean(body)).then(unwrap<SocialAccount>),
-  updateAccount: (id: string, body: { autoPublish?: boolean; name?: string }) =>
+  updateAccount: (id: string, body: { autoPublish?: boolean; name?: string; settings?: AccountPlatformSettings }) =>
     apiClient.patch(`${BASE}/accounts/${id}`, body).then(unwrap<SocialAccount>),
+  accountOptions: (id: string) => apiClient.get(`${BASE}/accounts/${id}/options`).then(unwrap<AccountOptions>),
+  platformConnectUrl: (p: OAuthPlatform) => apiClient.get(`${BASE}/accounts/${p.toLowerCase()}/connect-url`).then(unwrap<{ url: string; redirectUri: string }>),
+  platformCallback: (p: OAuthPlatform, body: { code?: string; state?: string; error?: string; error_description?: string }) =>
+    apiClient.post(`${BASE}/accounts/${p.toLowerCase()}/callback`, body).then(unwrap<{ account: SocialAccount; upgraded: boolean }>),
   disconnectAccount: (id: string) => apiClient.delete(`${BASE}/accounts/${id}`).then(unwrap<SocialAccount>),
   refreshAccount: (id: string) => apiClient.post(`${BASE}/accounts/${id}/refresh`).then(unwrap<SocialAccount>),
   metaConnectUrl: () => apiClient.get(`${BASE}/accounts/meta/connect-url`).then(unwrap<{ url: string; redirectUri: string }>),
@@ -403,6 +448,12 @@ export const brandSocialApi = {
     apiClient.post(`${BASE}/ai/caption`, clean(body)).then(unwrap<AiCaptionResult>),
   aiPlan: (body: { month: string; pillars?: string[]; perDay?: number; platforms?: SocialPlatform[]; brief?: string }) =>
     apiClient.post(`${BASE}/ai/plan`, clean(body)).then(unwrap<AiPlanResult>),
+
+  // Platform apps (social.settings)
+  apps: () => apiClient.get(`${BASE}/apps`).then(unwrap<PlatformApp[]>),
+  saveApp: (p: OAuthPlatform, body: { clientId: string; clientSecret?: string }) =>
+    apiClient.put(`${BASE}/apps/${p.toLowerCase()}`, clean(body)).then(unwrap<PlatformApp>),
+  removeApp: (p: OAuthPlatform) => apiClient.delete(`${BASE}/apps/${p.toLowerCase()}`).then(unwrap<PlatformApp>),
 
   // Automation keys
   keys: () => apiClient.get(`${BASE}/keys`).then(unwrap<AutomationKey[] | { keys: AutomationKey[] }>)

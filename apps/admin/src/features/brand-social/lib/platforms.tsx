@@ -15,7 +15,7 @@ export interface PlatformInfo {
   limit: number;
   /** Hashtag limit, when the platform has one. */
   hashtagLimit?: number;
-  /** Published through the API (Meta) or handed to a person. */
+  /** Can be published through an API (Meta, or the platform's own OAuth app); otherwise always handed to a person. */
   api: boolean;
   /** Where a person opens the platform to post by hand. */
   postUrl: string;
@@ -26,12 +26,12 @@ export interface PlatformInfo {
 export const PLATFORM: Record<SocialPlatform, PlatformInfo> = {
   FACEBOOK: { label: 'Facebook', short: 'FB', color: '#1877F2', limit: 63206, api: true, postUrl: 'https://business.facebook.com/latest/composer', profile: (h) => `https://www.facebook.com/${h}` },
   INSTAGRAM: { label: 'Instagram', short: 'IG', color: '#E1306C', limit: 2200, hashtagLimit: 30, api: true, postUrl: 'https://business.facebook.com/latest/composer', profile: (h) => `https://www.instagram.com/${h}` },
-  THREADS: { label: 'Threads', short: 'TH', color: '#101010', limit: 500, api: false, postUrl: 'https://www.threads.net/', profile: (h) => `https://www.threads.net/@${h}` },
-  TIKTOK: { label: 'TikTok', short: 'TT', color: '#111111', limit: 2200, api: false, postUrl: 'https://www.tiktok.com/tiktokstudio/upload', profile: (h) => `https://www.tiktok.com/@${h}` },
-  YOUTUBE: { label: 'YouTube', short: 'YT', color: '#FF0000', limit: 5000, api: false, postUrl: 'https://studio.youtube.com/', profile: (h) => `https://www.youtube.com/@${h}` },
-  X: { label: 'X', short: 'X', color: '#0F1419', limit: 280, api: false, postUrl: 'https://x.com/compose/post', profile: (h) => `https://x.com/${h}` },
+  THREADS: { label: 'Threads', short: 'TH', color: '#101010', limit: 500, api: true, postUrl: 'https://www.threads.net/', profile: (h) => `https://www.threads.net/@${h}` },
+  TIKTOK: { label: 'TikTok', short: 'TT', color: '#111111', limit: 2200, api: true, postUrl: 'https://www.tiktok.com/tiktokstudio/upload', profile: (h) => `https://www.tiktok.com/@${h}` },
+  YOUTUBE: { label: 'YouTube', short: 'YT', color: '#FF0000', limit: 5000, api: true, postUrl: 'https://studio.youtube.com/', profile: (h) => `https://www.youtube.com/@${h}` },
+  X: { label: 'X', short: 'X', color: '#0F1419', limit: 280, api: true, postUrl: 'https://x.com/compose/post', profile: (h) => `https://x.com/${h}` },
   LINKEDIN: { label: 'LinkedIn', short: 'IN', color: '#0A66C2', limit: 3000, api: false, postUrl: 'https://www.linkedin.com/company/', profile: (h) => `https://www.linkedin.com/company/${h}` },
-  PINTEREST: { label: 'Pinterest', short: 'PI', color: '#E60023', limit: 500, api: false, postUrl: 'https://www.pinterest.com/pin-creation-tool/', profile: (h) => `https://www.pinterest.com/${h}` },
+  PINTEREST: { label: 'Pinterest', short: 'PI', color: '#E60023', limit: 500, api: true, postUrl: 'https://www.pinterest.com/pin-creation-tool/', profile: (h) => `https://www.pinterest.com/${h}` },
   WHATSAPP_CHANNEL: { label: 'WhatsApp channel', short: 'WA', color: '#25D366', limit: 65536, api: false, postUrl: 'https://web.whatsapp.com/', profile: () => 'https://www.whatsapp.com/channel/' },
   GOOGLE_BUSINESS: { label: 'Google Business', short: 'GB', color: '#4285F4', limit: 1500, api: false, postUrl: 'https://business.google.com/', profile: () => 'https://business.google.com/' },
 };
