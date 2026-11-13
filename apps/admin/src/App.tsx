@@ -101,6 +101,17 @@ const PartnerPayoutsPage = lazy(() => import('@/features/partners/pages/PayoutsP
 const PartnerPlansPage = lazy(() => import('@/features/partners/pages/PlansPage'));
 const PartnerPerformancePage = lazy(() => import('@/features/partners/pages/PerformancePage'));
 const PartnerKitPage = lazy(() => import('@/features/partners/pages/KitPage'));
+const SocialOverviewPage = lazy(() => import('@/features/brand-social/pages/OverviewPage'));
+const SocialCalendarPage = lazy(() => import('@/features/brand-social/pages/CalendarPage'));
+const SocialComposerPage = lazy(() => import('@/features/brand-social/pages/ComposerPage'));
+const SocialApprovalsPage = lazy(() => import('@/features/brand-social/pages/ApprovalsPage'));
+const SocialHandoffPage = lazy(() => import('@/features/brand-social/pages/HandoffPage'));
+const SocialMediaPage = lazy(() => import('@/features/brand-social/pages/MediaPage'));
+const SocialAnalyticsPage = lazy(() => import('@/features/brand-social/pages/AnalyticsPage'));
+const SocialAccountsPage = lazy(() => import('@/features/brand-social/pages/AccountsPage'));
+const SocialMetaCallbackPage = lazy(() => import('@/features/brand-social/pages/MetaCallbackPage'));
+const SocialSettingsPage = lazy(() => import('@/features/brand-social/pages/SettingsPage'));
+const SocialAdsPage = lazy(() => import('@/features/brand-social/pages/AdsPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -205,6 +216,19 @@ export default function App() {
               <Route path="/account/security" element={<SecurityPage />} />
               <Route path="/ai-usage" element={<AiUsagePage />} />
               <Route path="/live" element={<LiveNowPage />} />
+
+              {/* Nafaa Social: Nafaa's own social accounts (Marketing workspace) */}
+              <Route path="/social" element={<SocialOverviewPage />} />
+              <Route path="/social/calendar" element={<SocialCalendarPage />} />
+              <Route path="/social/posts/:id" element={<SocialComposerPage />} />
+              <Route path="/social/approvals" element={<SocialApprovalsPage />} />
+              <Route path="/social/handoff" element={<SocialHandoffPage />} />
+              <Route path="/social/media" element={<SocialMediaPage />} />
+              <Route path="/social/analytics" element={<SocialAnalyticsPage />} />
+              <Route path="/social/ads" element={<SocialAdsPage />} />
+              <Route path="/social/accounts" element={<SocialAccountsPage />} />
+              <Route path="/social/accounts/callback" element={<SocialMetaCallbackPage />} />
+              <Route path="/social/settings" element={<SocialSettingsPage />} />
 
               {/* Marketing site workspace */}
               <Route path="/marketing">

@@ -26680,3 +26680,161 @@ model StoreAbuseReport {
   @@index([storeId])
   @@map("store_abuse_reports")
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Nafaa Social: Nafaa's own social media accounts, posts, media library and
+// results, run from the admin panel. Not a tenant feature. Status and platform
+// values are plain strings; the allowed values live in
+// src/admin-marketing/brand-social/brand-social.types.ts.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A connected (API) or manual social account of the Nafaa brand.
+model BrandSocialAccount {
+  id             String    @id @default(uuid())
+  /// FACEBOOK | INSTAGRAM | THREADS | TIKTOK | YOUTUBE | X | LINKEDIN | PINTEREST | WHATSAPP_CHANNEL | GOOGLE_BUSINESS
+  platform       String
+  name           String
+  handle         String?
+  profileUrl     String?
+  avatarUrl      String?
+  /// Page id / Instagram user id; the handle for manual accounts.
+  externalId     String
+  accessTokenEnc String?
+  tokenExpiresAt DateTime?
+  scopes         String[]  @default([])
+  /// CONNECTED | MANUAL | NEEDS_RECONNECT | DISCONNECTED
+  status         String    @default("MANUAL")
+  /// Posts go out on their own only when this is on.
+  autoPublish    Boolean   @default(false)
+  meta           Json      @default("{}")
+  lastError      String?
+  lastCheckedAt  DateTime?
+  connectedById  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  days BrandSocialAccountDay[]
+
+  @@unique([platform, externalId])
+  @@index([status])
+  @@map("brand_social_accounts")
+}
+
+/// One post planned for one or more platforms.
+model BrandSocialPost {
+  id             String    @id @default(uuid())
+  /// Short tag used as utm_content.
+  code           String    @unique
+  title          String    @default("")
+  /// POST | CAROUSEL | REEL | STORY | VIDEO | TEXT
+  kind           String    @default("POST")
+  pillar         String?
+  campaign       String?
+  caption        String    @default("") @db.Text
+  /// Per-platform caption overrides: { PLATFORM: text }.
+  captions       Json      @default("{}")
+  hashtags       String[]  @default([])
+  firstComment   String?   @db.Text
+  link           String?
+  /// [{ assetId, url, kind, width, height, durationSec, alt, thumbUrl }]
+  media          Json      @default("[]")
+  /// Asset ids from `media`, for "where used" lookups.
+  assetIds       String[]  @default([])
+  /// Platform keys.
+  platforms      String[]  @default([])
+  scheduledAt    DateTime?
+  /// IDEA | DRAFT | IN_REVIEW | APPROVED | SCHEDULED | PUBLISHING | PUBLISHED | PARTIAL | FAILED | REJECTED | ARCHIVED
+  status         String    @default("DRAFT")
+  /// Per platform: { status, postId, permalink, containerId, error, attempts, at, nextAt, ... }
+  publishState   Json      @default("{}")
+  /// When the publisher should look at this post next (null = nothing to do on its own).
+  nextRunAt      DateTime?
+  publishedAt    DateTime?
+  approvedById   String?
+  approvedAt     DateTime?
+  rejectedById   String?
+  rejectReason   String?
+  aiMade         Boolean   @default(false)
+  notes          String?   @db.Text
+  insightsAt     DateTime?
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  metrics BrandSocialPostMetric[]
+
+  @@index([status, nextRunAt])
+  @@index([scheduledAt])
+  @@index([publishedAt])
+  @@index([campaign])
+  @@map("brand_social_posts")
+}
+
+/// Media library for Nafaa Social.
+model BrandSocialAsset {
+  id           String   @id @default(uuid())
+  /// image | video
+  kind         String
+  url          String
+  thumbUrl     String?
+  width        Int?
+  height       Int?
+  durationSec  Float?
+  bytes        Int?
+  mime         String?
+  title        String   @default("")
+  tags         String[] @default([])
+  folder       String?
+  /// Cloudinary public id when stored there.
+  storageKey   String?
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  @@index([folder])
+  @@index([createdAt])
+  @@map("brand_social_assets")
+}
+
+/// Results of one post on one platform: one row per PKT day (the newest is the latest).
+model BrandSocialPostMetric {
+  id          String   @id @default(uuid())
+  postId      String
+  platform    String
+  day         DateTime @db.Date
+  fetchedAt   DateTime @default(now())
+  reach       Int      @default(0)
+  impressions Int      @default(0)
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  saves       Int      @default(0)
+  plays       Int      @default(0)
+  clicks      Int      @default(0)
+  engagement  Int      @default(0)
+  raw         Json     @default("{}")
+
+  post BrandSocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, platform, day])
+  @@index([day])
+  @@map("brand_social_post_metrics")
+}
+
+/// Daily account numbers (PKT day).
+model BrandSocialAccountDay {
+  id            String   @id @default(uuid())
+  accountId     String
+  day           DateTime @db.Date
+  followers     Int?
+  reach         Int?
+  impressions   Int?
+  profileViews  Int?
+  websiteClicks Int?
+  updatedAt     DateTime @updatedAt
+
+  account BrandSocialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, day])
+  @@index([day])
+  @@map("brand_social_account_days")
+}

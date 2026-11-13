@@ -22,6 +22,9 @@ import { PublicTrackingModule } from './public-tracking/public-tracking.module';
 // Website CMS (apps/site)
 import { CmsModule } from './cms/cms.module';
 
+// Nafaa Social (Nafaa's own social media)
+import { BrandSocialModule } from './brand-social/brand-social.module';
+
 @Module({
   imports: [
     // Phase 1
@@ -45,6 +48,9 @@ import { CmsModule } from './cms/cms.module';
 
     // Website CMS
     CmsModule,
+
+    // Nafaa Social
+    BrandSocialModule,
   ],
 })
 export class AdminMarketingModule {}

@@ -67,6 +67,19 @@ export const ADMIN_AREAS: AdminAreaDef[] = [
   ], 'Platform controls, domains, force password mode, revalidate and the abuse queue.'),
   area('marketplace', 'Marketplace', 'Marketplace'),
   area('marketing', 'Marketing site', 'Marketing'),
+  {
+    area: 'social',
+    label: 'Nafaa Social',
+    workspace: 'Marketing',
+    permissions: [
+      { key: 'social.view', label: 'See Nafaa Social posts, calendar and results' },
+      { key: 'social.edit', label: 'Write and schedule posts, media and imports', hint: 'Create, edit, archive and reschedule posts; upload media; import content packs; use Nafaa AI.' },
+      { key: 'social.approve', label: 'Approve or reject posts', hint: 'Approved posts with a time go out on their own.' },
+      { key: 'social.publish', label: 'Publish now, retry and mark posted', sensitive: true },
+      { key: 'social.connect', label: 'Connect accounts and switch auto-publish', hint: "Connects Nafaa's Facebook / Instagram and turns automatic posting on or off.", sensitive: true },
+      { key: 'social.settings', label: 'Nafaa Social settings and automation keys', hint: 'Approval rules, pause switch, brand voice and API keys for automation.', sensitive: true },
+    ],
+  },
   area('communications', 'Broadcasts, email and SMS', 'Communications', [], 'Send messages to shops.'),
   area('mobile', 'Mobile apps', 'Mobile'),
   area('system', 'System health and jobs', 'System', [], 'Turn background jobs and switches on or off.'),
@@ -128,7 +141,7 @@ export const SYSTEM_ROLES: Array<{ key: string; name: string; description: strin
     key: 'marketing',
     name: 'Marketing',
     description: 'Marketing site, campaigns and messages to shops.',
-    permissions: [...views('dashboard', 'marketing', 'communications', 'promos'), ...manages('marketing', 'communications')],
+    permissions: [...views('dashboard', 'marketing', 'communications', 'promos'), ...manages('marketing', 'communications'), 'social.view', 'social.edit', 'social.approve', 'social.publish'],
   },
   {
     key: 'marketplace',
@@ -140,6 +153,6 @@ export const SYSTEM_ROLES: Array<{ key: string; name: string; description: strin
     key: 'readonly',
     name: 'Read only',
     description: 'Can look at everything except staff and the audit log. Cannot change anything.',
-    permissions: views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'marketplace', 'marketing', 'communications', 'mobile', 'system', 'settings', 'exports', 'partners'),
+    permissions: [...views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'marketplace', 'marketing', 'communications', 'mobile', 'system', 'settings', 'exports', 'partners'), 'social.view'],
   },
 ];

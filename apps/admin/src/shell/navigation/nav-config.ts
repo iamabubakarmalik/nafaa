@@ -17,6 +17,7 @@ import {
   Timer, ToggleRight, Wrench, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
 import { Flag, Link2 } from 'lucide-react';
+import { CalendarDays, Hand, PenSquare, Share2 } from 'lucide-react';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
 
 type IconType = ComponentType<{ className?: string; style?: CSSProperties }>;
@@ -252,7 +253,7 @@ export const WORKSPACES: AdminWorkspace[] = [
     icon: Rocket,
     tone: 'bg-fuchsia-600 text-white',
     root: '/marketing',
-    prefixes: ['/marketing'],
+    prefixes: ['/marketing', '/social'],
     groups: [
       {
         id: 'mk-growth',
@@ -266,6 +267,23 @@ export const WORKSPACES: AdminWorkspace[] = [
           { to: '/marketing/chatbot', label: 'Chatbot', icon: Bot, keywords: 'conversations' },
           { to: '/marketing/newsletter', label: 'Newsletter', icon: Mail, keywords: 'subscribers' },
           { to: '/marketing/campaigns', label: 'Campaigns', icon: Megaphone },
+        ],
+      },
+      {
+        id: 'mk-social',
+        label: 'Nafaa Social',
+        icon: Share2,
+        items: [
+          { to: '/social', label: 'Social overview', icon: Share2, exact: true, keywords: 'facebook instagram tiktok youtube social media', permission: 'social.view' },
+          { to: '/social/calendar', label: 'Content calendar', icon: CalendarDays, keywords: 'schedule posts plan', permission: 'social.view' },
+          { to: '/social/posts/new', label: 'New post', icon: PenSquare, keywords: 'compose write caption reel', permission: 'social.edit' },
+          { to: '/social/approvals', label: 'Approvals', icon: ShieldCheck, keywords: 'review approve reject', permission: 'social.view' },
+          { to: '/social/handoff', label: 'To post by hand', icon: Hand, keywords: 'manual tiktok youtube x linkedin pinterest threads', permission: 'social.view' },
+          { to: '/social/media', label: 'Social media library', icon: Images, keywords: 'images videos assets', permission: 'social.view' },
+          { to: '/social/analytics', label: 'Social analytics', icon: TrendingUp, keywords: 'followers reach engagement best time', permission: 'social.view' },
+          { to: '/social/ads', label: 'Ads', icon: BadgeDollarSign, keywords: 'meta ads spend cpc campaigns', permission: 'social.view' },
+          { to: '/social/accounts', label: 'Social accounts', icon: Plug, keywords: 'connect facebook instagram meta', permission: 'social.view' },
+          { to: '/social/settings', label: 'Social settings', icon: Settings2, keywords: 'pillars hashtags best times pause import pack automation keys', permission: 'social.view' },
         ],
       },
       {
@@ -445,7 +463,7 @@ const AREA_BY_PREFIX: Array<[string, string]> = [
   ['/products', 'merchant_data'], ['/sales', 'merchant_data'], ['/customers', 'merchant_data'], ['/bulk-actions', 'bulk'],
   ['/billing/settings', 'plans'], ['/billing', 'billing'], ['/invoices', 'billing'], ['/revenue', 'billing'], ['/setups', 'tenants'], ['/addons', 'plans'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
   ['/platform-discounts', 'promos'], ['/referrals', 'promos'],
-  ['/commerce', 'online_store'], ['/stores', 'stores'], ['/marketing', 'marketing'],
+  ['/commerce', 'online_store'], ['/stores', 'stores'], ['/marketing', 'marketing'], ['/social', 'marketing'],
   ['/broadcast', 'communications'], ['/bulk-communications', 'communications'], ['/email-templates', 'communications'],
   ['/email-logs', 'communications'], ['/sms-templates', 'communications'], ['/sms-logs', 'communications'],
   ['/mobile', 'mobile'], ['/health', 'system'], ['/system', 'system'], ['/activity', 'system'], ['/ai-usage', 'system'], ['/exports', 'exports'],
