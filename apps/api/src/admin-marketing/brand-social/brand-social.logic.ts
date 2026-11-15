@@ -125,11 +125,17 @@ export function textFor(p: TextSource, platform: BrandPlatform, utm?: { medium?:
   const own = p.captions?.[platform];
   const base = (typeof own === 'string' && own.trim() ? own : p.caption ?? '').trim();
   const inText = new Set((base.match(/#[\p{L}\p{N}_]+/gu) ?? []).map((h) => h.toLowerCase()));
-  const tags = p.hashtags.filter((h) => !inText.has(h.toLowerCase())).join(' ');
+  let free = p.hashtags.filter((h) => !inText.has(h.toLowerCase()));
+  // Threads turns one hashtag into the post's topic and has a 500-character limit:
+  // keep a single tag (the brand tag when present), and none if the text already has one.
+  if (platform === 'THREADS') free = inText.size ? [] : [free.find((h) => /^#nafaa/i.test(h)) ?? free[0]].filter(Boolean) as string[];
+  const tags = free.join(' ');
   const parts = [base, tags].filter(Boolean);
   const link = linkFor(p, platform, utm);
   const linkPost = platform === 'FACEBOOK' && !(p.media ?? []).length;
-  if (link && LINK_IN_TEXT.includes(platform) && !linkPost && !base.includes(link)) parts.push(link);
+  // A Threads text that already names nafaa.pk skips the long tracked link (the first reply carries it).
+  const named = platform === 'THREADS' && /nafaa\.pk/i.test(base);
+  if (link && LINK_IN_TEXT.includes(platform) && !linkPost && !named && !base.includes(link)) parts.push(link);
   return parts.join('\n\n');
 }
 
