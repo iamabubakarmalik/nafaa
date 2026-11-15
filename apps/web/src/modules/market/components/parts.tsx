@@ -6,7 +6,7 @@
 
 import type { ReactNode } from 'react';
 import { Clock, GraduationCap } from 'lucide-react';
-import { Badge, Button, EmptyState, heroIconButton, type BadgeVariant } from '@/design-system/components';
+import { Alert, Badge, Button, EmptyState, heroIconButton, type BadgeVariant } from '@/design-system/components';
 import { msg, t } from '@core/i18n';
 
 /**
@@ -88,4 +88,22 @@ export function rangeTabs() {
     { id: '90d' as const, label: t('90 din') },
     { id: 'year' as const, label: t('Saal') },
   ];
+}
+
+/** Nafaa staff review state of the shop, shown under the page hero. */
+export function ApprovalBanner({ approval }: { approval?: { status: 'APPROVED' | 'PENDING' | 'REJECTED'; reason: string | null } | null }) {
+  if (!approval || approval.status === 'APPROVED') return null;
+  if (approval.status === 'PENDING') {
+    return (
+      <Alert tone="info" title={t('Review chal raha hai')}>
+        {t('Nafaa team aap ki dukaan check kar rahi hai. Approve hote hi customers ko Market par nazar aayegi.')}
+      </Alert>
+    );
+  }
+  return (
+    <Alert tone="danger" title={t('Dukaan approve nahi hui')}>
+      {approval.reason ? t('Wajah: {{reason}}', { reason: approval.reason }) : t('Nafaa team ne dukaan wapas bhej di hai.')}{' '}
+      {t('Profile theek kar ke dobara Publish karein, team phir se check karegi.')}
+    </Alert>
+  );
 }

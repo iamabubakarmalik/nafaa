@@ -99,6 +99,8 @@ export interface MarketProfile {
   flow?: FlowSettings | null;
   /** The shop's Nafaa Market sales channel; its orders open in the Online Orders board. */
   integrationId?: string | null;
+  /** Nafaa staff review: PENDING while approval is required, REJECTED with the staff reason. */
+  approval?: { status: 'APPROVED' | 'PENDING' | 'REJECTED'; reason: string | null; at: string | null } | null;
 
   workingHours?: WorkingHours | null;
   holidayDates?: string[];

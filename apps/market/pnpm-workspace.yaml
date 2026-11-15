@@ -1,0 +1,8 @@
+# Standalone pnpm project, same as apps/storefront. This file makes apps/market
+# its own pnpm root, so a Vercel install here uses apps/market/pnpm-lock.yaml
+# and never pulls in the monorepo's expo/electron dependencies.
+packages: []
+
+allowBuilds:
+  sharp: true
+  unrs-resolver: true

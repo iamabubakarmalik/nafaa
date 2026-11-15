@@ -1,0 +1,61 @@
+/*
+ * Global stylesheet. Tokens and base element styles come from the POS design
+ * system (apps/web/src/design-system/styles), the same files the merchant
+ * app and the admin panel use. Only Market-specific values are set here:
+ * the purple accent (MARKETPLACE_IDENTITY) and the fonts loaded by next/font.
+ */
+@import '../../../web/src/design-system/styles/tokens.css';
+@import '../../../web/src/design-system/styles/base.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Accent: MARKETPLACE_IDENTITY #9333ea, as the appearance engine would set it at runtime. */
+  --brand-50: 250 245 255;
+  --brand-100: 243 232 255;
+  --brand-200: 233 213 255;
+  --brand-300: 216 180 254;
+  --brand-400: 192 132 252;
+  --brand-500: 168 85 247;
+  --brand-600: 147 51 234;
+  --brand-700: 126 34 206;
+  --brand-800: 107 33 168;
+  --brand-900: 88 28 135;
+  --brand-950: 59 7 100;
+  --brand-fg: #ffffff;
+  --brand-hex: #9333ea;
+  --ring-color: 168 85 247;
+  --font-latin: var(--font-inter), system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-urdu: var(--font-naskh), 'Noto Naskh Arabic', 'Segoe UI', Tahoma, serif;
+  /* Height of the phone bottom navigation, so sticky bars sit above it. */
+  --bottom-nav: 0px;
+}
+
+@media (max-width: 767px) {
+  :root { --bottom-nav: calc(64px + env(safe-area-inset-bottom)); }
+}
+
+html { -webkit-tap-highlight-color: transparent; }
+body { background: rgb(var(--shell-canvas)); }
+
+[lang='ur'] body { font-family: var(--font-urdu); line-height: 1.9; }
+[lang='ur'] h1, [lang='ur'] h2 { font-family: var(--font-nastaliq), var(--font-urdu); line-height: 2.1; font-weight: 600; }
+[lang='ur'] .num { font-family: var(--font-latin); }
+
+@layer components {
+  .card { @apply rounded-2xl bg-white shadow-card ring-1 ring-gray-200/70; }
+  .scroll-x { @apply flex gap-3 overflow-x-auto overscroll-x-contain scroll-smooth pb-1; scrollbar-width: none; }
+  .scroll-x::-webkit-scrollbar { display: none; }
+  .container-page { @apply mx-auto w-full max-w-6xl px-4 md:px-6; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgb(var(--surface-muted)) 25%, rgb(var(--line)) 37%, rgb(var(--surface-muted)) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+/* Leaflet map pin (checkout address). */
+.leaflet-container { font: inherit; }

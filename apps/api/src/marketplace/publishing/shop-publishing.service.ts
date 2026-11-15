@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MarketChannelService } from '../_shared/market-channel.service';
 import { MarketSettingsService } from '../_shared/market-settings.service';
@@ -114,6 +115,20 @@ export class ShopPublishingService {
     private readonly settings: MarketSettingsService,
   ) {}
 
+  /**
+   * Where the shop stands with Nafaa staff, for the POS Market pages:
+   * REJECTED (with the staff reason), PENDING while approval is required and
+   * not given, otherwise APPROVED. The review note lives in documents.review
+   * (written by admin/market).
+   */
+  private async approvalOf(profile: { documents?: unknown; verifiedAt?: Date | null; isListedOnMarketplace?: boolean }) {
+    const doc = profile.documents && typeof profile.documents === 'object' && !Array.isArray(profile.documents) ? (profile.documents as Record<string, any>).review : null;
+    if (doc?.status === 'REJECTED') return { status: 'REJECTED' as const, reason: typeof doc.reason === 'string' ? doc.reason : null, at: doc.at ?? null };
+    const { requireApproval } = await this.settings.platform();
+    if (requireApproval && !profile.verifiedAt) return { status: 'PENDING' as const, reason: null, at: null };
+    return { status: 'APPROVED' as const, reason: null, at: null };
+  }
+
   /** Adds the resolved section (gate), sub-filter and flow to a profile response. */
   private withGate(dto: any, businessType: string | null | undefined, profile: { gate?: string | null; flowSettings?: unknown } | null) {
     const g = this.settings.shopGate({ gate: profile?.gate ?? null, flowSettings: profile?.flowSettings ?? null, tenant: { businessType } });
@@ -160,6 +175,7 @@ export class ShopPublishingService {
       return this.withGate({
         ...mapSchemaToDto(shop.marketplaceProfile, shop.name),
         shopId: shop.id,
+        approval: await this.approvalOf(shop.marketplaceProfile),
       }, businessType, shop.marketplaceProfile);
     }
 
@@ -237,13 +253,25 @@ export class ShopPublishingService {
       );
     }
 
+    // Publishing again after a rejection sends the shop back for review.
+    const docs = p.documents && typeof p.documents === 'object' && !Array.isArray(p.documents) ? (p.documents as Record<string, any>) : null;
+    const wasRejected = docs?.review?.status === 'REJECTED';
+    const { review: _old, ...restDocs } = docs ?? {};
     await this.prisma.shopMarketplaceProfile.update({
       where: { shopId: shop.id },
-      data: { isListedOnMarketplace: true, listedAt: new Date() },
+      data: {
+        isListedOnMarketplace: true,
+        listedAt: new Date(),
+        ...(wasRejected && { documents: restDocs as Prisma.InputJsonValue, verifiedAt: null }),
+      },
     });
     // Market orders reach the shop's Online Orders through this channel.
     await this.channel.ensureChannel(shop.id);
 
+    const { requireApproval } = await this.settings.platform();
+    if (requireApproval && (wasRejected || !p.verifiedAt)) {
+      return { success: true, pending: true, message: 'Dukaan review ke liye bhej di gayi. Nafaa team approve karte hi Market par nazar aayegi' };
+    }
     return { success: true, message: 'Dukaan ab Nafaa Market par live hai' };
   }
 

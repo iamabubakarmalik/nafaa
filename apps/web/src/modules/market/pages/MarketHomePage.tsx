@@ -24,7 +24,7 @@ import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 import { errorText, marketApi } from '../api/market.api';
 import { gateLabel, marketKeys, shopGate, useMarketConfig, useMarketProfile } from '../hooks/useMarket';
-import { GuideButton, OrderStatusBadge, TONE } from '../components/parts';
+import { ApprovalBanner, GuideButton, OrderStatusBadge, TONE } from '../components/parts';
 
 /** Products a shop should list before going live. */
 export const MIN_LISTED = 5;
@@ -100,6 +100,7 @@ export default function MarketHomePage() {
           { label: t('Rating'), value: d.shop.ratingAverage ? d.shop.ratingAverage.toFixed(1) : '—', hint: t('{{count}} reviews · {{followers}} followers', { count: d.shop.ratingCount, followers: d.shop.followerCount }) },
         ] : undefined}
       />
+      <ApprovalBanner approval={p?.approval} />
 
       {d && (
         <KpiRow cols={4}>

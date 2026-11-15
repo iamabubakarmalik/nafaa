@@ -27,7 +27,7 @@ import { errorText, marketApi, type MarketGate, type MarketProfile, type Working
 import { gateLabel, isGate, num, pickLabel, useMarketConfig, useMarketProfile } from '../hooks/useMarket';
 import { ImageList, ImageSlot } from '../components/ImageFields';
 import { HoursEditor } from '../components/HoursEditor';
-import { GuideButton, TONE } from '../components/parts';
+import { ApprovalBanner, GuideButton, TONE } from '../components/parts';
 
 type P = MarketProfile;
 
@@ -167,6 +167,7 @@ export default function MarketProfilePage() {
           { label: t('Followers'), value: profile?.followerCount ?? 0 },
         ]}
       />
+      <ApprovalBanner approval={profile?.approval} />
 
       {!canEdit && <Alert tone="info">{t('Aap sirf dekh sakte hain. Badalne ke liye Settings edit ki ijazat chahiye.')}</Alert>}
 
