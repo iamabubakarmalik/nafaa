@@ -62,6 +62,11 @@ export const ROUTES: Route[] = [
       addressId: text(body.addressId, 64), deliveryType: body.deliveryType, paymentMethod: body.paymentMethod,
       couponCode: text(body.couponCode, 40) || undefined, customerNotes: text(body.customerNotes) || undefined,
       deliverySlotStart: text(body.deliverySlotStart, 40), deliverySlotEnd: text(body.deliverySlotEnd, 40),
+      slots: body.slots && typeof body.slots === 'object' && !Array.isArray(body.slots)
+        ? Object.fromEntries(Object.entries(body.slots as Record<string, any>).slice(0, 20)
+          .filter(([k, v]) => /^[\w-]{1,64}$/.test(k) && v && typeof v.start === 'string')
+          .map(([k, v]) => [k, { start: String(v.start).slice(0, 40), end: v.end ? String(v.end).slice(0, 40) : null }]))
+        : undefined,
       attachments: Array.isArray(body.attachments)
         ? body.attachments.slice(0, 10).map((a: any) => ({ kind: 'prescription' as const, url: String(a.url).slice(0, 1000), shopId: text(a.shopId, 64) }))
         : undefined,

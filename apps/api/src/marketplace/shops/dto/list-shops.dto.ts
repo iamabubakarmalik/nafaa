@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsLatitude, IsLongitude, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsIn, IsInt, IsLatitude, IsLongitude, IsOptional, IsString, MaxLength, Max, Min } from 'class-validator';
 import { ShopVerificationLevel } from '@prisma/client';
 
 export class ListShopsDto {
@@ -39,6 +39,10 @@ export class ListShopsDto {
   /** Market section: FOOD, GROCERY, PHARMACY, SHOPPING, BOOKING, WHOLESALE. */
   @IsOptional() @IsString()
   gate?: string;
+
+  /** Sub-filter inside a section (e.g. pizza, bbq, salon): the shop's type or one of its sub-categories. */
+  @IsOptional() @IsString() @MaxLength(40)
+  filter?: string;
 
   @IsOptional() @Type(() => Number)
   minRating?: number;

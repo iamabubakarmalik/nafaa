@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, IsArray, IsEnum, IsInt, IsNumber, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsEnum, IsInt, IsNumber, IsObject, IsOptional, IsString, MaxLength, Min, ValidateNested } from 'class-validator';
 import { MarketplacePaymentMethod, DeliveryType } from '@prisma/client';
 
 /** A customer upload sent with the order, e.g. a prescription photo. */
@@ -49,6 +49,10 @@ export class PlaceOrderDto {
 
   @IsOptional() @IsString()
   deliverySlotEnd?: string;
+
+  /** Per-shop time, keyed by shopId, for carts with several shops (wins over deliverySlotStart). */
+  @IsOptional() @IsObject()
+  slots?: Record<string, { start: string; end?: string | null }>;
 
   /** Kept for older clients; tips are not taken yet. */
   @IsOptional() @Type(() => Number) @Min(0)

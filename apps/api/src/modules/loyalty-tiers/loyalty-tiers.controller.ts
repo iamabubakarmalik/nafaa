@@ -1,3 +1,4 @@
+import { Public } from '../auth/decorators/public.decorator';
 import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { LoyaltyTierLevel } from '@prisma/client';
@@ -31,7 +32,7 @@ export class LoyaltyTiersController {
   }
 
   // CUSTOMER
-  @UseGuards(CustomerAuthGuard) @ApiBearerAuth()
+  @Public() @UseGuards(CustomerAuthGuard) @ApiBearerAuth()
   @Get('me') me(@GetCustomer() c: AuthenticatedCustomer) { return this.svc.getCustomerState(c.id); }
 
   @UseGuards(CustomerAuthGuard) @ApiBearerAuth()

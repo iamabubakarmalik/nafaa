@@ -57,9 +57,15 @@ export function CheckoutView() {
   }, [types, type]);
 
   const slotGroup = type === 'DELIVERY' ? groups.find((g) => g.flow?.deliverySlots) : undefined;
-  const bookingSlot = useMemo(() => {
-    for (const g of groups) for (const l of g.lines) if (typeof l.options?.bookingStart === 'string') return { start: l.options.bookingStart as string, end: String(l.options.bookingEnd ?? '') };
-    return null;
+  /** The visit time picked on each booking shop's service (stored on the cart line). */
+  const bookingSlots = useMemo(() => {
+    const out: Record<string, { start: string; end: string | null }> = {};
+    for (const g of groups) {
+      if (g.gate !== 'BOOKING') continue;
+      const l = g.lines.find((x) => typeof x.options?.bookingStart === 'string');
+      if (l) out[g.shopId] = { start: l.options!.bookingStart as string, end: l.options!.bookingEnd ? String(l.options!.bookingEnd) : null };
+    }
+    return out;
   }, [groups]);
 
   // First load: cart and addresses.
@@ -132,7 +138,8 @@ export function CheckoutView() {
     const needRx = groups.filter((g) => g.needsPrescription);
     if (needRx.some((g) => !rx[g.shopId])) return setError(t('checkout.rxMissing'));
     if (!method) return;
-    const chosenSlot = slot ? { start: slot.start, end: slot.end } : allBooking && bookingSlot ? bookingSlot : null;
+    const slotsByShop: Record<string, { start: string; end: string | null }> = { ...bookingSlots };
+    if (slotGroup && slot) slotsByShop[slotGroup.shopId] = { start: slot.start, end: slot.end || null };
     setPlacing(true);
     try {
       const res = await m<PlacedOrders>('checkout/place', {
@@ -142,8 +149,7 @@ export function CheckoutView() {
           paymentMethod: method,
           couponCode: coupon,
           customerNotes: notes.trim() || undefined,
-          deliverySlotStart: chosenSlot?.start,
-          deliverySlotEnd: chosenSlot?.end || undefined,
+          slots: Object.keys(slotsByShop).length ? slotsByShop : undefined,
           attachments: needRx.map((g) => ({ kind: 'prescription', url: rx[g.shopId], shopId: g.shopId })),
           expectedTotal: preview?.finalTotal,
         },

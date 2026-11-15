@@ -13,6 +13,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { OnlineOrdersService } from '../../integrations/online-orders/online-orders.service';
 import { NormalizedOrder } from '../../integrations/online-orders/order-normalizer';
 import { MarketChannelService } from './market-channel.service';
+import { resolveGate } from './market-config';
 
 const n = (v: unknown) => Number(v ?? 0) || 0;
 const r2 = (v: number) => Math.round(v * 100) / 100;
@@ -40,7 +41,10 @@ export class MarketIntakeService {
       city?: string; lat?: number | null; lng?: number | null;
     };
     const pickup = ['PICKUP', 'SELF_PICKUP'].includes(order.deliveryType);
-    const fulfilment = pickup ? 'PICKUP' : order.deliveryType === 'DINE_IN' ? 'DINE_IN' : 'DELIVERY';
+    // Booking shops (salon, clinic, gym...) get a visit at the chosen time.
+    const profile = await this.prisma.shopMarketplaceProfile.findUnique({ where: { shopId: order.shopId }, select: { gate: true, tenant: { select: { businessType: true } } } });
+    const booking = resolveGate(profile?.gate, profile?.tenant?.businessType) === 'BOOKING';
+    const fulfilment = booking ? 'BOOKING' : pickup ? 'PICKUP' : order.deliveryType === 'DINE_IN' ? 'DINE_IN' : 'DELIVERY';
     const coupon = n(order.couponDiscount);
     const loyalty = n(order.loyaltyDiscount);
     const wallet = n(order.walletUsed);
@@ -78,7 +82,7 @@ export class MarketIntakeService {
       // The slot travels in metadata.deliverySlot and is shown in Pakistan time by the POS drawer.
       notes: order.customerNotes || undefined,
       paymentTitle: method === 'COD' ? 'Cash on delivery' : method === 'WALLET' ? 'Nafaa Market wallet' : `Online payment (${method})`,
-      shippingMethod: `Nafaa Market · ${fulfilment === 'DELIVERY' ? 'Delivery' : fulfilment === 'PICKUP' ? 'Pickup' : 'Dine-in'}`,
+      shippingMethod: `Nafaa Market · ${{ DELIVERY: 'Delivery', PICKUP: 'Pickup', DINE_IN: 'Dine-in', BOOKING: 'Booking' }[fulfilment]}`,
       shopId: order.shopId,
       attribution: (order.couponCode && coupon > 0 ? { discountCodes: [order.couponCode] } : undefined) as NormalizedOrder['attribution'],
     };

@@ -1,3 +1,4 @@
+import { Public } from '../auth/decorators/public.decorator';
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CustomerSubscriptionStatus } from '@prisma/client';
@@ -9,6 +10,8 @@ import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 
 @ApiTags('Marketplace / Subscriptions (Subscribe & Save)')
 @Controller('marketplace/subscriptions')
+// Customer routes: the merchant JWT guard is skipped; CustomerAuthGuard checks the customer token.
+@Public()
 @UseGuards(CustomerAuthGuard)
 @ApiBearerAuth()
 export class CustomerSubscriptionsController {

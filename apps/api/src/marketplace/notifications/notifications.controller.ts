@@ -1,3 +1,4 @@
+import { Public } from '../../modules/auth/decorators/public.decorator';
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CustomerAuthGuard } from '../_shared/guards/customer-auth.guard';
@@ -8,6 +9,8 @@ import { ListNotificationsDto } from './dto/list-notifications.dto';
 
 @ApiTags('Marketplace / Notifications')
 @Controller('marketplace/notifications')
+// Customer routes: the merchant JWT guard is skipped; CustomerAuthGuard checks the customer token.
+@Public()
 @UseGuards(CustomerAuthGuard)
 @ApiBearerAuth()
 export class MarketplaceNotificationsController {

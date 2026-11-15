@@ -162,8 +162,12 @@ export class MarketplaceProductsService {
     const profile = await this.prisma.productMarketplaceProfile.findUnique({
       where: { productId },
       include: {
+        // Public page: only what a customer may see (never cost, wholesale price or stock rows).
         product: {
-          include: {
+          select: {
+            id: true, name: true, description: true, sku: true, barcode: true, unit: true,
+            weight: true, weightUnit: true, hasVariants: true, isActive: true,
+            category: { select: { id: true, name: true } },
             variants: {
               where: { isActive: true },
               orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],

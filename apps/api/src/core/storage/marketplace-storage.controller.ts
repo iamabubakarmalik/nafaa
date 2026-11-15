@@ -1,3 +1,4 @@
+import { Public } from '../../modules/auth/decorators/public.decorator';
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { StorageService } from './storage.service';
@@ -12,6 +13,8 @@ import { AuthenticatedCustomer } from '../../marketplace/auth/interfaces/custome
  */
 @ApiTags('Marketplace / Uploads')
 @Controller('marketplace/storage')
+// Customer routes: the merchant JWT guard is skipped; CustomerAuthGuard checks the customer token.
+@Public()
 @UseGuards(CustomerAuthGuard)
 @ApiBearerAuth()
 export class MarketplaceStorageController {

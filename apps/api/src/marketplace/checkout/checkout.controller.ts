@@ -1,3 +1,4 @@
+import { Public } from '../../modules/auth/decorators/public.decorator';
 import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CustomerAuthGuard } from '../_shared/guards/customer-auth.guard';
@@ -9,6 +10,8 @@ import { PlaceOrderDto } from './dto/place-order.dto';
 
 @ApiTags('Marketplace / Checkout')
 @Controller('marketplace/checkout')
+// Customer routes: the merchant JWT guard is skipped; CustomerAuthGuard checks the customer token.
+@Public()
 @UseGuards(CustomerAuthGuard)
 @ApiBearerAuth()
 export class MarketplaceCheckoutController {

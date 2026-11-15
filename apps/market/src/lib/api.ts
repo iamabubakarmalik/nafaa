@@ -497,8 +497,8 @@ const liveCustomer: CustomerApi = {
     await call('notifications/mark-all-read', { method: 'POST', token, body: {} });
   },
   async presignUpload(token, body) {
-    // The storage route sits next to the marketplace routes: /api/marketplace/storage.
-    const r = await call<Raw>('storage/presigned-upload', { method: 'POST', token, body: { ...body, folder: 'review' } });
+    // Prescription photos; the storage route sits next to the marketplace routes: /api/marketplace/storage.
+    const r = await call<Raw>('storage/presigned-upload', { method: 'POST', token, body: { ...body, folder: 'prescription' } });
     return { uploadUrl: r.uploadUrl, publicUrl: r.publicUrl, headers: r.headers ?? { 'Content-Type': body.contentType } };
   },
 };
@@ -516,15 +516,13 @@ const live: MarketApi = {
     const limit = q.limit ?? 20;
     const r = await call<Raw>('shops', {
       query: {
-        gate: q.gate, city: q.lat ? undefined : q.city, lat: q.lat, lng: q.lng, search: q.q, onlyOpen: q.onlyOpen,
+        gate: q.gate, filter: q.filter, city: q.lat ? undefined : q.city, lat: q.lat, lng: q.lng, search: q.q, onlyOpen: q.onlyOpen,
         freeDelivery: q.freeDelivery, sortBy: q.sort ?? (q.lat ? 'distance' : 'popular'), limit, offset: ((q.page ?? 1) - 1) * limit,
       },
       cache: { revalidate: MIN, tags: ['market:shops'] },
     });
-    const out = page(r, shopSummary, limit);
-    // Sub-filters are a gate-level grouping (gateFilter); the list route has no parameter for them.
-    if (q.filter) out.items = out.items.filter((s) => s.gateFilter === q.filter);
-    return out;
+    // The API applies the sub-filter (shop type or sub-category) before paging.
+    return page(r, shopSummary, limit);
   },
   async shop(slug) {
     try {

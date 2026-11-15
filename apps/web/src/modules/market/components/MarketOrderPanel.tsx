@@ -4,7 +4,7 @@
  * per-item choices (add-ons, cake message, substitutes). Renders nothing for
  * orders from other channels.
  */
-import { CalendarClock, FileImage, ShoppingBag, Store, Truck, UtensilsCrossed } from 'lucide-react';
+import { CalendarCheck, CalendarClock, FileImage, ShoppingBag, Store, Truck, UtensilsCrossed } from 'lucide-react';
 import { Badge, Card } from '@/design-system/components';
 import { t } from '@core/i18n';
 
@@ -16,7 +16,7 @@ interface ItemExtra {
 }
 interface MarketMeta {
   platform?: string;
-  fulfilment?: 'DELIVERY' | 'PICKUP' | 'DINE_IN';
+  fulfilment?: 'DELIVERY' | 'PICKUP' | 'DINE_IN' | 'BOOKING';
   deliverySlot?: { start: string; end: string | null };
   attachments?: Attachment[];
   itemExtras?: ItemExtra[];
@@ -61,8 +61,8 @@ export function MarketOrderPanel({ metadata }: { metadata: unknown }) {
   const photos = (m.attachments ?? []).filter((a) => typeof a.url === 'string' && /^https?:\/\//.test(a.url));
   const extras = m.itemExtras ?? [];
   const fulfilment = m.fulfilment ?? 'DELIVERY';
-  const FulfilIcon = fulfilment === 'PICKUP' ? Store : fulfilment === 'DINE_IN' ? UtensilsCrossed : Truck;
-  const fulfilLabel = fulfilment === 'PICKUP' ? t('Customer khud le jayega') : fulfilment === 'DINE_IN' ? t('Dukaan par baith kar khayega') : t('Delivery');
+  const FulfilIcon = fulfilment === 'BOOKING' ? CalendarCheck : fulfilment === 'PICKUP' ? Store : fulfilment === 'DINE_IN' ? UtensilsCrossed : Truck;
+  const fulfilLabel = fulfilment === 'BOOKING' ? t('Booking: customer is waqt aayega') : fulfilment === 'PICKUP' ? t('Customer khud le jayega') : fulfilment === 'DINE_IN' ? t('Dukaan par baith kar khayega') : t('Delivery');
 
   return (
     <Card title={t('Nafaa Market order')} description={t('Customer ne Market se order kiya hai')}>

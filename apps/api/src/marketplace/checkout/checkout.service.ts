@@ -127,9 +127,11 @@ export class MarketplaceCheckoutService {
       if (bad.length) errors.push(`${name}: ${bad.map((l) => `${l.productName} (${l.problemText})`).join(', ')}`);
       if (p && !g.meetsMinOrder) errors.push(`${name}: minimum order ${rs(g.minOrderAmount)} hai`);
       if (p?.maxOrderAmount && g.subtotal > n(p.maxOrderAmount)) errors.push(`${name}: ek order ${rs(n(p.maxOrderAmount))} tak ho sakta hai`);
-      if (p && fulfilment === 'DELIVERY' && !p.offersDelivery) errors.push(`${name} delivery nahi karti, pickup chunein`);
-      if (p && fulfilment === 'PICKUP' && !g.shop?.offersPickup) errors.push(`${name} se pickup nahi hota`);
-      if (p && fulfilment === 'DINE_IN' && !g.shop?.offersDineIn) errors.push(`${name} me dine-in order nahi hota`);
+      // A booking (salon, clinic, gym...) is a visit at a chosen time, not a delivery or pickup.
+      const booking = g.gate === 'BOOKING';
+      if (p && !booking && fulfilment === 'DELIVERY' && !p.offersDelivery) errors.push(`${name} delivery nahi karti, pickup chunein`);
+      if (p && !booking && fulfilment === 'PICKUP' && !g.shop?.offersPickup) errors.push(`${name} se pickup nahi hota`);
+      if (p && !booking && fulfilment === 'DINE_IN' && !g.shop?.offersDineIn) errors.push(`${name} me dine-in order nahi hota`);
 
       let couponDiscount = 0;
       if (coupon && !couponError && p && p.tenantId === coupon.tenantId && (!coupon.shopIds.length || coupon.shopIds.includes(g.shopId))) {
@@ -276,13 +278,24 @@ export class MarketplaceCheckoutService {
       throw new BadRequestException(method === 'WALLET' ? 'Wallet me poore paise nahi hain, Cash on delivery chunein' : 'Ye payment tareeqa abhi available nahi. Cash on delivery chunein.');
     }
 
-    // Delivery slot: must be one of the shop's open windows when the shop uses slots.
-    const slotStart = dto.deliverySlotStart ? new Date(dto.deliverySlotStart) : null;
-    if (slotStart && Number.isNaN(slotStart.getTime())) throw new BadRequestException('Delivery ka waqt sahi nahi');
+    // Time per shop: dto.slots[shopId], else the single slot for the whole order. It must be one of
+    // the shop's open windows when the shop uses slots; a booking always needs one.
+    const slotOf = (shopId: string): { start: Date; end: Date | null } | null => {
+      const raw = dto.slots?.[shopId] ?? (dto.deliverySlotStart ? { start: dto.deliverySlotStart, end: dto.deliverySlotEnd ?? null } : null);
+      if (!raw?.start) return null;
+      const start = new Date(raw.start);
+      if (Number.isNaN(start.getTime())) throw new BadRequestException('Delivery ka waqt sahi nahi');
+      const end = raw.end ? new Date(raw.end) : null;
+      return { start, end: end && !Number.isNaN(end.getTime()) ? end : null };
+    };
     for (const x of quotes) {
       const p = x.group._profile!;
       const openNow = p.isOpen && isOpenAt(p.workingHours, p.holidayDates);
-      if (slotStart && x.group.flow?.deliverySlots) {
+      const slot = slotOf(x.group.shopId);
+      const slotStart = slot?.start ?? null;
+      const booking = x.group.gate === 'BOOKING';
+      if (booking && !slotStart) throw new BadRequestException(`${p.publicName}: booking ke liye waqt chunein`);
+      if (slotStart && (x.group.flow?.deliverySlots || booking)) {
         const ok = deliverySlots(p.workingHours, p.holidayDates, { leadMinutes: 30 }).some((s) => s.start === slotStart.toISOString());
         if (!ok) throw new BadRequestException(`${p.publicName}: ye waqt ab available nahi, doosra waqt chunein`);
       } else if (!openNow) {
@@ -326,8 +339,8 @@ export class MarketplaceCheckoutService {
             paidAt: paymentStatus === 'PAID' ? new Date() : null,
             addressId: address?.id ?? null,
             addressSnapshot: address ? (address as unknown as Prisma.InputJsonValue) : Prisma.DbNull,
-            deliverySlotStart: slotStart,
-            deliverySlotEnd: dto.deliverySlotEnd ? new Date(dto.deliverySlotEnd) : null,
+            deliverySlotStart: slotOf(g.shopId)?.start ?? null,
+            deliverySlotEnd: slotOf(g.shopId)?.end ?? null,
             customerNotes: dto.customerNotes,
             attachments: attachments.length ? (attachments as Prisma.InputJsonValue) : Prisma.DbNull,
             source: 'APP',

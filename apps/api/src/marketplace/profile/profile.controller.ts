@@ -1,3 +1,4 @@
+import { Public } from '../../modules/auth/decorators/public.decorator';
 import {
   Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards,
 } from '@nestjs/common';
@@ -13,6 +14,8 @@ import { RegisterPushTokenDto } from './dto/push-token.dto';
 
 @ApiTags('Marketplace / Profile')
 @Controller('marketplace/profile')
+// Customer routes: the merchant JWT guard is skipped; CustomerAuthGuard checks the customer token.
+@Public()
 @UseGuards(CustomerAuthGuard)
 @ApiBearerAuth()
 export class MarketplaceProfileController {

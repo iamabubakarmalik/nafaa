@@ -279,6 +279,8 @@ export interface PlaceOrderBody {
   customerNotes?: string;
   deliverySlotStart?: string;
   deliverySlotEnd?: string;
+  /** Time per shop (shopId → slot): bookings and shops that deliver in time windows. */
+  slots?: Record<string, { start: string; end?: string | null }>;
   attachments?: Array<{ kind: 'prescription'; url: string; shopId?: string }>;
   expectedTotal?: number;
 }

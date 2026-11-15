@@ -53,6 +53,7 @@ export class MarketplaceShopsService {
     if (dto.industry) where.industry = dto.industry;
     if (dto.freeDelivery) where.freeDeliveryAbove = { not: null };
     const gate = isMarketGate(dto.gate) ? dto.gate : null;
+    const sub = dto.filter?.trim().toLowerCase() || null;
     // Shops without a saved gate take it from their business type (checked below).
     if (gate) where.AND = [{ OR: [{ gate }, { gate: null }] }];
     if (dto.minRating !== undefined) where.ratingAverage = { gte: dto.minRating };
@@ -112,7 +113,8 @@ export class MarketplaceShopsService {
     // Radius and gate filters
     const filtered = withDist
       .filter((s) => !(dto.lat && dto.lng) || (s.distanceKm !== null && s.distanceKm <= (dto.radiusKm ?? 10)))
-      .filter((s) => !gate || s.gate === gate);
+      .filter((s) => !gate || s.gate === gate)
+      .filter((s) => !sub || s.gateFilter === sub || s.subCategories.some((c) => c.toLowerCase() === sub));
 
     // Sort
     const sortBy = dto.sortBy ?? 'popular';
