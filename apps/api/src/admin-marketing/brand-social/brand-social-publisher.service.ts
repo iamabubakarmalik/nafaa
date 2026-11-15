@@ -263,14 +263,28 @@ export class BrandSocialPublisherService {
       if (!plan) throw new SocialGraphError('media', 'Instagram needs at least one image or video.');
       const ids = await this.graph.runSteps(account, plan.slice(0, -1));
       containerId = ids.container;
-      if (plan[plan.length - 2]?.waitReady && !(await this.waitContainer(account, containerId, 6))) return { waiting: true, containerId };
-      return this.igPublish(account, igUserId, containerId);
+      // Every container (images and carousels too, not only video) must report FINISHED
+      // before media_publish, or Instagram answers "The media is not ready to be published".
+      if (!(await this.waitContainer(account, containerId, 6))) return { waiting: true, containerId };
+      return this.igPublishOrWait(account, igUserId, containerId);
     }
     if (!(await this.waitContainer(account, containerId, 1))) {
       if (Date.now() - new Date(prev.at).getTime() > CONTAINER_WAIT_MS) throw new SocialGraphError('media', 'Instagram did not finish processing the video within an hour. Use an MP4, 3 to 90 seconds, 9:16.');
       return { waiting: true, containerId };
     }
-    return this.igPublish(account, igUserId, containerId);
+    return this.igPublishOrWait(account, igUserId, containerId);
+  }
+
+  /** Publishes, or keeps the container waiting when Instagram says it is still not ready (code 9007). */
+  private async igPublishOrWait(account: BrandSocialAccount, igUserId: string, containerId: string): Promise<PublishResult> {
+    try {
+      return await this.igPublish(account, igUserId, containerId);
+    } catch (e) {
+      const msg = String((e as { message?: string })?.message ?? '');
+      const graph = (e as { graph?: { code?: number; error_subcode?: number } })?.graph;
+      if (graph?.code === 9007 || graph?.error_subcode === 2207027 || /not ready to be published/i.test(msg)) return { waiting: true, containerId };
+      throw e;
+    }
   }
 
   private async igPublish(account: BrandSocialAccount, igUserId: string, containerId: string): Promise<PublishResult> {
