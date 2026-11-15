@@ -17,7 +17,7 @@
  */
 import type { NavItem } from '../nav';
 import { children, hasHref, itemDescription, itemStatus, overviewLabel, statusLabel } from '../nav';
-import { shellStrings, type SiteLocale } from '@/lib/i18n/shell';
+import { pathIn, shellStrings, type SiteLocale } from '@/lib/i18n/shell';
 
 export interface HeaderLink {
   label: string;
@@ -46,6 +46,8 @@ export interface HeaderPanel {
   /** Secondary links in the panel footer. */
   strip?: { label: string; links: HeaderLink[] };
   featured?: HeaderLink & { image?: string };
+  /** A highlighted link beside the overview (Products: the product tour). */
+  tour?: HeaderLink;
 }
 
 export type HeaderEntry = { kind: 'link'; link: HeaderLink } | { kind: 'panel'; panel: HeaderPanel };
@@ -244,6 +246,7 @@ export function headerModel(header: NavItem[], footer: NavItem[], locale: SiteLo
   // Developers (and marketplace links not shown elsewhere) under Products.
   const productsPanel = panels.get('products');
   if (productsPanel) {
+    productsPanel.tour = { label: t.takeTour, href: pathIn(locale, '/tour') };
     const dev = developers ? [...children(developers), ...(hasHref(developers) ? [{ ...developers, children: undefined }] : [])] : [];
     const market = marketplace ? groupsOf(marketplace).groups.flatMap((g) => children(g)) : [];
     addToStrip(b, productsPanel, [...dev, ...market], t.developersStrip);

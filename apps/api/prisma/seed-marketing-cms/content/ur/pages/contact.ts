@@ -31,7 +31,7 @@ export const entry: SeedEntry = {
       sub: 'پلان، سیٹ اپ یا اپنے کسی پروجیکٹ کے بارے میں سوال ہے؟ جلدی جواب کے لیے واٹس ایپ پر پیغام بھیجیں، یا نیچے فارم میں لکھیں۔',
       primaryCta: { label: 'واٹس ایپ پر پیغام بھیجیں', href: 'whatsapp', variant: 'primary', trackAs: 'contact-hero:whatsapp' },
       secondaryCta: { label: 'ڈیمو بک کریں', href: 'demo', variant: 'secondary', trackAs: 'contact-hero:demo' },
-      badges: ['انگریزی، اردو اور رومن اردو', 'واٹس ایپ پر مدد'],
+      badges: ['انگریزی، اردو اور رومن اردو', 'ایپ کے اندر لائیو چیٹ', 'واٹس ایپ پر مدد'],
     },
     {
       id: 'contact-topics',
@@ -44,7 +44,7 @@ export const entry: SeedEntry = {
         { icon: 'database', title: 'اپنا ڈیٹا لانا', body: 'Excel یا کسی اور سسٹم سے پروڈکٹس، کسٹمرز اور کھاتہ۔', href: '/services/data-migration' },
         { icon: 'building-2', title: 'زیادہ برانچیں', body: 'چین اور بڑی ٹیموں کے لیے سیٹ اپ، رولز اور ٹریننگ۔', href: '/solutions/enterprise' },
         { icon: 'code-xml', title: 'اپنا سافٹ ویئر بنوائیں', body: 'ویب سائٹ، آن لائن اسٹور، موبائل ایپ اور دوسرے ٹولز، آپ کے لیے، دنیا میں کہیں بھی۔', href: '/services/custom-software' },
-        { icon: 'circle-question-mark', title: 'ایپ میں مدد', body: 'پہلے سے Nafaa استعمال کر رہے ہیں؟ ایپ کے اندر ہیلپ سینٹر دیکھیں، یا واٹس ایپ کریں۔' },
+        { icon: 'circle-question-mark', title: 'ایپ میں مدد', body: 'پہلے سے Nafaa استعمال کر رہے ہیں؟ ایپ کے اندر Nafaa Support چیٹ کھول کر ہماری ٹیم سے بات کریں، ہیلپ سینٹر دیکھیں، یا واٹس ایپ کریں۔' },
       ],
     },
     {

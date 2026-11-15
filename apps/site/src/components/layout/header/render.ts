@@ -68,10 +68,11 @@ function featured(panel: HeaderPanel): string {
 
 function footer(panel: HeaderPanel): string {
   const overview = panel.overview ? anchor(panel.overview, text(panel.overview.label), ' class=ho') : '';
+  const tour = panel.tour ? anchor(panel.tour, `<i></i>${text(panel.tour.label)}`, ' class=hw') : '';
   const strip = panel.strip?.links.length
     ? `${panel.strip.label ? `<p>${text(panel.strip.label)}</p>` : '<p></p>'}${panel.strip.links.map(compactLink).join('')}`
     : '';
-  return overview || strip ? `<div class=hx>${overview}${strip}</div>` : '';
+  return overview || tour || strip ? `<div class=hx>${overview}${tour}${strip}</div>` : '';
 }
 
 function panelHtml(panel: HeaderPanel): string {

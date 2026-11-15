@@ -15,29 +15,30 @@ const pricingPage = page({
   slug: 'pricing',
   title: 'Pricing',
   summary:
-    'Nafaa pricing in Pakistani rupees: start with the 7-day free trial, then choose a plan by the number of products, users, shops and monthly sales you need. Paid plans start at {{price:min.monthly}} a month, quarterly and yearly payment cost less, and no card is needed to start.',
+    'Nafaa pricing in Pakistani rupees: start with the 7-day free trial with everything switched on, then stay on the Free plan for a very small shop or choose a paid plan from {{price:min.monthly}} a month. Add-ons such as your own online store, sales channels, distribution and Nafaa AI Plus are switched on only when you need them. No card is needed to start.',
   data: { template: 'pricing' },
   seoTitle: 'POS Software Price in Pakistan: Nafaa Plans and Free Trial',
   seoDescription:
-    'Nafaa plans in PKR: 7-day free trial, then pay monthly, quarterly or yearly. Limits for products, users, shops and sales on every plan. No card to start.',
+    'Nafaa plans in PKR: 7-day free trial, a Free plan for small shops, paid plans monthly, quarterly or yearly, and add-ons you switch on only when needed.',
   focusKeyword: 'pos software price in pakistan',
   hero: {
     eyebrow: 'Pricing',
     heading: 'Simple plans that grow with your business',
-    sub: 'Start with the 7-day free trial on any device. When you are ready, pick the plan that fits how many products, people and shops you run. Prices are in rupees and come straight from our plan settings.',
+    sub: 'Start with the 7-day free trial on any device, with everything switched on. Then pick the plan that fits how many products, people and shops you run, and add only the extras your business uses. Prices are in rupees and come straight from our plan settings.',
     primary: { label: 'Start 7 din Free Trial', href: 'signup', trackAs: 'hero_signup' },
     secondary: { label: 'Talk to sales', href: 'demo', trackAs: 'hero_demo' },
-    badges: ['7 din Free Trial', 'No card needed', 'Pay monthly, quarterly or yearly'],
+    badges: ['7 din Free Trial', 'Free plan for small shops', 'Add-ons only when you need them'],
   },
   answer: {
     heading: 'Pricing in short',
     facts: [
-      ['Start', '7-day free trial, no card needed'],
-      ['Paid plans', 'From {{price:min.monthly}} a month'],
-      ['Pay', 'Monthly, quarterly or yearly, in rupees'],
+      ['Start', '7-day free trial with everything on, no card needed'],
+      ['Free plan', 'For a very small shop: one shop, one user and small limits'],
+      ['Paid plans', 'From {{price:min.monthly}} a month; monthly, quarterly or yearly in rupees'],
+      ['Add-ons', 'Online store, channels, couriers, distribution, extra shops and users, Nafaa AI Plus, setup help'],
       ['Plans differ by', 'Products, users, shops, sales per month and the features listed in the table'],
     ],
-    romanUrdu: 'Pehle 7 din free, card ke baghair. Phir apni dukaan ke hisaab se plan chunein: kitne products, kitne log, kitni dukaanein aur mahine ki kitni sale. Qeemat rupay me, mahana, teen mahine ya saal ki.',
+    romanUrdu: 'Pehle 7 din free, sab kuch on, card ke baghair. Choti dukaan ke liye Free plan, warna apni dukaan ke hisaab se plan chunein. Online store, channels, distribution jaise add-ons sirf tab lein jab zaroorat ho. Qeemat rupay me, mahana, teen mahine ya saal ki.',
   },
   body: [
     pricing('Choose your plan', false),
@@ -53,16 +54,16 @@ const pricingPage = page({
     features('The same on every plan', [
       ['smartphone', 'Any device', 'Phone, tablet or computer, with nothing to install to start.'],
       ['wifi-off', 'Offline billing', 'Sales keep going without internet and sync later.'],
-      ['languages', 'English and Roman Urdu', 'Screens and receipts in the language your team reads.'],
+      ['languages', 'English, Urdu and Roman Urdu', 'Each person picks the language of their own screens.'],
       ['message-circle', 'Help on WhatsApp', 'Questions answered by people who know the app.'],
-      ['lock', 'Your data stays yours', 'If a plan lapses, your records are kept until you pick a plan again.'],
+      ['lock', 'Your data stays yours', 'If a plan ends, the app pauses and your records are kept safe until you renew.'],
       ['receipt-text', 'Tax invoices', 'Optional FBR/PRA integration, switched on only if your business needs it.'],
     ], 'Which plan includes branches, transfers, loyalty, exports and the other features is shown in the table above.'),
     steps('How billing works', [
-      ['Start free', 'Seven days on the plan of your choice, without a card.'],
-      ['Pick a plan', 'Choose monthly, quarterly or yearly payment in rupees.'],
-      ['Pay the bill', 'Pay from the billing page by bank transfer, JazzCash or Easypaisa.'],
-      ['Grow', 'Watch your usage against each limit and move to a bigger plan when you need to.'],
+      ['Start free', 'Seven days with everything switched on, without a card.'],
+      ['Pick a plan', 'Stay on Free, or choose a paid plan with monthly, quarterly or yearly payment in rupees.'],
+      ['Add what you use', 'Switch on add-ons such as an online store, Shopify or Daraz, distribution or an extra shop from the billing page.'],
+      ['Pay and grow', 'Pay by bank transfer, JazzCash or Easypaisa. Watch your usage against each limit and move up when you need to.'],
     ]),
     shot({ heading: 'Know your numbers before you choose', body: 'The dashboard shows today\'s sale, bills and profit. A few days into the trial, these numbers and the usage on the billing page show how busy the business really is, which is a far better guide to the right plan than a guess.', id: SHOT.dashboard, url: 'app.nafaa.pk/dashboard', layout: 'split-right' }),
     table('What else might cost money', 'Nafaa runs on the devices you already have. These are optional and bought from any shop you like.', [
@@ -72,8 +73,18 @@ const pricingPage = page({
       ['Barcode scanner', 'Optional', 'Search and quick keys work without one.'],
       ['Receipt printer (58 or 80 mm)', 'Optional', 'Receipts can go on WhatsApp instead.'],
       ['Cash drawer', 'Optional', 'Opened by the receipt printer or the Windows desktop app.'],
-      ['Setup, migration and training', 'Optional', 'Services from our team, quoted separately.'],
+      ['Setup help', 'Optional', 'Assisted setup online, or Full activation with our team at your shop; both are one-time options listed with the add-ons.'],
+      ['Data migration and custom work', 'Optional', 'Services from our team, quoted separately.'],
     ]),
+    prose(`## Plans and add-ons
+
+Every plan covers the core of the business: the counter, stock, khata, returns, barcodes, the cash register, reports and offline billing. Bigger plans add more people, shops and features such as profit reports, loyalty, transfers and staff tools, as the table above shows.
+
+Some parts of Nafaa are add-ons, because only some businesses need them: your own [online store](/product/online-store) website and order desk, Shopify, WooCommerce and Daraz connections, courier booking, [distribution](/solutions/wholesale-distribution) (charged by the number of bookers), an extra shop or user beyond your plan, and Nafaa AI Plus for heavy use of [Nafaa AI](/product/ai-assistant). The add-ons list above shows each one with its current price. An add-on appears in your menu only once you switch it on, so the app stays simple.
+
+## When a plan ends
+
+Nafaa sends reminders before your plan ends and shows the exact end date and time on the billing page. If a plan ends without renewal, the app stops until you renew, and nothing is deleted: your products, customers, khata and bills are all kept, and bills made offline sync as soon as the plan is active again.`),
     prose(`## Choosing the right plan
 
 Start from what you run today, not from features you might want one day. A single counter with a few hundred products needs a different plan from a chain of branches with a large team. During the free trial, add your real products and bill for a few days; the billing page then shows your usage against each limit, so the choice is based on your own numbers.
@@ -100,10 +111,15 @@ Running many branches, need custom modules or want help moving from another syst
     'apps/api/src/modules/feature-gating/feature-gating.service.ts',
     'apps/web/src/modules/billing/billing/pages/BillingPage.tsx',
     'apps/web/src/modules/billing/billing/pages/PayInvoicePage.tsx',
-    'apps/web/src/modules/billing/billing/components/UsageMeters.tsx',
+    'apps/web/src/modules/billing/pricing/components/MyPlanOverview.tsx',
     'apps/web/src/core/lib/offline/offlineSales.ts',
     'apps/web/src/core/hardware/escpos.ts',
     'apps/api/src/integrations/fbr',
+    'apps/api/src/modules/billing/entitlements/feature-catalog.ts',
+    'apps/api/src/modules/billing/pricing/billing-lifecycle.service.ts',
+    'apps/api/prisma/migrations/20261128100000_pricing_v2/migration.sql',
+    'apps/web/src/modules/billing/pricing/components/PlanGate.tsx',
+    'apps/site/src/templates/pricing/PricingV2.tsx',
   ],
   needsOwner: ['Plan contents are not final: the page shows limits and features only through the Plan table. "Help on WhatsApp" is general; confirm wording.'],
 });
@@ -113,16 +129,16 @@ const marketplace = page({
   slug: 'marketplace',
   title: 'Nafaa Market',
   summary:
-    'Nafaa Market is the Nafaa marketplace. Shops that use Nafaa list products from their own stock, buyers browse and order, and every order arrives in the same app as counter sales and online orders, with your shop profile, reviews, promotions, buyer messages and delivery in one place.',
+    'Nafaa Market is the marketplace Nafaa is building for shops that use Nafaa, opening soon. Shops will list products from their own stock, buyers will browse and order, and every order will arrive in the same app as counter sales and online orders, with shop profile, reviews, promotions and delivery in one place.',
   data: { template: 'default' },
-  seoTitle: 'Nafaa Market: Sell on the Nafaa Marketplace in Pakistan',
+  seoTitle: 'Nafaa Market: The Nafaa Marketplace, Coming Soon',
   seoDescription:
-    'List products from your Nafaa stock on Nafaa Market, get orders in the same app, and manage reviews, promotions and delivery. For shops using Nafaa.',
+    'Nafaa Market, the marketplace for shops on Nafaa, opens soon: list products from your Nafaa stock and get orders in the same app as your counter sales.',
   focusKeyword: 'online marketplace pakistan sellers',
   hero: {
-    eyebrow: 'Nafaa Market marketplace',
+    eyebrow: 'Coming soon: Nafaa Market',
     heading: 'Your shop, open to buyers far beyond your street',
-    sub: 'List products from the stock you already keep in Nafaa. Buyers find your shop on Nafaa Market, orders arrive next to your counter sales, and price and stock stay in sync by themselves.',
+    sub: 'Nafaa Market is the marketplace we are building for shops that run on Nafaa. You will list products from the stock you already keep in Nafaa, buyers will find your shop, and orders will arrive next to your counter sales. It is not open yet; start on Nafaa now and your shop will be ready on day one.',
     diagram: {
       kind: 'flow',
       nodes: [
@@ -140,21 +156,22 @@ const marketplace = page({
       ],
     },
     layout: 'split',
-    primary: { label: 'Start selling', href: 'signup', trackAs: 'hero_signup' },
-    badges: ['Listed from your stock', 'Orders in the same app'],
+    primary: { label: 'Start with Nafaa', href: 'signup', trackAs: 'hero_signup' },
+    badges: ['Coming soon', 'Listed from your stock', 'Orders in the same app'],
   },
   answer: {
     heading: 'Nafaa Market in short',
     facts: [
-      ['What it is', 'The Nafaa marketplace for shops that use Nafaa'],
+      ['What it is', 'The Nafaa marketplace for shops that use Nafaa, opening soon'],
       ['Listing', 'Choose products from your Nafaa stock; price and stock stay in sync'],
       ['Orders', 'Arrive in the Nafaa app with counter sales and online orders'],
       ['Manage', 'Shop profile, reviews, promotions, buyer messages and delivery'],
     ],
-    romanUrdu: 'Nafaa Market Nafaa ka marketplace hai. Apne stock se products list karein, khareedar order karein, aur order usi app me aaye jahan counter ki bikri hoti hai.',
+    romanUrdu: 'Nafaa Market Nafaa ka marketplace hai jo jald khul raha hai. Apne stock se products list honge, khareedar order karenge, aur order usi app me aayega jahan counter ki Sale hoti hai.',
   },
   body: [
-    features('Everything a seller needs on the marketplace', [
+    callout('info', 'Nafaa Market is not open to buyers yet. The seller tools below are being finished, and we will announce the launch on the [changelog](/changelog). Today you can sell online with your own [Nafaa Stores website](/product/online-store), Shopify, WooCommerce and Daraz.', 'Coming soon'),
+    features('What sellers will get on the marketplace', [
       ['boxes', 'List from your stock', 'Pick products from Nafaa; price and stock follow your counter.'],
       ['store', 'Shop profile', 'Your shop\'s name, photos, hours and details for buyers.'],
       ['bell-ring', 'Orders in one place', 'Marketplace orders arrive with your other sales channels.'],
@@ -180,17 +197,17 @@ const marketplace = page({
       ['Orders', 'In Nafaa online orders', 'In Nafaa, next to every other channel'],
       ['Delivery', 'Courier booking from the order, or your own riders', 'Your own riders'],
     ]),
-    shot({ heading: 'One order list for every channel', body: 'Marketplace orders sit with website and other online orders, each with its status and buyer, so one person can handle them all between counter sales.', id: SHOT.onlineOrders, url: 'app.nafaa.pk/online-orders', layout: 'split-right' }),
+    shot({ heading: 'One order list for every channel', body: 'Marketplace orders will sit with website and other online orders, each with its status and buyer, so one person can handle them all between counter sales.', id: SHOT.onlineOrders, url: 'app.nafaa.pk/online-orders', layout: 'split-right' }),
     prose(`## One stock for the counter, your website and the marketplace
 
-Nafaa Market is not a separate seller account to keep up to date. It reads the same products, prices and stock as your counter and your own online store, so a piece sold in the shop is gone from the marketplace too. Marketplace orders sit in the same list as website, Shopify and WooCommerce orders, and the money shows in the same reports.
+Nafaa Market will not be a separate seller account to keep up to date. It reads the same products, prices and stock as your counter and your own online store, so a piece sold in the shop is gone from the marketplace too. Marketplace orders will sit in the same list as website, Shopify and WooCommerce orders, and the money will show in the same reports.
 
 ## Who it suits
 
-Nafaa Market suits shops with stock that travels well and buyers outside walking distance: [garments](/industries/garments), [cosmetics](/industries/cosmetics), [electronics](/industries/electronics), [books](/industries/bookstore) and similar trades. If you already sell online, the [e-commerce solution](/solutions/ecommerce) shows how the marketplace fits next to your website, couriers and COD.`),
+Nafaa Market will suit shops with stock that travels well and buyers outside walking distance: [garments](/industries/garments), [cosmetics](/industries/cosmetics), [electronics](/industries/electronics), [books](/industries/bookstore) and similar trades. If you already sell online, the [e-commerce solution](/solutions/ecommerce) shows how the marketplace fits next to your website, couriers and COD.`),
   ],
   faqKeys: ['mp-bazaar-what', 'hub-bazaar-delivery', 'hub-bazaar-who', 'mp-ecommerce-stock', 'sell-online'],
-  cta: { heading: 'Open your shop to more buyers', body: 'Start with Nafaa, then list on Nafaa Market when you are ready.' },
+  cta: { heading: 'Get your shop ready for Nafaa Market', body: 'Start on Nafaa now: your products and stock will be ready to list when the marketplace opens.' },
   relations: [
     { ref: 'SOLUTION:ecommerce', kind: 'RELATED' },
     { ref: 'PRODUCT:online-store', kind: 'RELATED' },
@@ -214,6 +231,7 @@ Nafaa Market suits shops with stock that travels well and buyers outside walking
   needsOwner: [
     'No marketplace screenshot yet: the seller screen shows prices as "Rs Rs" and the dashboard shows a "12,000+ Nafaa Market customers" figure that looks made up (apps/web bugs). Capture after those are fixed.',
     'Buyer reach and how buyers find Nafaa Market (app or website URL) are not stated until the owner confirms them.',
+    'Marked coming soon on 15 Nov 2026: market.nafaa.pk is not live. Switch the copy to present tense at launch.',
   ],
 });
 

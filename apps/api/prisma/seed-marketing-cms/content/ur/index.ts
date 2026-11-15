@@ -89,6 +89,8 @@ import * as pg_industries from './pages/industries';
 import * as pg_integrations from './pages/integrations';
 import * as pg_marketplace from './pages/marketplace';
 import * as pg_roadmap from './pages/roadmap';
+import * as pg_mobileApp from './pages/mobile-app';
+import * as pg_languages from './pages/languages';
 import * as pg_blog from './pages/blog';
 import * as pg_glossary from './pages/glossary';
 import * as pg_templates from './pages/templates';
@@ -128,6 +130,16 @@ import * as b_ramadanEidRetailStrategy from './blog/ramadan-eid-retail-strategy'
 import * as b_staffTheftPreventionCounter from './blog/staff-theft-prevention-counter';
 import * as b_stockTakingGuide from './blog/stock-taking-guide';
 import * as b_whatsappBusinessForShops from './blog/whatsapp-business-for-shops';
+import * as b_switchPaperRegisterToPosWithoutLosingUdhaar from './blog/switch-paper-register-to-pos-without-losing-udhaar';
+import * as b_posSoftwareCostPakistan from './blog/pos-software-cost-pakistan';
+import * as b_posVsBillingVsAccountingSoftware from './blog/pos-vs-billing-vs-accounting-software';
+import * as b_offlinePosInternetOutageLostSales from './blog/offline-pos-internet-outage-lost-sales';
+import * as b_pharmacySoftwareChecklistBatchExpirySalts from './blog/pharmacy-software-checklist-batch-expiry-salts';
+import * as b_restaurantPosChecklistKotTablesDelivery from './blog/restaurant-pos-checklist-kot-tables-delivery';
+import * as b_mobileShopSoftwareImeiWarrantyQist from './blog/mobile-shop-software-imei-warranty-qist';
+import * as b_freePosSoftwarePakistanWhatYouGet from './blog/free-pos-software-pakistan-what-you-get';
+import * as b_staffPermissionsChecklistPosSoftware from './blog/staff-permissions-checklist-pos-software';
+import * as b_garmentShopSoftwareSizesColoursBarcodes from './blog/garment-shop-software-sizes-colours-barcodes';
 import * as g_barcode from './glossary/barcode';
 import * as g_cashFlow from './glossary/cash-flow';
 import * as g_cod from './glossary/cod';
@@ -254,6 +266,8 @@ const modules: { entry: SeedEntry; faqs: SeedFaq[] }[] = [
   pg_integrations,
   pg_marketplace,
   pg_roadmap,
+  pg_mobileApp,
+  pg_languages,
   pg_blog,
   pg_glossary,
   pg_templates,
@@ -293,6 +307,16 @@ const modules: { entry: SeedEntry; faqs: SeedFaq[] }[] = [
   b_staffTheftPreventionCounter,
   b_stockTakingGuide,
   b_whatsappBusinessForShops,
+  b_switchPaperRegisterToPosWithoutLosingUdhaar,
+  b_posSoftwareCostPakistan,
+  b_posVsBillingVsAccountingSoftware,
+  b_offlinePosInternetOutageLostSales,
+  b_pharmacySoftwareChecklistBatchExpirySalts,
+  b_restaurantPosChecklistKotTablesDelivery,
+  b_mobileShopSoftwareImeiWarrantyQist,
+  b_freePosSoftwarePakistanWhatYouGet,
+  b_staffPermissionsChecklistPosSoftware,
+  b_garmentShopSoftwareSizesColoursBarcodes,
   g_barcode,
   g_cashFlow,
   g_cod,

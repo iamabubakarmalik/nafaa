@@ -34,7 +34,7 @@ const spec: CompareSpec = {
         { label: 'Choose DigiKhata if', value: 'You record entries by hand, sell little from a counter, and want card tap and QR on the same phone.' },
         { label: 'Choose Nafaa if', value: 'You bill many customers a day, sell from stock with barcodes, and want udhaar to come from the bill itself.' },
         { label: 'Both keep', value: 'Customer and supplier balances, reminders, staff records and stock levels' },
-        { label: 'Nafaa price', value: 'Paid plans from {{price:min.monthly}} a month, after a 7-day free trial' },
+        { label: 'Nafaa price', value: 'Free plan for very small shops; paid plans from {{price:min.monthly}} a month, after a 7-day free trial' },
       ],
       'Agar zyada kaam udhaar aur cash ka hisaab likhna hai to DigiKhata kaafi hai. Agar counter par roz bohat bill bante hain aur Stock, udhaar aur galla ek saath chalna chahiye, to Nafaa behtar hai.',
       'Which one should you choose?',
@@ -59,15 +59,15 @@ So the honest question is not which app is "better", but where your day begins: 
         ['Reminders', 'WhatsApp reminders from the khata, sorted by how old the balance is', 'SMS and WhatsApp reminders with templates; Play listing says unlimited and free'],
         ['Taking payments', 'Records cash, card, wallets and bank; shows your own Raast, JazzCash or Easypaisa QR with the bill amount', 'Card tap on the phone after KYC; DigiQR with 0% transaction fee'],
         ['Without internet', 'Counter keeps billing; sales sync when the connection returns', 'Play listing: manage ledgers without internet, back up when online'],
-        ['Devices', 'Browser on any phone, tablet or computer; Windows app for the main counter', 'Android, iOS, web and a Windows app'],
-        ['Languages', 'English and Roman Urdu', 'English, Urdu, Persian and Pashto (App Store listing)'],
-        ['Price', 'Paid plans from {{price:min.monthly}} a month after a 7-day free trial', 'Free to download with in-app purchases; paid prices not published on the pages checked'],
+        ['Devices', 'Android and iPhone app, browser on any device, Windows app for the main counter', 'Android, iOS, web and a Windows app'],
+        ['Languages', 'English, Urdu and Roman Urdu', 'English, Urdu, Persian and Pashto (App Store listing)'],
+        ['Price', 'A Free plan for very small shops; paid plans from {{price:min.monthly}} a month after a 7-day free trial', 'Free to download with in-app purchases; paid prices not published on the pages checked'],
       ],
       SOURCES,
     ),
     prose(`## When DigiKhata is the better choice
 
-- **You want to start free.** DigiKhata is free to download, and its listings describe free reminders and PDF reports. Nafaa is a paid product after the trial.
+- **You want to start free.** DigiKhata is free to download, and its listings describe free reminders and PDF reports. Nafaa has a Free plan with small limits for one shop and one user; beyond that it is a paid product after the trial.
 - **Your sales are few and large.** A wholesaler or contractor who writes ten invoices a day does not need a fast counter. A clean ledger with reminders may be all you need.
 - **You want to take cards without a machine.** DigiKhata's card tap on the phone and its DigiQR are payment services. Nafaa records card and wallet payments and can show your own receive QR, but it does not process card payments itself.
 - **You need Pashto or Persian,** or Urdu script rather than Roman Urdu.

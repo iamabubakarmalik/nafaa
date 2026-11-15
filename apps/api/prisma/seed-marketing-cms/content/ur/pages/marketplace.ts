@@ -9,7 +9,7 @@ export const faqs: SeedFaq[] = [
     topic: 'marketplace',
     question: 'Nafaa Market کیا ہے؟',
     answer:
-      'Nafaa Market، Nafaa کی مارکیٹ پلیس ہے، جہاں خریدار Nafaa استعمال کرنے والی دکانوں کا سامان دیکھتے اور آرڈر کرتے ہیں۔ آپ خود چنتے ہیں کہ کون سی پروڈکٹس لگانی ہیں، اور ان کی قیمت اور اسٹاک آپ کے Nafaa اکاؤنٹ سے آتے ہیں۔ آرڈر اسی ایپ میں آتے ہیں جس میں آپ کی کاؤنٹر سیل اور آن لائن آرڈر آتے ہیں۔',
+      'Nafaa Market وہ مارکیٹ پلیس ہے جو Nafaa بنا رہا ہے، اور یہ ابھی کھلی نہیں ہے۔ جب کھلے گی تو خریدار Nafaa استعمال کرنے والی دکانوں کا سامان دیکھ کر آرڈر کریں گے۔ آپ خود چنیں گے کہ کون سی پروڈکٹس لگانی ہیں، ان کی قیمت اور اسٹاک آپ کے Nafaa اکاؤنٹ سے آئیں گے، اور آرڈر اسی ایپ میں آئیں گے جس میں آپ کی کاؤنٹر سیل اور آن لائن آرڈر آتے ہیں۔',
     sourceNote: 'apps/marketplace (buyer app); apps/api/src/marketplace (publishing, orders); apps/web/src/marketplace (seller screens).',
     origin: 'translation of faq mp-bazaar-what',
     evidence: [
@@ -25,7 +25,7 @@ export const faqs: SeedFaq[] = [
     topic: 'marketplace',
     question: 'Nafaa Market کے آرڈر کی ڈیلیوری کون کرتا ہے؟',
     answer:
-      'آپ خود، اپنے رائیڈرز کے ساتھ۔ Nafaa میں رائیڈرز شامل کریں، دیکھیں کون فارغ ہے اور کون ڈیلیوری پر نکلا ہوا ہے، آرڈر ان کے حوالے کریں اور راستے میں ان کی خبر رکھیں۔ آرڈر اور اس کی رقم اسی ایپ میں رہتے ہیں جس میں آپ کی کاؤنٹر سیل ہوتی ہے، اس لیے حساب الگ نہیں کرنا پڑتا۔',
+      'Nafaa Market ابھی کھلی نہیں ہے۔ جب کھلے گی تو ڈیلیوری آپ خود اپنے رائیڈرز کے ساتھ کریں گے: Nafaa میں رائیڈرز شامل کریں گے، دیکھیں گے کون فارغ ہے اور کون ڈیلیوری پر ہے، اور آرڈر ان کے حوالے کریں گے۔ آرڈر اور اس کی رقم اسی ایپ میں رہیں گے جس میں آپ کی کاؤنٹر سیل ہوتی ہے۔',
     sourceNote: 'MarketplaceDeliveryPage (riders and statuses); RiderTrackingPage.',
     origin: 'translation of faq hub-bazaar-delivery',
     evidence: ['apps/web/src/marketplace/delivery/MarketplaceDeliveryPage.tsx', 'apps/web/src/marketplace/rider-tracking/RiderTrackingPage.tsx'],
@@ -36,7 +36,7 @@ export const faqs: SeedFaq[] = [
     topic: 'marketplace',
     question: 'کیا کوئی بھی دکان Nafaa Market پر بیچ سکتی ہے؟',
     answer:
-      'Nafaa Market ان دکانوں کے لیے ہے جو Nafaa پر چلتی ہیں، کیونکہ لسٹنگ، قیمت اور اسٹاک آپ کے Nafaa اکاؤنٹ سے آتے ہیں۔ فری ٹرائل شروع کریں، اپنی پروڈکٹس ڈالیں، دکان کی پروفائل بھریں اور چنیں کہ کیا لگانا ہے۔ جو پروڈکٹس آپ نہیں لگاتے وہ صرف آپ کے کاؤنٹر تک رہتی ہیں۔',
+      'Nafaa Market ابھی کھلی نہیں ہے۔ جب کھلے گی تو یہ ان دکانوں کے لیے ہو گی جو Nafaa پر چلتی ہیں، کیونکہ لسٹنگ، قیمت اور اسٹاک آپ کے Nafaa اکاؤنٹ سے آئیں گے۔ ابھی فری ٹرائل شروع کریں اور اپنی پروڈکٹس ڈالیں، تاکہ کھلتے ہی آپ کی دکان تیار ہو۔ جو پروڈکٹس آپ نہیں لگائیں گے وہ صرف آپ کے کاؤنٹر تک رہیں گی۔',
     sourceNote: 'Marketplace publishing reads the tenant catalogue.',
     origin: 'translation of faq hub-bazaar-who',
     evidence: ['apps/api/src/marketplace/publishing', 'apps/web/src/marketplace/shop-profile/ShopProfilePage.tsx'],
@@ -47,7 +47,7 @@ export const faqs: SeedFaq[] = [
     topic: 'solutions',
     question: 'کیا Nafaa Market، میرا آن لائن اسٹور اور دکان ایک ہی اسٹاک استعمال کرتے ہیں؟',
     answer:
-      'جی ہاں۔ ویب سائٹ، Shopify، WooCommerce، Daraz اور Nafaa Market کے آرڈر انہی پروڈکٹس سے اسٹاک کم کرتے ہیں جن سے کاؤنٹر کرتا ہے۔ جب دکان میں آخری پیس بکتا ہے تو آن لائن چینل بھی اپ ڈیٹ ہو جاتے ہیں، اس لیے وہ چیز نہیں بکتی جو آپ کے پاس رہی ہی نہیں۔',
+      'جی ہاں۔ Nafaa Stores کی ویب سائٹ، Shopify، WooCommerce اور Daraz کے آرڈر انہی پروڈکٹس سے اسٹاک کم کرتے ہیں جن سے کاؤنٹر کرتا ہے۔ Nafaa Market ابھی کھلی نہیں ہے؛ کھلنے پر وہ بھی اسی اسٹاک سے چلے گی، تو جو چیز آپ کے پاس رہی ہی نہیں وہ نہیں بکے گی۔',
     sourceNote: 'stock-push.service and channel-catalog.service; marketplace publishing from Nafaa products.',
     origin: 'translation of faq mp-ecommerce-stock',
     evidence: [
@@ -62,7 +62,7 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'Nafaa Market کے علاوہ Nafaa سے آن لائن اور کہاں بیچ سکتا ہوں؟',
     answer:
-      'آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ ہی آتے ہیں، اور اسٹاک بھی اسی شیلف سے کم ہوتا ہے۔ نئے خریداروں تک پہنچنے کے لیے یہی پروڈکٹس Nafaa Market پر بھی لگائی جا سکتی ہیں، جو Nafaa کی اپنی مارکیٹ پلیس ہے۔',
+      'آج آپ Nafaa Stores سے اپنی ویب سائٹ بنا سکتے ہیں، یا Shopify، WooCommerce اور Daraz جوڑ سکتے ہیں۔ ان کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ آتے ہیں اور اسٹاک اسی شیلف سے کم ہوتا ہے۔ نئے خریداروں تک پہنچنے کے لیے Nafaa Market جلد آ رہی ہے، مگر ابھی کھلی نہیں ہے۔',
     sourceNote: 'Online orders (website, Shopify, WooCommerce normaliser) and marketplace publishing.',
     origin: 'translation of faq sell-online',
     evidence: [
@@ -78,29 +78,29 @@ export const entry: SeedEntry = {
   locale: 'ur',
   slug: 'marketplace',
   title: 'Nafaa Market',
-  seoTitle: 'Nafaa Market: پاکستان میں Nafaa کی مارکیٹ پلیس پر بیچیں',
+  seoTitle: 'Nafaa Market: Nafaa کی مارکیٹ پلیس، جلد آ رہی ہے',
   seoDescription:
-    'اپنے Nafaa اسٹاک سے پروڈکٹس Nafaa Market پر لگائیں، آرڈر اسی ایپ میں لیں، اور ریویوز، پروموشن اور ڈیلیوری سنبھالیں۔ Nafaa استعمال کرنے والی دکانوں کے لیے۔',
+    'Nafaa Market، Nafaa استعمال کرنے والی دکانوں کی مارکیٹ پلیس، جلد کھلے گی: اپنے Nafaa اسٹاک سے پروڈکٹس لگائیں اور آرڈر کاؤنٹر سیل والی ایپ میں لیں۔',
   focusKeyword: 'آن لائن مارکیٹ پلیس پاکستان',
   summary:
-    'Nafaa Market، Nafaa کی مارکیٹ پلیس ہے۔ Nafaa استعمال کرنے والی دکانیں اپنے اسٹاک سے پروڈکٹس لگاتی ہیں، خریدار دیکھ کر آرڈر کرتے ہیں، اور ہر آرڈر اسی ایپ میں آتا ہے جس میں کاؤنٹر سیل اور آن لائن آرڈر آتے ہیں، ساتھ میں دکان کی پروفائل، ریویوز، پروموشن، خریداروں کے میسج اور ڈیلیوری ایک جگہ۔',
+    'Nafaa Market وہ مارکیٹ پلیس ہے جو Nafaa ان دکانوں کے لیے بنا رہا ہے جو Nafaa استعمال کرتی ہیں، اور یہ جلد کھلے گی۔ دکانیں اپنے اسٹاک سے پروڈکٹس لگائیں گی، خریدار دیکھ کر آرڈر کریں گے، اور ہر آرڈر اسی ایپ میں آئے گا جس میں کاؤنٹر سیل اور آن لائن آرڈر آتے ہیں، ساتھ میں دکان کی پروفائل، ریویوز، پروموشن اور ڈیلیوری ایک جگہ۔',
   data: { template: 'default' },
   blocks: [
     {
       type: 'hero',
-      eyebrow: 'Nafaa Market مارکیٹ پلیس',
-      heading: 'آپ کی دکان، اپنی گلی سے کہیں دور کے خریداروں کے لیے کھلی',
-      sub: 'جو اسٹاک آپ پہلے سے Nafaa میں رکھتے ہیں اسی سے پروڈکٹس لگائیں۔ خریدار Nafaa Market پر آپ کی دکان ڈھونڈتے ہیں، آرڈر کاؤنٹر سیل کے ساتھ آتے ہیں، اور قیمت اور اسٹاک خود ملتے رہتے ہیں۔',
-      primaryCta: { label: 'بیچنا شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_signup' },
+      eyebrow: 'جلد آ رہا ہے: Nafaa Market',
+      heading: 'آپ کی دکان، اپنی گلی سے کہیں دور کے خریداروں کے لیے کھلی ہوئی',
+      sub: 'Nafaa Market وہ مارکیٹ پلیس ہے جو ہم Nafaa چلانے والی دکانوں کے لیے بنا رہے ہیں۔ آپ وہی اسٹاک لگائیں گے جو پہلے سے Nafaa میں ہے، خریدار آپ کی دکان ڈھونڈیں گے، اور آرڈر آپ کی کاؤنٹر سیل کے ساتھ آئیں گے۔ یہ ابھی کھلی نہیں ہے؛ آج ہی Nafaa شروع کریں تو آپ کی دکان پہلے دن تیار ہو گی۔',
+      primaryCta: { label: 'Nafaa سے شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_signup' },
       secondaryCta: { label: 'ڈیمو بک کریں', href: 'demo', variant: 'secondary', trackAs: 'hero_demo' },
-      badges: ['آپ کے اسٹاک سے لسٹنگ', 'آرڈر اسی ایپ میں'],
+      badges: ['جلد آ رہا ہے', 'آپ کے اسٹاک سے لسٹنگ', 'آرڈر اسی ایپ میں'],
       media: {
         kind: 'diagram',
         diagram: {
           kind: 'flow',
           nodes: [
             { id: 'stock', label: 'آپ کا Nafaa اسٹاک', icon: 'boxes' },
-            { id: 'list', label: 'Bazaar پر لسٹ', icon: 'store' },
+            { id: 'list', label: 'Nafaa Market پر لسٹ', icon: 'store' },
             { id: 'buyer', label: 'خریدار کا آرڈر', icon: 'shopping-cart' },
             { id: 'order', label: 'آرڈر Nafaa میں', icon: 'bell-ring' },
             { id: 'deliver', label: 'ڈیلیور', icon: 'truck' },
@@ -120,18 +120,25 @@ export const entry: SeedEntry = {
       type: 'answerBox',
       heading: 'Nafaa Market مختصراً',
       facts: [
-        { label: 'یہ کیا ہے', value: 'Nafaa استعمال کرنے والی دکانوں کے لیے Nafaa کی مارکیٹ پلیس' },
-        { label: 'لسٹنگ', value: 'اپنے Nafaa اسٹاک سے پروڈکٹس چنیں؛ قیمت اور اسٹاک خود ملتے رہتے ہیں' },
-        { label: 'آرڈر', value: 'Nafaa ایپ میں کاؤنٹر سیل اور آن لائن آرڈر کے ساتھ آتے ہیں' },
+        { label: 'یہ کیا ہے', value: 'Nafaa استعمال کرنے والی دکانوں کے لیے Nafaa کی مارکیٹ پلیس، جلد کھلے گی' },
+        { label: 'لسٹنگ', value: 'اپنے Nafaa اسٹاک سے پروڈکٹس چنیں گے؛ قیمت اور اسٹاک خود ملتے رہیں گے' },
+        { label: 'آرڈر', value: 'Nafaa ایپ میں کاؤنٹر سیل اور آن لائن آرڈر کے ساتھ آئیں گے' },
         { label: 'سنبھالنا', value: 'دکان کی پروفائل، ریویوز، پروموشن، خریداروں کے میسج اور ڈیلیوری' },
       ],
       romanUrdu:
-        'Nafaa Market Nafaa ka marketplace hai. Apne stock se products list karein, khareedar order karein, aur order usi app me aaye jahan counter ki Sale hoti hai.',
+        'Nafaa Market Nafaa ka marketplace hai jo jald khul raha hai. Apne stock se products list honge, khareedar order karenge, aur order usi app me aayega jahan counter ki Sale hoti hai.',
       id: 'bbf50f1074e2',
     },
     {
+      type: 'callout',
+      tone: 'info',
+      title: 'جلد آ رہا ہے',
+      body: 'Nafaa Market ابھی خریداروں کے لیے کھلی نہیں ہے۔ نیچے لکھے سیلر کے اوزار مکمل کیے جا رہے ہیں، اور لانچ کا اعلان ہم [روڈ میپ](/ur/roadmap) پر کریں گے۔ آج آپ اپنی [Nafaa Stores ویب سائٹ](/ur/product/online-store)، Shopify، WooCommerce اور Daraz سے آن لائن بیچ سکتے ہیں۔',
+      id: 'b6e1d03a95c4',
+    },
+    {
       type: 'featuresGrid',
-      heading: 'مارکیٹ پلیس پر بیچنے والے کو جو کچھ چاہیے',
+      heading: 'مارکیٹ پلیس پر بیچنے والوں کو کیا ملے گا',
       columns: 2,
       items: [
         { icon: 'boxes', title: 'اپنے اسٹاک سے لسٹ کریں', body: 'Nafaa سے پروڈکٹس چنیں؛ قیمت اور اسٹاک آپ کے کاؤنٹر کے ساتھ چلتے ہیں۔' },
@@ -160,7 +167,7 @@ export const entry: SeedEntry = {
         { title: 'اپنی دکان کے لیے Nafaa چلائیں', body: 'فری ٹرائل شروع کریں اور اپنی پروڈکٹس ڈالیں۔' },
         { title: 'دکان کی پروفائل بنائیں', body: 'نام، تصویریں، علاقہ اور کھلنے کے اوقات۔' },
         { title: 'چنیں کیا لگانا ہے', body: 'وہ پروڈکٹس چنیں جو Nafaa Market پر دکھانی ہیں۔' },
-        { title: 'آرڈر لیں', body: 'قبول کریں، پیک کریں اور ڈیلیور کریں؛ اسٹاک خود اپ ڈیٹ ہوتا ہے۔' },
+        { title: 'آرڈر لیں', body: 'قبول کریں، پیک کریں اور ڈیلیور کریں؛ اسٹاک خود اپ ڈیٹ ہو گا۔' },
       ],
       id: 'ba23674a6448',
     },
@@ -184,7 +191,7 @@ export const entry: SeedEntry = {
     {
       type: 'diagram',
       heading: 'مارکیٹ پلیس کا آرڈر کیسے چلتا ہے',
-      caption: 'خریدار Nafaa Market پر آپ کی دکان ڈھونڈتے ہیں؛ آرڈر اسی ایپ میں آتا ہے جس میں آپ کی کاؤنٹر سیل ہوتی ہے۔',
+      caption: 'کھلنے پر خریدار Nafaa Market پر آپ کی دکان ڈھونڈیں گے؛ آرڈر اسی ایپ میں آئے گا جس میں آپ کی کاؤنٹر سیل ہوتی ہے۔',
       diagram: {
         kind: 'flow',
         nodes: [
@@ -207,7 +214,7 @@ export const entry: SeedEntry = {
     {
       type: 'screenshot',
       heading: 'ہر چینل کے لیے ایک آرڈر لسٹ',
-      body: 'مارکیٹ پلیس کے آرڈر ویب سائٹ اور باقی آن لائن آرڈرز کے ساتھ ہوتے ہیں، ہر ایک اپنی حالت اور خریدار کے ساتھ، اس لیے ایک ہی بندہ کاؤنٹر کی سیل کے بیچ میں یہ سب سنبھال سکتا ہے۔',
+      body: 'مارکیٹ پلیس کے آرڈر ویب سائٹ اور باقی آن لائن آرڈرز کے ساتھ ہوں گے، ہر ایک اپنی حالت اور خریدار کے ساتھ، اس لیے ایک ہی بندہ کاؤنٹر کی سیل کے بیچ میں یہ سب سنبھال سکے گا۔',
       mediaId: SHOT.onlineOrders,
       frame: 'browser',
       url: 'app.nafaa.pk/online-orders',
@@ -217,15 +224,15 @@ export const entry: SeedEntry = {
     {
       type: 'richText',
       markdown:
-        '## کاؤنٹر، آپ کی ویب سائٹ اور مارکیٹ پلیس کے لیے ایک اسٹاک\n\nNafaa Market کوئی الگ سیلر اکاؤنٹ نہیں جسے الگ سے اپ ڈیٹ رکھنا پڑے۔ یہ وہی پروڈکٹس، قیمتیں اور اسٹاک پڑھتا ہے جو آپ کا کاؤنٹر اور آپ کا اپنا آن لائن اسٹور پڑھتے ہیں، اس لیے جو پیس دکان میں بک گیا وہ مارکیٹ پلیس سے بھی ہٹ جاتا ہے۔ مارکیٹ پلیس کے آرڈر ویب سائٹ، Shopify اور WooCommerce کے آرڈرز والی لسٹ میں ہی ہوتے ہیں، اور رقم انہی رپورٹس میں نظر آتی ہے۔\n\n## یہ کس کے لیے ٹھیک ہے\n\nNafaa Market ان دکانوں کے لیے ٹھیک ہے جن کا سامان آسانی سے بھیجا جا سکے اور جن کے خریدار پیدل فاصلے سے باہر ہوں: [کپڑے](/ur/industries/garments)، [کاسمیٹکس](/ur/industries/cosmetics)، [الیکٹرانکس](/ur/industries/electronics)، [کتابیں](/ur/industries/bookstore) اور ایسے ہی کاروبار۔ اگر آپ پہلے سے آن لائن بیچتے ہیں تو [ای کامرس کا صفحہ](/ur/solutions/ecommerce) دکھاتا ہے کہ مارکیٹ پلیس آپ کی ویب سائٹ، کوریئر اور COD کے ساتھ کیسے جڑتی ہے۔',
+        '## کاؤنٹر، آپ کی ویب سائٹ اور مارکیٹ پلیس کے لیے ایک اسٹاک\n\nNafaa Market کوئی الگ سیلر اکاؤنٹ نہیں ہو گی جسے الگ سے اپ ڈیٹ رکھنا پڑے۔ یہ وہی پروڈکٹس، قیمتیں اور اسٹاک پڑھے گی جو آپ کا کاؤنٹر اور آپ کا اپنا آن لائن اسٹور پڑھتے ہیں، اس لیے جو پیس دکان میں بک گیا وہ مارکیٹ پلیس سے بھی ہٹ جائے گا۔ مارکیٹ پلیس کے آرڈر ویب سائٹ، Shopify اور WooCommerce کے آرڈرز والی لسٹ میں ہی ہوں گے، اور رقم انہی رپورٹس میں نظر آئے گی۔\n\n## یہ کس کے لیے ٹھیک ہے\n\nNafaa Market ان دکانوں کے لیے ٹھیک ہو گی جن کا سامان آسانی سے بھیجا جا سکے اور جن کے خریدار پیدل فاصلے سے باہر ہوں: [کپڑے](/ur/industries/garments)، [کاسمیٹکس](/ur/industries/cosmetics)، [الیکٹرانکس](/ur/industries/electronics)، [کتابیں](/ur/industries/bookstore) اور ایسے ہی کاروبار۔ اگر آپ پہلے سے آن لائن بیچتے ہیں تو [ای کامرس کا صفحہ](/ur/solutions/ecommerce) دکھاتا ہے کہ مارکیٹ پلیس آپ کی ویب سائٹ، کوریئر اور COD کے ساتھ کیسے جڑتی ہے۔',
       id: 'b38a835729b6',
     },
     { type: 'faq', heading: 'عام سوالات', id: 'b2a8ba5b4ec6' },
     {
       type: 'cta',
-      heading: 'اپنی دکان مزید خریداروں کے لیے کھولیں',
-      body: 'Nafaa سے شروع کریں، پھر جب تیار ہوں تو Nafaa Market پر لسٹ کریں۔',
-      primaryCta: { label: 'مفت ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_signup' },
+      heading: 'اپنی دکان کو Nafaa Market کے لیے تیار کریں',
+      body: 'ابھی Nafaa شروع کریں: مارکیٹ پلیس کھلنے پر آپ کی پروڈکٹس اور اسٹاک لسٹ کرنے کے لیے تیار ہوں گے۔',
+      primaryCta: { label: 'فری ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_signup' },
       secondaryCta: { label: 'واٹس ایپ پر پوچھیں', href: 'whatsapp', variant: 'ghost', trackAs: 'whatsapp' },
       id: 'be828f3d327c',
     },
@@ -243,7 +250,7 @@ export const entry: SeedEntry = {
     { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' },
     { ref: 'SERVICE:online-store-setup@ur', kind: 'RELATED' },
   ],
-  origin: 'translation of content/main-pages/pages.ts (26 Oct 2026)',
+  origin: 'translation of content/main-pages/pages.ts (15 Nov 2026)',
   evidence: [
     'apps/marketplace/package.json',
     'apps/api/src/marketplace/publishing',
@@ -258,7 +265,7 @@ export const entry: SeedEntry = {
     'apps/web/src/marketplace/analytics/MarketplaceAnalyticsPage.tsx',
     'apps/web/src/integrations/online-orders/public/PublicOrderPage.tsx',
   ],
-  factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
+  factCheck: { checkedOn: '2026-11-15', note: 'Urdu translation of the English entry; Nafaa Market is marked coming soon.' },
   dropped: [],
   needsOwner: [
     'No marketplace screenshot yet: the seller screen shows prices as "Rs Rs" and the dashboard shows a "12,000+ Nafaa Market customers" figure that looks made up (apps/web bugs). Capture after those are fixed.',

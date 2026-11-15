@@ -47,6 +47,8 @@ const PAGE_TYPES: Record<string, string> = {
   team: 'team',
   demo: 'demo',
   contact: 'contact',
+  tour: 'tour',
+  search: 'search',
 };
 
 /** "/industries/bakery" → "industry"; "/" → "home"; "/ur/pricing" → "pricing". Free CMS pages read "page". */

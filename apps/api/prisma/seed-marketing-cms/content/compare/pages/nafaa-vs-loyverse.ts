@@ -56,7 +56,7 @@ const spec: CompareSpec = {
         ['Customer udhaar', 'Khata from the bill, credit limits, WhatsApp reminders', 'Not described on the pages checked'],
         ['Local payments', 'JazzCash, Easypaisa and bank transfer as separate methods; your own payment QR', 'Integrated payment providers listed for 30+ countries'],
         ['Without internet', 'Counter keeps billing; sales sync later', 'Keeps recording sales offline; syncs when back online'],
-        ['Devices', 'Browser on any phone, tablet or computer; Windows app', 'iOS and Android phones and tablets, compatible Android POS devices'],
+        ['Devices', 'Android and iPhone app, browser on any device, Windows app', 'iOS and Android phones and tablets, compatible Android POS devices'],
         ['Kitchen and customer display', 'Kitchen ticket screen (restaurant pack); customer display', 'Free kitchen display and customer display apps'],
         ['Support', 'WhatsApp and video calls, in Urdu or English', '24/7 live chat; help center in 17 languages'],
       ],

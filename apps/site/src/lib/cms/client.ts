@@ -45,6 +45,7 @@ import {
 } from './contract/cms-contract';
 import { absoluteUrl, cmsApiUrl, isProduction } from './env';
 import { localizePath } from './locale';
+import { FIXED_PAIRED_PATHS } from '@/lib/site/fixed-routes';
 
 export class CmsError extends Error {
   constructor(
@@ -262,7 +263,8 @@ export const getPairedPaths = cache(async (): Promise<string[]> => {
   try {
     const [en, ur] = await Promise.all([getPaths(undefined, DEFAULT_LOCALE), getPaths(undefined, 'ur')]);
     const english = new Set(en.map((item) => item.path));
-    return [...new Set(ur.map((item) => item.path))].filter((path) => english.has(path)).sort();
+    const cms = ur.map((item) => item.path).filter((path) => english.has(path));
+    return [...new Set([...cms, ...FIXED_PAIRED_PATHS])].sort();
   } catch (error) {
     if (isProduction) throw error;
     return [];

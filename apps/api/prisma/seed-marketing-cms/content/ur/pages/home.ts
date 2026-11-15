@@ -8,7 +8,7 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'کیا Nafaa صرف دکانوں کے لیے ہے؟',
     answer:
-      'نہیں۔ Nafaa کی شروعات دکان کے کاؤنٹر سے ہوئی، لیکن یہی اکاؤنٹ ریسٹورنٹ (میزیں، کچن ٹکٹ، ڈیلیوری)، آن لائن سیلر (اپنا اسٹور اور Nafaa Market مارکیٹ پلیس)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس کے اوپر اپنی الگ اسکرینیں ملتی ہیں۔',
+      'نہیں۔ Nafaa کی شروعات دکان کے کاؤنٹر سے ہوئی، لیکن یہی اکاؤنٹ ریسٹورنٹ (میزیں، کچن ٹکٹ، ڈیلیوری)، آن لائن سیلر (اپنا اسٹور، اور Nafaa Market جلد آ رہی ہے)، سروس والے کاروبار (بکنگ، ممبرشپ، کمیشن)، ہول سیلر (کارٹن کی قیمت، ادھار کی حد، سپلائر) اور کئی برانچوں والی کمپنیاں بھی چلاتا ہے۔ ہر کاروبار کو اسی POS، اسٹاک، کھاتے اور رپورٹس کے اوپر اپنی الگ اسکرینیں ملتی ہیں۔',
     sourceNote: 'apps/web/src/industries (31 packs), restaurant, multi-branch, online orders and marketplace publishing modules.',
     origin: 'translation of faq every-business',
     evidence: ['apps/web/src/industries', 'apps/web/src/modules/organization/shops', 'apps/api/src/integrations/online-orders', 'apps/api/src/marketplace/publishing'],
@@ -19,7 +19,7 @@ export const faqs: SeedFaq[] = [
     topic: 'getting-started',
     question: 'کیا میں Nafaa سے آن لائن بیچ سکتا ہوں؟',
     answer:
-      'جی ہاں۔ آپ کی اپنی ویب سائٹ، Shopify اسٹور یا WooCommerce اسٹور کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ ہی آتے ہیں، اور اسٹاک بھی اسی شیلف سے کم ہوتا ہے۔ نئے خریداروں تک پہنچنے کے لیے آپ اپنی پروڈکٹس Nafaa Market پر بھی لگا سکتے ہیں، جو Nafaa کی اپنی مارکیٹ پلیس ہے۔',
+      'جی ہاں۔ آپ Nafaa Stores سے اپنی اسٹور ویب سائٹ بنا سکتے ہیں، یا Shopify، WooCommerce اور Daraz جوڑ سکتے ہیں۔ ان کے آرڈر Nafaa میں کاؤنٹر کی سیل کے ساتھ ہی آتے ہیں، اور اسٹاک بھی اسی شیلف سے کم ہوتا ہے۔ نئے خریداروں تک پہنچنے کے لیے Nafaa Market جلد آ رہی ہے، مگر ابھی کھلی نہیں ہے۔',
     sourceNote: 'Online orders (website, Shopify, WooCommerce normaliser) and marketplace publishing.',
     origin: 'translation of faq sell-online',
     evidence: ['apps/api/src/integrations/online-orders/order-normalizer.ts', 'apps/api/src/integrations/channels/custom-website', 'apps/api/src/marketplace/publishing'],
@@ -98,10 +98,10 @@ export const entry: SeedEntry = {
   ],
   title: 'Nafaa',
   summary:
-    'Nafaa پاکستان کا مکمل بزنس سافٹ ویئر ہے: POS، اسٹاک، ڈیجیٹل کھاتہ، آن لائن اسٹور، Nafaa Market مارکیٹ پلیس، اسٹاف اور رپورٹس، سب ایک اکاؤنٹ میں۔ دکانوں، ریسٹورنٹس، آن لائن سیلرز، ہول سیلرز، سروس والے کاروباروں اور کئی برانچوں والی کمپنیوں کے لیے۔ انٹرنیٹ نہ ہو تو بھی بل بنتے رہتے ہیں۔',
+    'Nafaa پاکستان کا مکمل بزنس سافٹ ویئر ہے: POS، اسٹاک، ڈیجیٹل کھاتہ، آن لائن اسٹور، اسٹاف اور رپورٹس، سب ایک اکاؤنٹ میں، کمپیوٹر پر اور اینڈرائیڈ اور آئی فون کی Nafaa POS ایپ پر۔ دکانوں، ریسٹورنٹس، آن لائن سیلرز، ہول سیلرز، سروس والے کاروباروں اور کئی برانچوں والی کمپنیوں کے لیے۔ انٹرنیٹ نہ ہو تو بھی بل بنتے رہتے ہیں۔',
   data: { template: 'home' },
   seoTitle: 'Nafaa: ہر کاروبار کے لیے بزنس سافٹ ویئر، POS اور اسٹاک',
-  seoDescription: 'POS، اسٹاک، کھاتہ، آن لائن اسٹور، مارکیٹ پلیس، اسٹاف اور رپورٹس: دکان، ریسٹورنٹ اور ہر کاروبار کے لیے ایک سافٹ ویئر۔ انٹرنیٹ کے بغیر بھی بلنگ۔ 7 دن مفت ٹرائل۔',
+  seoDescription: 'POS، اسٹاک، کھاتہ، آن لائن اسٹور، اسٹاف اور رپورٹس: دکان، ریسٹورنٹ اور ہر کاروبار کے لیے ایک سافٹ ویئر۔ انٹرنیٹ کے بغیر بھی بلنگ۔ 7 دن مفت ٹرائل۔',
   focusKeyword: 'بزنس سافٹ ویئر',
   faqKeys: [
     'ur-home-every-business',
@@ -119,7 +119,7 @@ export const entry: SeedEntry = {
       layout: 'centered',
       eyebrow: 'ہر کاروبار کے لیے بزنس سافٹ ویئر',
       heading: 'اپنا پورا کاروبار ایک ہی جگہ سے چلائیں',
-      sub: 'POS، اسٹاک، کھاتہ، اپنا آن لائن اسٹور، Nafaa مارکیٹ پلیس، اسٹاف اور رپورٹس، سب ایک اکاؤنٹ میں۔ پاکستان میں بنا، دکانوں، ریسٹورنٹس، سیلرز، ہول سیلرز اور آگے بڑھتی کمپنیوں کے لیے۔ انٹرنیٹ چلا جائے تو بھی بل بنتے رہتے ہیں۔',
+      sub: 'POS، اسٹاک، کھاتہ، اپنا آن لائن اسٹور، اسٹاف اور رپورٹس، سب ایک اکاؤنٹ میں، کمپیوٹر پر اور اینڈرائیڈ اور آئی فون کی Nafaa POS ایپ پر۔ پاکستان میں بنا، دکانوں، ریسٹورنٹس، سیلرز، ہول سیلرز اور آگے بڑھتی کمپنیوں کے لیے۔ انٹرنیٹ چلا جائے تو بھی بل بنتے رہتے ہیں۔',
       primaryCta: { label: '7 دن مفت ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'home-hero:trial' },
       secondaryCta: { label: 'ڈیمو بک کریں', href: 'demo', variant: 'secondary', trackAs: 'home-hero:demo' },
       media: {
@@ -129,7 +129,7 @@ export const entry: SeedEntry = {
         frame: 'browser',
         url: 'app.nafaa.pk/pos',
       },
-      badges: ['انٹرنیٹ کے بغیر بھی چلے', 'انگریزی اور رومن اردو', 'کارڈ کی ضرورت نہیں'],
+      badges: ['انٹرنیٹ کے بغیر بھی چلے', 'انگریزی، اردو اور رومن اردو', 'اینڈرائیڈ اور آئی فون ایپ'],
     },
     {
       id: 'home-hero-phone',
@@ -164,13 +164,13 @@ export const entry: SeedEntry = {
       facts: [
         { label: 'یہ کیا ہے', value: 'POS، اسٹاک، کھاتہ، انوائس، آن لائن سیل، اسٹاف اور رپورٹس، سب ایک اکاؤنٹ میں' },
         { label: 'کس کے لیے', value: 'دکانیں، ریسٹورنٹ، آن لائن سیلر، ہول سیلر، سروس والے کاروبار اور کئی برانچوں والی کمپنیاں' },
-        { label: 'کس پر چلتا ہے', value: 'آپ کے اپنے فون، ٹیبلٹ یا کمپیوٹر کے ویب براؤزر پر' },
+        { label: 'کس پر چلتا ہے', value: 'کسی بھی ویب براؤزر پر، Windows ڈیسک ٹاپ ایپ پر، اور اینڈرائیڈ اور آئی فون کی Nafaa POS ایپ پر' },
         { label: 'انٹرنیٹ کے بغیر', value: 'سیل ڈیوائس پر محفوظ رہتی ہے اور انٹرنیٹ واپس آنے پر اکاؤنٹ میں چلی جاتی ہے' },
         { label: 'ٹیکس', value: 'ٹیکس والی انوائس اختیاری ہے، صرف اگر آپ کے کاروبار کو اس کی ضرورت ہو' },
         { label: 'قیمت', value: '7 دن مفت ٹرائل، اس کے بعد پیڈ پلان {{price:min.monthly}} ماہانہ سے' },
       ],
       romanUrdu:
-        'Nafaa poore karobar ka software hai: POS, stock, khata, apna online store, Nafaa Market, staff aur reports, sab ek account me. Dukaan, restaurant, online seller, wholesale aur bari companies ke liye. Internet na ho to bhi bill bante rehte hain.',
+        'Nafaa poore karobar ka software hai: POS, stock, khata, apna online store, staff aur reports, sab ek account me, computer aur Android/iPhone app par. Dukaan, restaurant, online seller, wholesale aur bari companies ke liye. Internet na ho to bhi bill bante rehte hain.',
     },
     {
       id: 'home-platform',
@@ -200,22 +200,17 @@ export const entry: SeedEntry = {
           href: '/ur/product/khata',
         },
         {
-          icon: 'receipt',
-          title: 'ٹیکس انوائس (FBR/PRA)',
-          body: 'یہ اختیاری ہے۔ صرف تب لگائیں جب آپ کے کاروبار کو اس کی ضرورت ہو۔',
-          href: '/ur/product/fbr',
-        },
-        {
           icon: 'shopping-bag',
           title: 'آن لائن اسٹور',
-          body: 'آپ کی اپنی ویب سائٹ، Shopify یا WooCommerce کے آرڈر سیدھے کاؤنٹر پر آتے ہیں، اور اسٹاک ساتھ ساتھ برابر رہتا ہے۔',
+          body: 'اپنی اسٹور ویب سائٹ بنائیں، یا Shopify، WooCommerce اور Daraz جوڑیں؛ کوریئر اور COD ایک اسٹاک پر۔',
           href: '/ur/product/online-store',
         },
         {
           icon: 'store',
           title: 'Nafaa Market',
-          body: 'اپنی پروڈکٹس Nafaa مارکیٹ پلیس پر لگائیں اور نئے کسٹمرز سے آرڈر لیں۔',
+          body: 'اپنی پروڈکٹس Nafaa مارکیٹ پلیس پر لگائیں اور نئے خریداروں تک پہنچیں۔',
           href: '/ur/marketplace',
+          status: 'coming',
         },
         {
           icon: 'users',
@@ -236,22 +231,27 @@ export const entry: SeedEntry = {
           href: '/ur/product/offline-pos',
         },
         {
-          icon: 'building-2',
-          title: 'کئی برانچیں',
-          body: 'ہر برانچ کا اپنا اسٹاک، سیل اور اسٹاف، اور برانچوں کے بیچ اسٹاک ٹرانسفر۔',
-          href: '/ur/product/multi-shop',
-        },
-        {
-          icon: 'wallet',
-          title: 'پیمنٹس',
-          body: 'کیش، کارڈ، JazzCash، Easypaisa، پیمنٹ QR اور ادھار، سب ایک ہی بل پر۔',
-          href: '/ur/product/payments',
-        },
-        {
           icon: 'sparkles',
-          title: 'AI اسسٹنٹ',
-          body: 'اپنی سیل، اسٹاک اور کھاتے کے بارے میں سادہ انگریزی یا رومن اردو میں پوچھیں۔',
+          title: 'Nafaa AI',
+          body: 'اپنی سیل، اسٹاک اور کھاتے کے بارے میں انگریزی، اردو یا رومن اردو میں پوچھیں۔',
           href: '/ur/product/ai-assistant',
+        },
+        {
+          icon: 'smartphone',
+          title: 'موبائل ایپ',
+          body: 'Google Play اور App Store پر Nafaa POS ایپ، انگریزی، اردو یا رومن اردو میں، انٹرنیٹ کے بغیر بھی چلتی ہے۔',
+          href: '/ur/mobile-app',
+        },
+        {
+          icon: 'book-open',
+          title: 'تیار پروڈکٹ لسٹ',
+          body: 'اپنے کاروبار کی تیار لسٹ سے شروع کریں، فارمیسی کے لیے سالٹ کے ساتھ DRAP کی دوائیں بھی۔',
+        },
+        {
+          icon: 'truck',
+          title: 'ہول سیل اور ڈسٹری بیوشن',
+          body: 'آرڈر بکر ایپ، روٹ، لوڈ شیٹ، ڈیلیوری، سیٹلمنٹ اور ریکوری۔',
+          href: '/ur/solutions/wholesale-distribution',
         },
       ],
     },
@@ -389,7 +389,7 @@ export const entry: SeedEntry = {
         {
           icon: 'shopping-bag',
           title: 'ای کامرس سیلرز',
-          body: 'آپ کا اپنا آن لائن اسٹور اور Nafaa Market، اور ویب سائٹ کے آرڈر اور کاؤنٹر کی سیل ایک ہی اسٹاک سے۔',
+          body: 'آپ کا اپنا آن لائن اسٹور، اور ویب سائٹ کے آرڈر اور کاؤنٹر کی سیل ایک ہی اسٹاک سے۔ Nafaa Market جلد آ رہی ہے۔',
           href: '/ur/solutions/ecommerce',
         },
         {
@@ -447,7 +447,7 @@ export const entry: SeedEntry = {
       type: 'diagram',
       heading: 'کاؤنٹر اور ہر آن لائن چینل کا ایک ہی اسٹاک',
       caption:
-        'آپ کی ویب سائٹ اور Nafaa Market کے آرڈر اسی شیلف سے اسٹاک لیتے ہیں جس سے کاؤنٹر، اس لیے کوئی ایسی چیز نہیں بکتی جو آپ کے پاس ہے ہی نہیں۔',
+        'آپ کی ویب سائٹ اور دوسرے آن لائن چینل کے آرڈر اسی شیلف سے اسٹاک لیتے ہیں جس سے کاؤنٹر، اس لیے کوئی ایسی چیز نہیں بکتی جو آپ کے پاس ہے ہی نہیں۔',
       diagram: { kind: 'store-sync' },
     },
     {
@@ -510,7 +510,7 @@ export const entry: SeedEntry = {
       anchor: 'ai',
       type: 'featuresGrid',
       heading: 'Nafaa AI اسسٹنٹ',
-      intro: 'اپنے کاروبار کے بارے میں سادہ انگریزی یا رومن اردو میں پوچھیں، اور Nafaa کے ڈیٹا سے مختصر جواب پائیں، ساتھ میں اس کے پیچھے کے نمبر بھی۔',
+      intro: 'اپنے کاروبار کے بارے میں انگریزی، اردو یا رومن اردو میں پوچھیں، اور Nafaa کے ڈیٹا سے مختصر جواب پائیں، ساتھ میں اس کے پیچھے کے نمبر بھی۔',
       columns: 3,
       items: [
         { icon: 'message-square', title: 'سادہ الفاظ میں پوچھیں', body: '“Is hafte sab se zyada profit kis cheez par hua?”' },
@@ -560,7 +560,7 @@ export const entry: SeedEntry = {
     'apps/web/src/modules/customers/customers/pages/CustomerFormPage.tsx',
     'apps/web/src/modules/ai-assistant/index.ts',
   ],
-  factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
+  factCheck: { checkedOn: '2026-11-15', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],
   needsOwner: [
     'AI assistant copy keeps the English claim "plain English or Roman Urdu" (the sample question stays in Roman Urdu). Confirm whether it also answers questions typed in Urdu script before the Urdu page says so.',

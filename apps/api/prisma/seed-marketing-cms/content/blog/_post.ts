@@ -57,6 +57,11 @@ export function src(title: string, url: string, publisher: string): Source {
   return { title, url, publisher, accessedAt: CHECKED_ON };
 }
 
+/** An official source opened on the date given (used by posts checked after CHECKED_ON). */
+export function srcChecked(title: string, url: string, publisher: string, accessedAt: string): Source {
+  return { title, url, publisher, accessedAt };
+}
+
 /** The "rules change" note every tax or legal post carries. */
 export function checkRules(body: string): Block {
   return {
@@ -140,4 +145,17 @@ export function post(p: PostSpec, index: number): SeedEntry {
     dropped: p.dropped,
     needsOwner: ['Author: a real PERSON entry (O4).', ...(p.needsOwner ?? [])],
   };
+}
+
+/**
+ * A comparison table written as Markdown inside a text block (the comparison
+ * table block is not allowed on blog posts). The first column holds the row
+ * label; `columns` name the remaining columns.
+ */
+export function mdTable(heading: string, caption: string, columns: { key: string; label: string; highlight?: boolean }[], rows: [string, ...string[]][]): Block {
+  const esc = (s: string) => s.replace(/\|/g, '/');
+  const head = `| Item | ${columns.map((c) => esc(c.label)).join(' | ')} |`;
+  const sep = `| --- | ${columns.map(() => '---').join(' | ')} |`;
+  const body = rows.map((r) => `| ${r.map(esc).join(' | ')} |`).join('\n');
+  return { type: 'richText', markdown: `### ${heading}\n\n${caption}\n\n${head}\n${sep}\n${body}` } as Block;
 }

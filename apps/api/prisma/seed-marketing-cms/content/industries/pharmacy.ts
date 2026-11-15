@@ -124,6 +124,7 @@ export default {
   ...entry,
   seoDescription: 'Pharmacy software: search medicines by salt and find substitutes, track batches and expiry, keep prescriptions, and record controlled drug sales in a register.',
   relations: [
+    { ref: 'PRODUCT:product-library', kind: 'RELATED' },
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },
     { ref: 'PRODUCT:purchasing', kind: 'TAG' },

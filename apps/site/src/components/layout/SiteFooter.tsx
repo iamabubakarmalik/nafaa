@@ -49,6 +49,18 @@ const SOCIAL_LABEL: Record<string, string> = {
   other: 'Profile',
 };
 
+/** Store badge words (server only, so the header's client strings stay small). */
+const STORE_WORDS = {
+  en: { heading: 'Get the app', play: 'Get the Nafaa app on Google Play', apple: 'Download the Nafaa app on the App Store' },
+  ur: { heading: 'ایپ لیں', play: 'Nafaa ایپ Google Play سے لیں', apple: 'Nafaa ایپ App Store سے ڈاؤن لوڈ کریں' },
+} as const;
+
+/** The Nafaa mobile app in the stores. */
+const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.nafaa.app';
+const APPLE_URL = 'https://apps.apple.com/pk/app/nafaa-pos-business-manager/id6769007778';
+/** Store logos (public/badges/stores.svg), one cached file instead of inline paths on every page. */
+const STORE_SPRITE = '/badges/stores.svg?v=1';
+
 const linkClass = 'text-small text-fg-muted transition-colors duration-fast hover:text-fg-strong';
 
 /** WhatsApp glyph (simple-icons path, CC0), inline so the footer ships no JS for it. */
@@ -74,10 +86,12 @@ export function SiteFooter({
   paired: readonly string[];
 }) {
   const t = shellStrings(locale);
+  const stores = STORE_WORDS[locale];
   const { site, menus } = layout;
   const columns = menus.footer as NavItem[];
   const legal = menus.legal as NavItem[];
-  const social = site.social.filter((s) => s.verified);
+  // Store listings show as the badges instead.
+  const social = site.social.filter((s) => s.verified && s.network !== 'playstore' && s.network !== 'appstore');
   const whatsapp = whatsappHref(site);
   const brand = entity?.legalName ?? entity?.brandName ?? site.name;
   const phone = entity?.contact.phone;
@@ -152,6 +166,32 @@ export function SiteFooter({
                   </a>
                 </li>
               ) : null}
+            </ul>
+            <ul className="ftr-apps" aria-label={stores.heading}>
+              <li>
+                <a href={PLAY_URL} rel="noopener" className="ftr-badge" data-store="play" data-track="app_store_click" data-track-label="Footer: Google Play">
+                  <svg aria-hidden="true" viewBox="0 0 24 26">
+                    <use href={`${STORE_SPRITE}#play`} />
+                  </svg>
+                  <span>
+                    <small>GET IT ON</small>
+                    <b>Google Play</b>
+                  </span>
+                  <span className="sr-only">: {stores.play}</span>
+                </a>
+              </li>
+              <li>
+                <a href={APPLE_URL} rel="noopener" className="ftr-badge" data-store="apple" data-track="app_store_click" data-track-label="Footer: App Store">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <use href={`${STORE_SPRITE}#apple`} />
+                  </svg>
+                  <span>
+                    <small>Download on the</small>
+                    <b>App Store</b>
+                  </span>
+                  <span className="sr-only">: {stores.apple}</span>
+                </a>
+              </li>
             </ul>
             {social.length ? (
               <ul className="flex flex-wrap gap-2" aria-label={t.socialProfiles}>

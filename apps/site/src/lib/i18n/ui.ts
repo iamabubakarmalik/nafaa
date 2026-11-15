@@ -38,7 +38,7 @@ const en = {
     trial: '7 din Free Trial',
     offline: 'Keeps billing offline',
     whatsapp: 'Help on WhatsApp',
-    languages: 'English and Roman Urdu',
+    languages: 'English, Urdu and Roman Urdu',
     devices: 'Phone, tablet or computer',
   },
 
@@ -340,7 +340,7 @@ const ur: UiStrings = {
     trial: '7 دن مفت ٹرائل',
     offline: 'انٹرنیٹ کے بغیر بھی بلنگ',
     whatsapp: 'واٹس ایپ پر مدد',
-    languages: 'انگریزی اور رومن اردو',
+    languages: 'انگریزی، اردو اور رومن اردو',
     devices: 'فون، ٹیبلٹ یا کمپیوٹر',
   },
 

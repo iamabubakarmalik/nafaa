@@ -129,7 +129,8 @@ export function Analytics({ signupUrl, gtmId, gaId, adsId, adsConversions, clari
       else if (whatsapp && explicit !== 'whatsapp_click') track('whatsapp_click', { label, location, ...page, cta_location: location ?? label });
       if (explicit) {
         track(explicit, explicit === 'whatsapp_click' ? { label, location, ...page, cta_location: location ?? label } : { label, location });
-        return;
+        // Store badges also count as outbound clicks (below).
+        if (explicit !== 'app_store_click') return;
       }
       if (!href || signup || whatsapp) return;
       if (href.origin !== window.location.origin && /^https?:$/.test(href.protocol)) {

@@ -1,0 +1,420 @@
+/*
+ * Product tour player. Colours read the site tokens (--c-*, --brand-*), so
+ * light and dark follow the theme. The stage keeps a fixed aspect ratio on
+ * every step (16:10 on wide screens, 4:3 on phones), so moving between
+ * steps never shifts the page.
+ */
+
+.player {
+  --tour-ring: rgb(var(--brand-500, 16 185 129));
+  --tour-dim: rgb(2 6 23 / 0.46);
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 1.25rem;
+  background: rgb(var(--c-surface));
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 24px 48px -24px rgb(15 23 42 / 0.22);
+  padding: 0.75rem;
+}
+@media (min-width: 768px) {
+  .player {
+    padding: 1rem;
+  }
+}
+
+/* ─── Progress ─── */
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.25rem 0.25rem 0.75rem;
+}
+.count {
+  flex: none;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(var(--c-fg-muted));
+  font-variant-numeric: tabular-nums;
+}
+.progress {
+  display: flex;
+  flex: 1;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.progress li {
+  flex: 1;
+  display: flex;
+}
+.progress button {
+  position: relative;
+  flex: 1;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+}
+.progress button::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 0.3125rem;
+  margin-top: -0.15625rem;
+  border-radius: 999px;
+  background: rgb(var(--c-line-strong));
+  transition: background-color 200ms ease;
+}
+.progress button[data-done]::before,
+.progress button[aria-current]::before {
+  background: rgb(var(--brand-600, 5 150 105));
+}
+.progress button[aria-current]::before {
+  box-shadow: 0 0 0 3px rgb(var(--brand-500, 16 185 129) / 0.25);
+}
+.progress button:hover::before {
+  background: rgb(var(--brand-500, 16 185 129));
+}
+.progress button:focus-visible {
+  outline: 2px solid rgb(var(--c-ring));
+  outline-offset: 1px;
+}
+
+/* Phones: a plain bar (step buttons would be too small to tap). */
+.meter {
+  position: relative;
+  flex: 1;
+  height: 0.3125rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(var(--c-line-strong));
+}
+.meter span {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--p);
+  border-radius: inherit;
+  background: rgb(var(--brand-600, 5 150 105));
+  transition: width 300ms ease;
+}
+@media (max-width: 767.98px) {
+  .progress {
+    display: none;
+  }
+}
+@media (min-width: 768px) {
+  .meter {
+    display: none;
+  }
+}
+
+/* ─── Layout ─── */
+
+.body {
+  display: grid;
+  gap: 1rem;
+}
+@media (min-width: 1024px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+}
+
+/* ─── Stage (browser chrome + screenshot) ─── */
+
+.stage {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(var(--c-line));
+  border-radius: 0.875rem;
+  background: rgb(var(--c-surface-2));
+  touch-action: pan-y;
+  user-select: none;
+}
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 2rem;
+  padding-inline: 0.75rem;
+  border-bottom: 1px solid rgb(var(--c-line));
+  background: rgb(var(--c-surface));
+}
+.lights {
+  display: flex;
+  gap: 0.375rem;
+}
+.lights span {
+  width: 0.5625rem;
+  height: 0.5625rem;
+  border-radius: 999px;
+  background: rgb(var(--c-line-strong));
+}
+.address {
+  flex: 1;
+  max-width: 18rem;
+  margin-inline: auto;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(var(--c-surface-2));
+  padding: 0.125rem 0.75rem;
+  font-size: 0.6875rem;
+  line-height: 1.1rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgb(var(--c-fg-muted));
+}
+
+.viewport {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 80% at 50% 40%, rgb(var(--brand-500, 16 185 129) / 0.1), transparent 70%),
+    rgb(var(--c-surface-2));
+}
+@media (min-width: 768px) {
+  .viewport {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+.shot {
+  position: relative;
+  flex: none;
+  width: 100%;
+  aspect-ratio: var(--ar);
+  transform-origin: 50% 50%;
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  --s: 1;
+}
+.shot[data-portrait] {
+  width: auto;
+  height: 100%;
+}
+@media (min-width: 768px) {
+  .shot[data-portrait] {
+    height: 92%;
+    border-radius: 1rem;
+    box-shadow: 0 0 0 6px rgb(15 23 42), 0 18px 40px -12px rgb(15 23 42 / 0.45);
+    overflow: hidden;
+  }
+}
+.shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: rgb(248 250 252);
+  pointer-events: none;
+}
+
+/* Phones: zoom to the highlighted part. */
+@media (max-width: 767.98px) {
+  .viewport[data-zoom] .shot {
+    --s: var(--zs);
+    transform: translate(var(--zx), var(--zy)) scale(var(--zs));
+  }
+}
+
+/* The highlighted part: a ring, and the rest of the screen dimmed. */
+.spot {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  border-radius: calc(10px / var(--s));
+  box-shadow:
+    0 0 0 calc(2px / var(--s)) var(--tour-ring),
+    0 0 0 calc(7px / var(--s)) rgb(var(--brand-500, 16 185 129) / 0.28),
+    0 0 0 200vmax var(--tour-dim);
+  transition:
+    left 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    top 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    width 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    height 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.spot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 calc(2px / var(--s)) var(--tour-ring);
+  animation: tour-pulse 2.2s ease-out infinite;
+}
+@keyframes tour-pulse {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+.tag {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: calc(8px / var(--s));
+  transform: scale(calc(1 / var(--s)));
+  transform-origin: 0 100%;
+  border-radius: 999px;
+  background: rgb(var(--brand-700, 4 120 87));
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  color: white;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px -6px rgb(2 6 23 / 0.5);
+}
+.spot[data-at='below'] .tag {
+  top: 100%;
+  bottom: auto;
+  margin-top: calc(8px / var(--s));
+  margin-bottom: 0;
+  transform-origin: 0 0;
+}
+.spot[data-at='inside'] .tag,
+.spot[data-at='end'] .tag {
+  top: 0;
+  bottom: auto;
+  margin: calc(8px / var(--s));
+  transform-origin: 0 0;
+}
+.spot[data-at='end'] .tag {
+  right: 0;
+  left: auto;
+  transform-origin: 100% 0;
+}
+:global(html[dir='rtl']) .tag {
+  font-family: var(--font-urdu, inherit);
+  line-height: 1.5rem;
+  padding-block: 0.125rem;
+}
+
+.zoomToggle {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.375rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: rgb(var(--c-fg-strong));
+  padding-inline: 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: rgb(var(--c-surface));
+}
+.zoomToggle:focus-visible {
+  outline: 2px solid rgb(var(--c-ring));
+  outline-offset: 2px;
+}
+@media (max-width: 767.98px) {
+  .address {
+    margin-inline: 0 auto;
+    max-width: calc(100% - 9.5rem);
+  }
+}
+@media (min-width: 768px) {
+  .zoomToggle {
+    display: none;
+  }
+}
+
+/* ─── Caption ─── */
+
+.caption {
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem 0.25rem 0.25rem;
+}
+@media (min-width: 1024px) {
+  .caption {
+    padding: 0.75rem 0.5rem 0.5rem;
+  }
+}
+.title {
+  margin-top: 0.5rem;
+  font-size: 1.375rem;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: rgb(var(--c-fg-strong));
+  text-wrap: balance;
+}
+.text {
+  margin-top: 0.625rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgb(var(--c-fg-muted));
+}
+.finish {
+  margin-top: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgb(var(--c-fg-strong));
+}
+/* Room for the longest caption, so the buttons do not jump between steps. */
+@media (max-width: 1023.98px) {
+  .caption > div:first-child {
+    min-height: 10.5rem;
+  }
+}
+.nav {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.625rem;
+  margin-top: 1.25rem;
+}
+@media (min-width: 1024px) {
+  .nav {
+    margin-top: auto;
+    padding-top: 1.25rem;
+  }
+}
+.hint {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  color: rgb(var(--c-fg-subtle));
+}
+@media (hover: none) {
+  .hint {
+    visibility: hidden;
+  }
+}
+.after {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.after a,
+.after button {
+  color: rgb(var(--c-link));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shot,
+  .spot {
+    transition: none;
+  }
+  .spot::after {
+    animation: none;
+  }
+}

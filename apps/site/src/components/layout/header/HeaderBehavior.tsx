@@ -430,6 +430,60 @@ export function HeaderTools({ paired }: { paired: readonly string[] }) {
   );
 }
 
+// ─── Search ───
+
+const loadSearch = () => import('@/components/search/SearchDialog');
+const SearchDialog = dynamic(loadSearch, { ssr: false });
+
+function isTyping(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
+}
+
+/** Search button; the dialog and the index load on first use. "/" opens it from anywhere. */
+export function SearchButton() {
+  const [open, setOpen] = useState(false);
+  const locale = useSiteLocale();
+  const t = shellStrings(locale);
+  const pathname = usePathname();
+  const preload = () => void loadSearch();
+
+  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey || event.defaultPrevented || isTyping(event.target)) return;
+      if (document.querySelector('dialog[open]')) return;
+      event.preventDefault();
+      setOpen(true);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  return (
+    <>
+      <button
+        type="button"
+        className="ib"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-keyshortcuts="/"
+        title={`${t.searchSite} (/)`}
+        onPointerEnter={preload}
+        onTouchStart={preload}
+        onFocus={preload}
+        onClick={() => setOpen(true)}
+      >
+        <span className="sr-only">{t.searchSite}</span>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+      </button>
+      {open ? <SearchDialog locale={locale} onClose={() => setOpen(false)} /> : null}
+    </>
+  );
+}
+
 // ─── Mobile ───
 
 const loadSheet = () => import('./MobileSheet');

@@ -4,7 +4,7 @@
  */
 
 import type { SeedEntry } from '../../lib/types';
-import { SHOT, features, page, pricing, prose, shot, steps, table } from './_build';
+import { SHOT, callout, features, page, pricing, prose, shot, steps, table } from './_build';
 
 const COMMON_FAQ = ['devices', 'offline', 'pricing'];
 
@@ -89,14 +89,16 @@ The owner also decides what the counter shows: product images, categories, quick
     }),
     prose(`## Made for how Pakistani shops really sell
 
-Most billing software is built for one price per item and one way to pay. Pakistani counters are different: the same cooking oil sells by the bottle and by the carton, regular customers pay at the end of the month, and more and more bills are paid on JazzCash or Easypaisa. Nafaa handles all of that on one screen, in English or Roman Urdu.
+Most billing software is built for one price per item and one way to pay. Pakistani counters are different: the same cooking oil sells by the bottle and by the carton, regular customers pay at the end of the month, and more and more bills are paid on JazzCash or Easypaisa. Nafaa handles all of that on one screen, in [English, Urdu or Roman Urdu](/languages).
 
-It is also built for the realities of load-shedding and weak signal. The counter does not stop when the internet does, and the Windows desktop app prints straight to the receipt printer and opens the cash drawer without extra clicks. If you are still choosing, the [guide to choosing POS software](/blog/best-pos-kiryana-2026) lists what to check in any demo.`),
+It is also built for the realities of load-shedding and weak signal. The counter does not stop when the internet does, the Windows desktop app prints straight to the receipt printer and opens the cash drawer without extra clicks, and the [Nafaa POS mobile app](/mobile-app) puts the same counter on an Android phone or iPhone. If you are still choosing, the [guide to choosing POS software](/blog/best-pos-kiryana-2026) lists what to check in any demo.`),
     pricing('Start free, upgrade when you grow'),
   ],
   faqKeys: ['mp-pos-hardware', 'mp-pos-payments', ...COMMON_FAQ],
   cta: { heading: 'Open your counter in minutes', body: 'Start the 7-day free trial on the device you already have. No card needed.' },
   relations: [
+    { ref: 'PAGE:mobile-app', kind: 'RELATED' },
+    { ref: 'PRODUCT:product-library', kind: 'RELATED' },
     { ref: 'INDUSTRY:kiryana', kind: 'TAG' },
     { ref: 'INDUSTRY:pharmacy', kind: 'TAG' },
     { ref: 'INDUSTRY:restaurant', kind: 'TAG' },
@@ -238,6 +240,8 @@ For the routines behind good stock, from reorder levels to counting without clos
   faqKeys: ['mp-inventory-import', 'mp-branches-transfer', 'offline'],
   cta: { heading: 'Put your stock in order this week', body: 'Import or paste your products and see your real stock value today.' },
   relations: [
+    { ref: 'PRODUCT:product-library', kind: 'RELATED' },
+    { ref: 'PAGE:mobile-app', kind: 'RELATED' },
     { ref: 'INDUSTRY:kiryana', kind: 'TAG' },
     { ref: 'INDUSTRY:hardware', kind: 'TAG' },
     { ref: 'INDUSTRY:pharmacy', kind: 'TAG' },
@@ -369,6 +373,7 @@ Any business that sells on trust: kiryana and general stores with monthly accoun
   faqKeys: ['khata-reminders', 'mp-khata-limit', 'offline'],
   cta: { heading: 'Retire the paper register', body: 'Move your opening balances in and let the counter keep the khata.' },
   relations: [
+    { ref: 'PAGE:mobile-app', kind: 'RELATED' },
     { ref: 'INDUSTRY:kiryana', kind: 'TAG' },
     { ref: 'INDUSTRY:hardware', kind: 'TAG' },
     { ref: 'INDUSTRY:dairy', kind: 'TAG' },
@@ -533,39 +538,42 @@ Register the POS with your authority (FBR, PRA, SRB or KPRA; see the [FBR integr
   needsOwner: ['Tax facts on this page (Sales Tax Act 1990 s. 2(43A), Sales Tax Rules 2006 Chapter XIV-AA, Tax Asaan invoice check) are from FBR public material; please confirm wording with the tax adviser before publishing.'],
 });
 
+// Online store: updated 15 Nov 2026 for the commerce overhaul (9 Nov: order
+// desk, dispatch, couriers, COD tools, products hub; 13 Nov: Nafaa Stores
+// website builder). Foodpanda and Nafaa Market are not live: shown as coming.
 const onlineStore = page({
   type: 'PRODUCT',
   slug: 'online-store',
   title: 'Online Store',
   summary:
-    'Nafaa brings online selling into the same account as the shop: orders from your own website, Shopify, WooCommerce, Daraz and Foodpanda arrive next to counter sales, take stock from the same shelf, and ship with TCS, Leopards, M&P, PostEx, Trax or CallCourier booked from the order.',
+    'Nafaa runs online selling from the same account as the shop: build your own store website with Nafaa Stores, or connect Shopify, WooCommerce and Daraz. Every order lands in one order desk, takes stock from the same shelf, and ships with TCS, Leopards, M&P, PostEx, Trax and other couriers booked from the order, with COD tracked to the last rupee.',
   data: { icon: 'shopping-bag', shortName: 'Online store', benefit: 'Sell Online From the Same Stock', status: 'live', appRoute: '/online-orders' },
-  seoTitle: 'Online Store and Order Management for Pakistani Sellers',
+  seoTitle: 'Online Store Builder and Order Management in Pakistan',
   seoDescription:
-    'Website, Shopify, WooCommerce, Daraz and Foodpanda orders in one place, one stock, courier booking with TCS, Leopards, PostEx and more. 7-day free trial.',
+    'Build your store website or connect Shopify, WooCommerce and Daraz. One order desk, one stock, courier booking, COD matching and true profit per order.',
   focusKeyword: 'online store order management pakistan',
   hero: {
     eyebrow: 'Online store',
-    heading: 'Your shop and your website, finally on one stock',
-    sub: 'Orders from your website, Shopify, WooCommerce, Daraz and Foodpanda pop up at the counter, take stock from the same shelf and ship with the courier you already use. No more selling what you sold an hour ago.',
-    media: { id: SHOT.posOnlineAlert, url: 'app.nafaa.pk/pos' },
-    badges: ['Website, Shopify, WooCommerce', 'Courier booking', 'One stock'],
+    heading: 'Your website, your channels and your shop, on one stock',
+    sub: 'Build a store website in Nafaa or connect the stores you already have. Orders from every channel land in one desk, take stock from the same shelf as the counter, and go out with the courier you choose. Cash-on-delivery is tracked until the courier pays you.',
+    media: { id: SHOT.onlineOrders, url: 'app.nafaa.pk/online-orders' },
+    badges: ['Your own store website', 'Shopify, WooCommerce, Daraz', 'Couriers and COD'],
   },
   answer: {
     facts: [
-      ['Channels', 'Website, Shopify, WooCommerce, Daraz, Foodpanda and Nafaa Market'],
-      ['Stock', 'One stock for counter and online; channels update when items sell'],
-      ['Couriers', 'TCS, Leopards, M&P, PostEx, Trax and CallCourier'],
-      ['Payments', 'COD, plus JazzCash and Easypaisa payment links'],
-      ['COD risk', 'Each buyer\'s past orders, deliveries and returns before you ship'],
+      ['Your own website', 'Nafaa Stores: themes, checkout, a free store address and your own domain'],
+      ['Channels', 'Shopify, WooCommerce, Daraz and a website your developer built; Foodpanda and Nafaa Market coming soon'],
+      ['Stock and prices', 'One stock for counter and online, with a price per channel when you want one'],
+      ['Couriers', 'Book from the order with TCS, Leopards, M&P, PostEx, Trax, CallCourier, InstaWorld and ShipNOC'],
+      ['COD', 'Confirmation before dispatch, courier statement matching and true profit per order'],
     ],
     romanUrdu:
-      'Website, Shopify, WooCommerce, Daraz aur Foodpanda ke orders seedha Nafaa me aate hain, dukaan wale stock se kat-te hain, aur TCS, Leopards ya PostEx ki booking order se hi ho jati hai.',
+      'Apni website Nafaa Stores se banayein ya Shopify, WooCommerce aur Daraz jorein. Har channel ke orders ek jagah, dukaan wale stock se, courier booking order se, aur COD ka paisa aakhri rupay tak track.',
   },
   body: [
     shot({
-      heading: 'Every online order in one list',
-      body: 'Orders from every channel land in one list with the buyer, their city, the items, how they pay and how long the order has waited. The top line shows online sale, COD still to collect and the return rate. Accept, pack, book the courier and track it without leaving Nafaa.',
+      heading: 'Every online order in one desk',
+      body: 'Orders from every channel land in one board with the buyer, city, items, payment method and how long the order has waited. Accept, confirm, pack, book the courier and track it without leaving Nafaa. Orders that come on WhatsApp, Instagram or the phone are added by hand in the same desk, so nothing lives in chats.',
       id: SHOT.onlineOrders,
       url: 'app.nafaa.pk/online-orders',
       layout: 'full',
@@ -578,16 +586,48 @@ const onlineStore = page({
       ],
     }),
     features('Run online like you run the counter', [
-      ['globe', 'Your own website', 'Connect a website built by Nafaa or your developer, or link the Shopify and WooCommerce stores you already have.'],
-      ['bell-ring', 'Alerts at the counter', 'A new order pops up over the POS so nobody misses it in a busy hour.'],
-      ['truck', 'Courier booking', 'Book TCS, Leopards, M&P, PostEx, Trax or CallCourier from the order, print the label and track it.'],
-      ['shield', 'COD risk check', 'See how many of a buyer\'s past orders were delivered, refused or cancelled before you ship cash-on-delivery.'],
-      ['link', 'Payment links', 'Send a JazzCash or Easypaisa link so the buyer pays before dispatch.'],
-      ['package-search', 'Google listings', 'Share your product feed with Google so shoppers can find your items.'],
+      ['globe', 'Nafaa Stores website', 'Pick a theme, edit sections, pages and menus, set shipping and checkout, and go live on a free store address or your own domain.'],
+      ['link', 'Connect your channels', 'Shopify, WooCommerce and Daraz connect to the same products; stock and prices flow both ways by themselves.'],
+      ['tags', 'Price per channel', 'Keep one price, or set a rule per channel (a percent or rupees, with rounding) and override single products.'],
+      ['phone', 'COD confirmation', 'A call queue and WhatsApp confirmation for cash-on-delivery orders, with a risk check from each buyer\'s past orders.'],
+      ['truck', 'Couriers and tracking', 'Book from the order, print labels in bulk, follow every parcel on a map and see each courier\'s delivery and return rate.'],
+      ['scan-barcode', 'Scan to pack and return', 'Scan each item while packing, scan parcels out, and scan returns back into stock.'],
+      ['wallet', 'COD matching', 'Upload a courier\'s payment statement and see which parcels were paid, short-paid or missing.'],
+      ['chart-column', 'True profit per order', 'Courier charge, COD fee, gateway fee, packaging and returns taken off, so you see what each order really earned.'],
+      ['zap', 'Automation', 'Rules like "if the city is Karachi and COD is over a limit, ask for an advance", plus ready-made recipes.'],
+    ]),
+    prose(`## Nafaa Stores: your own store website
+
+Nafaa Stores is a website builder made for shops that already run on Nafaa. Your products, prices and stock are already there, so a store can go live the same day:
+
+- **Themes made for Pakistani trades:** clothing and shoes, electronics and mobiles, grocery and pharmacy, beauty and cosmetics. Change colours, fonts and sections in the theme editor with a live preview.
+- **Everything a store needs:** collections, pages, menus, a blog, store policies, shipping zones and rates, and a checkout with cash-on-delivery and the online payment accounts you connect (Safepay, JazzCash or Easypaisa).
+- **Your address:** every store gets a free address on stores.nafaa.pk, and you can connect your own domain; the screen shows the exact DNS records to add.
+- **Moving from Shopify:** bring your collections, pages, blog posts, menus, redirects, policies and customers from an existing Shopify store, and import a Shopify theme as a starting draft.
+- **Urdu too:** fill the store's Urdu text with Nafaa AI, then check and edit it.
+
+Website orders go through the same order desk as every other channel, so auto-accept, risk checks, couriers and dispatch all apply. Carts left with a phone number or email show up as abandoned checkouts you can follow up.
+
+## Built for cash-on-delivery
+
+Most online orders in Pakistan are still paid on delivery, and the biggest cost is the parcel that comes back: courier charges both ways and stock stuck on the road. Nafaa attacks this at every step. Before dispatch, each buyer's record with your shop and a blocklist flag risky orders, and the call queue makes sure every COD order is confirmed. Risky orders can be asked for an advance through a payment link. After dispatch, the parcel map and stuck-parcel lists show what needs a call, and returns are scanned back into stock. When the courier pays, its statement is matched to your orders by CN number, so short payments are found in minutes instead of never.
+
+## Couriers you already use
+
+Book parcels from the order with **TCS, Leopards, M&P, PostEx, Trax, CallCourier, InstaWorld and ShipNOC**, using your own courier account. Other couriers such as BlueEx, Daewoo FastEx, Tranzo, Swyft and Pakistan Post, or your own rider, can be recorded on the order with their tracking link. The courier scorecard compares delivery rate, returns, days to deliver and COD payment delay per city, and the best courier for each city can be written into your auto-booking rules.
+
+## Growing online sales
+
+The same workspace has tools to sell more: abandoned cart follow-up with personal coupon codes, reviews, loyalty for online buyers, a product radar of items rising and falling, products often bought together, and a daily e-commerce summary in the morning message from [Nafaa AI](/product/ai-assistant).`),
+    steps('From click to doorstep', [
+      ['Order arrives', 'From your Nafaa store, Shopify, WooCommerce, Daraz or by hand, with a risk badge from the buyer\'s history with your shop.'],
+      ['Confirm and pack', 'Confirm COD orders by call or WhatsApp, choose the branch that ships, and scan items as you pack. Stock comes off the same shelf the counter sells from.'],
+      ['Book the courier', 'Book from the order or let your rules pick the courier, print labels in bulk and hand over the parcels.'],
+      ['Collect the cash', 'Match the courier\'s statement to your orders and see the true profit of every order.'],
     ]),
     shot({
       heading: 'Connect a channel in minutes',
-      body: 'The sales channels screen shows what is connected, when its last order came in, and what you can add. WooCommerce and Shopify connect by approving or installing; a website your developer built connects with its own key. Products are matched once, then prices and stock flow by themselves.',
+      body: 'The sales channels screen shows what is connected and when its last order came in. Shopify and WooCommerce connect by approving or installing; a website your developer built connects with its own key. Products are matched once, sure matches are linked by themselves, and stock and prices then flow without retyping.',
       id: SHOT.salesChannels,
       url: 'app.nafaa.pk/channels',
       layout: 'split-right',
@@ -595,35 +635,25 @@ const onlineStore = page({
         { x: 45, y: 29, label: 'Live channel and new orders' },
         { x: 30, y: 43, label: 'WooCommerce' },
         { x: 49, y: 43, label: 'Shopify' },
-        { x: 87, y: 43, label: 'Daraz and Foodpanda' },
+        { x: 87, y: 43, label: 'More channels' },
       ],
     }),
-    steps('From click to doorstep', [
-      ['Order arrives', 'From any channel, with the buyer, address and payment method, and a risk badge from their history with your shop.'],
-      ['Accept and pack', 'Choose the branch that ships it. Stock comes off the same shelf the counter sells from, and every channel sees the new number.'],
-      ['Book the courier', 'Choose the courier, print the label and hand over the parcel. Tracking updates on the order.'],
-      ['Collect the cash', 'Mark COD as collected when the courier pays out; reports show what is still due and what came back.'],
-    ]),
-    table('Which way to sell online', 'Most shops use more than one. All of them land in the same order list and the same stock.', [
+    table('Which way to sell online', 'Most sellers use more than one. All of them land in the same order desk and the same stock.', [
       { key: 'how', label: 'How it connects' },
       { key: 'best', label: 'Good for', highlight: true },
     ], [
-      ['Your own website', 'A site built by Nafaa or your developer, connected with a key', 'Shops that want their own name, prices and repeat buyers'],
+      ['Nafaa Stores', 'Build it in Nafaa: theme, checkout, free address or your own domain', 'Shops that want their own store website without a developer'],
       ['Shopify or WooCommerce', 'Install or approve the Nafaa connection', 'Stores already selling online that want one stock with the shop'],
+      ['Your developer\'s website', 'Connects with its own key', 'Businesses with a custom-built site'],
       ['Daraz', 'Connect your seller account', 'Reaching buyers across Pakistan without your own marketing'],
-      ['Foodpanda', 'Connect your restaurant', 'Restaurants and bakeries taking delivery orders'],
-      ['Nafaa Market', 'Publish products from Nafaa', 'Being found by nearby buyers on Nafaa\'s own marketplace'],
+      ['WhatsApp, Instagram, phone', 'Add the order by hand in the order desk', 'Sellers who take orders in chats'],
+      ['Foodpanda (coming soon)', 'Connect your restaurant', 'Restaurants and bakeries taking delivery orders'],
+      ['Nafaa Market (coming soon)', 'Publish products from Nafaa', 'Being found by new buyers on the Nafaa marketplace'],
     ]),
-    prose(`## Built for cash-on-delivery
-
-Most online orders in Pakistan are still paid on delivery, and the biggest cost is the parcel that comes back: courier charges both ways and stock stuck on the road. Nafaa shows each buyer's record with your shop before you ship, so you can call to confirm, ask for an advance or send a payment link to buyers who refused before. Reports show COD collected, COD still with the courier and the return rate by channel.
-
-## Who it is for
-
-Garment, shoe and cosmetics shops that sell on Instagram and a website, electronics and mobile shops listed on Daraz, restaurants on Foodpanda, and any shop that wants its counter and its online store to stop overselling each other. If you also want a website built, Nafaa's team can do that as a service.`),
+    callout('info', 'The online order desk is in the [Nafaa POS mobile app](/mobile-app) too, with a push alert for every new order. Channels, Nafaa Stores and couriers are add-ons to your plan; see [pricing](/pricing).', 'On the phone, and priced as add-ons'),
   ],
   faqKeys: ['mp-online-channels', 'mp-ecommerce-stock', 'sell-online'],
-  cta: { heading: 'Bring your online orders home', body: 'Connect your store and see every order next to your counter sales.' },
+  cta: { heading: 'Bring your online orders home', body: 'Build your store or connect your channels and see every order next to your counter sales.' },
   relations: [
     { ref: 'INDUSTRY:garments', kind: 'TAG' },
     { ref: 'INDUSTRY:cosmetics', kind: 'TAG' },
@@ -637,27 +667,43 @@ Garment, shoe and cosmetics shops that sell on Instagram and a website, electron
     { ref: 'GLOSSARY_TERM:cod', kind: 'RELATED' },
     { ref: 'PRODUCT:inventory', kind: 'RELATED' },
     { ref: 'PRODUCT:payments', kind: 'RELATED' },
+    { ref: 'PAGE:mobile-app', kind: 'RELATED' },
     { ref: 'GUIDE:start-selling-online-pakistan', kind: 'RELATED' },
     { ref: 'BLOG_POST:selling-online-pakistan', kind: 'RELATED' },
     { ref: 'CHANGELOG:shopify-app-install', kind: 'RELATED' },
+    { ref: 'CHANGELOG:nafaa-stores-website-builder', kind: 'RELATED' },
   ],
   sortOrder: 5,
   featured: true,
   evidence: [
+    'apps/api/src/integrations/stores/stores.service.ts',
+    'apps/api/src/integrations/stores/store-checkout.service.ts',
+    'apps/api/src/integrations/stores/store-domains.service.ts',
+    'apps/api/src/integrations/stores/store-shopify-import.service.ts',
+    'apps/api/src/integrations/stores/theme/presets.ts',
+    'apps/web/src/integrations/stores/pages/ThemeEditorPage.tsx',
     'apps/api/src/integrations/online-orders/shopify.service.ts',
     'apps/api/src/integrations/online-orders/woocommerce.service.ts',
     'apps/api/src/integrations/online-orders/daraz.service.ts',
-    'apps/api/src/integrations/online-orders/foodpanda.service.ts',
-    'apps/api/src/integrations/online-orders/website-setup.service.ts',
     'apps/api/src/integrations/channels/custom-website',
     'apps/api/src/integrations/online-orders/courier-api/registry.ts',
+    'apps/api/src/integrations/online-orders/couriers.ts',
     'apps/api/src/integrations/online-orders/customer-risk.ts',
-    'apps/api/src/integrations/online-orders/payment-links.service.ts',
-    'apps/api/src/integrations/google/feed.ts',
-    'apps/api/src/integrations/online-orders/stock-push.service.ts',
-    'apps/web/src/integrations/online-orders/components/OrderBranchPicker.tsx',
-    'apps/web/src/integrations/online-orders/components/OnlineOrderAlert.tsx',
+    'apps/web/src/integrations/online-orders/pages/AddOrderPage.tsx',
+    'apps/web/src/integrations/online-orders/pages/CallCenterPage.tsx',
+    'apps/web/src/integrations/online-orders/pages/PackPage.tsx',
+    'apps/web/src/integrations/online-orders/pages/ReturnScanPage.tsx',
+    'apps/web/src/integrations/online-orders/pages/CodReconcilePage.tsx',
+    'apps/web/src/integrations/online-orders/pages/ProfitPage.tsx',
+    'apps/web/src/integrations/online-orders/pages/TrackingMapPage.tsx',
+    'apps/web/src/integrations/online-orders/pages/CourierScorePage.tsx',
+    'apps/web/src/integrations/online-orders/pages/AutomationPage.tsx',
+    'apps/web/src/integrations/online-orders/pages/OnlineProductsPage.tsx',
+    'apps/web/src/integrations/online-orders/pages/PaymentsPage.tsx',
+    'apps/web/src/integrations/online-orders/pages/ProductRadarPage.tsx',
+    'apps/mobile/src/modules/online-store',
   ],
+  needsOwner: ['Screenshots are from before the 9 Nov order desk redesign and the Nafaa Stores builder; capture the new orders board and the theme editor.', 'Foodpanda (integration pending with Foodpanda) and Nafaa Market are marked coming soon.'],
 });
 
 const multiShop = page({
@@ -798,7 +844,7 @@ const reports = page({
   hero: {
     eyebrow: 'Reports',
     heading: 'Know your real profit, every single day',
-    sub: 'Not just sales. Nafaa subtracts cost and expenses so you see what you actually earned, which products carry the shop, and where the cash went, in English or Roman Urdu.',
+    sub: 'Not just sales. Nafaa subtracts cost and expenses so you see what you actually earned, which products carry the shop, and where the cash went, in English, Urdu or Roman Urdu.',
     media: { id: SHOT.dashboard, url: 'app.nafaa.pk/dashboard' },
     badges: ['Profit after cost', 'Day book', 'Excel export'],
   },
@@ -1094,6 +1140,7 @@ Shops in markets with weak signal, counters on a mobile hotspot, branches outsid
   faqKeys: ['offline', 'devices', 'mp-fbr-offline'],
   cta: { heading: 'Try it: turn off the Wi-Fi and keep selling' },
   relations: [
+    { ref: 'PAGE:mobile-app', kind: 'RELATED' },
     { ref: 'INDUSTRY:kiryana', kind: 'TAG' },
     { ref: 'INDUSTRY:pharmacy', kind: 'TAG' },
     { ref: 'INDUSTRY:hardware', kind: 'TAG' },

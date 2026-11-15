@@ -10,6 +10,8 @@
  * keeps the CMS plan table (PlanMatrix) it already had. The FAQ always shows.
  */
 import { BillCalculator } from '@/components/islands/BillCalculator';
+import { PlanFinderLazy as PlanFinder } from '@/components/islands/PlanFinderLazy';
+import { FINDER_ADDON_KEYS, MULTI_SHOP, planFinderStrings } from './planFinderStrings';
 import { formatCount } from '@/components/blocks/lib/format';
 import { cx } from '@/components/ui/cx';
 import { CmsIcon } from '@/lib/icons';
@@ -17,6 +19,7 @@ import type { CatalogAddOn, CatalogOffers, CatalogPlan, PricingCatalog } from '@
 import { fill, pricingV2Strings, type PricingV2Strings } from './pricingV2Strings';
 
 const GROUP_ORDER = ['Core', 'Business', 'Growth', 'Advanced'];
+
 
 function Heading({ id, kicker, title, intro }: { id: string; kicker: string; title: string; intro?: string }) {
   return (
@@ -164,7 +167,7 @@ export function AddOnsSection({ catalog, locale }: { catalog: PricingCatalog; lo
                         <div className="flex items-start justify-between gap-3">
                           <h4 className="text-body font-semibold text-fg-strong">{a.name}</h4>
                           {a.comingSoon ? (
-                            <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-medium text-fg-muted">{t.comingSoon}</span>
+                            <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-medium text-fg-strong">{t.comingSoon}</span>
                           ) : null}
                         </div>
                         {a.description ? <p className="mt-2 text-small text-fg-muted">{a.description}</p> : null}
@@ -214,6 +217,35 @@ export function CalculatorSection({ catalog, locale, signupUrl, highlight }: { c
         <Heading id="bill-calculator" kicker={t.calcKicker} title={t.calcHeading} intro={t.calcIntro} />
         <div className="mt-10">
           <BillCalculator plans={catalog.plans} addOns={catalog.addOns} t={t} signupUrl={signupUrl} trialDays={catalog.trialDays} defaultPlan={highlight} offers={catalog.offers} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** "Which plan fits your business?": the plan finder island with the catalog data it reads. */
+export function PlanFinderSection({ catalog, locale, signupUrl, tourHref }: { catalog: PricingCatalog; locale?: string; signupUrl: string; tourHref: string }) {
+  const t = planFinderStrings(locale);
+  if (!catalog.plans.some((p) => !p.isFree && p.priceMonthly > 0)) return null;
+  // Only what the finder reads goes into the island's props.
+  const plans = catalog.plans.map((p) => ({ ...p, features: p.features.filter((f) => f === MULTI_SHOP) }));
+  return (
+    <section aria-labelledby="plan-finder" className="py-section">
+      <div className="mx-auto box-content max-w-container px-gutter">
+        <Heading id="plan-finder" kicker={t.kicker} title={t.heading} intro={t.intro} />
+        <div className="mt-10">
+          <PlanFinder
+            plans={plans}
+            addOns={catalog.addOns.filter((a) => FINDER_ADDON_KEYS.has(a.key))}
+            multiShopFeature={catalog.features.some((f) => f.key === MULTI_SHOP)}
+            unlimited={catalog.unlimited}
+            t={t}
+            signupUrl={signupUrl}
+            trialDays={catalog.trialDays}
+            hasComparison={catalog.plans.length >= 2}
+            hasCalculator
+            tourHref={tourHref}
+          />
         </div>
       </div>
     </section>

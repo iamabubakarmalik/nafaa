@@ -17,7 +17,7 @@ import type { SiteLayout } from '@/lib/cms/client';
 import { cx } from '@/components/ui/cx';
 import { pathIn, shellStrings, type SiteLocale } from '@/lib/i18n/shell';
 import { LOGO_SPRITE } from './header/assets';
-import { HeaderBehavior, HeaderTools, MobileMenuButton } from './header/HeaderBehavior';
+import { HeaderBehavior, HeaderTools, MobileMenuButton, SearchButton } from './header/HeaderBehavior';
 import { headerModel } from './header/model';
 import { navHtml } from './header/render';
 import { whatsappHref, type NavItem } from './nav';
@@ -53,6 +53,7 @@ export function SiteHeader({ layout, locale = 'en', paired }: { layout: SiteLayo
           <Logo name={site.name} locale={locale} className="hdr-logo" />
           {entries.length ? <nav aria-label={t.mainNav} className="hdr-nav" data-mega-root dangerouslySetInnerHTML={{ __html: navHtml(entries) }} /> : null}
           <div className="hdr-end">
+            <SearchButton />
             <HeaderTools paired={paired} />
             <a href={site.appUrl} className="hdr-login" data-track="cta_click" data-track-label="Header: Log in">
               {t.logIn}

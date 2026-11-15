@@ -58,6 +58,21 @@ import whatsappBusiness from './posts/whatsapp-business-for-shops';
 import loyaltyPrograms from './posts/loyalty-programs-pakistan';
 import digitalPayments from './posts/digital-payments-jazzcash-easypaisa-raast';
 import festivalSeasons from './posts/festival-season-planning-pakistan';
+import switchPaperRegisterToPosWithoutLosingUdhaarPost from './posts/switch-paper-register-to-pos-without-losing-udhaar';
+import posSoftwareCostPakistanPost from './posts/pos-software-cost-pakistan';
+import posVsBillingVsAccountingSoftwarePost from './posts/pos-vs-billing-vs-accounting-software';
+import offlinePosInternetOutageLostSalesPost from './posts/offline-pos-internet-outage-lost-sales';
+import mobilePosAppVsDesktopPosPost from './posts/mobile-pos-app-vs-desktop-pos';
+import wholesaleSoftwareOrdersRoutesAndRecoveryPost from './posts/wholesale-software-orders-routes-and-recovery';
+import pharmacySoftwareChecklistBatchExpirySaltsPost from './posts/pharmacy-software-checklist-batch-expiry-salts';
+import restaurantPosChecklistKotTablesDeliveryPost from './posts/restaurant-pos-checklist-kot-tables-delivery';
+import garmentShopSoftwareSizesColoursBarcodesPost from './posts/garment-shop-software-sizes-colours-barcodes';
+import mobileShopSoftwareImeiWarrantyQistPost from './posts/mobile-shop-software-imei-warranty-qist';
+import bakerySoftwareCustomOrdersCostingWastagePost from './posts/bakery-software-custom-orders-costing-wastage';
+import choosePosForMultipleBranchesPost from './posts/choose-pos-for-multiple-branches';
+import freePosSoftwarePakistanWhatYouGetPost from './posts/free-pos-software-pakistan-what-you-get';
+import onlineStoreAndPosStockSyncPost from './posts/online-store-and-pos-stock-sync';
+import staffPermissionsChecklistPosSoftwarePost from './posts/staff-permissions-checklist-pos-software';
 
 const CHECKED_ON = '2026-10-20';
 
@@ -143,6 +158,21 @@ const POSTS: PostSpec[] = [
   loyaltyPrograms,
   digitalPayments,
   festivalSeasons,
+  switchPaperRegisterToPosWithoutLosingUdhaarPost,
+  posSoftwareCostPakistanPost,
+  posVsBillingVsAccountingSoftwarePost,
+  offlinePosInternetOutageLostSalesPost,
+  mobilePosAppVsDesktopPosPost,
+  wholesaleSoftwareOrdersRoutesAndRecoveryPost,
+  pharmacySoftwareChecklistBatchExpirySaltsPost,
+  restaurantPosChecklistKotTablesDeliveryPost,
+  garmentShopSoftwareSizesColoursBarcodesPost,
+  mobileShopSoftwareImeiWarrantyQistPost,
+  bakerySoftwareCustomOrdersCostingWastagePost,
+  choosePosForMultipleBranchesPost,
+  freePosSoftwarePakistanWhatYouGetPost,
+  onlineStoreAndPosStockSyncPost,
+  staffPermissionsChecklistPosSoftwarePost,
 ];
 
 export const blogPosts: SeedEntry[] = POSTS.map(post);

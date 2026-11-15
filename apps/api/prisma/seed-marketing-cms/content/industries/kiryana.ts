@@ -91,7 +91,7 @@ A kiryana store sells hundreds of small items to the same neighbourhood every da
 - **Show real profit.** Sales minus cost and expenses, not just the day's takings.
 - **Grow with you.** A second counter or a second branch should not mean new software.
 
-Nafaa does all of this on the phone or computer you already have, in English or Roman Urdu.`),
+Nafaa does all of this on the phone or computer you already have, in English, Urdu or Roman Urdu. Start from the ready [grocery product list](/product/product-library) with barcodes instead of typing every item, and use the [Nafaa POS app](/mobile-app) on your phone.`),
     prose(`## Moving your store onto Nafaa
 
 Most stores make the switch over a quiet afternoon, without closing the counter.
@@ -112,6 +112,8 @@ export default {
   ...entry,
   seoDescription: 'POS and khata software for kiryana and grocery stores: barcode billing, sale by piece or carton, udhaar with WhatsApp reminders, and billing without internet.',
   relations: [
+    { ref: 'PRODUCT:product-library', kind: 'RELATED' },
+    { ref: 'PAGE:mobile-app', kind: 'RELATED' },
     { ref: 'PRODUCT:pos', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },
     { ref: 'PRODUCT:inventory', kind: 'TAG' },

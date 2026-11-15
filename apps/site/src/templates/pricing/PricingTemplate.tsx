@@ -22,7 +22,8 @@ import { ShowcaseBody } from '../showcase/ShowcaseBody';
 import { TrustRibbon } from '../showcase/kit';
 import { loadPricingCatalog } from '@/lib/pricing/catalog';
 import { PlanMatrix } from './PlanMatrix';
-import { AddOnsSection, CalculatorSection, CatalogComparison } from './PricingV2';
+import { AddOnsSection, CalculatorSection, CatalogComparison, PlanFinderSection } from './PricingV2';
+import { pathIn } from '@/lib/i18n/shell';
 import { missingFaqs } from './pricingV2Strings';
 
 export async function PricingTemplate({ entry: cmsEntry }: { entry: PublicEntry }) {
@@ -46,6 +47,7 @@ export async function PricingTemplate({ entry: cmsEntry }: { entry: PublicEntry 
   // Catalog (pricing v2) drives the grouped comparison, add-ons and calculator; without it the CMS plan table stays.
   const matrix = catalog ? (
     <>
+      <PlanFinderSection catalog={catalog} locale={entry.locale} signupUrl={site.signupUrl} tourHref={pathIn(entry.locale === 'ur' ? 'ur' : 'en', '/tour')} />
       <CatalogComparison catalog={catalog} locale={entry.locale} highlight={highlight} />
       <AddOnsSection catalog={catalog} locale={entry.locale} />
       <CalculatorSection catalog={catalog} locale={entry.locale} signupUrl={site.signupUrl} highlight={highlight} />

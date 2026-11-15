@@ -62,7 +62,7 @@ The App Store listing now reads **"Udhaar Book is now Rupin"** and says accounts
         ['Extra services', 'Not offered', 'Mobile load, bill payments and vouchers with commission'],
         ['Staff', 'Logins with roles and permissions; attendance and payroll', 'Attendance, overtime, advances and salaries'],
         ['Without internet', 'Counter keeps billing; sales sync later', 'Not stated on the pages checked'],
-        ['Devices', 'Browser on any phone, tablet or computer; Windows app', 'Android, iOS and a web version'],
+        ['Devices', 'Android and iPhone app, browser on any device, Windows app', 'Android, iOS and a web version'],
         ['Price', 'Paid plans from {{price:min.monthly}} a month after a 7-day free trial', 'Described as "100% free"; the App Store lists it as Free'],
       ],
       SOURCES,

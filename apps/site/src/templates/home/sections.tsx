@@ -33,6 +33,7 @@ import { CmsIcon } from '@/lib/icons';
 import { CmsImage, mediaById } from '@/lib/media';
 import { dirFor } from '@/lib/cms/locale';
 import { uiStrings } from '@/lib/i18n/ui';
+import { pathIn, shellStrings } from '@/lib/i18n/shell';
 import { Arrow } from '../core/ui';
 import { HeroVisual } from './HeroVisual';
 import { Backdrop } from './decor';
@@ -288,6 +289,22 @@ export function HomeHero({
           <CtaButton cta={block.secondaryCta} size="lg" fallbackVariant="secondary" area="hero" className="justify-center" />
         </div>
         {note ? <p className="mt-4 text-small text-fg-subtle">{note}</p> : null}
+        <p className="mt-3">
+          <Link
+            href={pathIn(locale === 'ur' ? 'ur' : 'en', '/tour')}
+            prefetch={false}
+            className="group inline-flex items-center gap-2 rounded-full py-1 text-small font-semibold text-link"
+            data-track="cta_click"
+            data-track-label="Home hero: Take the tour"
+          >
+            <span aria-hidden className="flex size-6 items-center justify-center rounded-full bg-brand-700 text-white transition-transform group-hover:scale-110">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5.5v13l10.5-6.5z" />
+              </svg>
+            </span>
+            {shellStrings(locale).takeTour}
+          </Link>
+        </p>
         {badges.length ? (
           <ul className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-small text-fg-muted">
             {badges.map((badge, i) => (

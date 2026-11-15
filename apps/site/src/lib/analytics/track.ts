@@ -21,7 +21,11 @@ export type TrackEvent =
   | 'tool_used'
   | 'outbound_click'
   | 'form_start'
-  | 'theme_change';
+  | 'theme_change'
+  | 'tour_step'
+  | 'plan_finder'
+  | 'site_search'
+  | 'app_store_click';
 
 export const STORAGE_KEYS = { visitor: 'nafaa_vid', session: 'nafaa_sid', consent: 'nafaa_consent' } as const;
 

@@ -88,7 +88,10 @@ function readNav(): { sections: MSection[]; links: MLink[] } {
       links: Array.from(g.querySelectorAll<HTMLAnchorElement>(':scope > a')).map(readLink),
     }));
     const strip = li.querySelector<HTMLElement>('.hx');
-    const stripLinks = strip ? Array.from(strip.querySelectorAll<HTMLAnchorElement>(':scope > a:not(.ho)')).map(readLink) : [];
+    const stripLinks = strip ? Array.from(strip.querySelectorAll<HTMLAnchorElement>(':scope > a:not(.ho):not(.hw)')).map(readLink) : [];
+    // The panel's highlighted link (the product tour) joins the quick links.
+    const tour = strip?.querySelector<HTMLAnchorElement>(':scope > a.hw');
+    if (tour) links.push(readLink(tour));
     if (stripLinks.length) groups.push({ label: strip?.querySelector('p')?.textContent ?? '', kind: 'compact', links: stripLinks });
     const overview = li.querySelector<HTMLAnchorElement>('.hx > a.ho');
     const featured = li.querySelector<HTMLAnchorElement>('a.hf');

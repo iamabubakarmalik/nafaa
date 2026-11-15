@@ -32,6 +32,9 @@ const productHub = page({
   type: 'PAGE',
   slug: 'product',
   relations: [
+    { ref: 'PAGE:mobile-app', kind: 'RELATED' },
+    { ref: 'PRODUCT:product-library', kind: 'RELATED' },
+    { ref: 'PAGE:languages', kind: 'RELATED' },
     { ref: 'PAGE:pricing', kind: 'RELATED' },
     { ref: 'PAGE:solutions', kind: 'RELATED' },
     { ref: 'PAGE:industries', kind: 'RELATED' },
@@ -39,7 +42,7 @@ const productHub = page({
   ],
   title: 'Product',
   summary:
-    'Nafaa is one account for the whole business: the POS counter, stock, digital khata, purchasing, staff, reports, several branches and online orders from your own store or the Nafaa marketplace. Every product page shows how it works in the real app and is marked live, beta or coming soon.',
+    'Nafaa is one account for the whole business: the POS counter, stock, digital khata, purchasing, staff, reports, several branches and online orders from your own store website, Shopify, WooCommerce and Daraz. Every product page shows how it works in the real app and is marked live, beta or coming soon.',
   data: { template: 'hub', hubOf: 'PRODUCT' },
   seoTitle: 'Nafaa Product: POS, Inventory, Khata and Online Orders',
   seoDescription:
@@ -50,7 +53,7 @@ const productHub = page({
     heading: 'One account for the counter, the stock room and the books',
     sub: 'Billing, stock, khata, purchasing, staff, reports and online orders share one set of data, so a sale at the counter updates everything else on its own. Start with what you need today and switch on the rest as you grow.',
     media: { id: SHOT.dashboard, url: 'app.nafaa.pk/dashboard' },
-    badges: ['Keeps billing offline', 'English and Roman Urdu', 'WhatsApp built in'],
+    badges: ['Keeps billing offline', 'English, Urdu and Roman Urdu', 'WhatsApp built in'],
   },
   answer: {
     heading: 'Nafaa in one minute',
@@ -58,7 +61,7 @@ const productHub = page({
       ['Sell', 'POS counter on any phone, tablet or computer, also without internet'],
       ['Stock', 'Products, units, batches, low-stock alerts, purchasing and suppliers'],
       ['Money', 'Khata, expenses, cash register, profit and loss, accounting export'],
-      ['Grow', 'Several branches, staff roles, your own online store and Nafaa Market'],
+      ['Grow', 'Several branches, staff roles, your own online store, and Nafaa Market (coming soon)'],
       ['Price', '7 din Free Trial, then plans from {{price:min.monthly}} a month'],
     ],
     romanUrdu:
@@ -88,14 +91,14 @@ const productHub = page({
     ),
     shot({
       heading: 'The whole business on the phone in your pocket',
-      body: 'The dashboard, the counter and the khata run in the browser on Android and iPhone, so the owner sees today\'s sales from anywhere and a small shop can start with nothing else.',
+      body: 'The [Nafaa POS app](/mobile-app) for Android and iPhone runs the counter, stock and khata on the phone, even without internet, so the owner sees today\'s sales from anywhere and a small shop can start with nothing else.',
       id: SHOT.dashboardPhone,
       frame: 'phone',
       layout: 'split-left',
     }),
     features('Built for how business works in Pakistan', [
       ['wifi-off', 'Load-shedding proof', 'The counter keeps billing without internet and syncs when the connection returns.'],
-      ['languages', 'English and Roman Urdu', 'Screens and receipts in the words your team already uses.'],
+      ['languages', 'English, Urdu and Roman Urdu', 'Each person picks the language of their own screens.', undefined, '/languages'],
       ['wallet', 'Every way Pakistan pays', 'Cash, card, JazzCash, Easypaisa, bank transfer and khata, split in one bill.'],
       ['receipt-text', 'Tax invoices', 'Optional FBR/PRA integration, only if your business needs it.'],
       ['message-circle', 'WhatsApp built in', 'Receipts and khata reminders go out on WhatsApp.'],
@@ -118,14 +121,16 @@ const productHub = page({
       ['[Reports](/product/reports)', 'Day book, profit by product, P&L, staff, customers and audit', 'Owner and managers'],
       ['[Staff](/product/staff)', 'Logins, permissions, attendance, payroll and commission', 'Owner'],
       ['[Branches](/product/multi-shop)', 'Many shops on one account, with transfers and branch P&L', 'Head office'],
-      ['[Online orders](/product/online-store)', 'Website, Shopify, WooCommerce, Daraz and Foodpanda orders on one stock', 'The online team'],
+      ['[Online orders](/product/online-store)', 'Your own store website, Shopify, WooCommerce and Daraz orders on one stock, with couriers and COD', 'The online team'],
+      ['[Product library](/product/product-library)', 'Ready product lists per trade, including DRAP medicines with salts', 'Whoever sets up the shop'],
+      ['[Mobile app](/mobile-app)', 'Counter, stock, khata, reports and alerts on Android and iPhone', 'Owners and field staff'],
     ]),
     prose(`## Why one account beats several apps
 
 Many businesses run billing in one app, udhaar in a notebook, stock in Excel and online orders in WhatsApp chats. Each one is fine on its own, and together they never agree. In Nafaa a sale is written once: the counter takes the payment, stock goes down in the unit sold, the khata moves if it was on credit, the cash register knows what is in the drawer, and the reports change at the same moment. When a branch, an online store or a new staff member is added, they join the same data instead of starting a new copy.
 
 That is also why the [AI assistant](/product/ai-assistant) can answer questions across the whole business: everything it reads lives in the same place. See [pricing](/pricing) for the plans, or [solutions](/solutions) for how different kinds of business put the parts together.`),
-    callout('info', 'New: the [Nafaa AI assistant](/product/ai-assistant) answers questions about your own sales, stock and khata in plain English or Roman Urdu.', 'New'),
+    callout('info', 'New: the [Nafaa POS mobile app](/mobile-app) is on Google Play and the App Store, and [Nafaa AI](/product/ai-assistant) answers questions about your business in English, Urdu or Roman Urdu.', 'New'),
   ],
   faqKeys: ['every-business', 'hub-product-one-price', 'devices', 'offline', 'pricing'],
   cta: { heading: 'Open your Nafaa account today', body: '7 din Free Trial on the device you already have. No card needed.' },
@@ -537,9 +542,12 @@ const roadmapPage = page({
       {
         kind: 'timeline',
         items: [
-          { date: '13 Oct 2026', label: 'New app design', note: 'Cleaner sidebar, top bar and settings, in light and dark.' },
-          { date: '14 Oct 2026', label: 'Shopify app install', note: 'Connect a Shopify store through the Shopify install flow.' },
-          { date: 'New', label: 'AI business assistant', note: 'Ask about your own sales, stock and khata in plain English or Roman Urdu.' },
+          { date: '26 Oct 2026', label: 'Nafaa AI', note: 'Ask about your own business in plain words; actions you confirm.' },
+          { date: '30 Oct 2026', label: 'Wholesale and distribution', note: 'Order booker, delivery, routes, load sheets and recoveries.' },
+          { date: '2 Nov 2026', label: 'Three languages', note: 'The whole app in English, Urdu and Roman Urdu.' },
+          { date: '4 Nov 2026', label: 'Mobile app 2.0', note: 'Nafaa POS on Google Play, then the App Store on 9 Nov.' },
+          { date: '13 Nov 2026', label: 'Nafaa Stores', note: 'Build your own online store website with themes and checkout.' },
+          { date: 'Next', label: 'Nafaa Market', note: 'The Nafaa marketplace for shops that use Nafaa, opening soon.' },
         ],
         animate: true,
       },
@@ -557,7 +565,9 @@ const roadmapPage = page({
 });
 
 // ─── PRODUCT:ai-assistant ───
-// Shown as available on the owner's instruction (21 Oct 2026: the feature is about to ship).
+// Rewritten 15 Nov 2026 to match Nafaa AI as built (70787e2f and later):
+// drawer on every page, saved chats, tools across the business, actions with
+// a confirm card, voice, charts and the morning summary.
 
 const aiAssistant = page({
   type: 'PRODUCT',
@@ -567,73 +577,111 @@ const aiAssistant = page({
     { ref: 'PRODUCT:reports', kind: 'RELATED' },
     { ref: 'PRODUCT:inventory', kind: 'RELATED' },
     { ref: 'PRODUCT:khata', kind: 'RELATED' },
+    { ref: 'PAGE:languages', kind: 'RELATED' },
+    { ref: 'PAGE:mobile-app', kind: 'RELATED' },
   ],
-  title: 'AI Business Assistant',
+  title: 'Nafaa AI Business Assistant',
   summary:
-    'The Nafaa AI business assistant answers questions about your own sales, stock and khata in plain English or Roman Urdu. Ask in your own words and get a short answer from your Nafaa data, with the numbers behind it. It only reads the business data your account is allowed to see.',
-  data: { icon: 'sparkles', shortName: 'AI assistant', benefit: 'Ask Your Business in Plain Words', status: 'live' },
-  seoTitle: 'Nafaa AI Assistant: Ask Your Business in Plain Words',
-  seoDescription: 'The Nafaa AI business assistant answers questions about your sales, stock and khata in English or Roman Urdu, from your own business data.',
+    'Nafaa AI answers questions about your own business in English, Urdu or Roman Urdu: sales, profit, stock, khata, expenses, staff, online orders, couriers and distribution. It opens from any page, shows the numbers and charts behind each answer, can prepare a bill, expense or stock change for you to confirm, and sends a morning summary.',
+  data: { icon: 'sparkles', shortName: 'Nafaa AI', benefit: 'Ask Your Business in Plain Words', status: 'live' },
+  seoTitle: 'Nafaa AI: Business Assistant in Urdu and English',
+  seoDescription: 'Ask Nafaa AI about your sales, profit, stock and khata in English, Urdu or Roman Urdu. Answers from your own data, with actions you confirm first.',
   focusKeyword: 'ai business assistant',
   hero: {
-    eyebrow: 'New in Nafaa',
+    eyebrow: 'Nafaa AI',
     heading: 'Ask your business a question, in your own words',
-    sub: 'The Nafaa AI assistant answers questions about your own sales, stock and khata. Type in English or Roman Urdu and get a short answer with the numbers behind it, without opening several reports.',
+    sub: 'Nafaa AI sits on every page of the app. Ask about today\'s sale, who owes you money or what to reorder, in English, Urdu or Roman Urdu, and get a short answer with the numbers behind it. When you want something done, it prepares it and waits for you to confirm.',
     primary: { label: 'Start 7-day free trial', href: 'signup', trackAs: 'hero_trial' },
     secondary: { label: 'Book a demo', href: 'demo', trackAs: 'hero_demo' },
-    badges: ['English and Roman Urdu', 'Reads only your own data', 'Answers with the numbers'],
+    badges: ['English, Urdu and Roman Urdu', 'Reads only what you may see', 'Nothing changes without your OK'],
   },
   answer: {
     heading: 'In short',
     facts: [
-      ['What it does', 'Answers questions about your sales, stock and khata from your own Nafaa data'],
-      ['Languages', 'English and Roman Urdu'],
-      ['Data access', 'Only the business data the asking account is allowed to see'],
+      ['What it does', 'Answers questions about your business from your own Nafaa data, with numbers and charts'],
+      ['Where', 'A side panel on every page of the web app, a full page, and the Nafaa POS mobile app'],
+      ['Actions', 'Prepares bills, products, customers, khata payments, expenses, stock changes and purchase orders for you to confirm'],
+      ['Languages', 'English, Urdu and Roman Urdu'],
+      ['Data access', 'Only what the asking person is allowed to see in the app'],
     ],
-    romanUrdu: 'Nafaa AI assistant se apni sale, stock aur khata ke baare me apne alfaaz me sawal poochein, English ya Roman Urdu me, aur seedha jawab payein.',
+    romanUrdu: 'Nafaa AI se apni Sale, Profit, Stock aur khata ke baare me apne alfaaz me poochein, English, Urdu ya Roman Urdu me. Jawab aap ke apne data se aata hai, aur koi bhi kaam aap ke confirm karne ke baad hi hota hai.',
   },
   body: [
-    features('What it does', [
-      ['message-square', 'Plain-word questions', 'Ask "Which products made the most profit this month?" and get the answer with the numbers.'],
-      ['chart-line', 'Explain changes', 'See why today\'s sales are up or down against last week.'],
-      ['boxes', 'Stock nudges', 'Know what to reorder before it runs out.'],
+    features('What Nafaa AI does', [
+      ['message-square', 'Answers in plain words', 'Ask "Is mahine sab se zyada Profit kis cheez par hua?" and get the answer with the numbers behind it.'],
+      ['chart-line', 'Charts and comparisons', 'Compare today with last week, one branch with another, or this month with the last, with a chart in the answer.'],
+      ['boxes', 'Reorder and stock', 'What is running low, how many days of stock are left and what to order, ready to turn into a purchase order.'],
+      ['circle-check', 'Actions you confirm', 'Ask it to make a bill, add a customer, record an expense or fix a price. It fills a card; you check it and press Confirm.'],
+      ['bell-ring', 'Morning summary', 'Yesterday\'s sale, profit, expenses, udhaar and low stock in one message each morning.'],
+      ['languages', 'Three languages and voice', 'Type or speak in English, Urdu or Roman Urdu, and have the answer read aloud.'],
     ]),
     prose(`## Questions owners ask every day
 
-Most owners want the same few answers before they open the shop and after they close it. The assistant gives them in one line, from the same numbers the app already keeps:
+Most owners want the same few answers before they open the shop and after they close it. Nafaa AI gives them in one line, from the same numbers the app already keeps:
 
 - "Aaj ki sale kitni hui, aur kal se zyada hai ya kam?"
 - "Which products made the most profit this month?"
-- "Kis gahak ka udhaar ek mahine se purana hai?"
+- "Kis customer ka udhaar ek mahine se purana hai?"
 - "What should I reorder before the weekend?"
-- "Which branch sold the most yesterday?"
+- "Which branch sold the most yesterday, and which cashier?"
+- "Kitne online orders courier ke paas phanse hue hain?"
 
-Each answer shows the numbers behind it, so you can check them, and links to the screen where the full detail lives.
+Each answer shows the figures behind it, often with a small chart, and suggests two or three follow-up questions. You can copy an answer or send it on WhatsApp, and every chat is saved, so you can search, rename, pin or delete it later.
 
-## Where the answers come from
+## It knows the whole business
 
-The assistant reads what already runs on Nafaa: bills from the [POS counter](/product/pos), stock and purchases from [inventory](/product/inventory), udhaar and payments from the [digital khata](/product/khata), and the figures in [reports](/product/reports). It does not guess. If a number is not in your Nafaa data, it says so instead of making one up. The more of your business runs on Nafaa, the more it can answer.
+Nafaa AI reads what already runs on Nafaa, through the same reports the app uses, so its "yesterday" is the dashboard's "yesterday":
 
-## English or Roman Urdu, your choice
+- **Counter and profit:** sales, bills, discounts, returns, profit by product and category, the cash drawer and expenses.
+- **Stock:** stock value, low stock, stock movements and a forecast of what will run out.
+- **Customers:** the [khata](/product/khata), oldest udhaar, best customers and loyalty points.
+- **Buying:** purchases, suppliers and what you owe them.
+- **Team and branches:** staff performance and a side-by-side view of branches.
+- **Online:** orders, abandoned carts, COD with each courier, delivery by city and ad spend against sales.
+- **Distribution:** the daily sales report, route recovery, van stock and targets for [wholesale and distribution](/solutions/wholesale-distribution).
 
-Most people who use Nafaa type in Roman Urdu, and many switch between the two in one sentence. The assistant understands both, so a question like "is hafte sab se zyada kya bika?" works as well as "what sold the most this week?". Terms such as [khata](/glossary/khata) and [udhaar](/glossary/udhaar) mean what they mean in your shop.
+If a number is not in your Nafaa data, it says so instead of making one up. The more of your business runs on Nafaa, the more it can answer.
+
+## Actions, with you in charge
+
+Nafaa AI can also do routine work for you. Ask it to make a sale, add a product or customer, record a khata payment, an expense or other income, adjust stock, change a price or draft a purchase order. It matches the names you used to your real products and customers (and asks when a name is unclear), works out totals and stock, and shows a card with every field you can edit. Nothing happens until you press **Confirm**. The action then runs through the same screen logic the app uses, with the same counter rules and permissions, and the activity log records that it was done through Nafaa AI.
+
+Some things it never does: delete anything, void or refund a bill, or change settings, users, permissions or your plan.
+
+## English, Urdu or Roman Urdu
+
+Ask in English and it answers in English; ask in Roman Urdu and it answers in Roman Urdu; if your app is set to Urdu, the answer comes in Urdu script. Business words such as Sale, Profit, Stock and Discount stay in English, the way shops already say them. On computers with Chrome or Edge you can speak your question, and any answer can be read aloud. See [Nafaa in three languages](/languages) for the rest of the app.
 
 ## Your data stays yours
 
-The assistant reads only your own business data, within the permissions of the account that asks. A cashier who cannot see profit in the app cannot ask the assistant for it either. It does not change prices, stock or bills by itself; any change still needs a person to make it in the app. The [reports](/product/reports) are always there when you want the full detail: profit by product, profit and loss and stock in one place.
+Nafaa AI reads only your own business data, and only what the person asking is allowed to see. A cashier who cannot see profit in the app cannot ask Nafaa AI for it either. Owners decide who can use it through staff permissions. The [reports](/product/reports) are always there when you want the full detail.
 
-## Made for every kind of business
+## On the phone too
 
-A [kiryana store](/industries/kiryana) asks which items are running low. A [pharmacy](/industries/pharmacy) asks which batches expire soon. A [restaurant](/industries/restaurant) asks which dishes sold most at lunch. A [garments shop](/industries/garments) asks which sizes are moving. A [bakery](/industries/bakery) asks what sold out before evening, and a [mobile shop](/industries/mobile-shop) asks which models earn the most. The questions change; the answers come from the same counter, stock and khata.
+Nafaa AI is in the [Nafaa POS mobile app](/mobile-app) as well, so an owner away from the shop can ask how the day is going. The morning summary arrives as a notification on the phone and in the app, at the report time set in Settings.
 
-## Getting started
+## Plans and limits
 
-Open the assistant from inside Nafaa and type your first question. There is nothing to set up: it already knows your products, customers and branches because they live in the same account. Start with yesterday's sale, then ask about udhaar and low stock, and you will see within a minute what it can do for your business.`),
+Nafaa AI is part of the plans shown on the [pricing page](/pricing), each with a daily number of questions. Shops that use it heavily can add **Nafaa AI Plus** for more questions and reports. Simple questions such as the morning summary are answered straight from your numbers, which keeps it fast.`),
   ],
   cta: { heading: 'Ask your first question', body: 'Start the 7-day free trial and ask about your own business in plain words.', primary: { label: 'Start free trial', href: 'signup', trackAs: 'cta_trial' }, secondary: { label: 'Message us on WhatsApp', href: 'whatsapp', trackAs: 'cta_whatsapp' } },
   sortOrder: 99,
-  evidence: ['apps/web/src/modules/ai-assistant/index.ts'],
-  needsOwner: ['Marketed as available on the owner\'s instruction (21 Oct 2026). Confirm plan availability before launch.'],
+  evidence: [
+    'apps/web/src/modules/ai-assistant/index.ts',
+    'apps/web/src/modules/ai-assistant/components/AiDrawer.tsx',
+    'apps/web/src/modules/ai-assistant/components/AiHistory.tsx',
+    'apps/web/src/modules/ai-assistant/components/AiActionCard.tsx',
+    'apps/web/src/modules/ai-assistant/components/AiChartView.tsx',
+    'apps/web/src/modules/ai-assistant/voice.ts',
+    'apps/api/src/modules/ai-assistant/ai-tools.service.ts',
+    'apps/api/src/modules/ai-assistant/ai-actions.service.ts',
+    'apps/api/src/modules/ai-assistant/morning-summary.service.ts',
+    'apps/api/src/modules/ai-assistant/ai-prompt.ts',
+    'apps/api/src/modules/ai-assistant/ai.config.ts',
+    'apps/api/src/modules/billing/entitlements/feature-catalog.ts',
+    'apps/mobile/src/modules/ai-assistant',
+  ],
+  needsOwner: ['Which plans include Nafaa AI and the daily question limits come from the plan table; the page does not state them.'],
 });
 
 // ─── Content hubs (rendered by the article hub templates) ───

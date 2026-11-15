@@ -17,3 +17,30 @@
 .ftr-nav a {
   @apply inline-flex flex-wrap items-center gap-y-1 text-small text-fg-muted transition-colors duration-fast hover:text-fg-strong;
 }
+
+/* App store badges: black, official-style, the same in both themes. */
+.ftr-apps {
+  @apply flex flex-wrap gap-2.5;
+}
+.ftr-badge {
+  @apply inline-flex h-10 items-center gap-1.5 rounded-[8px] border border-[#a6a6a6] bg-black pe-3 ps-2 text-white transition-[filter] hover:brightness-125;
+  direction: ltr;
+}
+.ftr-badge svg {
+  @apply size-[22px] flex-none;
+}
+.ftr-badge span {
+  @apply flex flex-col text-start leading-none;
+}
+.ftr-badge small {
+  @apply text-[0.5rem] font-medium uppercase tracking-[0.04em];
+}
+.ftr-badge[data-store='apple'] small {
+  @apply normal-case tracking-normal text-[0.5625rem];
+}
+.ftr-badge b {
+  @apply mt-0.5 text-[0.9375rem] font-semibold tracking-[-0.01em];
+}
+.ftr-badge:focus-visible {
+  @apply outline outline-2 outline-offset-2 outline-[rgb(var(--c-ring))];
+}

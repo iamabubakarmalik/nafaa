@@ -61,7 +61,7 @@ Vend was a popular cloud POS for retailers. Lightspeed's own page now says "Vend
         ['Stock', 'Variants, units, batches, transfers, stock counts and supplier purchases', 'Products, variants and stock across channels; landed costs and forecasting on higher plans'],
         ['Wholesale sourcing', 'Not offered', 'Lightspeed Wholesale and NuORDER catalog for ordering from brands'],
         ['Staff', 'Roles for Discounts, refunds and seeing Cost; attendance and payroll', 'Staff reports; custom user roles on higher plans'],
-        ['Devices', 'Browser on any phone, tablet or computer; Windows app', 'iPad POS, countertop hardware, iOS and Android scanner app'],
+        ['Devices', 'Android and iPhone app, browser on any device, Windows app', 'iPad POS, countertop hardware, iOS and Android scanner app'],
         ['Support', 'WhatsApp and video calls, in Urdu or English', '24/7 chat and phone support'],
       ],
       SOURCES,

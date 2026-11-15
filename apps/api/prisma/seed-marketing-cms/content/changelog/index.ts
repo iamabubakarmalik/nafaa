@@ -1,5 +1,5 @@
 /**
- * Changelog entries for work shipped between 13 and 26 Oct 2026. The two
+ * Changelog entries for work shipped between 13 Oct and 15 Nov 2026. The two
  * earlier entries (new-design, shopify-app-install) live in
  * main-pages/hubs.ts next to the /changelog hub.
  *
@@ -56,6 +56,271 @@ function change(c: ChangeSpec): SeedEntry {
 }
 
 const CHANGES: ChangeSpec[] = [
+  // ─── Late October and November 2026 (added 15 Nov 2026, round 7) ───
+  {
+    slug: 'live-support-chat',
+    related: ['PAGE:contact', 'PAGE:help', 'PAGE:mobile-app'],
+    title: 'Live support chat inside Nafaa',
+    date: '2026-11-15',
+    kind: 'new',
+    summary: 'Chat with the Nafaa team from inside the app: Nafaa AI answers common questions first, and a person from our team takes over when you ask.',
+    seoDescription: 'Nafaa Support chat inside the web and mobile app: Nafaa AI answers common questions first, then our team takes over, with screenshots, files and voice notes.',
+    markdown: `## What changed
+
+Help is now one tap away inside Nafaa. Open **Nafaa Support** from the app and write to us the way you would on WhatsApp:
+
+- Messages show when they are delivered and read, and you can see when our team is typing.
+- Send screenshots, files and voice notes.
+- **Nafaa AI** answers common questions straight away, in your language. Ask to talk to the support team and a person takes over.
+- On a computer, our team can call you and, with your permission, see your screen to guide you step by step.
+- Replies reach you as a notification even when the app is closed.
+
+## On the phone
+
+The chat, photos and files work in the Nafaa POS mobile app now. Voice notes and calls on the phone come with the next app update in the stores.`,
+    commits: ['804a6105'],
+    evidence: [`${W}/modules/support/components/SupportChat.tsx`, `${W}/modules/support/lib/call.ts`, 'apps/api/src/modules/support/support-ai.service.ts', 'apps/mobile/src/modules/support'],
+  },
+  {
+    slug: 'nafaa-stores-website-builder',
+    related: ['PRODUCT:online-store', 'SOLUTION:ecommerce'],
+    title: 'Nafaa Stores: build your own store website',
+    date: '2026-11-13',
+    kind: 'new',
+    summary: 'Shops can now build their own online store website in Nafaa, with themes, a theme editor, checkout, a free store address, their own domain and a move from Shopify.',
+    seoDescription: 'Nafaa Stores is live: build a store website from your Nafaa products with themes, checkout, a free stores.nafaa.pk address, your own domain and a Shopify move.',
+    markdown: `## What changed
+
+**Nafaa Stores** turns the products, prices and stock already in Nafaa into a store website:
+
+- Four themes made for clothing and shoes, electronics, grocery and pharmacy, and beauty, with a theme editor and live preview.
+- Collections, pages, menus, a blog, policies, shipping zones and rates.
+- Checkout with cash-on-delivery and the payment accounts you connect, an advance on risky COD orders and a WhatsApp confirm step.
+- A free address on stores.nafaa.pk, or your own domain with the DNS records shown on screen.
+- Move from Shopify: collections, pages, blog posts, menus, redirects, policies and customers, plus a Shopify theme import as a starting draft.
+- Fill the store's Urdu text with Nafaa AI.
+
+Website orders arrive in the same order desk as every other channel, with couriers, COD checks and dispatch. A column in Products & stock shows what is on the website.`,
+    commits: ['e13df49c', '76833646', '6d49b6ea', '9ca13e71'],
+    evidence: ['apps/api/src/integrations/stores/stores.service.ts', 'apps/api/src/integrations/stores/theme/presets.ts', 'apps/api/src/integrations/stores/store-domains.service.ts', 'apps/api/src/integrations/stores/store-shopify-import.service.ts', `${W}/integrations/stores/pages/ThemeEditorPage.tsx`],
+  },
+  {
+    slug: 'plans-free-plan-and-add-ons',
+    related: ['PAGE:pricing'],
+    title: 'New plans: a Free plan and add-ons',
+    date: '2026-11-12',
+    kind: 'new',
+    summary: 'Plans now come with a clear feature list, a Free plan for very small shops, and add-ons that switch on only the parts a business uses, such as an online store, channels or distribution.',
+    seoDescription: 'Nafaa plans now have feature lists, a Free plan for very small shops, optional add-ons for online selling, distribution and more, and one-time setup help.',
+    markdown: `## What changed
+
+- **Free plan.** Very small shops can keep using Nafaa for free with one shop, one user and small limits.
+- **Feature lists.** Each plan lists what it includes, and the [pricing page](/pricing) compares them side by side.
+- **Add-ons.** Shopify, WooCommerce, Daraz, your own store website, courier booking, distribution (by the number of bookers), extra shops and users, and Nafaa AI Plus are switched on only when you need them. An add-on appears in the menu only after you turn it on.
+- **Setup help.** Assisted setup online, or Full activation with our team at your shop, as one-time options.
+- **Clear dates.** The billing page shows the exact date and time your plan ends, with reminders before it does. If a plan ends, the app pauses until renewal; nothing is deleted.`,
+    commits: ['40e9da39', 'e0bbeefd', '01977c2c', 'b1ed2b1d'],
+    evidence: ['apps/api/src/modules/billing/entitlements/feature-catalog.ts', 'apps/api/src/modules/billing/pricing/billing-lifecycle.service.ts', `${W}/modules/billing/pricing/components/PlanGate.tsx`, `${W}/modules/billing/pricing/components/AddOnSheet.tsx`],
+  },
+  {
+    slug: 'channel-price-safety',
+    related: ['PRODUCT:online-store', 'PRODUCT:inventory'],
+    title: 'Price safety for online channels',
+    date: '2026-11-10',
+    kind: 'improved',
+    summary: 'A price push that would cut or raise a channel price by a large amount now waits for your OK, and product links between Nafaa and your channels are checked for mistakes.',
+    seoDescription: 'Large price changes to Shopify, WooCommerce and Daraz now wait for your OK, suspect product links are flagged, and each product form has one category field.',
+    markdown: `## What changed
+
+- **Price guard.** A price push to Shopify, WooCommerce or Daraz is held when it would drop the channel price by 40% or more, raise it by 150% or more, or differ by 40% on the first push. You confirm or decline it.
+- **Safer linking.** Products are only linked automatically when their names share real words or their SKU or barcode match exactly. Links that look wrong are listed so you can unlink them or keep them.
+- **One category field** on every product form, in every industry, with a quick "+ new category".`,
+    commits: ['5d73c32b'],
+    evidence: [`${W}/integrations/online-orders/pages/OnlineProductsPage.tsx`],
+  },
+  {
+    slug: 'product-library',
+    related: ['PRODUCT:product-library', 'INDUSTRY:pharmacy', 'INDUSTRY:kiryana'],
+    title: 'Product library: ready product lists for every trade',
+    date: '2026-11-10',
+    kind: 'new',
+    summary: 'Start from a ready product list: more than 21,000 medicines from the DRAP price index for pharmacies, grocery items with barcodes, and starter lists for 23 other trades.',
+    seoDescription: 'New product library in Nafaa: DRAP medicines with salts and MRP, grocery items with barcodes and starter lists for 23 trades, plus a Same formula button.',
+    markdown: `## What changed
+
+The new **product library** replaces typing products one by one:
+
+- **Pharmacy:** 21,785 medicines from the DRAP Pharmaceutical Product Price Index, with salts and strength, form, pack, company, registration number and MRP. Cost is worked out from a margin you set.
+- **Grocery:** 1,720 items, 1,069 with barcodes.
+- **Starter lists** for 23 other trades, with estimated prices marked as such.
+
+Search, tick what you sell, choose the branch and opening stock, and the products are created in the background. Items you already have are not created twice.
+
+## Same formula at the pharmacy counter
+
+Every medicine line on a pharmacy bill now has a **Same formula** button. It shows the other medicines you stock with the same salts and strength, with their prices, so you can swap or add a substitute in one tap.`,
+    commits: ['d4501321', '8a0eb1e9'],
+    evidence: ['apps/api/src/modules/inventory/products/library/library-data.ts', `${W}/modules/inventory/products/library/ProductLibrary.tsx`, 'apps/api/src/industries/pharmacy/common/strength.ts'],
+  },
+  {
+    slug: 'two-way-channel-sync-and-growth-tools',
+    related: ['PRODUCT:online-store', 'SOLUTION:ecommerce'],
+    title: 'Two-way channel sync and online growth tools',
+    date: '2026-11-09',
+    kind: 'new',
+    summary: 'Choose where each price is changed, sync names, descriptions, pictures and stock both ways with your website, and use new tools to win back buyers and confirm orders.',
+    seoDescription: 'Nafaa now syncs price, name, description, pictures and stock both ways with your website, and adds a confirmation call queue, coupons, product radar and more.',
+    markdown: `## What changed
+
+**Channel sync.** For each channel, choose where prices are changed: in Nafaa, on the website, or whichever changed last. A website price change made after Nafaa's push is held for you to pick instead of being overwritten. A "sync everything" preset keeps price, name, description and pictures in step both ways, imports new website products and takes hand-edited website stock in as an adjustment.
+
+**Growth tools** in the online store workspace:
+
+- A **call center** queue for confirming new orders, with callbacks and a call log.
+- **Abandoned carts** and coupon automation with personal codes.
+- **Product radar:** items rising and falling, and products bought together.
+- **Reviews**, **loyalty** for online buyers and an order tracking page for buyers.
+- **International pricing** for a custom storefront, with country prices and exchange rates.`,
+    commits: ['080f8bd2', 'd4501321'],
+    evidence: [`${W}/integrations/online-orders/pages/CallCenterPage.tsx`, `${W}/integrations/online-orders/pages/ProductRadarPage.tsx`, `${W}/integrations/online-orders/pages/ConversionPage.tsx`, `${W}/integrations/online-orders/pages/InternationalPage.tsx`],
+  },
+  {
+    slug: 'online-order-desk-and-dispatch',
+    related: ['PRODUCT:online-store', 'SOLUTION:ecommerce', 'PAGE:mobile-app'],
+    title: 'New online order desk, dispatch and courier tools',
+    date: '2026-11-09',
+    kind: 'new',
+    summary: 'A new online store workspace: an orders board, add and fully edit orders, scan-to-pack dispatch, a live parcel map, a courier scorecard, automation rules and more couriers.',
+    seoDescription: 'New Nafaa online order desk: orders board, add and edit orders, scan-to-pack dispatch, parcel map, courier scorecard, automation rules and more couriers.',
+    markdown: `## What changed
+
+- **Orders board** for every channel, with **add order** for WhatsApp, Instagram and phone orders, and **full order edit**.
+- **Dispatch:** scan items while packing, scan parcels out, print labels and invoices in bulk, and scan returns back into stock.
+- **Parcel map** of Pakistan showing every parcel by city, with lists of stuck, failed and returning parcels.
+- **Courier scorecard:** delivery rate, returns, days to deliver and COD payment delay per courier and city; the best courier per city can go into auto-booking.
+- **Automation:** "if this, then that" rules on orders and stock, plus ready-made recipes.
+- **More couriers**, including InstaWorld and ShipNOC booking, and tracking for Tranzo, Swyft, BarqRaftar, Pakistan Post and others.
+- **Products & stock** redesigned, with suppliers per product, a category tree, better packs and units, and selling when out of stock (backorder) per product and channel.
+
+The online store workspace is in the Nafaa POS mobile app too.`,
+    commits: ['5f87d973', '8e83595f', '85084db5', 'b304805f', '45c4e60e', '55631b60'],
+    evidence: [`${W}/integrations/online-orders/pages/OnlineOrdersPage.tsx`, `${W}/integrations/online-orders/pages/AddOrderPage.tsx`, `${W}/integrations/online-orders/pages/DispatchScanPage.tsx`, `${W}/integrations/online-orders/pages/TrackingMapPage.tsx`, `${W}/integrations/online-orders/pages/CourierScorePage.tsx`, `${W}/integrations/online-orders/pages/AutomationPage.tsx`, 'apps/api/src/integrations/online-orders/couriers.ts'],
+  },
+  {
+    slug: 'nafaa-pos-on-the-app-store',
+    related: ['PAGE:mobile-app'],
+    title: 'Nafaa POS is on the App Store',
+    date: '2026-11-09',
+    kind: 'new',
+    summary: 'The Nafaa POS app is now on the App Store for iPhone and iPad. Sign in with your Nafaa account, including Sign in with Apple.',
+    seoDescription: 'Nafaa POS is now on the App Store for iPhone and iPad: billing, stock, khata and reports, working offline. Sign in with your existing Nafaa account.',
+    markdown: `## What changed
+
+Nafaa POS 2.0 is live on the [App Store](https://apps.apple.com/pk/app/nafaa-pos-business-manager/id6769007778) for iPhone and iPad, with the same offline engine, counter, stock, khata, reports, alerts and three languages as the Android app.
+
+On iPhone and iPad the app is for signing in to an existing Nafaa account. Create your account at nafaa.pk or in the Android app, then sign in on the iPhone with the same login or with Sign in with Apple. See the [mobile app](/mobile-app) page.`,
+    commits: ['a9dc75fd', 'aac73f5d'],
+    evidence: ['apps/mobile/app.json', 'apps/mobile/src/modules/auth/components/AppleButton.tsx'],
+  },
+  {
+    slug: 'nafaa-pos-mobile-app-2',
+    related: ['PAGE:mobile-app', 'PRODUCT:offline-pos'],
+    title: 'Nafaa POS 2.0 mobile app on Google Play',
+    date: '2026-11-04',
+    kind: 'new',
+    summary: 'The Nafaa POS app is rebuilt from the ground up and live on Google Play: a new design, full offline billing that syncs by itself, three languages and push alerts.',
+    seoDescription: 'Nafaa POS 2.0 is on Google Play: rebuilt app with offline billing that syncs by itself, khata, stock, reports, push alerts and English, Urdu and Roman Urdu.',
+    markdown: `## What changed
+
+Nafaa POS 2.0 is a new app, built again from the start:
+
+- **Offline engine.** Products, stock, customers and the last 30 days of bills live on the phone. Bills, new customers and khata payments made offline are sent by themselves later, never twice.
+- **New design** with light and dark mode, and a Home with today's sale, profit and a daily target.
+- **Every business type:** screens for 30 trades, plus the order booker and delivery screens for distributors.
+- **Alerts:** new sales, payments, low stock, online orders and more as push notifications, with a choice per person, quiet hours and alert tones.
+- **English, Urdu and Roman Urdu.**
+- **Nafaa AI** inside the app.
+
+Get it on [Google Play](https://play.google.com/store/apps/details?id=com.nafaa.app). See the [mobile app](/mobile-app) page for details.`,
+    commits: ['61acd6ba', 'aac73f5d', '42e868cd', 'f713ecb5', '991877a6'],
+    evidence: ['apps/mobile/src/core/offline/README.md', 'apps/mobile/src/modules/notifications/api/notifications.ts', 'apps/mobile/app.json'],
+  },
+  {
+    slug: 'three-languages',
+    related: ['PAGE:languages', 'PRODUCT:ai-assistant'],
+    title: 'Nafaa in English, Urdu and Roman Urdu',
+    date: '2026-11-02',
+    kind: 'new',
+    summary: 'The whole Nafaa app now works in English, Urdu (right to left) and Roman Urdu. Each person picks their own language; new accounts start in English.',
+    seoDescription: 'The whole Nafaa app now works in English, Urdu (right to left) and Roman Urdu. Each person picks their own language from login, profile menu or Settings.',
+    markdown: `## What changed
+
+- Every screen of the web app, and messages from the server, are now in **English, Urdu and Roman Urdu**, in simple words.
+- **Urdu** turns the whole screen right to left, with an Urdu font made for screens; Nastaliq styles can be chosen under Appearance.
+- **Each person chooses** their language on the login page, at sign-up, from the profile menu or in Settings.
+- New accounts start in English. Existing users stay on Roman Urdu until they switch, so no one's screen changed overnight.
+
+See [Nafaa in three languages](/languages).`,
+    commits: ['afc5f974', 'cb824e15', 'fe626f0b'],
+    evidence: [`${W}/core/i18n/locales.ts`, `${W}/core/i18n/components/LanguagePicker.tsx`, `${W}/design-system/tokens/typography.ts`],
+  },
+  {
+    slug: 'wholesale-and-distribution',
+    related: ['SOLUTION:wholesale-distribution', 'PAGE:mobile-app'],
+    title: 'Wholesale and distribution, with the order booker app',
+    date: '2026-10-30',
+    kind: 'new',
+    summary: 'Distributors can now run the full cycle in Nafaa: order booker and delivery apps, routes, price lists, schemes, load sheets, settlement, recoveries, vans, returns, claims and the trade network.',
+    seoDescription: 'Nafaa distribution: order booker app that works offline, routes, price lists, schemes, load sheets, delivery, settlement, recoveries, vans, claims and targets.',
+    markdown: `## What changed
+
+- **Order booker app** that works offline, with GPS check-in at each shop.
+- **Office:** price lists per customer group, schemes, routes, orders approved into invoices, load sheets, delivery, the evening settlement and recoveries checked by the office.
+- **Credit control:** limit and overdue warnings at booking, and a manager PIN when invoicing over the limit.
+- **More:** van sales, market returns, principal claims, targets, post-dated cheques and the daily sales report.
+- **Trade network:** distributors and retailers on Nafaa can link, order from each other, and share one account between them with payments confirmed on both sides.
+- **Sign-up** now asks how you sell (retail, wholesale, distribution, e-commerce) and shows the trades that fit.
+
+See [wholesale and distribution](/solutions/wholesale-distribution).`,
+    commits: ['5223deb9', 'a45f2f5f'],
+    evidence: [`${W}/modules/distribution/pages/OrdersPage.tsx`, `${W}/modules/distribution/pages/SettlePage.tsx`, `${W}/modules/trade-network/pages/NetworkPage.tsx`, 'apps/mobile/app/(distribution)/booker'],
+  },
+  {
+    slug: 'profit-on-payment-and-other-income',
+    related: ['PRODUCT:reports', 'PRODUCT:khata'],
+    title: 'Profit on khata payments, other income and stock loss',
+    date: '2026-10-29',
+    kind: 'improved',
+    summary: 'Profit on khata sales can now be counted when the money comes in, other income adds to net profit, and stock adjustments show as a loss or a gain in profit and loss.',
+    seoDescription: 'Nafaa now counts profit on khata sales when payment comes in, adds other income to net profit, and shows stock loss and gain separately in profit and loss.',
+    markdown: `## What changed
+
+- **Profit on payment.** For sales on khata, profit can be counted as the money comes in (the new default) instead of on the day of the bill. Both figures show on the dashboard, day report, profit and loss, profit report and customer profile.
+- **Other income** such as incentives, scheme claims and commission, settled in cash, to an account or against a supplier, now adds to net profit.
+- **Stock gain and loss.** Each stock adjustment reason is a loss, a gain or neither, and profit and loss shows them separately.
+- **Day report** expected cash now handles the khata part of refunds and khata collected in cash correctly.
+- **Manufacturing** (off by default): recipes and production with cost from raw materials.`,
+    commits: ['8171624a'],
+    evidence: [`${W}/modules/finance`, `${W}/modules/reports`],
+  },
+  {
+    slug: 'online-products-hub-and-order-profit',
+    related: ['PRODUCT:online-store'],
+    title: 'Online products hub, channel prices and order profit',
+    date: '2026-10-29',
+    kind: 'new',
+    summary: 'One place to link products to every channel with its own price, plus true profit per order, COD statement matching, courier rules, scan-to-pack and risk checks.',
+    seoDescription: 'Nafaa online products hub with channel prices, plus true profit per order, COD statement matching, courier auto-booking rules, scan-to-pack and fake-order risk.',
+    markdown: `## What changed
+
+- **Online products:** link products to Shopify, WooCommerce, Daraz and your website in one place, with a price per channel (a rule or a single product override) and stock push per channel.
+- **True profit per order:** courier charge, COD fee, gateway fee, packaging and returns taken off each order.
+- **COD statement matching:** upload a courier's statement and match it to your orders.
+- **Courier rules** for auto-booking, **scan-to-pack**, **return scan** and **risk checks** for fake orders.
+- **Growth tools:** a price calculator, landed cost and ad spend against sales.`,
+    commits: ['4c0f6d63', '115622bd'],
+    evidence: [`${W}/integrations/online-orders/pages/OnlineProductsPage.tsx`, `${W}/integrations/online-orders/pages/OrderCostsPage.tsx`, `${W}/integrations/online-orders/pages/CodReconcilePage.tsx`, `${W}/integrations/online-orders/pages/CourierRulesPage.tsx`],
+  },
   {
     slug: 'keyboard-first-pos-counter',
     related: ['PRODUCT:pos', 'SERVICE:training'],

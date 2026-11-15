@@ -112,6 +112,12 @@ export function websiteNode(ctx: GraphContext): Node {
     name: ctx.entity?.brandName ?? ctx.site.name,
     publisher: { '@id': ids.organization() },
     inLanguage: ctx.site.locales.map(hreflangFor),
+    // Site search (app/search): the query goes in `q`.
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: { '@type': 'EntryPoint', urlTemplate: `${absoluteUrl('/search')}?q={search_term_string}` },
+      'query-input': 'required name=search_term_string',
+    },
   };
 }
 

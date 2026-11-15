@@ -396,27 +396,27 @@ const restaurants = page({
   slug: 'restaurants',
   title: 'Restaurants & Cafés',
   summary:
-    'Nafaa for restaurants and cafés runs dine-in, takeaway and delivery from one system: a table layout with running bills, kitchen order tickets sent to each station, a menu with add-ons, happy hours and recipes that cost every plate, riders with their cash, and Foodpanda orders.',
+    'Nafaa for restaurants and cafés runs dine-in, takeaway and delivery from one system: a table layout with running bills, kitchen order tickets sent to each station, a menu with add-ons, happy hours and recipes that cost every plate, riders with their cash. Foodpanda orders are coming soon.',
   data: { icon: 'utensils-crossed', shortName: 'Restaurants', outcome: 'Tables, Kitchen and Delivery in One System', segment: 'Food service', status: 'live' },
   seoTitle: 'Restaurant POS Software in Pakistan: Tables, KOT & Delivery',
   seoDescription:
-    'Table layout, KOT to kitchen stations, add-ons, recipes and food cost, riders, Foodpanda orders and split bills. Restaurant POS by Nafaa. Free trial.',
+    'Table layout, KOT to kitchen stations, add-ons, recipes and food cost, delivery riders, takeaway and split bills. Restaurant POS by Nafaa. Free trial.',
   focusKeyword: 'restaurant pos software pakistan',
   hero: {
     eyebrow: 'For restaurants & cafés',
     heading: 'Tables, kitchen and delivery moving in one rhythm',
-    sub: 'Waiters take orders at the table, tickets go to the right kitchen station, and the counter sees every running bill. Delivery riders and Foodpanda orders fit into the same flow.',
+    sub: 'Waiters take orders at the table, tickets go to the right kitchen station, and the counter sees every running bill. Takeaway and delivery riders fit into the same flow.',
     media: { id: SHOT.tables, url: 'app.nafaa.pk/restaurant/tables' },
-    badges: ['Table layout', 'KOT by station', 'Delivery & Foodpanda'],
+    badges: ['Table layout', 'KOT by station', 'Delivery riders'],
   },
   answer: {
     facts: [
       ['Service', 'Dine-in, takeaway and delivery'],
       ['Kitchen', 'KOT to each station, on screen or printed, from new to cooking to ready'],
       ['Menu', 'Add-ons, happy hours and recipes with plate cost and food cost %'],
-      ['Delivery', 'Riders, the cash each one holds, and Foodpanda orders in the same list'],
+      ['Delivery', 'Riders and the cash each one holds; Foodpanda orders coming soon'],
     ],
-    romanUrdu: 'Restaurant ke liye: tables par chalta bill, kitchen ke har station ko KOT, menu me add-ons aur recipes ki costing, delivery riders ka cash aur Foodpanda orders, sab ek system me.',
+    romanUrdu: 'Restaurant ke liye: tables par chalta bill, kitchen ke har station ko KOT, menu me add-ons aur recipes ki costing, aur delivery riders ka cash, sab ek system me. Foodpanda jald aa raha hai.',
   },
   body: [
     shot({
@@ -453,7 +453,7 @@ const restaurants = page({
       { key: 'take', label: 'Takeaway' },
       { key: 'deliver', label: 'Delivery', highlight: true },
     ], [
-      ['Order taken by', 'Waiter at the table', 'Counter', 'Counter, phone or Foodpanda'],
+      ['Order taken by', 'Waiter at the table', 'Counter', 'Counter or phone (Foodpanda coming soon)'],
       ['Kitchen', 'KOT by station', 'KOT by station', 'KOT by station'],
       ['Bill', 'Running bill, printed at the end', 'Paid at the counter', 'Bill goes with the rider'],
       ['Money', 'Cash, card, wallet or split', 'Cash, card or wallet', 'Rider hands over the cash at the counter'],
@@ -502,64 +502,77 @@ For bakeries and sweet shops, the [bakery](/industries/bakery) setup adds baking
 });
 
 // ─── Wholesale and distribution ───
+// Updated 15 Nov 2026: the distribution module (5223deb9, a45f2f5f) is live:
+// order booker and delivery apps, routes, price lists, schemes, load sheets,
+// settlement, recoveries, vans, market returns, claims, targets, cheques and
+// the trade network between distributors and retailers.
 
 const wholesale = page({
   type: 'SOLUTION',
   slug: 'wholesale-distribution',
   title: 'Wholesale & Distribution',
   summary:
-    'Nafaa for wholesalers and distributors handles trade the way it is done in Pakistan: carton and piece prices, a separate wholesale price, khata and credit limits for every trade customer, supplier accounts and purchase orders, stock across godowns and branches, A4 invoices and price lists you can send on WhatsApp.',
-  data: { icon: 'truck', shortName: 'Wholesale', outcome: 'Carton Prices, Credit and Stock Under Control', segment: 'Wholesale and distribution', status: 'live' },
-  seoTitle: 'Wholesale and Distribution Software in Pakistan',
+    'Nafaa for wholesalers and distributors runs the whole trade cycle: order bookers take orders on their phones, even offline, the office approves them into invoices, load sheets go out by route, delivery staff deliver and collect, and the evening settlement closes every rupee. Price lists, schemes, credit limits, recoveries, vans, market returns, claims and targets are built in.',
+  data: { icon: 'truck', shortName: 'Wholesale', outcome: 'Orders, Deliveries and Recoveries Under Control', segment: 'Wholesale and distribution', status: 'live' },
+  seoTitle: 'Distribution Software in Pakistan: Order Booker App & DSR',
   seoDescription:
-    'Carton and wholesale prices, trade customer credit limits, supplier accounts, stock across godowns, A4 invoices and price lists. Nafaa for wholesalers.',
-  focusKeyword: 'wholesale software pakistan',
+    'Order booker app that works offline, routes, price lists, schemes, load sheets, delivery, settlement and recoveries. Nafaa for wholesalers and distributors.',
+  focusKeyword: 'distribution software pakistan',
   hero: {
     eyebrow: 'For wholesale & distribution',
-    heading: 'Trade on credit without losing track of a single carton',
-    sub: 'Sell by carton or piece at retail or wholesale price, keep every trade customer\'s khata and credit limit, buy from suppliers on account, and see stock across godowns and branches.',
+    heading: 'From the booker\'s order to the evening settlement, in one system',
+    sub: 'Order bookers book on their phones in the market, with or without signal. The office turns orders into invoices and load sheets, delivery staff deliver and collect, and the settlement matches cash, returns and credit against every invoice.',
     media: { id: SHOT.inventory, url: 'app.nafaa.pk/products' },
-    badges: ['Wholesale prices', 'Credit limits', 'Supplier accounts'],
+    badges: ['Order booker app', 'Routes and load sheets', 'Settlement and recoveries'],
   },
   answer: {
     facts: [
-      ['Prices', 'Retail and wholesale price per product, and per unit (piece, dozen, carton)'],
-      ['Credit', 'Khata and credit limit for every trade customer'],
-      ['Buying', 'Purchase orders, purchase bills, supplier accounts and payables'],
-      ['Stock', 'Across godowns and branches, with transfers'],
+      ['Field', 'Order booker app on Android and iPhone that works offline, with GPS check-in at each shop'],
+      ['Office', 'Orders approved into invoices, load sheets by route, settlement and recoveries'],
+      ['Prices', 'Price lists per customer group, schemes (free goods and discounts), carton and piece rates'],
+      ['Credit', 'Credit limits and overdue checks when booking and when invoicing'],
+      ['More', 'Van sales, market returns, principal claims, targets, post-dated cheques and the trade network'],
     ],
-    romanUrdu: 'Wholesale ke liye: carton aur piece ki alag qeemat, wholesale rate, har dukaandar ka khata aur credit limit, supplier ka hisaab, aur godown se branch tak stock.',
+    romanUrdu: 'Distribution ke liye poora system: booker phone par order le (internet ke baghair bhi), office invoice aur load sheet banaye, delivery wala maal de kar paisa le, aur shaam ko settlement me har invoice ka hisaab barabar ho. Price lists, schemes, credit limit, recovery, van sale aur claims sab andar.',
   },
   body: [
-    diagram('A credit sale is checked against the customer\'s limit at the counter. Within the limit it goes straight on the khata; over it, a manager approves with a PIN or the sale is paid another way.', {
+    diagram('An order travels from the booker\'s phone to the office, onto a load sheet, out with the delivery staff and back into the settlement, where cash, returns and credit are matched to each invoice.', {
       kind: 'flow',
       nodes: [
-        { id: 'bill', label: 'Trade bill', icon: 'receipt', note: 'Wholesale price, any unit' },
-        { id: 'check', label: 'Credit check', icon: 'shield', note: 'Balance against the limit' },
-        { id: 'pin', label: 'Manager PIN', icon: 'key-round', note: 'Only when over the limit' },
-        { id: 'khata', label: 'On the khata', icon: 'notebook-pen', note: 'Ageing starts' },
-        { id: 'recover', label: 'Recovery', icon: 'hand-coins', note: 'Payment clears it' },
+        { id: 'book', label: 'Booker order', icon: 'smartphone', note: 'In the market, offline' },
+        { id: 'approve', label: 'Office approves', icon: 'clipboard-list', note: 'Invoice is made' },
+        { id: 'load', label: 'Load sheet', icon: 'truck', note: 'By route and vehicle' },
+        { id: 'deliver', label: 'Delivery', icon: 'package', note: 'Cash, credit or return' },
+        { id: 'settle', label: 'Settlement', icon: 'hand-coins', note: 'Every rupee matched' },
       ],
       edges: [
-        { from: 'bill', to: 'check' },
-        { from: 'check', to: 'khata', label: 'Within limit' },
-        { from: 'check', to: 'pin', label: 'Over limit' },
-        { from: 'pin', to: 'khata', label: 'Approved' },
-        { from: 'khata', to: 'recover' },
+        { from: 'book', to: 'approve' },
+        { from: 'approve', to: 'load' },
+        { from: 'load', to: 'deliver' },
+        { from: 'deliver', to: 'settle' },
       ],
       animate: true,
-    }, 'Credit control at the counter'),
-    features('Wholesale, the way it is really done', [
-      ['layers', 'Carton and piece', 'Buy and sell in cartons, dozens or pieces, each with its own price.'],
-      ['tags', 'Wholesale price', 'A separate wholesale price per product and unit, picked at the counter.'],
-      ['notebook-pen', 'Trade khata', 'Every shopkeeper\'s balance, payments and how old the udhaar is.'],
-      ['shield', 'Credit limits', 'New credit stops at the limit unless a manager approves with a PIN.'],
-      ['clipboard-list', 'Suppliers and purchase orders', 'Orders, part deliveries, purchase bills and what you owe each supplier.'],
-      ['warehouse', 'Godowns and branches', 'Stock in each location, with transfers checked on arrival.'],
+    }, 'One order, start to finish'),
+    features('Everything a distribution business runs on', [
+      ['smartphone', 'Order booker app', 'Bookers see their route, the shop\'s balance and the right price list, and book orders offline. GPS check-in at each visit.'],
+      ['tags', 'Price lists and schemes', 'Rates per customer group, and schemes like 10+1 free goods or a percentage off above a quantity, applied by themselves.'],
+      ['shield', 'Credit control', 'Credit limit and overdue warnings at booking; going over the limit at invoicing needs a manager PIN.'],
+      ['truck', 'Load sheets', 'Approved invoices grouped by route and vehicle, with the total of each item to load.'],
+      ['package', 'Delivery app', 'Delivery staff mark each invoice delivered, part-returned or refused, and record cash, credit and cheques.'],
+      ['hand-coins', 'Settlement and recoveries', 'The evening settlement counts cash once against the load sheet; recoveries wait for office approval.'],
+      ['warehouse', 'Van sales', 'A van carries its own stock, sells on the spot and returns what is left at the end of the day.'],
+      ['refresh-cw', 'Market returns and claims', 'Returns from the market are recorded by reason, and claims to principals for expiry, damage and schemes are tracked.'],
+      ['chart-line', 'Targets and reports', 'Targets per booker, the daily sales report (DSR), route recovery and visit history.'],
+    ]),
+    steps('A distribution day in Nafaa', [
+      ['Morning: bookers go out', 'Each booker opens the app, downloads the route with shop balances and prices, and visits shops, booking orders even where there is no signal.'],
+      ['Midday: orders reach the office', 'Orders sync when the phone has signal. The office checks credit and stock, approves, and the invoice is made at approval.'],
+      ['Afternoon: load and deliver', 'Invoices are grouped into load sheets by route and vehicle. Delivery staff deliver, collect cash or cheques, and record returns.'],
+      ['Evening: settle', 'The settlement matches each invoice to cash, credit and returns, so the day closes with every rupee and carton accounted for.'],
     ]),
     shot({
       heading: 'Know who owes what, and since when',
-      body: 'The khata groups every trade customer\'s balance by age, so collection rounds start with the right shops. Reminders go on WhatsApp with the exact balance.',
+      body: 'Every trade customer has a khata with its balance, credit limit and how old the udhaar is. Bookers see the balance before they book, and recoveries collected in the market are checked by the office before they reach the khata.',
       id: SHOT.khata,
       url: 'app.nafaa.pk/khata',
       layout: 'split-right',
@@ -569,39 +582,42 @@ const wholesale = page({
         { x: 63, y: 12, label: 'WhatsApp reminders' },
       ],
     }),
-    table('A retail sale and a trade sale, side by side', 'The same counter handles both. What changes is the price, the paper and where the money goes.', [
-      { key: 'retail', label: 'Retail customer' },
-      { key: 'trade', label: 'Trade customer', highlight: true },
+    table('Wholesale counter or full distribution', 'Choose the mode when you sign up or later in settings. Both use the same products, stock and khata.', [
+      { key: 'wholesale', label: 'Wholesale counter' },
+      { key: 'dist', label: 'Full distribution', highlight: true },
     ], [
-      ['Price', 'Retail price of the unit', 'Wholesale price of the unit'],
-      ['Unit', 'Usually pieces', 'Cartons, dozens or pieces'],
-      ['Payment', 'Cash, card or wallet', 'Often on the khata, up to the credit limit'],
-      ['Paper', 'Thermal receipt or WhatsApp', 'A4 invoice with your letterhead'],
-      ['Follow-up', 'None', 'Ageing, reminders and payments on the khata'],
+      ['How orders come in', 'Shopkeepers buy at your counter or call in orders', 'Order bookers visit shops on fixed routes'],
+      ['Prices', 'Retail and wholesale price per unit', 'Price lists per customer group, plus schemes'],
+      ['Delivery', 'From the godown with an A4 invoice', 'Load sheets, delivery app and van sales'],
+      ['Money', 'Khata and credit limits', 'Plus recoveries, post-dated cheques and the evening settlement'],
+      ['Reports', 'Profit by product, khata ageing', 'Plus the daily sales report, targets and route recovery'],
     ]),
-    steps('A trade day in Nafaa', [
-      ['Morning orders', 'Shopkeepers call or message their orders; each becomes a bill at wholesale rates.'],
-      ['Dispatch from the godown', 'Stock leaves the godown it was billed from, and the A4 invoice goes with the goods.'],
-      ['Buy to refill', 'Raise a purchase order; receive part or all of it and the supplier\'s balance updates.'],
-      ['Evening recovery', 'Payments from the collection round go on each khata, and the day book closes.'],
-    ]),
-    shot({ heading: 'Margins at wholesale rates', body: 'Profit by product shows sale, cost and margin for every item, so thin-margin lines are visible before they eat the month.', id: SHOT.profitByProduct, url: 'app.nafaa.pk/reports/profit', layout: 'split-left' }),
-    prose(`## What to check before choosing wholesale software
+    prose(`## The trade network: your retailers on Nafaa too
 
-Wholesale runs on thin margins and long credit, so small mistakes add up fast. Before you choose a system, ask:
+Many of the shops you supply already run on Nafaa. The **trade network** links a distributor and a retailer by an invite code or phone number (or through an opt-in directory). The retailer can then order from you inside Nafaa, the delivered goods go into the retailer's stock as a purchase by themselves, and both sides see the same account between them, with each payment confirmed by both. No more arguing over whose register is right.
 
-- **Can one product have more than one unit and price?** A carton of 24 and a single piece must each have a retail and a wholesale price, and stock must stay right whichever one is sold.
-- **Is credit controlled at the counter?** A limit that only shows in a report is too late. In Nafaa the counter stops at the limit unless a manager approves.
-- **Does it handle the supplier side?** Purchase orders, deliveries that arrive in parts, supplier returns and what you owe, by age. The supplier page also shows how each supplier's rates have moved.
-- **Can you send a price list?** The catalog screen prints a price list or photo catalog and shares it on WhatsApp, showing sale prices only, never cost.
-- **Will it grow to a second godown?** Stock per location and transfers between them should be part of the same account.
+## Wholesale, the way it is really done
 
-Hardware and building-material dealers also get quotations and contractor accounts in the [hardware](/industries/hardware) setup. See [purchasing](/product/purchasing) and the [khata](/product/khata) for the details.`),
-    callout('info', 'Order booking by field staff on their own phones and a buyer ordering portal are being built. See the [roadmap](/roadmap) for progress, or ask our team about a [custom setup](/services/custom-software).', 'Coming soon: field order booking'),
+Distribution sits on the same base as the wholesale counter:
+
+- **Carton and piece.** A carton of 24 and a single piece each have a retail and a wholesale price, and stock stays right whichever one is sold.
+- **Credit controlled at the counter.** A limit that only shows in a report is too late. In Nafaa new credit stops at the limit unless a manager approves with a PIN.
+- **The supplier side.** Purchase orders, deliveries that arrive in parts, supplier returns and what you owe each supplier. See [purchasing](/product/purchasing).
+- **Price lists to share.** The catalog screen prints a price list or photo catalog and shares it on WhatsApp, with sale prices only.
+- **More than one godown.** Stock per location, with transfers between them, in the same account. See [branches](/product/multi-shop).
+
+## Bookers and delivery staff on their phones
+
+The booker and delivery screens are part of the [Nafaa POS mobile app](/mobile-app) on Android and iPhone. A booker who logs in lands straight on the route. Everything the booker needs for the day is downloaded to the phone, so a market with no signal does not stop the work; orders, visits, returns and recoveries wait on the phone and sync later. Check-in records the GPS position at each shop and shows how far the booker was from the shop's saved location, so the office can see real visits without blocking anyone.
+
+## Plans
+
+Distribution is an add-on to a Nafaa plan, charged by the number of bookers. Prices are on the [pricing page](/pricing). Hardware and building-material dealers also get quotations and contractor accounts in the [hardware](/industries/hardware) setup, and the [khata](/product/khata) page covers credit in detail.`),
+    callout('tip', 'Ask [Nafaa AI](/product/ai-assistant) for the daily sales report, route recovery or van stock in plain words, in English, Urdu or Roman Urdu.', 'Nafaa AI knows distribution'),
     pricing('Plans for one godown or many'),
   ],
   faqKeys: ['mp-wholesale-prices', 'mp-khata-limit', 'sol-wholesale-price-list', 'sol-wholesale-supplier-rates', 'mp-branches-transfer', 'mp-reports-export'],
-  cta: { heading: 'Bring your trade book online', body: 'Book a demo and we will map your price lists and trade customers with you.', primary: DEMO, secondary: WHATSAPP },
+  cta: { heading: 'Bring your distribution online', body: 'Book a demo and we will map your routes, price lists and trade customers with you.', primary: DEMO, secondary: WHATSAPP },
   relations: [
     { ref: 'PRODUCT:purchasing', kind: 'TAG' },
     { ref: 'PRODUCT:khata', kind: 'TAG' },
@@ -613,24 +629,36 @@ Hardware and building-material dealers also get quotations and contractor accoun
     { ref: 'INDUSTRY:autoparts', kind: 'TAG' },
     { ref: 'SERVICE:data-migration', kind: 'TAG' },
     { ref: 'SERVICE:custom-software', kind: 'TAG' },
+    { ref: 'PAGE:mobile-app', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:udhaar', kind: 'RELATED' },
     { ref: 'BLOG_POST:wholesale-vs-retail-pricing', kind: 'RELATED' },
     { ref: 'GLOSSARY_TERM:consignment', kind: 'RELATED' },
   ],
   sortOrder: 5,
   evidence: [
+    'apps/web/src/modules/distribution/pages/OrdersPage.tsx',
+    'apps/web/src/modules/distribution/pages/LoadSheetsPage.tsx',
+    'apps/web/src/modules/distribution/pages/SettlePage.tsx',
+    'apps/web/src/modules/distribution/pages/RecoveriesPage.tsx',
+    'apps/web/src/modules/distribution/setup/price-lists',
+    'apps/web/src/modules/distribution/setup/routes',
+    'apps/web/src/modules/distribution/setup/schemes',
+    'apps/web/src/modules/distribution/phase2/vans/VansPage.tsx',
+    'apps/web/src/modules/distribution/phase2/returns/MarketReturnsPage.tsx',
+    'apps/web/src/modules/distribution/phase2/claims/ClaimsPage.tsx',
+    'apps/web/src/modules/distribution/phase2/targets/TargetsPage.tsx',
+    'apps/web/src/modules/distribution/phase2/cheques/ChequesPage.tsx',
+    'apps/web/src/modules/distribution/reports/DistributionReportTab.tsx',
+    'apps/web/src/modules/trade-network/pages/NetworkPage.tsx',
+    'apps/mobile/app/(distribution)/booker',
+    'apps/mobile/app/(distribution)/delivery',
+    'apps/mobile/src/modules/distribution/booker/visit.ts',
     'apps/web/src/modules/pos/lib/posUnits.ts',
-    'apps/web/src/modules/pos/hooks/useSharedPosCart.ts',
-    'apps/web/src/modules/pos/engine/usePosEngine.ts',
     'apps/web/src/modules/customers/directory/KhataBookPage.tsx',
-    'apps/web/src/modules/purchasing/purchases/pages/PurchasesListPage.tsx',
-    'apps/web/src/modules/purchasing/suppliers/pages/SupplierDetailPage.tsx',
-    'apps/web/src/modules/inventory/transfers/pages/TransfersPage.tsx',
     'apps/web/src/modules/catalog/pages/CatalogPage.tsx',
-    'apps/web/src/core/receipt/types.ts',
-    'apps/web/src/industries/hardware/pages/NewQuotationPage.tsx',
+    'apps/api/src/modules/billing/entitlements/feature-catalog.ts',
   ],
-  needsOwner: ['Field order booking (order booker app) and a B2B buyer portal: the API has b2b-wholesale endpoints (apps/api/src/modules/b2b-wholesale) but no screen in apps/web, so they are shown as coming soon.'],
+  needsOwner: ['No distribution screenshot yet: capture the orders board or a load sheet from a demo distributor and use it in the hero.'],
 });
 
 // ─── Manufacturing ───

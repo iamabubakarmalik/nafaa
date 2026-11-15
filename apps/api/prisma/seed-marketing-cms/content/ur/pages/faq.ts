@@ -141,7 +141,7 @@ export const faqs: SeedFaq[] = [
     'کیسے پتا چلے کہ اب بڑا پلان چاہیے؟',
     'ایپ کا بلنگ والا صفحہ آپ کے پلان کی ہر حد کے سامنے آپ کا استعمال دکھاتا ہے: پروڈکٹس، یوزرز، دکانیں اور اس مہینے کی سیل۔ جب آپ کسی حد کے قریب پہنچیں تو اسی صفحے پر پلانز کا موازنہ کریں اور اگلا پلان لے لیں۔ پلان بدلنے سے آپ کا ڈیٹا اور سیٹنگز ویسی ہی رہتی ہیں۔',
     'BillingPage usage tab (UsageMeters) and plan comparison; feature-gating usage endpoint.',
-    ['apps/web/src/modules/billing/billing/components/UsageMeters.tsx', 'apps/web/src/modules/billing/billing/components/PlanCompare.tsx', 'apps/api/src/modules/feature-gating/feature-gating.service.ts'],
+    ['apps/web/src/modules/billing/pricing/components/MyPlanOverview.tsx', 'apps/web/src/modules/billing/pricing/components/AddOnParts.tsx', 'apps/api/src/modules/feature-gating/feature-gating.service.ts'],
   ),
 ];
 

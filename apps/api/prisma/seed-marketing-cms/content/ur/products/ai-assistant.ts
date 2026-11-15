@@ -1,5 +1,6 @@
-/** Urdu: AI business assistant product page (/ur/product/ai-assistant). Translation of content/main-pages/hubs.ts (ai-assistant). */
+/** Urdu: Nafaa AI business assistant product page (/ur/product/ai-assistant). Translation of content/main-pages/hubs.ts (ai-assistant, rewritten 15 Nov 2026). */
 import type { SeedEntry, SeedFaq } from '../../../lib/types';
+import { withIds } from '../../../lib/blocks';
 
 // The English page uses no FAQs.
 export const faqs: SeedFaq[] = [];
@@ -12,60 +13,110 @@ export const entry: SeedEntry = {
     { ref: 'PRODUCT:reports@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:inventory@ur', kind: 'RELATED' },
     { ref: 'PRODUCT:khata@ur', kind: 'RELATED' },
+    { ref: 'PAGE:languages@ur', kind: 'RELATED' },
+    { ref: 'PAGE:mobile-app@ur', kind: 'RELATED' },
     { ref: 'PAGE:product@ur', kind: 'RELATED' },
   ],
-  title: 'AI بزنس اسسٹنٹ',
-  seoTitle: 'Nafaa AI اسسٹنٹ: اپنے کاروبار سے سیدھے الفاظ میں پوچھیں',
-  seoDescription: 'Nafaa کا AI بزنس اسسٹنٹ آپ کی سیل، اسٹاک اور کھاتے کے بارے میں سوالوں کے جواب انگریزی یا رومن اردو میں دیتا ہے، آپ کے اپنے کاروبار کے ڈیٹا سے۔',
-  focusKeyword: 'AI بزنس اسسٹنٹ',
+  title: 'Nafaa AI بزنس اسسٹنٹ',
+  seoTitle: 'Nafaa AI: اردو اور انگریزی میں بزنس اسسٹنٹ',
+  seoDescription:
+    'Nafaa AI سے اپنی سیل، Profit، اسٹاک اور کھاتے کے بارے میں انگریزی، اردو یا رومن اردو میں پوچھیں۔ جواب آپ کے اپنے ڈیٹا سے، اور کام آپ کی تصدیق کے بعد۔',
+  focusKeyword: 'اے آئی بزنس اسسٹنٹ',
   summary:
-    'Nafaa کا AI بزنس اسسٹنٹ آپ کی اپنی سیل، اسٹاک اور کھاتے کے بارے میں سوالوں کے جواب سیدھی انگریزی یا رومن اردو میں دیتا ہے۔ اپنے الفاظ میں پوچھیں اور اپنے Nafaa ڈیٹا سے مختصر جواب لیں، پیچھے کے نمبروں کے ساتھ۔ یہ صرف وہی ڈیٹا پڑھتا ہے جو آپ کا اکاؤنٹ دیکھ سکتا ہے۔',
+    'Nafaa AI آپ کے اپنے کاروبار کے سوالوں کے جواب انگریزی، اردو یا رومن اردو میں دیتا ہے: سیل، Profit، اسٹاک، کھاتہ اور Expense۔ یہ ہر صفحے سے کھلتا ہے، جواب کے پیچھے کے نمبر اور چارٹ دکھاتا ہے، اور بل یا اسٹاک کی تبدیلی آپ کے کنفرم کرنے کے لیے تیار کرتا ہے۔',
   data: {
     icon: 'sparkles',
-    shortName: 'AI اسسٹنٹ',
+    shortName: 'Nafaa AI',
     benefit: 'اپنے کاروبار سے سیدھے الفاظ میں پوچھیں',
     status: 'live',
   },
-  blocks: [
+  blocks: withIds('PRODUCT:ai-assistant@ur', [
     {
       type: 'hero',
-      eyebrow: 'Nafaa میں نیا',
+      eyebrow: 'Nafaa AI',
       heading: 'اپنے کاروبار سے سوال پوچھیں، اپنے الفاظ میں',
-      sub: 'Nafaa کا AI اسسٹنٹ آپ کی اپنی سیل، اسٹاک اور کھاتے کے بارے میں سوالوں کے جواب دیتا ہے۔ انگریزی یا رومن اردو میں لکھیں اور کئی رپورٹیں کھولے بغیر نمبروں کے ساتھ مختصر جواب پائیں۔',
+      sub: 'Nafaa AI ایپ کے ہر صفحے پر موجود ہے۔ آج کی سیل، کس کے پیسے باقی ہیں یا کیا دوبارہ منگوانا ہے، انگریزی، اردو یا رومن اردو میں پوچھیں اور نمبروں کے ساتھ مختصر جواب پائیں۔ جب آپ کوئی کام کروانا چاہیں تو یہ اسے تیار کر کے آپ کے کنفرم کرنے کا انتظار کرتا ہے۔',
       primaryCta: { label: '7 دن کا فری ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'hero_trial' },
       secondaryCta: { label: 'ڈیمو بک کریں', href: 'demo', variant: 'secondary', trackAs: 'hero_demo' },
-      badges: ['انگریزی اور رومن اردو', 'صرف آپ کا اپنا ڈیٹا پڑھتا ہے', 'جواب نمبروں کے ساتھ'],
+      badges: ['انگریزی، اردو اور رومن اردو', 'صرف وہی پڑھتا ہے جو آپ دیکھ سکتے ہیں', 'آپ کی اجازت کے بغیر کچھ نہیں بدلتا'],
       layout: 'centered',
-      id: 'bb6049a8eed3',
     },
     {
       type: 'answerBox',
       heading: 'مختصر میں',
       facts: [
-        { label: 'یہ کیا کرتا ہے', value: 'آپ کے اپنے Nafaa ڈیٹا سے سیل، اسٹاک اور کھاتے کے سوالوں کے جواب دیتا ہے' },
-        { label: 'زبانیں', value: 'انگریزی اور رومن اردو' },
-        { label: 'ڈیٹا تک رسائی', value: 'صرف وہ کاروباری ڈیٹا جو پوچھنے والا اکاؤنٹ دیکھ سکتا ہے' },
+        { label: 'یہ کیا کرتا ہے', value: 'آپ کے اپنے Nafaa ڈیٹا سے کاروبار کے سوالوں کے جواب نمبروں اور چارٹ کے ساتھ دیتا ہے' },
+        { label: 'کہاں', value: 'ویب ایپ کے ہر صفحے پر سائیڈ پینل، ایک مکمل صفحہ، اور Nafaa POS موبائل ایپ' },
+        { label: 'کام', value: 'بل، پروڈکٹس، کسٹمرز، کھاتے کی ادائیگیاں، Expense، اسٹاک کی تبدیلیاں اور پرچیز آرڈر آپ کے کنفرم کرنے کے لیے تیار کرتا ہے' },
+        { label: 'زبانیں', value: 'انگریزی، اردو اور رومن اردو' },
+        { label: 'ڈیٹا تک رسائی', value: 'صرف وہ جو پوچھنے والے کو ایپ میں دیکھنے کی اجازت ہے' },
       ],
       romanUrdu:
-        'Nafaa AI assistant se apni Sale, Stock aur khata ke baare me apne alfaaz me sawal poochein, English ya Roman Urdu me, aur seedha jawab payein.',
-      id: 'bcdca58b04d9',
+        'Nafaa AI se apni Sale, Profit, Stock aur khata ke baare me apne alfaaz me poochein, English, Urdu ya Roman Urdu me. Jawab aap ke apne data se aata hai, aur koi bhi kaam aap ke confirm karne ke baad hi hota hai.',
     },
     {
       type: 'featuresGrid',
-      heading: 'یہ کیا کرتا ہے',
+      heading: 'Nafaa AI کیا کرتا ہے',
       columns: 3,
       items: [
-        { icon: 'message-square', title: 'سیدھے الفاظ میں سوال', body: 'پوچھیں "Is mahine sab se zyada Profit kin cheezon par hua?" اور نمبروں کے ساتھ جواب پائیں۔' },
-        { icon: 'chart-line', title: 'فرق کی وجہ', body: 'دیکھیں کہ آج کی سیل پچھلے ہفتے کے مقابلے میں کیوں بڑھی یا گھٹی۔' },
-        { icon: 'boxes', title: 'اسٹاک کی یاد دہانی', body: 'مال ختم ہونے سے پہلے پتا چلے کہ کیا دوبارہ منگوانا ہے۔' },
+        { icon: 'message-square', title: 'سیدھے الفاظ میں جواب', body: 'پوچھیں "Is mahine sab se zyada Profit kis cheez par hua?" اور جواب پیچھے کے نمبروں کے ساتھ پائیں۔' },
+        { icon: 'chart-line', title: 'چارٹ اور موازنے', body: 'آج کا پچھلے ہفتے سے، ایک برانچ کا دوسری سے، یا اس مہینے کا پچھلے سے موازنہ کریں، جواب میں چارٹ کے ساتھ۔' },
+        { icon: 'boxes', title: 'ری آرڈر اور اسٹاک', body: 'کیا کم ہو رہا ہے، کتنے دن کا اسٹاک باقی ہے اور کیا منگوانا ہے، جسے پرچیز آرڈر بنایا جا سکتا ہے۔' },
+        { icon: 'circle-check', title: 'وہ کام جو آپ کنفرم کریں', body: 'اس سے بل بنانے، کسٹمر ڈالنے، Expense لکھنے یا قیمت ٹھیک کرنے کو کہیں۔ یہ ایک کارڈ بھر دیتا ہے؛ آپ دیکھ کر Confirm دباتے ہیں۔' },
+        { icon: 'bell-ring', title: 'صبح کی سمری', body: 'کل کی سیل، Profit، Expense، ادھار اور کم اسٹاک ہر صبح ایک پیغام میں۔' },
+        { icon: 'languages', title: 'تین زبانیں اور آواز', body: 'انگریزی، اردو یا رومن اردو میں لکھیں یا بول کر پوچھیں، اور جواب بلند آواز میں سنیں۔' },
       ],
-      id: 'bb0d3dbe0349',
     },
     {
       type: 'richText',
-      markdown:
-        '## وہ سوال جو مالک روز پوچھتے ہیں\n\nزیادہ تر مالک دکان کھولنے سے پہلے اور بند کرنے کے بعد وہی چند باتیں جاننا چاہتے ہیں۔ اسسٹنٹ یہ جواب ایک لائن میں دیتا ہے، انہی نمبروں سے جو ایپ پہلے سے رکھتی ہے:\n\n- "Aaj ki sale kitni hui, aur kal se zyada hai ya kam?"\n- "Which products made the most profit this month?"\n- "Kis gahak ka udhaar ek mahine se purana hai?"\n- "What should I reorder before the weekend?"\n- "Which branch sold the most yesterday?"\n\nہر جواب کے ساتھ اس کے پیچھے کے نمبر ہوتے ہیں تاکہ آپ انہیں جانچ سکیں، اور اس اسکرین کا لنک بھی جہاں پوری تفصیل ہے۔\n\n## جواب کہاں سے آتے ہیں\n\nاسسٹنٹ وہی پڑھتا ہے جو پہلے سے Nafaa پر چل رہا ہے: [POS کاؤنٹر](/ur/product/pos) کے بل، [انوینٹری](/ur/product/inventory) سے اسٹاک اور خریداری، [ڈیجیٹل کھاتے](/ur/product/khata) سے ادھار اور ادائیگیاں، اور [رپورٹس](/ur/product/reports) کے اعداد۔ یہ اندازہ نہیں لگاتا۔ اگر کوئی نمبر آپ کے Nafaa ڈیٹا میں نہیں ہے تو یہ صاف بتا دیتا ہے، اپنی طرف سے نہیں بناتا۔ آپ کا جتنا کاروبار Nafaa پر چلتا ہے، یہ اتنے زیادہ سوالوں کے جواب دے سکتا ہے۔\n\n## انگریزی یا رومن اردو، جو آپ چاہیں\n\nNafaa استعمال کرنے والے زیادہ تر لوگ رومن اردو میں لکھتے ہیں، اور بہت سے ایک ہی جملے میں دونوں ملا لیتے ہیں۔ اسسٹنٹ دونوں سمجھتا ہے، اس لیے "is hafte sab se zyada kya bika?" بھی اتنا ہی چلتا ہے جتنا "what sold the most this week?"۔ [کھاتہ](/ur/glossary/khata) اور [ادھار](/ur/glossary/udhaar) جیسے الفاظ کا وہی مطلب ہے جو آپ کی دکان میں ہے۔\n\n## آپ کا ڈیٹا آپ ہی کا رہتا ہے\n\nاسسٹنٹ صرف آپ کا اپنا کاروباری ڈیٹا پڑھتا ہے، اور وہ بھی پوچھنے والے اکاؤنٹ کی اجازتوں کے اندر۔ جو کیشیئر ایپ میں پرافٹ نہیں دیکھ سکتا، وہ اسسٹنٹ سے بھی پرافٹ نہیں پوچھ سکتا۔ یہ خود سے قیمت، اسٹاک یا بل نہیں بدلتا؛ کوئی بھی تبدیلی اب بھی کسی بندے کو ایپ میں خود کرنی ہوتی ہے۔ جب پوری تفصیل چاہیے تو [رپورٹس](/ur/product/reports) ہمیشہ موجود ہیں: ہر پروڈکٹ کا پرافٹ، پرافٹ اینڈ لاس اور اسٹاک ایک جگہ۔\n\n## ہر طرح کے کاروبار کے لیے\n\n[کریانہ اسٹور](/ur/industries/kiryana) پوچھتا ہے کون سی چیزیں کم ہو رہی ہیں۔ [فارمیسی](/ur/industries/pharmacy) پوچھتی ہے کون سے بیچ جلد ایکسپائر ہوں گے۔ [ریسٹورنٹ](/ur/industries/restaurant) پوچھتا ہے دوپہر کو کون سی ڈش سب سے زیادہ بکی۔ [کپڑے کی دکان](/ur/industries/garments) پوچھتی ہے کون سے سائز چل رہے ہیں۔ [بیکری](/ur/industries/bakery) پوچھتی ہے شام سے پہلے کیا ختم ہو گیا، اور [موبائل شاپ](/ur/industries/mobile-shop) پوچھتی ہے کون سے ماڈل سب سے زیادہ کماتے ہیں۔ سوال بدلتے ہیں؛ جواب اسی کاؤنٹر، اسٹاک اور کھاتے سے آتے ہیں۔\n\n## شروع کیسے کریں\n\nNafaa کے اندر سے اسسٹنٹ کھولیں اور اپنا پہلا سوال لکھیں۔ کچھ سیٹ اپ نہیں کرنا: یہ آپ کی پروڈکٹس، گاہکوں اور برانچوں کو پہلے سے جانتا ہے کیونکہ یہ سب اسی اکاؤنٹ میں ہیں۔ کل کی سیل سے شروع کریں، پھر ادھار اور کم اسٹاک کے بارے میں پوچھیں، اور ایک منٹ میں آپ دیکھ لیں گے کہ یہ آپ کے کاروبار کے لیے کیا کر سکتا ہے۔',
-      id: 'bbde15ad68e9',
+      markdown: `## وہ سوال جو مالک روز پوچھتے ہیں
+
+زیادہ تر مالک دکان کھولنے سے پہلے اور بند کرنے کے بعد وہی چند جواب چاہتے ہیں۔ Nafaa AI یہ ایک لائن میں دیتا ہے، انہی نمبروں سے جو ایپ پہلے سے رکھتی ہے:
+
+- "Aaj ki sale kitni hui, aur kal se zyada hai ya kam?"
+- "Which products made the most profit this month?"
+- "Kis customer ka udhaar ek mahine se purana hai?"
+- "What should I reorder before the weekend?"
+- "Which branch sold the most yesterday, and which cashier?"
+- "Kitne online orders courier ke paas phanse hue hain?"
+
+ہر جواب کے ساتھ اس کے پیچھے کے اعداد نظر آتے ہیں، اکثر ایک چھوٹے چارٹ کے ساتھ، اور یہ دو تین اگلے سوال بھی سجھاتا ہے۔ آپ جواب کاپی کر سکتے ہیں یا WhatsApp پر بھیج سکتے ہیں، اور ہر چیٹ محفوظ رہتی ہے، اس لیے بعد میں اسے تلاش کر سکتے ہیں، نام بدل سکتے ہیں، پن کر سکتے ہیں یا ڈیلیٹ کر سکتے ہیں۔
+
+## یہ پورے کاروبار کو جانتا ہے
+
+Nafaa AI وہی پڑھتا ہے جو پہلے سے Nafaa پر چل رہا ہے، انہی رپورٹس کے ذریعے جو ایپ استعمال کرتی ہے، اس لیے اس کا "کل" وہی ہے جو ڈیش بورڈ کا "کل" ہے:
+
+- **کاؤنٹر اور Profit:** سیل، بل، Discount، ریٹرن، پروڈکٹ اور کیٹیگری کے حساب سے Profit، کیش دراز اور Expense۔
+- **اسٹاک:** اسٹاک کی ویلیو، کم اسٹاک، اسٹاک کی حرکت اور اس کا اندازہ کہ کیا ختم ہونے والا ہے۔
+- **کسٹمرز:** [کھاتہ](/ur/product/khata)، سب سے پرانا ادھار، بہترین کسٹمرز اور لائلٹی پوائنٹس۔
+- **خریداری:** پرچیز، سپلائرز اور ان کو دینے والی رقم۔
+- **ٹیم اور برانچیں:** اسٹاف کی کارکردگی اور برانچوں کا ساتھ ساتھ موازنہ۔
+- **آن لائن:** آرڈر، چھوڑی ہوئی کارٹس، ہر کوریئر کے ساتھ COD، شہر کے حساب سے ڈیلیوری اور اشتہار کا خرچ سیل کے مقابلے میں۔
+- **ڈسٹری بیوشن:** [ہول سیل اور ڈسٹری بیوشن](/ur/solutions/wholesale-distribution) کے لیے روزانہ سیل رپورٹ، روٹ کی وصولی، وین کا اسٹاک اور ہدف۔
+
+اگر کوئی نمبر آپ کے Nafaa ڈیٹا میں نہیں ہے تو یہ بنانے کے بجائے صاف بتا دیتا ہے۔ آپ کا جتنا زیادہ کاروبار Nafaa پر چلتا ہے، یہ اتنے زیادہ سوالوں کے جواب دے سکتا ہے۔
+
+## کام، اور فیصلہ آپ کا
+
+Nafaa AI روزمرہ کے کام بھی کر سکتا ہے۔ اس سے سیل بنانے، پروڈکٹ یا کسٹمر ڈالنے، کھاتے کی ادائیگی، Expense یا دوسری آمدنی لکھنے، اسٹاک ایڈجسٹ کرنے، قیمت بدلنے یا پرچیز آرڈر کا مسودہ بنانے کو کہیں۔ آپ نے جو نام بولے وہ آپ کی اصل پروڈکٹس اور کسٹمرز سے ملاتا ہے (نام واضح نہ ہو تو پوچھتا ہے)، ٹوٹل اور اسٹاک نکالتا ہے، اور ایک کارڈ دکھاتا ہے جس کی ہر فیلڈ آپ بدل سکتے ہیں۔ جب تک آپ **Confirm** نہ دبائیں کچھ نہیں ہوتا۔ اس کے بعد کام اسی اسکرین لاجک سے چلتا ہے جو ایپ استعمال کرتی ہے، انہی کاؤنٹر رولز اور اجازتوں کے ساتھ، اور ایکٹیویٹی لاگ میں لکھا جاتا ہے کہ یہ Nafaa AI کے ذریعے ہوا۔
+
+کچھ کام یہ کبھی نہیں کرتا: کوئی چیز ڈیلیٹ کرنا، بل void یا refund کرنا، یا سیٹنگز، یوزرز، اجازتیں یا آپ کا پلان بدلنا۔
+
+## انگریزی، اردو یا رومن اردو
+
+انگریزی میں پوچھیں تو انگریزی میں جواب دیتا ہے؛ رومن اردو میں پوچھیں تو رومن اردو میں؛ اور اگر آپ کی ایپ اردو پر ہے تو جواب اردو رسم الخط میں آتا ہے۔ Sale، Profit، Stock اور Discount جیسے کاروباری الفاظ انگریزی میں ہی رہتے ہیں، جیسے دکانوں میں بولے جاتے ہیں۔ Chrome یا Edge والے کمپیوٹر پر آپ بول کر سوال پوچھ سکتے ہیں، اور کوئی بھی جواب بلند آواز میں سنا جا سکتا ہے۔ باقی ایپ کے لیے [Nafaa تین زبانوں میں](/ur/languages) دیکھیں۔
+
+## آپ کا ڈیٹا آپ ہی کا رہتا ہے
+
+Nafaa AI صرف آپ کا اپنا کاروباری ڈیٹا پڑھتا ہے، اور وہ بھی صرف جو پوچھنے والے کو دیکھنے کی اجازت ہو۔ جو کیشیئر ایپ میں Profit نہیں دیکھ سکتا وہ Nafaa AI سے بھی Profit نہیں پوچھ سکتا۔ مالک اسٹاف کی اجازتوں سے طے کرتے ہیں کہ اسے کون استعمال کرے۔ پوری تفصیل چاہیے تو [رپورٹس](/ur/product/reports) ہمیشہ موجود ہیں۔
+
+## فون پر بھی
+
+Nafaa AI [Nafaa POS موبائل ایپ](/ur/mobile-app) میں بھی ہے، اس لیے دکان سے دور مالک پوچھ سکتا ہے کہ دن کیسا جا رہا ہے۔ صبح کی سمری سیٹنگز میں رکھے گئے رپورٹ کے وقت پر فون اور ایپ میں نوٹیفکیشن کی صورت میں آتی ہے۔
+
+## پلان اور حدیں
+
+Nafaa AI [قیمتوں کے صفحے](/ur/pricing) پر دکھائے گئے پلانز کا حصہ ہے، ہر پلان میں روزانہ سوالوں کی ایک تعداد کے ساتھ۔ جو دکانیں اسے بہت زیادہ استعمال کرتی ہیں وہ زیادہ سوالوں اور رپورٹس کے لیے **Nafaa AI Plus** شامل کر سکتی ہیں۔ صبح کی سمری جیسے سادہ سوالوں کے جواب سیدھے آپ کے نمبروں سے آتے ہیں، جس سے یہ تیز رہتا ہے۔`,
     },
     {
       type: 'cta',
@@ -73,13 +124,19 @@ export const entry: SeedEntry = {
       body: '7 دن کا فری ٹرائل شروع کریں اور اپنے کاروبار کے بارے میں سیدھے الفاظ میں پوچھیں۔',
       primaryCta: { label: 'فری ٹرائل شروع کریں', href: 'signup', variant: 'primary', trackAs: 'cta_trial' },
       secondaryCta: { label: 'واٹس ایپ پر پیغام بھیجیں', href: 'whatsapp', variant: 'ghost', trackAs: 'cta_whatsapp' },
-      id: 'b5efe4174fc2',
     },
-  ],
+  ]),
   sortOrder: 99,
-  origin: 'translation of content/main-pages/hubs.ts (26 Oct 2026)',
-  evidence: ['apps/web/src/modules/ai-assistant/index.ts'],
-  factCheck: { checkedOn: '2026-10-26', note: 'Urdu translation of the English entry; claims unchanged.' },
+  origin: 'translation of content/main-pages/hubs.ts (15 Nov 2026)',
+  evidence: [
+    'apps/web/src/modules/ai-assistant/index.ts',
+    'apps/web/src/modules/ai-assistant/components/AiDrawer.tsx',
+    'apps/web/src/modules/ai-assistant/components/AiActionCard.tsx',
+    'apps/api/src/modules/ai-assistant/ai-actions.service.ts',
+    'apps/api/src/modules/ai-assistant/morning-summary.service.ts',
+    'apps/mobile/src/modules/ai-assistant',
+  ],
+  factCheck: { checkedOn: '2026-11-15', note: 'Urdu translation of the English entry; claims unchanged.' },
   dropped: [],
-  needsOwner: ["Marketed as available on the owner's instruction (21 Oct 2026). Confirm plan availability before launch."],
+  needsOwner: ['Which plans include Nafaa AI and the daily question limits come from the plan table; the page does not state them.'],
 };

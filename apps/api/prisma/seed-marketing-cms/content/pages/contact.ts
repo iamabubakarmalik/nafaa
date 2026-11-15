@@ -18,6 +18,7 @@ export const contact: SeedEntry = {
   type: 'PAGE',
   slug: 'contact',
   relations: [
+    { ref: 'PAGE:partners', kind: 'RELATED' },
     { ref: 'PAGE:demo', kind: 'RELATED' },
     { ref: 'PAGE:faq', kind: 'RELATED' },
     { ref: 'PAGE:services', kind: 'RELATED' },
@@ -41,7 +42,7 @@ export const contact: SeedEntry = {
       sub: 'Questions about plans, setup, tax invoicing or a project of your own: message us on WhatsApp for the fastest reply, or write to us below.',
       primaryCta: { label: 'Message on WhatsApp', href: 'whatsapp', variant: 'primary', trackAs: 'contact-hero:whatsapp' },
       secondaryCta: { label: 'Book a demo', href: 'demo', variant: 'secondary', trackAs: 'contact-hero:demo' },
-      badges: ['English, Urdu & Roman Urdu', 'Help on WhatsApp'],
+      badges: ['English, Urdu & Roman Urdu', 'Live chat inside the app', 'Help on WhatsApp'],
     },
     {
       id: 'contact-topics',
@@ -54,7 +55,7 @@ export const contact: SeedEntry = {
         { icon: 'database', title: 'Moving your data', body: 'Products, customers and khata from Excel or another system.', href: '/services/data-migration' },
         { icon: 'building-2', title: 'Many branches', body: 'Setup, roles and training for chains and larger teams.', href: '/solutions/enterprise' },
         { icon: 'code-xml', title: 'Custom software', body: 'Websites, online stores, mobile apps and tools built for you, worldwide.', href: '/services/custom-software' },
-        { icon: 'circle-question-mark', title: 'Help with the app', body: 'Already using Nafaa? The help center in the app, or WhatsApp.' },
+        { icon: 'circle-question-mark', title: 'Help with the app', body: 'Already using Nafaa? Open Nafaa Support chat inside the app to talk to our team, read the help center, or message us on WhatsApp.', href: '/help' },
       ],
     },
     {
@@ -69,8 +70,8 @@ export const contact: SeedEntry = {
     },
   ] as SeedEntry['blocks'],
   origin: 'new (D1, 20 Oct 2026)',
-  evidence,
-  factCheck: { checkedOn: '2026-10-20', note: 'Form fields and endpoints checked in apps/site and apps/api; contact details come from settings only.' },
+  evidence: [...evidence, 'apps/web/src/modules/support/components/SupportChat.tsx', 'apps/mobile/src/modules/support'],
+  factCheck: { checkedOn: '2026-11-15', note: 'Form fields and endpoints checked in apps/site and apps/api; contact details come from settings only. In-app support chat (Nafaa Support) live since 15 Nov 2026 (804a6105).' },
   dropped: ['Office address: not shown until the owner adds a real office in settings.'],
   needsOwner: ['"Usually the same working day" reply time: confirm the team can keep it.'],
 };

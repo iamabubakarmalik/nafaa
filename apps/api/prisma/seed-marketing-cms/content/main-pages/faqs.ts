@@ -75,8 +75,8 @@ export const mainPageFaqs: SeedFaq[] = [
     topic: 'product',
     question: 'Which online stores and couriers can I connect?',
     answer:
-      'Orders can come from a website built on Nafaa, a Shopify store, a WooCommerce store, Daraz and Foodpanda. For delivery you can book parcels with TCS, Leopards, M&P, PostEx, Trax and CallCourier from the order screen, and stock is updated on every connected channel when something sells.',
-    sourceNote: 'online-orders: shopify, woocommerce, daraz, foodpanda services; courier-api adapters; stock-push.service.',
+      'Orders can come from your own Nafaa Stores website, a Shopify store, a WooCommerce store, Daraz, a website your developer built, and orders you add by hand from WhatsApp or the phone. Foodpanda and Nafaa Market are coming soon. For delivery you can book parcels with TCS, Leopards, M&P, PostEx, Trax, CallCourier, InstaWorld and ShipNOC from the order, and stock is updated on every connected channel when something sells.',
+    sourceNote: 'stores (Nafaa Stores), online-orders: shopify, woocommerce, daraz services, custom-website channel, AddOrderPage; courier-api registry; stock-push.service. Foodpanda add-on is comingSoon (pricing v2). Updated 15 Nov 2026.',
     origin: NEW,
     evidence: ['apps/api/src/integrations/online-orders', 'apps/api/src/integrations/online-orders/courier-api', 'apps/api/src/integrations/online-orders/stock-push.service.ts'],
   },
@@ -525,7 +525,7 @@ export const mainPageFaqs: SeedFaq[] = [
     topic: 'marketplace',
     question: 'What is Nafaa Market?',
     answer:
-      'Nafaa Market is the Nafaa marketplace, where buyers browse and order from shops that use Nafaa. You choose which of your products to list, and their price and stock come from your Nafaa account. Orders arrive in the same app as your counter sales and online orders.',
+      'Nafaa Market is the marketplace Nafaa is building, where buyers will browse and order from shops that use Nafaa. It is not open yet. When it opens, you choose which of your products to list, their price and stock come from your Nafaa account, and orders arrive in the same app as your counter sales and online orders.',
     sourceNote: 'apps/marketplace (buyer app); apps/api/src/marketplace (publishing, orders); apps/web/src/marketplace (seller screens).',
     origin: NEW,
     evidence: ['apps/marketplace', 'apps/api/src/marketplace/publishing', 'apps/api/src/marketplace/orders', 'apps/web/src/marketplace/products/MarketplaceProductsPage.tsx'],
@@ -610,7 +610,7 @@ export const mainPageFaqs: SeedFaq[] = [
       'The billing page shows your usage against each limit of your plan: products, users, shops and sales this month. When you get close, compare plans on the same page and move up. Your data and settings stay as they are.',
     sourceNote: 'BillingPage usage tab (UsageMeters) and plan comparison; feature-gating usage endpoint.',
     origin: 'new (hubs pass, 26 Oct 2026)',
-    evidence: ['apps/web/src/modules/billing/billing/components/UsageMeters.tsx', 'apps/web/src/modules/billing/billing/components/PlanCompare.tsx', 'apps/api/src/modules/feature-gating/feature-gating.service.ts'],
+    evidence: ['apps/web/src/modules/billing/pricing/components/MyPlanOverview.tsx', 'apps/web/src/modules/billing/pricing/components/AddOnParts.tsx', 'apps/api/src/modules/feature-gating/feature-gating.service.ts'],
   },
   {
     key: 'hub-bazaar-delivery',

@@ -31,7 +31,7 @@ function legal(slug: string, title: string, description: string, markdown: strin
     seoTitle: title,
     seoDescription: description,
     origin: `apps/marketing/src/app/${slug}/page.tsx`,
-    evidence: [`apps/marketing/src/app/${slug}/page.tsx`],
+    evidence: ['apps/api/prisma/seed-marketing-cms/content/pages/legal.ts'],
     factCheck: { checkedOn: '2026-10-21', note: 'Copied word for word from the live old site; not re-verified (legal text is the owner\'s).' },
     dropped,
     needsOwner,

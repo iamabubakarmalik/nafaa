@@ -122,7 +122,7 @@ const root: SeedEntry = {
       ].join('\n'),
     ),
     note(
-      'Ask the in-app **Help center** (bottom of the sidebar), message us on WhatsApp, or [contact support](/contact). The [FAQ](/faq) answers questions about plans, payments and data.',
+      'Open **Nafaa Support** chat inside the app to talk to our team (Nafaa AI answers common questions straight away), use the in-app **Help center** (bottom of the sidebar), message us on WhatsApp, or [contact support](/contact). The [FAQ](/faq) answers questions about plans, payments and data.',
       'Can’t find your answer?',
     ),
     { type: 'relatedLinks', heading: 'Product pages', source: 'related', limit: 6 },

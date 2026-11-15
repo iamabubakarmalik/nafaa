@@ -11,7 +11,8 @@ import { solutions } from './solutions';
 import { hubs } from './hubs';
 import { moreHubFaqs, moreHubs } from './hubs-more';
 import { mainPageFaqs as baseFaqs } from './faqs';
+import { novFaqs, novPages } from './features-nov';
 
-export const mainPageFaqs = [...baseFaqs, ...moreHubFaqs];
+export const mainPageFaqs = [...baseFaqs, ...moreHubFaqs, ...novFaqs];
 
-export const mainPageEntries: SeedEntry[] = [...products, ...solutions, ...services, ...mainPages, ...hubs, ...moreHubs];
+export const mainPageEntries: SeedEntry[] = [...products, ...solutions, ...services, ...mainPages, ...hubs, ...moreHubs, ...novPages];
