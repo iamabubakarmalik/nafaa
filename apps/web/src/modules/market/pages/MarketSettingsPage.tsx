@@ -127,9 +127,7 @@ export default function MarketSettingsPage() {
       <div className="grid gap-4 xl:grid-cols-2">
         <SectionCard title={t('Order ka tareeqa')} desc={t('Sirf woh switches jo aap ke Market section me kaam aate hain')} icon={Package} color="violet"
           action={<Link to="/market/profile" className="text-[0.8125rem] font-semibold text-brand-700 hover:underline">{t('Section badlein')}</Link>}>
-          {configQ.isLoading ? <Skeleton className="h-40 rounded-xl" /> : !gateDef ? (
-            <Alert tone="warning">{t('Market section ke switches abhi load nahi huay. Thori der baad dobara kholein.')}</Alert>
-          ) : (
+          {configQ.isLoading || !gateDef ? <Skeleton className="h-40 rounded-xl" /> : (
             <div className="divide-y divide-slate-100">
               {keys.map((k) => (
                 <Toggle key={k} checked={!!flow[k]} disabled={!canEdit} icon={SWITCHES[k].icon}

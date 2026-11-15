@@ -1,6 +1,7 @@
 /**
  * Online products: the shop's POS catalog with its Market listing state.
- * Search, listed / not listed and sort run on the server a page at a time;
+ * Search, listed / not listed, POS category, stock, photo and sort all run
+ * on the server a page at a time;
  * stock always comes from the POS. Products can be listed one by one or in
  * bulk, and each opens a drawer for its Market name, photos and price.
  */
@@ -8,7 +9,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowDownWideNarrow, CheckSquare, EyeOff, Filter, ImageOff, Package, PackageX, Rocket, Search, Store } from 'lucide-react';
+import { ArrowDownWideNarrow, CheckSquare, EyeOff, Filter, FolderTree, ImageOff, Package, PackageX, Rocket, Search, Store } from 'lucide-react';
 import {
   Badge, Button, Checkbox, EmptyState, FilterBar, FilterChip, FilterMenu, Kbd, PageHero, PageShell, SearchField, SkeletonTable, Switch,
   Table, TBody, Td, Th, THead, Tr, ViewTabs, heroButton,
@@ -20,13 +21,14 @@ import { formatPKR } from '@core/lib/format';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
+import { categoriesApi } from '@modules/inventory/categories/api/categories.api';
 import { errorText, marketApi, type MarketProductRow } from '../api/market.api';
 import { shopGate, useMarketConfig, useMarketProfile } from '../hooks/useMarket';
 import { ProductMarketDrawer } from '../components/ProductMarketDrawer';
 import { GuideButton, Pager, TONE } from '../components/parts';
 
 type Listed = 'all' | 'listed' | 'unlisted';
-type PageFilter = 'all' | 'out' | 'nophoto';
+type Stock = 'all' | 'in' | 'out';
 type Sort = 'listed' | 'name' | 'price_asc' | 'price_desc';
 
 export default function MarketProductsPage() {
@@ -37,7 +39,9 @@ export default function MarketProductsPage() {
   const [search, setSearch] = useState('');
   const [q, setQ] = useState('');
   const [listed, setListed] = useState<Listed>('all');
-  const [pageFilter, setPageFilter] = useState<PageFilter>('all');
+  const [stock, setStock] = useState<Stock>('all');
+  const [noPhoto, setNoPhoto] = useState(false);
+  const [category, setCategory] = useState('');
   const [sort, setSort] = useState<Sort>('listed');
   const [page, setPage] = useState(1);
   const [picked, setPicked] = useState<Set<string>>(new Set());
@@ -47,20 +51,25 @@ export default function MarketProductsPage() {
   const gate = configQ.data?.gates.find((g) => g.id === shopGate(profileQ.data));
 
   useEffect(() => { const h = setTimeout(() => setQ(search.trim()), 250); return () => clearTimeout(h); }, [search]);
-  useEffect(() => { setPage(1); setPicked(new Set()); }, [q, listed, sort]);
+  useEffect(() => { setPage(1); setPicked(new Set()); }, [q, listed, sort, stock, noPhoto, category]);
 
   const params = {
     search: q || undefined,
-    isListedOnMarketplace: listed === 'all' ? undefined : listed === 'listed',
+    listed: listed === 'all' ? undefined : listed === 'listed' ? 'yes' as const : 'no' as const,
+    category: category || undefined,
+    stock: stock === 'all' ? undefined : stock,
+    photo: noPhoto ? 'none' as const : undefined,
     sortBy: sort, page, limit: 30,
   };
   const listQ = useQuery({ queryKey: ['market', 'products', params], queryFn: () => marketApi.products.list(params), placeholderData: (prev) => prev });
-  const rows = listQ.data?.items ?? [];
+  const categoriesQ = useQuery({ queryKey: ['categories'], queryFn: categoriesApi.list, staleTime: 5 * 60_000 });
+  const shown = listQ.data?.items ?? [];
   const counts = listQ.data?.counts;
   const meta = listQ.data?.meta;
-  // Stock and photo filters work on the loaded page (the list endpoint has no such filter).
-  const shown = useMemo(() => rows.filter((r) => (pageFilter === 'out' ? r.productStock <= 0 : pageFilter === 'nophoto' ? !r.publicImages.length : true)), [rows, pageFilter]);
-  const outHere = rows.filter((r) => r.productStock <= 0).length;
+  const categoryOptions = useMemo(() => [
+    { value: '', label: t('Sab categories') },
+    ...(categoriesQ.data ?? []).filter((c) => c.isActive !== false).map((c) => ({ value: c.id, label: c.name })),
+  ], [categoriesQ.data]);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['market'] });
   const bulk = useMutation({
@@ -95,9 +104,9 @@ export default function MarketProductsPage() {
   });
 
   const LISTED = [{ value: 'all' as const, label: t('Sab') }, { value: 'listed' as const, label: t('Online') }, { value: 'unlisted' as const, label: t('Online nahi') }];
-  const PAGE_FILTERS = [{ value: 'all' as const, label: t('Sab') }, { value: 'out' as const, label: t('Stock khatam') }, { value: 'nophoto' as const, label: t('Tasveer nahi') }];
-  const filtered = listed !== 'all' || pageFilter !== 'all' || !!q;
-  const clear = () => { setListed('all'); setPageFilter('all'); setSearch(''); };
+  const STOCKS = [{ value: 'all' as const, label: t('Sab') }, { value: 'in' as const, label: t('Stock hai') }, { value: 'out' as const, label: t('Stock khatam') }];
+  const filtered = listed !== 'all' || stock !== 'all' || noPhoto || !!category || !!q;
+  const clear = () => { setListed('all'); setStock('all'); setNoPhoto(false); setCategory(''); setSearch(''); };
 
   return (
     <PageShell>
@@ -120,7 +129,7 @@ export default function MarketProductsPage() {
           { label: t('Online'), value: counts.listed },
           { label: t('Online nahi'), value: counts.unlisted },
           { label: t('Kul products'), value: counts.total },
-          { label: t('Is safhe par stock khatam'), value: outHere },
+          { label: t('Is filter me'), value: meta?.total ?? 0 },
         ] : undefined}
       />
 
@@ -128,12 +137,17 @@ export default function MarketProductsPage() {
         search={<SearchField ref={searchRef} value={search} onChange={setSearch} placeholder={t('Naam ya SKU…')} label={t('Search')} />}
         chips={filtered ? <>
           {listed !== 'all' && <FilterChip onRemove={() => setListed('all')}>{LISTED.find((o) => o.value === listed)?.label}</FilterChip>}
-          {pageFilter !== 'all' && <FilterChip onRemove={() => setPageFilter('all')}>{PAGE_FILTERS.find((o) => o.value === pageFilter)?.label}</FilterChip>}
+          {stock !== 'all' && <FilterChip onRemove={() => setStock('all')}>{STOCKS.find((o) => o.value === stock)?.label}</FilterChip>}
+          {noPhoto && <FilterChip onRemove={() => setNoPhoto(false)}>{t('Tasveer nahi')}</FilterChip>}
+          {category && <FilterChip onRemove={() => setCategory('')}>{categoryOptions.find((o) => o.value === category)?.label}</FilterChip>}
           {q && <FilterChip onRemove={() => setSearch('')}>"{q}"</FilterChip>}
         </> : undefined}
         onClear={clear}>
         <FilterMenu icon={Filter} label={t('Halat')} value={listed} active={listed !== 'all'} onChange={setListed} options={LISTED} />
-        <FilterMenu icon={PackageX} label={t('Stock / tasveer')} value={pageFilter} active={pageFilter !== 'all'} onChange={setPageFilter} options={PAGE_FILTERS} />
+        {categoryOptions.length > 1 && <FilterMenu icon={FolderTree} label={t('Category')} value={category} active={!!category} onChange={setCategory} options={categoryOptions} />}
+        <FilterMenu icon={PackageX} label={t('Stock')} value={stock} active={stock !== 'all'} onChange={setStock} options={STOCKS} />
+        <FilterMenu icon={ImageOff} label={t('Tasveer')} value={noPhoto ? 'none' : 'all'} active={noPhoto} onChange={(v) => setNoPhoto(v === 'none')}
+          options={[{ value: 'all', label: t('Sab') }, { value: 'none', label: t('Tasveer nahi') }]} />
         <FilterMenu icon={ArrowDownWideNarrow} label={t('Sort')} value={sort} active={sort !== 'listed'} onChange={setSort} align="right"
           options={[{ value: 'listed', label: t('Haal hi me badle') }, { value: 'name', label: t('Naam (A–Z)') }, { value: 'price_asc', label: t('Sasta pehle') }, { value: 'price_desc', label: t('Mehnga pehle') }]} />
       </FilterBar>

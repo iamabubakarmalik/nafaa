@@ -24,7 +24,7 @@ import { cn } from '@core/lib/cn';
 import { t } from '@core/i18n';
 import { Field, NumberInput, SectionCard, Toggle } from '@modules/organization/settings/components/SettingsBlocks';
 import { errorText, marketApi, type MarketGate, type MarketProfile, type WorkingHours } from '../api/market.api';
-import { gateLabel, isGate, num, pickLabel, shopGate, useMarketConfig, useMarketProfile } from '../hooks/useMarket';
+import { gateLabel, isGate, num, pickLabel, useMarketConfig, useMarketProfile } from '../hooks/useMarket';
 import { ImageList, ImageSlot } from '../components/ImageFields';
 import { HoursEditor } from '../components/HoursEditor';
 import { GuideButton, TONE } from '../components/parts';
@@ -49,7 +49,8 @@ export default function MarketProfilePage() {
   const set = <K extends keyof P>(k: K, v: P[K]) => setDraft((d) => ({ ...d, [k]: v }));
   const live = !!profile?.isListedOnMarketplace;
 
-  const autoGate = shopGate(profile ? { ...profile, gate: null } : undefined);
+  // The section picked from the POS business type is known only while the owner has not chosen one.
+  const autoGate: MarketGate | null = profile && !isGate(profile.gate) && isGate(profile.resolvedGate) ? profile.resolvedGate : null;
   const gate: MarketGate | null = isGate(m.gate) ? m.gate : autoGate;
   const gateDef = config?.gates.find((g) => g.id === gate);
 
@@ -127,7 +128,11 @@ export default function MarketProfilePage() {
   };
 
   const subCats = m.subCategories ?? [];
-  const toggleSub = (id: string) => set('subCategories', subCats.includes(id) ? subCats.filter((x) => x !== id) : [...subCats, id]);
+  const toggleSub = (id: string) => {
+    if (subCats.includes(id)) { set('subCategories', subCats.filter((x) => x !== id)); return; }
+    if (subCats.length >= 10) { toast.error(t('Zyada se zyada 10 chunein')); return; }
+    set('subCategories', [...subCats, id]);
+  };
   const filled = profile ? [m.logoUrl, m.coverUrl, m.description, m.address, m.lat, m.workingHours, m.contactPhone || m.whatsappNumber].filter((x) => x != null && x !== '').length : 0;
 
   if (profileQ.isLoading) {
@@ -184,7 +189,7 @@ export default function MarketProfilePage() {
           </div>
           <div className="mt-4">
             <p className="mb-1.5 text-[0.8125rem] font-medium text-slate-700">{t('Gallery')}</p>
-            <ImageList values={m.galleryUrls ?? []} onChange={(v) => set('galleryUrls', v)} max={10} purpose="product-gallery" disabled={!canEdit} />
+            <ImageList values={m.galleryUrls ?? []} onChange={(v) => set('galleryUrls', v)} max={12} purpose="product-gallery" disabled={!canEdit} />
           </div>
         </SectionCard>
 
@@ -213,7 +218,7 @@ export default function MarketProfilePage() {
         </SectionCard>
 
         <SectionCard title={t('Market section')} desc={t('Customer aap ki dukaan kis darwaze me dhoondega')} icon={Tags} color="violet" id="gate">
-          {!config && !configQ.isLoading && <Alert tone="warning">{t('Market sections abhi load nahi huay. Thori der baad dobara kholein.')}</Alert>}
+          {configQ.isLoading && <Skeleton className="h-32 rounded-xl" />}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label={t('Market section')}>
             {(config?.gates ?? []).map((g) => {
               const active = gate === g.id;

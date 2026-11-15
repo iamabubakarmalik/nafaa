@@ -9,8 +9,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Bike, CheckCircle2, ChefHat, Circle, Clock, EyeOff, Image as ImageIcon, MapPin, MessageCircle, Package, Rocket, ShoppingBag,
-  Star, Store, Truck, Users, Wallet,
+  Bike, CheckCircle2, ChefHat, Circle, Clock, Eye, EyeOff, Image as ImageIcon, MapPin, MessageCircle, Package, Rocket, ShoppingBag,
+  Star, Store, Truck, Wallet,
 } from 'lucide-react';
 import {
   Badge, Button, Card, KpiCard, KpiRow, PageHero, PageShell, Skeleton, heroButton, heroPrimaryButton,
@@ -96,8 +96,8 @@ export default function MarketHomePage() {
         stats={d ? [
           { label: t('Aaj ke orders'), value: d.orders.todayCount, hint: t('{{count}} naye', { count: d.orders.pendingCount }) },
           { label: t('Aaj ki Sale'), value: formatPKR(d.orders.todayRevenue) },
-          { label: t('Rating'), value: d.shop.ratingAverage ? d.shop.ratingAverage.toFixed(1) : '—', hint: t('{{count}} reviews', { count: d.shop.ratingCount }) },
-          { label: t('Followers'), value: d.shop.followerCount },
+          { label: t('Aaj dukaan dekhi'), value: d.shop.viewsToday ?? 0, hint: t('7 din: {{count}}', { count: d.shop.views7d ?? 0 }) },
+          { label: t('Rating'), value: d.shop.ratingAverage ? d.shop.ratingAverage.toFixed(1) : '—', hint: t('{{count}} reviews · {{followers}} followers', { count: d.shop.ratingCount, followers: d.shop.followerCount }) },
         ] : undefined}
       />
 
@@ -178,8 +178,8 @@ export default function MarketHomePage() {
                 <Link to="/market/products" className="col-span-2 flex items-center gap-3 rounded-xl bg-slate-50 p-3 transition hover:bg-slate-100">
                   <Package className="h-4 w-4 text-brand-600" />
                   <span className="flex-1 text-[0.8125rem] text-slate-700">{t('{{listed}} / {{total}} products online', { listed: d.products.listed, total: d.products.total })}</span>
-                  <Users className="h-4 w-4 text-slate-400" />
-                  <span className="text-[0.8125rem] tabular-nums text-slate-700">{d.shop.followerCount}</span>
+                  <Eye className="h-4 w-4 text-slate-400" />
+                  <span className="text-[0.8125rem] tabular-nums text-slate-700" title={t('Aaj products dekhe gaye')}>{d.shop.productViewsToday ?? 0}</span>
                 </Link>
               </div>
             </Card>

@@ -91,6 +91,8 @@ export interface MarketProfile {
   gate?: MarketGate | null;
   /** Section the API resolved for this shop (owner's choice or from the business type). */
   resolvedGate?: MarketGate | null;
+  /** Sub-filter picked from the POS business type (e.g. bakery inside Food). */
+  gateFilter?: string | null;
   subCategories?: string[];
   flowSettings?: FlowSettings | null;
   /** Saved switches merged over the gate defaults, when the API sends them. */
@@ -184,7 +186,10 @@ export interface MarketRecentOrder {
 }
 
 export interface MarketDashboard {
-  shop: { isListed: boolean; verificationLevel: string; ratingAverage: number; ratingCount: number; followerCount: number };
+  shop: {
+    isListed: boolean; verificationLevel: string; ratingAverage: number; ratingCount: number; followerCount: number;
+    viewsToday?: number; views7d?: number; productViewsToday?: number; productViews7d?: number;
+  };
   products: { total: number; listed: number; unlisted: number };
   orders: {
     todayCount: number; todayRevenue: number; pendingCount: number; preparingCount: number;
@@ -340,6 +345,19 @@ export interface OfferInput {
   shopId?: string;
 }
 
+/* ─── Market customers ─── */
+
+export interface MarketCustomer {
+  customerId: string;
+  name: string;
+  phone?: string | null;
+  avatarUrl?: string | null;
+  city?: string | null;
+  ordersCount: number;
+  totalSpent: number;
+  lastOrderAt?: string | null;
+}
+
 /* ─── Seller notifications ─── */
 
 export interface NotificationPrefs {
@@ -363,7 +381,7 @@ export const marketApi = {
   },
 
   products: {
-    list: (params: { isListedOnMarketplace?: boolean; search?: string; sortBy?: string; page?: number; limit?: number }) =>
+    list: (params: { listed?: 'yes' | 'no'; category?: string; stock?: 'in' | 'out'; photo?: 'none'; search?: string; sortBy?: string; page?: number; limit?: number }) =>
       apiClient.get('/marketplace/products/manage', { params }).then(unwrap<MarketProductList>),
     get: (productId: string) => apiClient.get(`/products/${productId}/marketplace-profile`).then(unwrap<MarketProductProfile>),
     update: (productId: string, data: Partial<MarketProductProfile>) =>
@@ -418,6 +436,9 @@ export const marketApi = {
     update: (id: string, data: Partial<OfferInput>) => apiClient.patch(`/promotions/${id}`, data).then(unwrap<MarketOffer>),
     remove: (id: string) => apiClient.delete(`/promotions/${id}`).then(unwrap<unknown>),
   },
+
+  customers: (params: { search?: string; page?: number; limit?: number }) =>
+    apiClient.get('/marketplace/manage/customers', { params }).then(unwrap<Paged<MarketCustomer> & { phoneMasked?: boolean }>),
 
   notifications: {
     prefs: () => apiClient.get('/marketplace/manage/notifications/preferences').then(unwrap<NotificationPrefs>),
