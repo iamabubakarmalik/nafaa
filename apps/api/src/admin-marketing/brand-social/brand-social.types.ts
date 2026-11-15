@@ -171,6 +171,8 @@ export interface AccountPlatformSettings {
   /** Pinterest: the board new pins go to. */
   pinterestBoardId?: string | null;
   pinterestBoardName?: string | null;
+  /** Pinterest: publish to the test API (for the Standard access demo); pins there are not public. */
+  pinterestSandbox?: boolean;
 }
 
 /** GET accounts/:id/options: choices the platform offers for the settings above. */

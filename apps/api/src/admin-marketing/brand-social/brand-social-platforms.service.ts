@@ -388,6 +388,7 @@ export class BrandSocialPlatformsService {
       cur.pinterestBoardId = s.pinterestBoardId ? String(s.pinterestBoardId).slice(0, 64) : null;
       cur.pinterestBoardName = s.pinterestBoardId ? String(s.pinterestBoardName ?? '').slice(0, 180) || null : null;
     }
+    if (p === 'PINTEREST' && s.pinterestSandbox !== undefined) cur.pinterestSandbox = !!s.pinterestSandbox;
     return this.prisma.brandSocialAccount.update({ where: { id: a.id }, data: { meta: asJson({ ...meta, settings: cur }) } });
   }
 

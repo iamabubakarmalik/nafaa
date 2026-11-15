@@ -16,6 +16,9 @@ import {
 } from './brand-social-adapter';
 
 const API = 'https://api.pinterest.com/v5';
+/** Pinterest's test API. Apps on Trial access may only create pins here (used for the Standard access demo). */
+const SANDBOX_API = 'https://api-sandbox.pinterest.com/v5';
+const TRIAL_REFUSAL = /trial access may not create pins/i;
 const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 
 @Injectable()
@@ -82,10 +85,39 @@ export class BrandSocialPinterestService implements SocialAdapter {
     };
   }
 
+  /** Sandbox board per token, created on first use (sandbox boards are separate from live ones). */
+  private readonly sandboxBoards = new Map<string, string>();
+
+  private async sandboxBoard(token: string): Promise<string> {
+    const hit = this.sandboxBoards.get(token);
+    if (hit) return hit;
+    const call = <T>(path: string, o: HttpOptions = {}) => httpJson<T>('PINTEREST', `${SANDBOX_API}/${path}`, { ...o, bearer: token }).then((r) => r.data);
+    const list = await call<{ items?: Array<{ id: string }> }>('boards?page_size=1');
+    const id = list?.items?.[0]?.id ?? (await call<{ id: string }>('boards', { method: 'POST', json: { name: 'Nafaa - Business Tips (test)' } }))?.id;
+    if (!id) throw new SocialGraphError('unknown', 'Pinterest test mode did not give a board.');
+    this.sandboxBoards.set(token, id);
+    return id;
+  }
+
   private async createPin(ctx: PublishContext, media_source: Record<string, unknown>): Promise<AdapterResult> {
-    const pin = await this.call<{ id?: string }>('pins', ctx.accessToken, { method: 'POST', json: this.pinBody(ctx, media_source) });
-    if (!pin?.id) throw new SocialGraphError('unknown', 'Pinterest did not return an id for the new pin.');
-    return { postId: String(pin.id), permalink: `https://www.pinterest.com/pin/${pin.id}/` };
+    if (ctx.settings.pinterestSandbox) {
+      const board = await this.sandboxBoard(ctx.accessToken);
+      const body = { ...this.pinBody(ctx, media_source), board_id: board };
+      const pin = (await httpJson<{ id?: string }>('PINTEREST', `${SANDBOX_API}/pins`, { method: 'POST', json: body, bearer: ctx.accessToken })).data;
+      if (!pin?.id) throw new SocialGraphError('unknown', 'Pinterest test mode did not return an id for the new pin.');
+      return { postId: String(pin.id), permalink: null };
+    }
+    try {
+      const pin = await this.call<{ id?: string }>('pins', ctx.accessToken, { method: 'POST', json: this.pinBody(ctx, media_source) });
+      if (!pin?.id) throw new SocialGraphError('unknown', 'Pinterest did not return an id for the new pin.');
+      return { postId: String(pin.id), permalink: `https://www.pinterest.com/pin/${pin.id}/` };
+    } catch (e) {
+      // Trial access can't create live pins: hand it to a person until Standard access is approved.
+      if (TRIAL_REFUSAL.test(String((e as Error)?.message ?? ''))) {
+        return { handoff: 'Pinterest is still on Trial access, which cannot create live pins. Pin this one by hand; it goes automatic once Standard access is approved.' };
+      }
+      throw e;
+    }
   }
 
   /** "video:<media id>" containers: create the pin once the upload is processed. */

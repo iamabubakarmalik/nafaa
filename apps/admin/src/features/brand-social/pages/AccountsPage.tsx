@@ -353,6 +353,12 @@ function AccountSettingsModal({ account, onClose }: { account: SocialAccount | n
               onChange={(e) => { const b = boards.find((x) => x.id === e.target.value); setForm({ ...form, pinterestBoardId: b?.id ?? null, pinterestBoardName: b?.name ?? null }); }}
               options={[{ value: '', label: boards.length ? 'Choose a board' : 'No boards found' }, ...boards.map((b) => ({ value: b.id, label: b.name }))]} />
           )}
+          {p === 'PINTEREST' && (
+            <label className="flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2 text-[0.8125rem] text-slate-700 ring-1 ring-slate-200">
+              <input type="checkbox" className="mt-0.5" checked={!!form.pinterestSandbox} onChange={(e) => setForm({ ...form, pinterestSandbox: e.target.checked })} />
+              <span><b className="text-slate-800">Test mode (Pinterest sandbox)</b>: pins go to Pinterest&apos;s test API, not your public board. Use it to record the demo for Standard access, then turn it off. While on Trial access, live pins are handed to you to post by hand.</span>
+            </label>
+          )}
           {q.data.notes.map((n) => <p key={n} className="rounded-lg bg-slate-50 px-3 py-2 text-[0.75rem] text-slate-600 ring-1 ring-slate-200">{n}</p>)}
         </div>
       )}

@@ -93,6 +93,8 @@ export interface AccountPlatformSettings {
   tiktokPrivacy?: string | null;
   pinterestBoardId?: string | null;
   pinterestBoardName?: string | null;
+  /** Publish to Pinterest's test API (for the Standard access demo); pins there are not public. */
+  pinterestSandbox?: boolean;
 }
 
 /** GET accounts/:id/tiktok/creator-info: the TikTok creator's posting limits (cached a few minutes on the API). */
