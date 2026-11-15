@@ -1,2 +1,0 @@
-# app-ads.txt for Nafaa mobile app
-# Add authorized digital sellers here when running in-app ads
