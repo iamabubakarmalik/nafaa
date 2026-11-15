@@ -51,7 +51,7 @@ export const UTM_SOURCE: Record<BrandPlatform, string> = {
 };
 
 /** Platforms where a link in the text is clickable, so it goes under the caption. */
-const LINK_IN_TEXT: readonly BrandPlatform[] = ['FACEBOOK', 'X', 'LINKEDIN', 'THREADS', 'WHATSAPP_CHANNEL', 'GOOGLE_BUSINESS', 'YOUTUBE', 'PINTEREST'];
+const LINK_IN_TEXT: readonly BrandPlatform[] = ['FACEBOOK', 'LINKEDIN', 'THREADS', 'WHATSAPP_CHANNEL', 'GOOGLE_BUSINESS', 'YOUTUBE', 'PINTEREST'];
 
 /* ───────────────────────── codes and links ───────────────────────── */
 
@@ -117,13 +117,24 @@ export function linkFor(p: TextSource, platform: BrandPlatform, utm?: { medium?:
 }
 
 /**
+ * X bills a post that carries a URL about 13 times more than a plain one, and
+ * it autolinks bare domains too. X text therefore never carries a link: every
+ * URL or domain becomes "link in bio".
+ */
+const URL_OR_DOMAIN = /\bhttps?:\/\/\S+|\b(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:pk|com|net|org|io|co|app|me|ly)\b(?:\/\S*)?/gi;
+export function withoutLinks(text: string): string {
+  return text.replace(URL_OR_DOMAIN, 'link in bio').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/**
  * The full text for one platform: the platform's own caption (or the shared
  * one), the hashtags not already in it, and the tagged link where links are
  * clickable. Facebook text-only posts carry the link as a link post instead.
  */
 export function textFor(p: TextSource, platform: BrandPlatform, utm?: { medium?: string; defaultCampaign?: string }): string {
   const own = p.captions?.[platform];
-  const base = (typeof own === 'string' && own.trim() ? own : p.caption ?? '').trim();
+  const raw = (typeof own === 'string' && own.trim() ? own : p.caption ?? '').trim();
+  const base = platform === 'X' ? withoutLinks(raw) : raw;
   const inText = new Set((base.match(/#[\p{L}\p{N}_]+/gu) ?? []).map((h) => h.toLowerCase()));
   let free = p.hashtags.filter((h) => !inText.has(h.toLowerCase()));
   // Threads turns one hashtag into the post's topic and has a 500-character limit:

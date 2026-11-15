@@ -5,7 +5,7 @@
  */
 import {
   canTransition, cleanHashtags, dispatchFor, duePlatforms, MAX_ATTEMPTS, missedWindow, mp4Info, normalizeSettings, parsePack, parsePktDateTime,
-  readMediaInfo, retryAt, statusAfterEdit, summarize, tagLink, textFor, validatePost, approvedStatus, platformFrom,
+  readMediaInfo, retryAt, statusAfterEdit, summarize, tagLink, textFor, withoutLinks, validatePost, approvedStatus, platformFrom,
 } from './brand-social.logic';
 import type { PostMediaItem, PublishStateMap } from './brand-social.types';
 
@@ -32,10 +32,15 @@ describe('UTM tagging', () => {
   });
   it('puts the link in the text where it is clickable, not on Instagram', () => {
     const p = { ...base, link: 'https://nafaa.pk', media: [img(1080, 1080)] };
-    expect(textFor(p, 'X')).toContain('utm_source=x');
+    expect(textFor(p, 'X')).not.toContain('https://');
     expect(textFor(p, 'INSTAGRAM')).not.toContain('https://');
     expect(textFor({ ...p, media: [] }, 'FACEBOOK')).not.toContain('https://');
     expect(textFor(p, 'FACEBOOK')).toContain('utm_source=facebook');
+  });
+  it('keeps every link out of X text, where a URL costs more', () => {
+    const p = { ...base, caption: 'Free trial: https://nafaa.pk/?a=1\nOr visit nafaa.pk today', link: 'https://nafaa.pk', media: [] };
+    expect(textFor(p, 'X')).not.toMatch(/nafaa\.pk|https?:/);
+    expect(withoutLinks('Free trial: https://nafaa.pk\nBills or stock?')).toBe('Free trial: link in bio\nBills or stock?');
   });
   it('adds hashtags not already in the caption and uses platform overrides', () => {
     const p = { ...base, caption: 'Hi #Nafaa', hashtags: ['#Nafaa', '#POS'], captions: { X: 'Short one' }, media: [] };

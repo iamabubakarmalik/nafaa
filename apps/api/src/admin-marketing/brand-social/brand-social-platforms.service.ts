@@ -39,7 +39,7 @@ import { AdapterResult, PlatformApp, PublishContext, SocialAdapter } from './bra
 import {
   buildAuthorizeUrl, isOAuthPlatform, needsRefresh, OAUTH, pkceChallenge, pkceVerifier, platformRedirectUri, signOAuthState, USE_REFRESH_MS, verifyOAuthState,
 } from './brand-social-oauth.logic';
-import { engagementOf, isKind, linkFor, PLATFORM_LABEL, textFor } from './brand-social.logic';
+import { engagementOf, isKind, linkFor, PLATFORM_LABEL, textFor, withoutLinks } from './brand-social.logic';
 import {
   OAUTH_PLATFORMS, type AccountOptionsResponse, type AccountPlatformSettings, type BrandPlatform, type OAuthPlatform, type PlatformAppInput,
   type PlatformAppView, type PlatformConnectUrlResponse, type PlatformPublishState, type PostMediaItem, type PublishStateMap, type TikTokCreatorInfoResponse,
@@ -464,7 +464,8 @@ export class BrandSocialPlatformsService {
       const adapter = this.adapter(p);
       const result = await adapter.publish(ctx);
       const out: PublishOutcome = { result };
-      const comment = post.firstComment?.trim();
+      // X bills a reply with a URL like a post with one, so its first comment drops links.
+      const comment = p === 'X' ? withoutLinks(post.firstComment ?? '') : post.firstComment?.trim();
       if (comment && 'postId' in result) {
         if (!adapter.comment) out.commentError = `${PLATFORM_LABEL[p]} has no API for comments; add the first comment by hand.`;
         else {
