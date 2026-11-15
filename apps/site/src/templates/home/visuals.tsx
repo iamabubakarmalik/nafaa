@@ -6,7 +6,7 @@
  * is in view and never with reduced motion.
  */
 import { cx } from '@/components/ui/cx';
-import { CmsIcon } from '@/lib/icons';
+import { SpriteIcon as CmsIcon } from '@/lib/icon-sprite';
 import fx from './fx.module.css';
 
 const bar = 'rounded-full bg-fg/10';
@@ -180,11 +180,11 @@ function TaxInvoice() {
         </span>
       </div>
       <div className="hidden flex-col gap-2 self-center sm:flex">
-        {[
+        {([
           ['shield-check', 'Fiscal number'],
           ['qr-code', 'QR on the bill'],
           ['printer', '80 mm or A4'],
-        ].map(([icon, label], i) => (
+        ] as const).map(([icon, label], i) => (
           <span key={label} className={cx(fx.lineIn, 'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-line bg-surface px-2.5 py-1 text-[10.5px] font-semibold text-fg-muted shadow-e1 ink:shadow-none')} style={{ '--delay': `${i * 0.4}s` }}>
             <CmsIcon name={icon} size={12} className="text-brand-600 ink:text-brand-300" />
             {label}

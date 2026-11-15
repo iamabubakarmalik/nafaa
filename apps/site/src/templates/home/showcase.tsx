@@ -6,7 +6,8 @@
  */
 import Link from 'next/link';
 import { CtaButton } from '@/components/blocks/parts/CtaButton';
-import { RenderNear } from '@/components/islands/RenderNear';
+import { TickerCopy } from '@/components/islands/TickerCopy';
+import { Static } from '@/components/ui/Static';
 import { FeatureBadge } from '@/components/blocks/parts/FeatureBadge';
 import { InlineMarkdown } from '@/components/blocks/rich-text/Markdown';
 import { hexToChannels } from '@/components/blocks/lib/format';
@@ -17,11 +18,11 @@ import { CmsIcon } from '@/lib/icons';
 import { uiStrings } from '@/lib/i18n/ui';
 import { Arrow, cardPath } from '../core/ui';
 import { AiChat } from './AiChat';
-import { SolutionScene } from './solutionScenes';
 import { SolutionsTabs } from './SolutionsTabs';
 import { Backdrop } from './decor';
 import { GlobeLazy as Globe } from './GlobeLazy';
-import { PlatformVisual, hasPlatformVisual } from './visuals';
+import { LazyPlatformVisual, LazySolutionScene } from './LazyScenes';
+import { hasPlatformVisual } from './visuals';
 import fx from './fx.module.css';
 
 /** Below md, card lists scroll sideways with snap points instead of stacking 8-12 tall cards. */
@@ -78,10 +79,10 @@ function SectionHead({
 
 export function WorksWith({ block, link }: { block: FeaturesGridBlock; link?: string }) {
   const items = block.items;
-  const row = (hidden: boolean) => (
-    <ul className={fx.tickerRow} aria-hidden={hidden || undefined}>
+  const row = (
+    <ul className={fx.tickerRow}>
       {items.map((item, i) => (
-        <li key={`${item.title}-${i}`} className="flex shrink-0 items-center gap-2.5 px-6 text-fg-muted" title={hidden ? undefined : item.body}>
+        <li key={`${item.title}-${i}`} className="flex shrink-0 items-center gap-2.5 px-6 text-fg-muted" title={item.body}>
           <CmsIcon name={item.icon} size={18} className="text-fg-subtle" />
           <span className="text-[1.0625rem] font-semibold tracking-tight">{item.title}</span>
         </li>
@@ -102,8 +103,8 @@ export function WorksWith({ block, link }: { block: FeaturesGridBlock; link?: st
         </h2>
         <div className={cx(fx.ticker, 'w-full min-w-0 flex-1')} data-animate="once">
           <div className={fx.tickerTrack}>
-            {row(false)}
-            <RenderNear>{row(true)}</RenderNear>
+            <Static>{row}</Static>
+            <TickerCopy className={fx.tickerRow} />
           </div>
         </div>
       </div>
@@ -148,29 +149,29 @@ export function Platform({ block, entry, hubLink }: { block: FeaturesGridBlock; 
               <>
                 {visual ? (
                   <div aria-hidden dir="ltr" className={cx(fx.visual, 'relative h-44 overflow-hidden border-b border-line')}>
-                    <RenderNear>
-                      <PlatformVisual icon={item.icon} />
-                    </RenderNear>
+                    <LazyPlatformVisual icon={item.icon} />
                   </div>
                 ) : null}
-                <div className="flex flex-1 flex-col p-6">
-                  <div className="flex items-center gap-2.5">
-                    <span className="inline-flex size-8 items-center justify-center rounded-md bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-600/15 ink:bg-brand-400/10 ink:text-brand-300">
-                      <CmsIcon name={item.icon} size={16} />
-                    </span>
-                    <h3 className="text-h4 text-fg-strong">{item.title}</h3>
-                    <FeatureBadge status={item.status} locale={locale} />
+                <Static>
+                  <div className="flex flex-1 flex-col p-6">
+                    <div className="flex items-center gap-2.5">
+                      <span className="inline-flex size-8 items-center justify-center rounded-md bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-600/15 ink:bg-brand-400/10 ink:text-brand-300">
+                        <CmsIcon name={item.icon} size={16} />
+                      </span>
+                      <h3 className="text-h4 text-fg-strong">{item.title}</h3>
+                      <FeatureBadge status={item.status} locale={locale} />
+                    </div>
+                    <p className="mt-3 text-body text-fg-muted">
+                      <InlineMarkdown text={item.body} />
+                    </p>
+                    {href ? (
+                      <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-small font-medium text-link">
+                        {item.status === 'coming' ? t.seeRoadmap : t.learnMore}
+                        <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
+                      </span>
+                    ) : null}
                   </div>
-                  <p className="mt-3 text-body text-fg-muted">
-                    <InlineMarkdown text={item.body} />
-                  </p>
-                  {href ? (
-                    <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-small font-medium text-link">
-                      {item.status === 'coming' ? t.seeRoadmap : t.learnMore}
-                      <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
-                    </span>
-                  ) : null}
-                </div>
+                </Static>
               </>
             );
             const card = cx(
@@ -225,48 +226,48 @@ export function Solutions({ block, hubLink, signupUrl, locale = 'en' }: { block:
             const points = (item.href && t.solutionPoints[cmsPath(item.href, locale)]) || [];
             return (
               <article key={`${item.title}-${i}`} className={fx.solPanel} style={{ '--accent': tabs[i]?.accent }}>
-                <div className={fx.solText}>
-                  <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_10px_24px_-10px_rgb(var(--accent)/0.9)]">
-                    <CmsIcon name={item.icon} size={21} />
-                  </span>
-                  <h3 className="mt-5 text-h3 text-fg-strong">
-                    {item.title} <FeatureBadge status={item.status} locale={locale} />
-                  </h3>
-                  <p className="mt-3 text-body text-fg-muted">
-                    <InlineMarkdown text={item.body} />
-                  </p>
-                  {points.length ? (
-                    <ul className="mt-5 grid gap-2.5">
-                      {points.map((pt, k) => (
-                        <li key={pt} className={fx.solPoint} style={{ '--i': k }}>
-                          <span aria-hidden className={fx.solTick}>
-                            <CmsIcon name="check" size={12} />
-                          </span>
-                          {pt}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                  <div className="mt-7 flex flex-wrap items-center gap-3">
-                    {href ? (
-                      <Link href={href} prefetch={false} className={fx.solCta}>
-                        {t.explorePrefix}
-                        {item.title}
-                        {t.exploreSuffix}
-                        <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
-                      </Link>
+                <Static>
+                  <div className={fx.solText}>
+                    <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-accent text-white shadow-[0_10px_24px_-10px_rgb(var(--accent)/0.9)]">
+                      <CmsIcon name={item.icon} size={21} />
+                    </span>
+                    <h3 className="mt-5 text-h3 text-fg-strong">
+                      {item.title} <FeatureBadge status={item.status} locale={locale} />
+                    </h3>
+                    <p className="mt-3 text-body text-fg-muted">
+                      <InlineMarkdown text={item.body} />
+                    </p>
+                    {points.length ? (
+                      <ul className="mt-5 grid gap-2.5">
+                        {points.map((pt, k) => (
+                          <li key={pt} className={fx.solPoint} style={{ '--i': k }}>
+                            <span aria-hidden className={fx.solTick}>
+                              <CmsIcon name="check" size={12} />
+                            </span>
+                            {pt}
+                          </li>
+                        ))}
+                      </ul>
                     ) : null}
-                    {signupUrl ? (
-                      <a href={signupUrl} data-track="cta_click" data-track-label={`Solutions: start trial (${item.title})`} className="text-small font-semibold text-fg-strong underline-offset-4 hover:underline">
-                        {t.startTrial}
-                      </a>
-                    ) : null}
+                    <div className="mt-7 flex flex-wrap items-center gap-3">
+                      {href ? (
+                        <Link href={href} prefetch={false} className={fx.solCta}>
+                          {t.explorePrefix}
+                          {item.title}
+                          {t.exploreSuffix}
+                          <Arrow className="transition-transform duration-fast ease-out group-hover:translate-x-0.5" />
+                        </Link>
+                      ) : null}
+                      {signupUrl ? (
+                        <a href={signupUrl} data-track="cta_click" data-track-label={`Solutions: start trial (${item.title})`} className="text-small font-semibold text-fg-strong underline-offset-4 hover:underline">
+                          {t.startTrial}
+                        </a>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
+                </Static>
                 <div aria-hidden dir="ltr" className={fx.solScene} data-animate="">
-                  <RenderNear>
-                    <SolutionScene icon={item.icon} />
-                  </RenderNear>
+                  <LazySolutionScene icon={item.icon} />
                 </div>
               </article>
             );
@@ -279,20 +280,14 @@ export function Solutions({ block, hubLink, signupUrl, locale = 'en' }: { block:
 
 // ─── Industries ticker ───
 
-function IndustryChip({ card, hidden }: { card: EntryCard; hidden?: boolean }) {
+function IndustryChip({ card }: { card: EntryCard }) {
   return (
-    <li className="shrink-0 px-1.5">
-      <Link
-        href={cardPath(card)}
-        prefetch={false}
-        tabIndex={hidden ? -1 : undefined}
-        style={{ '--accent': hexToChannels(card.color) ?? undefined }}
-        className="group flex items-center gap-3 rounded-full border border-line bg-surface py-2 ps-2 pe-5 shadow-e1 transition-[border-color,box-shadow,transform] duration-base hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-e2 ink:shadow-none"
-      >
-        <span aria-hidden className="inline-flex size-9 items-center justify-center rounded-full bg-accent text-white">
+    <li className={fx.industryItem}>
+      <Link href={cardPath(card)} prefetch={false} style={{ '--accent': hexToChannels(card.color) ?? undefined }} className={fx.industryChip}>
+        <span aria-hidden className={fx.industryIcon}>
           <CmsIcon name={card.icon ?? 'store'} size={17} />
         </span>
-        <span className="whitespace-nowrap text-small font-semibold text-fg-strong">{card.title}</span>
+        <span className={fx.industryText}>{card.title}</span>
       </Link>
     </li>
   );
@@ -314,18 +309,14 @@ export function Industries({ heading, intro, cards, hubLink, locale }: { heading
           .map((row, r) => (
             <div key={r} className={cx(fx.ticker, fx.tickerWide)}>
               <div className={cx(fx.tickerTrack, r % 2 === 1 && fx.reverse, r === 2 && fx.slow)}>
-                <ul className={fx.tickerRow}>
-                  {row.map((card) => (
-                    <IndustryChip key={card.id} card={card} />
-                  ))}
-                </ul>
-                <RenderNear>
-                  <ul className={fx.tickerRow} aria-hidden>
+                <Static>
+                  <ul className={fx.tickerRow}>
                     {row.map((card) => (
-                      <IndustryChip key={card.id} card={card} hidden />
+                      <IndustryChip key={card.id} card={card} />
                     ))}
                   </ul>
-                </RenderNear>
+                </Static>
+                <TickerCopy className={fx.tickerRow} />
               </div>
             </div>
           ))}

@@ -7,7 +7,8 @@
  * This layout adds the Urdu header, <main>, footer and WhatsApp button with
  * the `ur` layout data (menus fall back to the English ones in the CMS and
  * are translated by lib/i18n/shell until editors save Urdu menus), and
- * loads Noto Nastaliq Urdu for these pages only.
+ * loads the Urdu fonts for these pages only: Noto Naskh Arabic for text,
+ * Noto Nastaliq Urdu for headings (styles/fonts-urdu.ts).
  *
  * Before settings `site.locales` lists "ur" it renders the page alone: /ur
  * paths are ordinary English paths then and 404 under the English shell.
@@ -20,7 +21,8 @@ import { hasThirdParty, thirdPartyIdsFromEnv, whatsappFromEnv } from '@/lib/anal
 import { getEntity, getLayout, getPairedPaths, type SiteLayout } from '@/lib/cms/client';
 import { DEFAULT_LOCALE } from '@/lib/cms/locale';
 import { pathIn, urduMenu } from '@/lib/i18n/shell';
-import { URDU_FONT_STACK } from '@/styles/fonts-urdu';
+import { NASTALIQ_FAMILY, URDU_DISPLAY_STACK, URDU_FONT_STACK } from '@/styles/fonts-urdu';
+import { NastaliqLoader } from './NastaliqLoader';
 
 /** Urdu menus and CTA paths: translated labels, links moved under /ur where the page exists in Urdu. */
 function urduLayout(layout: SiteLayout, paired: ReadonlySet<string>): SiteLayout {
@@ -49,6 +51,7 @@ export default async function UrduLayout({ children }: { children: ReactNode }) 
     <>
       {/* On <html> so the mobile menu (portalled to <body>) gets the font too. */}
       <style>{`:root{--font-urdu:${URDU_FONT_STACK}}`}</style>
+      <NastaliqLoader family={NASTALIQ_FAMILY} stack={URDU_DISPLAY_STACK} />
       <SiteHeader layout={shell} locale="ur" paired={paired} />
       <main id="main" tabIndex={-1} className="flex-1 outline-none">
         {children}

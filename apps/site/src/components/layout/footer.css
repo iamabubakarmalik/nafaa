@@ -1,0 +1,19 @@
+/*
+ * Footer link columns (footer-nav.ts writes them as plain HTML without
+ * classes). The same look the column markup had as utility classes.
+ */
+.ftr-nav > div {
+  @apply min-w-0;
+}
+
+.ftr-nav p {
+  @apply text-xs font-semibold uppercase tracking-[0.08em] text-fg-strong;
+}
+
+.ftr-nav ul {
+  @apply mt-4 space-y-2.5;
+}
+
+.ftr-nav a {
+  @apply inline-flex flex-wrap items-center gap-y-1 text-small text-fg-muted transition-colors duration-fast hover:text-fg-strong;
+}

@@ -69,6 +69,15 @@
 }
 
 @layer base {
+  /* Sprite icons (lib/icon-sprite.ts): the stroke the lucide shapes are drawn with. */
+  .ic {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -108,25 +117,33 @@
      and keeps Inter, so the match is exact. */
   [lang='ur'] {
     font-family: var(--font-urdu);
-    line-height: 1.9;
+    line-height: 1.8;
   }
 
-  /* Urdu pages: html lang="ur" dir="rtl" (app/ur sets --font-urdu to Noto
-     Nastaliq Urdu). Product mockups and diagrams inside them are marked
-     dir="ltr" and keep the English typography. */
+  /* Urdu pages: html lang="ur" dir="rtl". app/ur sets --font-urdu to Noto
+     Naskh Arabic for all running text; once the page has loaded,
+     app/ur/NastaliqLoader gives h1-h3 Noto Nastaliq Urdu. Product mockups
+     and diagrams inside them are marked dir="ltr" and keep the English
+     typography. */
   html[lang='ur'] body {
     font-family: var(--font-urdu);
     font-feature-settings: normal;
   }
 
-  /* Nastaliq needs tall lines; the type-scale utilities set tight leading,
-     so it is lifted here (this selector outranks a single class). */
-  html[lang='ur'] :is(h1, h2, h3, h4, h5, h6):not([dir='ltr'] *) {
+  /* Headings (Nastaliq once loaded) need tall lines; the type-scale
+     utilities set tight leading, so it is lifted here (this selector
+     outranks a single class). */
+  html[lang='ur'] :is(h1, h2, h3):not([dir='ltr'] *) {
     line-height: 1.75;
   }
 
+  html[lang='ur'] :is(h4, h5, h6):not([dir='ltr'] *) {
+    line-height: 1.6;
+  }
+
+  /* Naskh running text: a little more air than Latin, less than Nastaliq. */
   html[lang='ur'] :is(p, li, dd, dt, td, th, blockquote, figcaption, label, summary, legend):not([dir='ltr'] *) {
-    line-height: 2;
+    line-height: 1.85;
   }
 
   /* Letter-spacing pulls joined Urdu letters apart, and Urdu has no capitals

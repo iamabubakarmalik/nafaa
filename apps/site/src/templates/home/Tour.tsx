@@ -25,6 +25,7 @@ import { CmsIcon } from '@/lib/icons';
 import { mediaById } from '@/lib/media';
 import { uiStrings } from '@/lib/i18n/ui';
 import { ThemedShot } from './sections';
+import { Static } from '@/components/ui/Static';
 import { TourTabs } from './TourTabs';
 import fx from './fx.module.css';
 
@@ -152,20 +153,23 @@ export function Tour({ blocks, entry }: { blocks: ScreenshotBlock[]; entry: Publ
         </FrameFor>
       </div>
     );
+    // Static: the panel is written as HTML (ui/Static); TourTabs only shows or hides it.
     return (
-      <div key={block.id} className={cx(fx.tourPanel, fx[`tour_${variant}`], notes.length === 4 ? fx.cycle4 : fx.cycle3)} data-animate="">
-        {variant === 'right' ? (
-          <>
-            {frame}
-            {text}
-          </>
-        ) : (
-          <>
-            {text}
-            {frame}
-          </>
-        )}
-      </div>
+      <Static key={block.id}>
+        <div className={cx(fx.tourPanel, fx[`tour_${variant}`], notes.length === 4 ? fx.cycle4 : fx.cycle3)} data-animate="">
+          {variant === 'right' ? (
+            <>
+              {frame}
+              {text}
+            </>
+          ) : (
+            <>
+              {text}
+              {frame}
+            </>
+          )}
+        </div>
+      </Static>
     );
   });
 

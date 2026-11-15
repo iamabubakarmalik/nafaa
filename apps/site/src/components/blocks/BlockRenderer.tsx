@@ -18,6 +18,7 @@
  */
 import type { ReactNode } from 'react';
 import { Section } from '@/components/ui/Section';
+import { Static } from '@/components/ui/Static';
 import { cx } from '@/components/ui/cx';
 import { BELOW_FOLD } from '@/components/ui/belowFold';
 import type { Block, BlockType, ToolKey } from '@/lib/cms/contract/cms-contract';
@@ -133,25 +134,27 @@ export async function BlockRenderer({ blocks, entry, source = cmsSource, renderT
         const theme = block.theme ?? 'default';
         const joinsPrev = Boolean(prev && FLOW.has(block.type) && FLOW.has(prev.type) && (prev.theme ?? 'default') === theme);
         const isHero = block.type === 'hero';
+        // Static: written as HTML unless the band holds a client island (ui/Static).
         return (
-          <Section
-            key={block.id}
-            id={block.anchor}
-            theme={theme}
-            spacing={isHero ? 'none' : COMPACT.has(block.type) || FLOW.has(block.type) ? 'compact' : 'default'}
-            className={cx(
-              'overflow-x-clip',
-              // Bands after the hero skip rendering until near the viewport;
-              // tool blocks are the point of their page and render normally.
-              !isHero && block.type !== 'tool' && BELOW_FOLD,
-              isHero && 'pb-16 pt-12 md:pb-24 md:pt-20',
-              joinsPrev && '!pt-0',
-            )}
-          >
-            <div data-block={block.type} className="contents">
-              {content}
-            </div>
-          </Section>
+          <Static key={block.id}>
+            <Section
+              id={block.anchor}
+              theme={theme}
+              spacing={isHero ? 'none' : COMPACT.has(block.type) || FLOW.has(block.type) ? 'compact' : 'default'}
+              className={cx(
+                'overflow-x-clip',
+                // Bands after the hero skip rendering until near the viewport;
+                // tool blocks are the point of their page and render normally.
+                !isHero && block.type !== 'tool' && BELOW_FOLD,
+                isHero && 'pb-16 pt-12 md:pb-24 md:pt-20',
+                joinsPrev && '!pt-0',
+              )}
+            >
+              <div data-block={block.type} className="contents">
+                {content}
+              </div>
+            </Section>
+          </Static>
         );
       })}
     </>

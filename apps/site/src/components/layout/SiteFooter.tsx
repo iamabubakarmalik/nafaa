@@ -15,6 +15,9 @@
  *
  * `locale` picks the interface words (lib/i18n/shell); the Urdu layout
  * passes menus already translated and moved under /ur.
+ *
+ * The link columns are one HTML string (footer-nav.ts, styled by
+ * footer.css) to keep the page payload and hydration small.
  */
 import Link from 'next/link';
 import type { PublicEntity } from '@/lib/cms/contract/cms-contract';
@@ -26,11 +29,13 @@ import { BELOW_FOLD } from '@/components/ui/belowFold';
 import { CmsIcon } from '@/lib/icons';
 import { shellStrings, type SiteLocale } from '@/lib/i18n/shell';
 import { LanguageSwitch } from './LanguageSwitch';
-import { NavLink, StatusBadge } from './NavLink';
+import { NavLink } from './NavLink';
 import { NewsletterForm } from './NewsletterForm';
 import { Logo } from './SiteHeader';
 import { ThemeChoice } from './ThemeToggle';
-import { children, whatsappHref, type NavItem } from './nav';
+import { footerNavHtml } from './footer-nav';
+import { whatsappHref, type NavItem } from './nav';
+import './footer.css';
 
 const SOCIAL_LABEL: Record<string, string> = {
   facebook: 'Facebook',
@@ -162,26 +167,11 @@ export function SiteFooter({
           </div>
 
           {columns.length ? (
-            <nav aria-label={t.footerNav} className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-              {columns.map((column) => {
-                const links = children(column);
-                return (
-                  <div key={column.id} className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-fg-strong">{column.label}</p>
-                    <ul className="mt-4 space-y-2.5">
-                      {(links.length ? links : [column]).map((link) => (
-                        <li key={link.id}>
-                          <NavLink item={link} className={cx(linkClass, 'inline-flex flex-wrap items-center gap-y-1')}>
-                            {link.label}
-                            <StatusBadge item={link} locale={locale} />
-                          </NavLink>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-            </nav>
+            <nav
+              aria-label={t.footerNav}
+              className="ftr-nav grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7"
+              dangerouslySetInnerHTML={{ __html: footerNavHtml(columns, locale) }}
+            />
           ) : null}
         </div>
 

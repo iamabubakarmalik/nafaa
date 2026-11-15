@@ -8,7 +8,7 @@
  */
 import type { ReactNode } from 'react';
 import { cx } from '@/components/ui/cx';
-import { CmsIcon } from '@/lib/icons';
+import { SpriteIcon as CmsIcon } from '@/lib/icon-sprite';
 import s from './scenes.module.css';
 
 const card = 'rounded-xl border border-line bg-surface shadow-e1 ink:shadow-none';

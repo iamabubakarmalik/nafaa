@@ -25,11 +25,15 @@
  *
  * Schema: WebPage + SoftwareApplication (offers from Plan, paid plans only)
  * + FAQPage, in one @graph (PageFrame).
+ *
+ * Sections without a client island are wrapped in <Static> (ui/Static): the
+ * same HTML, a smaller page payload and nothing to hydrate inside them.
  */
 import type { Block, DiagramBlock, EntryCard, FeaturesGridBlock, PublicEntry, ScreenshotBlock } from '@/lib/cms/contract/cms-contract';
 import { Segments, segment } from '../core/Blocks';
 import { uiStrings } from '@/lib/i18n/ui';
 import { liveLinks, loadCards, loadPlans, loadSite } from '../core/data';
+import { Static } from '@/components/ui/Static';
 import { PageFrame } from '../core/frame';
 import { AiAssistant, Industries, Platform, Services, Solutions, WorksWith } from './showcase';
 import { Closing, HomeAnswer, HomeHero, HomeHowItWorks, planNote } from './sections';
@@ -90,11 +94,19 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
   const segments = segment(blocks, (block) => {
     switch (block.type) {
       case 'hero':
-        return <HomeHero block={block} entry={entry} site={site} plans={plans} locale={locale} phone={phone} rotator={solutionsBlock?.items.map((i) => i.title)} chips={chips} />;
+        return (
+          <Static>
+            <HomeHero block={block} entry={entry} site={site} plans={plans} locale={locale} phone={phone} rotator={solutionsBlock?.items.map((i) => i.title)} chips={chips} />
+          </Static>
+        );
       case 'answerBox':
         if (answerDone) return undefined;
         answerDone = true;
-        return <HomeAnswer block={block} entry={entry} />;
+        return (
+          <Static>
+            <HomeAnswer block={block} entry={entry} />
+          </Static>
+        );
       case 'featuresGrid':
         switch (block.anchor) {
           case 'works-with':
@@ -121,7 +133,11 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
         return <Industries heading={block.heading ?? uiStrings(locale).home.industriesHeading} intro={block.intro} cards={industryCards} hubLink={links.get('/industries')} locale={locale} />;
       case 'diagram': {
         const run = runs.get(block.id);
-        return run ? <HomeHowItWorks blocks={run as DiagramBlock[]} links={links} locale={locale} /> : null;
+        return run ? (
+          <Static>
+            <HomeHowItWorks blocks={run as DiagramBlock[]} links={links} locale={locale} />
+          </Static>
+        ) : null;
       }
       case 'pricingTable':
         return (
@@ -136,11 +152,19 @@ export async function HomeTemplate({ entry }: { entry: PublicEntry }) {
           />
         );
       case 'faq':
-        return <HomeFaq block={block} entry={entry} site={site} />;
+        return (
+          <Static>
+            <HomeFaq block={block} entry={entry} site={site} />
+          </Static>
+        );
       case 'cta':
         if (block === quote) return null;
         if (block !== lastCta) return undefined;
-        return <Closing block={block} entry={entry} />;
+        return (
+          <Static>
+            <Closing block={block} entry={entry} />
+          </Static>
+        );
       default:
         return undefined;
     }

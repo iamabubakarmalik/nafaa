@@ -6,15 +6,18 @@
  * by a time zone.
  */
 
-const NUMBER = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+// Created on first use: building an Intl formatter is slow, and client
+// islands import this module on pages that never format a number.
+let number: Intl.NumberFormat | null = null;
+const NUMBER = (): Intl.NumberFormat => (number ??= new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }));
 
 /** "Rs 1,500", the same shape as the `{{price:...}}` token. */
 export function formatPkr(amount: number): string {
-  return `Rs ${NUMBER.format(amount)}`;
+  return `Rs ${NUMBER().format(amount)}`;
 }
 
 export function formatCount(value: number): string {
-  return NUMBER.format(value);
+  return NUMBER().format(value);
 }
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;

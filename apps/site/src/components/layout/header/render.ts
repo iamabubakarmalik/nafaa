@@ -16,12 +16,12 @@ import type { HeaderColumn, HeaderEntry, HeaderLink, HeaderPanel } from './model
 const TEXT = /[&<>]/g;
 const TEXT_MAP: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
 
-function text(value: string): string {
+export function text(value: string): string {
   return value.replace(TEXT, (c) => TEXT_MAP[c]!);
 }
 
 /** An attribute value: bare when HTML allows it, quoted otherwise. */
-function attr(value: string): string {
+export function attr(value: string): string {
   if (/^[^\s"'=<>`&]+$/.test(value)) return value;
   return `"${value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"`;
 }

@@ -762,6 +762,28 @@
   align-items: center;
 }
 
+/* Industry chips: one short class each instead of the utility strings, as
+   the ticker repeats them for every industry (page HTML and payload). */
+.industryItem {
+  @apply shrink-0 px-1.5;
+}
+
+.industryChip {
+  @apply flex items-center gap-3 rounded-full border border-line bg-surface py-2 ps-2 pe-5 shadow-e1 transition-[border-color,box-shadow,transform] duration-base hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-e2;
+}
+
+:global(.theme-ink) .industryChip {
+  box-shadow: none;
+}
+
+.industryIcon {
+  @apply inline-flex size-9 items-center justify-center rounded-full bg-accent text-white;
+}
+
+.industryText {
+  @apply whitespace-nowrap text-small font-semibold text-fg-strong;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   :global(html[data-motion]) .tickerTrack {
     animation: ticker 48s linear infinite paused;

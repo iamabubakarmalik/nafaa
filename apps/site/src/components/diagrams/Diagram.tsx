@@ -13,8 +13,15 @@
  *
  * Industry accent: set `--accent` (any CSS colour) on an ancestor to tint
  * the moving packets and pings; it is never used for text.
+ *
+ * The two SVGs have no state or handlers, so they are written as one HTML
+ * string (lib/static-html): the same markup in the page, a single string in
+ * the RSC payload instead of a few hundred JSON elements, and nothing for
+ * React to hydrate. A diagram that cannot be written that way (an icon that
+ * is a client component) renders as elements.
  */
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
+import { staticHtml } from '@/lib/static-html';
 import type { DiagramSpec } from '../../lib/cms/contract/cms-contract';
 import styles from './diagrams.module.css';
 import { SceneSvg } from './parts/SceneSvg';
@@ -48,11 +55,28 @@ export function Diagram({ spec, caption, showCaption = true, tone = 'default', b
       data-animate={animate ? '' : undefined}
       data-diagram={spec.kind}
     >
-      <div dir="ltr" className={styles.panel}>
+      <Panel>
         <SceneSvg scene={built.h} uid={`${uid}h`} className={styles.svgH} {...shared} />
         <SceneSvg scene={built.v} uid={`${uid}v`} className={styles.svgV} {...shared} />
-      </div>
+      </Panel>
       {caption && showCaption ? <figcaption className={styles.caption}>{caption}</figcaption> : null}
     </figure>
+  );
+}
+
+/** The panel around the two SVGs, its content as static HTML when possible. */
+function Panel({ children }: { children: ReactNode }) {
+  let html: string | null = null;
+  try {
+    html = staticHtml(children);
+  } catch {
+    // Not writable as a string (StaticHtmlError) or failed: render the elements, which surfaces any real error.
+  }
+  return html !== null ? (
+    <div dir="ltr" className={styles.panel} dangerouslySetInnerHTML={{ __html: html }} />
+  ) : (
+    <div dir="ltr" className={styles.panel}>
+      {children}
+    </div>
   );
 }

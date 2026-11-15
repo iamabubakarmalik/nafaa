@@ -1,15 +1,18 @@
 /**
  * Icons inside diagram SVGs.
  *
- * Lucide icons render as nested <svg> elements positioned with x/y. Lookup is
- * by kebab-case name; an unknown name falls back to `circle` (the API rejects
- * unknown names at publish, so this is only a safety net).
+ * Icons render as nested <svg> elements positioned with x/y. A CMS icon name
+ * (ALLOWED_ICONS) points into the shared sprite (lib/icon-sprite), so the
+ * page carries only the name; any other lucide name is drawn by lucide.
+ * Lookup is by kebab-case name; an unknown name falls back to `circle` (the
+ * API rejects unknown names at publish, so this is only a safety net).
  *
  * This runs only on the server, so the full icon map costs no client JS.
- * TODO(S1): switch to `@/lib/icons` once it lands, so the site has one map.
  */
 import { Building2, icons, type LucideIcon } from 'lucide-react';
+import { ICON_SPRITE } from '@/components/layout/header/assets';
 import { LOGO_BOWL, LOGO_DOT } from '@/lib/brand/logo';
+import { isAllowedIcon } from '@/lib/cms/contract/cms-contract';
 import styles from '../diagrams.module.css';
 
 const toPascal = (name: string): string =>
@@ -44,6 +47,14 @@ interface SvgIconProps {
 /** A lucide icon or the Nafaa mark, drawn at (x, y) with the given size. */
 export function SvgIcon({ name, x, y, size, className, strokeWidth = 1.75 }: SvgIconProps) {
   if (name === 'nafaa') return <NafaaMark x={x} y={y} size={size} />;
+  if (isAllowedIcon(name)) {
+    // The attributes lucide sets, so diagram CSS applies the same way.
+    return (
+      <svg x={x} y={y} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+        <use href={`${ICON_SPRITE}#${name}`} />
+      </svg>
+    );
+  }
   const Icon = resolveIcon(name);
   return <Icon x={x} y={y} size={size} strokeWidth={strokeWidth} className={className} aria-hidden="true" focusable="false" />;
 }
