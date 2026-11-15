@@ -15574,6 +15574,12 @@ model ShopMarketplaceProfile {
   lat                      Float?
   lng                      Float?
   industry                 String
+  /// Market section: FOOD, GROCERY, PHARMACY, SHOPPING, BOOKING, WHOLESALE. Null = from POS industry.
+  gate                     String?
+  /// Shop switches for its section's flow (substitutes, prescription, cake orders, slots...).
+  flowSettings             Json?
+  /// The NAFAA_MARKET sales channel this shop's orders use.
+  integrationId            String?               @unique
   subCategories            String[]              @default([])
   isListedOnMarketplace    Boolean               @default(false)
   listedAt                 DateTime?
@@ -15635,6 +15641,7 @@ model ShopMarketplaceProfile {
   @@index([slug])
   @@index([isListedOnMarketplace, isOpen])
   @@index([city, area])
+  @@index([gate])
   @@index([industry])
   @@index([ratingAverage])
   @@map("shop_marketplace_profiles")
@@ -15711,6 +15718,8 @@ model MarketplaceCartLine {
   unitPrice   Decimal         @db.Decimal(12, 2)
   quantity    Int
   notes       String?
+  /// Category flow choices (cake message, slot, substitute preference).
+  options     Json?
   modifiers   Json?
   bargainId   String?         @unique
   groupBuyId  String?
@@ -15772,6 +15781,10 @@ model MarketplaceOrder {
   riderRating         Int?
   source              String                   @default("APP")
   isGuestOrder        Boolean                  @default(false)
+  /// Online Orders record (ChannelOrder) behind this order: status and POS bill live there.
+  channelOrderId      String?                  @unique
+  /// Customer uploads, e.g. [{ kind: "prescription", url }].
+  attachments         Json?
   splitPaymentGroupId String?
   createdAt           DateTime                 @default(now())
   updatedAt           DateTime                 @updatedAt
@@ -15802,6 +15815,8 @@ model MarketplaceOrderItem {
   discount    Decimal          @default(0) @db.Decimal(12, 2)
   total       Decimal          @db.Decimal(12, 2)
   notes       String?
+  /// Category flow choices (cake message, slot, substitute preference).
+  options     Json?
   modifiers   Json?
   bargainId   String?
 
@@ -17543,6 +17558,8 @@ enum IntegrationType {
   MANUAL
   /// A Nafaa Stores website (integrations/stores); one per store.
   NAFAA_STORE
+  /// Nafaa Market (apps/api/src/marketplace); one per listed shop.
+  NAFAA_MARKET
 }
 
 enum IntegrationCategory {
