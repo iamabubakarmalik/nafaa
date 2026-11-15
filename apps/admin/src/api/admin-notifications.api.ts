@@ -8,7 +8,7 @@ export type AdminNotificationType =
 
 export type AdminNotificationPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 
-export const NOTIFY_CATEGORIES = ['shops', 'billing', 'commerce', 'social', 'system', 'marketing', 'general'] as const;
+export const NOTIFY_CATEGORIES = ['shops', 'billing', 'commerce', 'social', 'system', 'marketing', 'support', 'general'] as const;
 export type NotifyCategory = (typeof NOTIFY_CATEGORIES)[number];
 export type NotifySeverity = 'info' | 'warning' | 'critical';
 

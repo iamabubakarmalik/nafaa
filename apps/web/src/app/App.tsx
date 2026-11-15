@@ -212,6 +212,7 @@ import { PERMISSIONS } from '@core/lib/permissions';
 
 // ─── Nafaa AI (full page; the side panel lives in the app shell) ───
 const AiPage = lazy(() => import('@modules/ai-assistant/pages/AiPage'));
+const SupportPage = lazy(() => import('@modules/support/pages/SupportPage'));
 const ManufacturingPage = lazy(() => import('@modules/manufacturing/pages/ManufacturingPage'));
 const MfgRecipesPage = lazy(() => import('@modules/manufacturing/pages/RecipesPage'));
 const MfgRecipeEditPage = lazy(() => import('@modules/manufacturing/pages/RecipeEditPage'));
@@ -623,6 +624,7 @@ export default function App() {
                   {/* ── User ───────────────────────────────────── */}
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/help" element={<HelpPage />} />
+                  <Route path="/support" element={<Suspense fallback={null}><SupportPage /></Suspense>} />
                   <Route path="/legal" element={<LegalPage />} />
 
                   {/* Industry pages live in the industry packs (industryRoutes below), which

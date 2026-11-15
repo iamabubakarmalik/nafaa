@@ -1,6 +1,10 @@
 {
   "\"Backup download\" dabayein": "Press \"Backup download\"",
   "\"Maal wapas\" dabayein": "Press \"Return items\"",
+  "{{count}} naye message": {
+    "one": "1 new message",
+    "other": "{{count}} new messages"
+  },
   "Account aur plan": "Account and plan",
   "Accountant ke liye files": "Files for your accountant",
   "Accountant ko bhej dein": "Send to your accountant",
@@ -53,6 +57,7 @@
   "Har hafte dohrayein": "Repeat every week",
   "Har product par \"kam stock alert\" ki had lagayein. Is se neeche aate hi wo Low stock page aur dashboard par nazar aata hai.": "Set a \"low stock alert\" level on each product. When stock goes below it, it shows on the Low stock page and the dashboard.",
   "Help": "Help",
+  "Help & Support": "Help & Support",
   "Internet band ho to kya hoga?": "What if the internet is down?",
   "Is ka jawab yahan nahi mila": "No answer found here",
   "Jaldi hal ke liye": "For a quick fix",
@@ -62,6 +67,7 @@
   "Kis page par masla hai, wo batayein.": "Tell us which screen has the problem.",
   "Kya poochna hai? Jaise: udhaar, return, backup…": "What do you want to ask? Like: credit, return, backup…",
   "Lambi baat ya screenshot": "Long talk or screenshot",
+  "Live chat": "Live chat",
   "Login page par \"Password bhool gaye\" dabayein aur email par aaya link kholein. Login ho to Profile → Hifazat se password badal sakte hain.": "On the login page press \"Forgot password\" and open the link sent to your email. If logged in, change it from Profile → Security.",
   "Loyalty se points ka inaam": "Point rewards with Loyalty",
   "Maal aur qeemat likhein": "Enter items and prices",
@@ -70,6 +76,7 @@
   "Maal return": "Stock return",
   "Maal scan karein ya search": "Scan or search items",
   "Maal wapas (return) kaise lein?": "How do I take a return?",
+  "Nafaa team se app mein baat karein, screenshot bhejein": "Chat with the Nafaa team in the app and send screenshots",
   "Naya maal (product) kaise daalein?": "How do I add a new product?",
   "Open": "Open",
   "Paisa aur expenses": "Money and expenses",

@@ -13,7 +13,7 @@ import type { LucideIcon } from 'lucide-react-native';
 import {
   Activity, AlertTriangle, ArrowRightLeft, Award, BarChart3, Bell, BookOpen, BookmarkPlus, Building2, CalendarClock,
   CheckCircle2, ClipboardCheck, CreditCard, Database, Eye, FileSpreadsheet, FileText, Gauge, Gift, Globe, Hash,
-  HandCoins, Landmark, Layers, LayoutDashboard, LifeBuoy, MapPin, Package, PackagePlus, Palette, Percent, Receipt,
+  HandCoins, Landmark, Headset, Layers, LayoutDashboard, LifeBuoy, MapPin, Package, PackagePlus, Palette, Percent, Receipt,
   RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart, Smartphone, Sparkles,
   Store, Tag, TrendingUp, Truck, UserCircle, UserCog, Users, UtensilsCrossed, Wallet, Wallet2, Wrench, Briefcase,
   Languages, MessageCircle, Scale, UserCheck, ShieldAlert, Scissors, Bike, PackageCheck, PackageX, BadgePercent, Megaphone, Calculator, Zap, ShieldBan,
@@ -320,6 +320,7 @@ export const SETTINGS_GROUPS: SettingsGroup[] = [
     items: [
       { to: '/settings/appearance', href: '/settings/appearance', label: msg('Appearance'), icon: Palette, desc: msg('Rang, font, dark mode, text size, layout'), keywords: 'theme dark light mode color brand font urdu text size compact density corners tab bar haptics animation' },
       { to: '/settings/ai', href: '/settings/ai', label: msg('Nafaa AI'), icon: Sparkles, permission: P.AI_USE, desc: msg('AI ko data bhejne ki ijazat'), keywords: 'ai data privacy consent share ijazat' },
+      { to: '/support', href: '/support', label: msg('Help & Support'), icon: Headset, desc: msg('Nafaa team se live chat'), keywords: 'support chat help madad live team whatsapp call' },
       { to: '/help', href: '/help', label: msg('Help center'), icon: LifeBuoy, desc: msg('Sawal, video aur rabta'), keywords: 'help support madad' },
       { to: '/legal', href: '/legal', label: msg('Terms & privacy'), icon: ScrollText, desc: msg('Policies aur legal'), keywords: 'terms privacy policy legal' },
     ],

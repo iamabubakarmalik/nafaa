@@ -4,13 +4,31 @@ import { SHOP_HEADER } from '@core/lib/shopScope';
 import { hasServerTranslation, translateServerMessage, translateServerText } from '@core/i18n/serverMessage';
 import { noteMaintenanceResponse, setMaintenanceNotice } from './maintenance';
 import { noteBillingResponse } from './billing-notice';
+import { isElectron } from '@core/lib/desktop/electron';
 
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
   withCredentials: true,
 });
 
+// ─── Which Nafaa app is calling ──────────────────────────────────
+// Sent only after a response carries X-Nafaa-Client-Headers: an API that
+// predates these headers would refuse them in the CORS preflight and every
+// request would fail. Until then the API reads the user agent instead.
+let clientHeadersAccepted = false;
+const APP_VERSION = (import.meta.env.VITE_APP_VERSION as string | undefined) || '';
+function noteClientHeaders(headers: unknown) {
+  if (clientHeadersAccepted || !headers) return;
+  const h = headers as { get?: (name: string) => unknown } & Record<string, unknown>;
+  const value = typeof h.get === 'function' ? h.get('x-nafaa-client-headers') : h['x-nafaa-client-headers'];
+  if (value) clientHeadersAccepted = true;
+}
+
 apiClient.interceptors.request.use((config) => {
+  if (clientHeadersAccepted) {
+    config.headers['X-Nafaa-Client'] = isElectron() ? 'desktop' : 'web';
+    if (APP_VERSION) config.headers['X-Nafaa-App-Version'] = APP_VERSION;
+  }
   const { accessToken, currentShopId } = useAuthStore.getState();
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
@@ -50,6 +68,7 @@ let pendingQueue: Array<(t: string) => void> = [];
 
 apiClient.interceptors.response.use(
   (res) => {
+    noteClientHeaders(res.headers);
     setMaintenanceNotice(null);
     translateBody(res.data, false);
     // Most success bodies are wrapped: { success, data: { message } }.

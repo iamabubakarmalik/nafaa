@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Bell, Building2, ChevronDown, ChevronRight, CreditCard, Crown, HelpCircle, LogOut, Monitor, Moon,
+  Headset, Bell, Building2, ChevronDown, ChevronRight, CreditCard, Crown, HelpCircle, LogOut, Monitor, Moon,
   Palette, ScrollText, Settings, Shield, Store, Sun, User,
 } from 'lucide-react';
 import { useAppearanceStore } from '@/design-system';
@@ -108,6 +108,7 @@ export function ProfileDropdown({ user, tenant, onLogout }: Props) {
           </div>
           <div className="border-t border-slate-100 py-1.5">
             <Row to="/help" icon={HelpCircle} label={t('Help center')} onClick={close} />
+            <Row to="/support" icon={Headset} label={t('Live support chat')} onClick={close} />
             <Row to="/legal" icon={ScrollText} label={t('Terms & privacy')} onClick={close} />
           </div>
           <div className="border-t border-slate-100 p-2">

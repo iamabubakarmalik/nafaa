@@ -4,7 +4,7 @@
  */
 
 import {
-  Bell, Building2, ChevronRight, CreditCard, Crown, LifeBuoy, LogOut, Monitor, Moon, Palette, ScrollText, Settings, Shield, Store, Sun, User,
+  Bell, Building2, ChevronRight, CreditCard, Crown, Headset, LifeBuoy, LogOut, Monitor, Moon, Palette, ScrollText, Settings, Shield, Store, Sun, User,
 } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { View } from 'react-native';
@@ -14,6 +14,7 @@ import { signOut } from '@/modules/profile/lib/logout';
 import { isOwner } from '@/core/permissions';
 import { LanguageSwitch, LANGUAGE_HEADING } from '@/core/i18n/components/LanguagePicker';
 import { Avatar, Badge, Icon, ListGroup, ListRow, PressableScale, Segmented, Sheet, Text, useAppearanceStore, useTheme, type StatusTone, type ThemeMode } from '@/design';
+import { SUPPORT_HREF, useSupportUnread } from '@/modules/support';
 import { useShellUi } from '../hooks/useShellUi';
 
 const ROLES: Record<string, { label: string; icon: typeof Crown; tone: StatusTone }> = {
@@ -39,6 +40,7 @@ export function ProfileSheet() {
   const setMode = useAppearanceStore((s) => s.setMode);
   const role = ROLES[user?.role ?? 'STAFF'] ?? ROLES.STAFF;
   const owner = isOwner(user?.role);
+  const supportUnread = useSupportUnread();
 
   const go = (href: string) => {
     close();
@@ -101,6 +103,7 @@ export function ProfileSheet() {
           {owner && <ListRow icon={Building2} title={t('Branches')} chevron onPress={() => go('/shops')} dense />}
         </ListGroup>
         <ListGroup>
+          <ListRow icon={Headset} title={t('Help & Support')} subtitle={t('Nafaa team se chat')} trailing={supportUnread ? <Badge tone="danger" solid>{supportUnread}</Badge> : undefined} chevron onPress={() => go(SUPPORT_HREF)} dense />
           <ListRow icon={LifeBuoy} title={t('Help center')} chevron onPress={() => go('/help')} dense />
           <ListRow icon={ScrollText} title={t('Terms & privacy')} chevron onPress={() => go('/legal')} dense />
         </ListGroup>

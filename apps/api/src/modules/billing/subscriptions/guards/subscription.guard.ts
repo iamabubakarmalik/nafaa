@@ -50,6 +50,8 @@ export class SubscriptionGuard implements CanActivate {
     '/api/stripe',
     '/api/uploads',
     '/api/notifications',
+    // Live support chat: a shop with an expired plan must still reach the team.
+    '/api/support',
     // Mobile app check-in and remote settings (update prompts must reach expired accounts too).
     '/api/mobile',
     '/api/notification-prefs',

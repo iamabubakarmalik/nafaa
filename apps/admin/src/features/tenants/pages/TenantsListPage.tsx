@@ -9,8 +9,10 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  Activity, ArrowDownUp, Building2, Download, Factory, Lightbulb, Package, ShoppingCart, Store, Tag, UserPlus, Users,
+  Activity, ArrowDownUp, Building2, Download, Factory, HeartPulse, Layers, Lightbulb, MonitorSmartphone, Package, ShoppingCart, Store, Tag, TrafficCone, UserPlus, Users,
 } from 'lucide-react';
+import { HEALTH, PLATFORM, STUCK, USES } from '@/features/journey/lib/journey-labels';
+import { ShopContactMenu } from '@/features/support/components/ShopContactActions';
 import {
   FilterBar, FilterChip, FilterMenu, PageHero, PageShell, SearchField, Table, TBody, Td, Th, THead, Tr, heroButton,
 } from '@/design-system/components';
@@ -41,13 +43,25 @@ const ACTIVITY = [
   { value: 'never', label: 'Never used' },
 ];
 
+const PLATFORM_FILTER = [
+  { value: 'ALL', label: 'Any signup platform' },
+  { value: 'web', label: 'Web' },
+  { value: 'mobile', label: 'Mobile app (Android or iOS)' },
+  { value: 'android', label: 'Android' },
+  { value: 'ios', label: 'iOS' },
+  { value: 'desktop', label: 'Desktop' },
+  { value: 'unknown', label: 'Not recorded' },
+];
+const USES_FILTER = [{ value: 'ALL', label: 'Any app' }, ...(['web', 'mobile', 'both', 'none'] as const).map((v) => ({ value: v, label: USES[v] }))];
+const STUCK_FILTER = [{ value: 'ALL', label: 'Any step' }, ...(Object.keys(STUCK) as Array<keyof typeof STUCK>).map((v) => ({ value: v, label: STUCK[v] })), { value: 'none', label: 'Not stuck (paid)' }];
+const HEALTH_FILTER = [{ value: 'ALL', label: 'Any health' }, ...(Object.keys(HEALTH) as Array<keyof typeof HEALTH>).map((v) => ({ value: v, label: HEALTH[v].label }))];
 
 export default function TenantsListPage() {
   const navigate = useNavigate();
   const guide = usePageGuide();
   const [exporting, setExporting] = useState(false);
-  const list = useListParams({ status: 'ALL', industry: 'ALL', model: 'ALL', activity: 'ALL', sort: 'newest' });
-  const { status, industry, model, activity, sort } = list.filters;
+  const list = useListParams({ status: 'ALL', industry: 'ALL', model: 'ALL', activity: 'ALL', sort: 'newest', platform: 'ALL', uses: 'ALL', stuck: 'ALL', health: 'ALL' });
+  const { status, industry, model, activity, sort, platform, uses, stuck, health } = list.filters;
 
   const query = {
     search: list.debouncedSearch || undefined,
@@ -56,6 +70,10 @@ export default function TenantsListPage() {
     model: model === 'ALL' ? undefined : model,
     activity: activity === 'ALL' ? undefined : activity,
     sort: sort as 'newest' | 'oldest' | 'name' | 'active',
+    platform: platform === 'ALL' ? undefined : platform,
+    uses: uses === 'ALL' ? undefined : uses,
+    stuck: stuck === 'ALL' ? undefined : stuck,
+    health: health === 'ALL' ? undefined : health,
   };
   const tenants = useQuery({
     queryKey: ['admin', 'tenants', query, list.page, list.limit],
@@ -84,6 +102,10 @@ export default function TenantsListPage() {
         { label: 'Products', value: (t) => t._count.products },
         { label: 'Sales', value: (t) => t._count.sales },
         { label: 'Customers', value: (t) => t._count.customers },
+        { label: 'Signed up on', value: (t) => (t.journey ? PLATFORM[t.journey.signupPlatform].label : '') },
+        { label: 'Source', value: (t) => t.journey?.source ?? '' },
+        { label: 'Health', value: (t) => (t.journey ? HEALTH[t.journey.health].label : '') },
+        { label: 'Stuck at', value: (t) => (t.journey?.stuckAt ? STUCK[t.journey.stuckAt] : '') },
         { label: 'Joined', value: (t) => formatDateTime(t.createdAt) },
         { label: 'Last active', value: (t) => (t.lastActiveAt ? formatDateTime(t.lastActiveAt) : 'Never') },
       ]);
@@ -105,6 +127,10 @@ export default function TenantsListPage() {
     industry !== 'ALL' && <FilterChip key="i" onRemove={() => list.setFilter('industry', 'ALL')}>{industryForType(industry).label}</FilterChip>,
     activity !== 'ALL' && <FilterChip key="a" onRemove={() => list.setFilter('activity', 'ALL')}>{ACTIVITY.find((a) => a.value === activity)?.label}</FilterChip>,
     model !== 'ALL' && <FilterChip key="m" onRemove={() => list.setFilter('model', 'ALL')}>{BUSINESS_MODELS.find((m) => m.id === model)?.label ?? model}</FilterChip>,
+    platform !== 'ALL' && <FilterChip key="p" onRemove={() => list.setFilter('platform', 'ALL')}>Signed up on {PLATFORM_FILTER.find((o) => o.value === platform)?.label ?? platform}</FilterChip>,
+    uses !== 'ALL' && <FilterChip key="u" onRemove={() => list.setFilter('uses', 'ALL')}>{USES_FILTER.find((o) => o.value === uses)?.label ?? uses}</FilterChip>,
+    stuck !== 'ALL' && <FilterChip key="k" onRemove={() => list.setFilter('stuck', 'ALL')}>Stuck: {STUCK_FILTER.find((o) => o.value === stuck)?.label ?? stuck}</FilterChip>,
+    health !== 'ALL' && <FilterChip key="h" onRemove={() => list.setFilter('health', 'ALL')}>{HEALTH_FILTER.find((o) => o.value === health)?.label ?? health}</FilterChip>,
   ].filter(Boolean);
 
   return (
@@ -141,6 +167,10 @@ export default function TenantsListPage() {
         <FilterMenu icon={Factory} label="Industry" value={industry} active={industry !== 'ALL'} onChange={(v) => list.setFilter('industry', v)} options={industryOptions} width="w-72" />
         <FilterMenu icon={Store} label="Sells" value={model} active={model !== 'ALL'} onChange={(v) => list.setFilter('model', v)}
           options={[{ value: 'ALL', label: 'All ways of selling' }, ...BUSINESS_MODELS.map((m) => ({ value: m.id, label: m.id === 'RETAIL' ? 'Retail (incl. not answered)' : m.label }))]} />
+        <FilterMenu icon={MonitorSmartphone} label="Signed up on" value={platform} active={platform !== 'ALL'} onChange={(v) => list.setFilter('platform', v)} options={PLATFORM_FILTER} />
+        <FilterMenu icon={Layers} label="Uses" value={uses} active={uses !== 'ALL'} onChange={(v) => list.setFilter('uses', v)} options={USES_FILTER} />
+        <FilterMenu icon={TrafficCone} label="Stuck at" value={stuck} active={stuck !== 'ALL'} onChange={(v) => list.setFilter('stuck', v)} options={STUCK_FILTER} />
+        <FilterMenu icon={HeartPulse} label="Health" value={health} active={health !== 'ALL'} onChange={(v) => list.setFilter('health', v)} options={HEALTH_FILTER} />
         <FilterMenu icon={ArrowDownUp} label="Sort" value={sort} onChange={(v) => list.setFilter('sort', v)} options={[...SORTS]} align="right" />
       </FilterBar>
 
@@ -156,18 +186,21 @@ export default function TenantsListPage() {
         onPage={list.setPage}
         onLimit={list.setLimit}
       >
-        <Table minWidth="66rem">
+        <Table minWidth="78rem">
           <THead>
             <Tr>
               <Th>Shop</Th>
               <Th>Status</Th>
               <Th>Industry</Th>
               <Th>Plan</Th>
+              <Th>Signed up on</Th>
+              <Th>Health</Th>
               <Th align="right">Users</Th>
               <Th align="right">Products</Th>
               <Th align="right">Sales</Th>
               <Th>Last active</Th>
               <Th align="right">Joined</Th>
+              <Th align="right"><span className="sr-only">Contact</span></Th>
             </Tr>
           </THead>
           <TBody>
@@ -216,11 +249,31 @@ export default function TenantsListPage() {
                       </>
                     ) : <span className="text-[0.8125rem] text-slate-400">No plan</span>}
                   </Td>
+                  <Td>
+                    {t.journey ? (() => {
+                      const p = PLATFORM[t.journey.signupPlatform];
+                      return (
+                        <>
+                          <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-slate-900"><p.icon className="h-3.5 w-3.5" style={{ color: p.color }} />{p.label}</div>
+                          <div className="max-w-[10rem] truncate text-[0.75rem] capitalize text-slate-500" title={t.journey.source}>{t.journey.source}</div>
+                        </>
+                      );
+                    })() : <span className="text-[0.8125rem] text-slate-400">—</span>}
+                  </Td>
+                  <Td>
+                    {t.journey ? (
+                      <>
+                        <Badge variant={HEALTH[t.journey.health].variant}>{HEALTH[t.journey.health].label}</Badge>
+                        {t.journey.stuckAt && <div className="mt-0.5 whitespace-nowrap text-[0.75rem] text-slate-500" title={t.journey.healthReason}>{STUCK[t.journey.stuckAt]}</div>}
+                      </>
+                    ) : <span className="text-[0.8125rem] text-slate-400">—</span>}
+                  </Td>
                   <Td align="right"><span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5 text-slate-400" />{num(t._count.users)}</span></Td>
                   <Td align="right"><span className="inline-flex items-center gap-1"><Package className="h-3.5 w-3.5 text-slate-400" />{num(t._count.products)}</span></Td>
                   <Td align="right"><span className="inline-flex items-center gap-1"><ShoppingCart className="h-3.5 w-3.5 text-slate-400" />{num(t._count.sales)}</span></Td>
                   <Td><LastSeen at={t.lastActiveAt} compact /></Td>
                   <Td align="right" className="whitespace-nowrap text-slate-500" title={formatDateTime(t.createdAt)}>{formatDate(t.createdAt)}<div className="text-[0.6875rem] text-slate-400">{new Date(t.createdAt).toLocaleTimeString('en-PK', { hour: 'numeric', minute: '2-digit' })}</div></Td>
+                  <Td align="right"><ShopContactMenu shop={{ id: t.id, name: t.name, phone: t.phone }} /></Td>
                 </Tr>
               );
             })}
@@ -240,7 +293,7 @@ export default function TenantsListPage() {
             { label: 'Paused / expired', hint: 'App stopped', icon: Tag, color: '#e11d48' },
           ]}
           steps={[
-            { icon: Tag, color: '#4f46e5', title: 'Filter', text: 'Narrow by status, industry and way of selling. Filters stay in the address, so you can share the link.' },
+            { icon: Tag, color: '#4f46e5', title: 'Filter', text: 'Narrow by status, industry, way of selling, the app a shop signed up on, the apps it uses, the step it is stuck at and its health. Filters stay in the address, so you can share the link.' },
             { icon: Building2, color: '#0284c7', title: 'Open a shop', text: 'Click a row for the shop’s profile, plan, staff and activity, and to pause or unpause it.' },
             { icon: Download, color: '#059669', title: 'Export', text: 'Export CSV downloads every shop that matches the filters, not only this page.' },
           ]}

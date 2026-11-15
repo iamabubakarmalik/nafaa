@@ -80,6 +80,14 @@ async function bootstrap() {
   });
 
 
+  // The web app sends X-Nafaa-Client / X-Nafaa-App-Version only after it has
+  // seen this header, so a web deploy that lands before this API never sends
+  // headers an older API's CORS list would reject.
+  app.use((_req: any, res: any, next: any) => {
+    res.setHeader('X-Nafaa-Client-Headers', '1');
+    next();
+  });
+
   // ─── CORS: Smart environment-based configuration ─────────────────────────────
   // PRODUCTION: Only allow nafaa.pk + subdomains (locked down)
   // DEVELOPMENT: Allow localhost + LAN IPs (for Expo Go testing on phone)
@@ -155,8 +163,12 @@ async function bootstrap() {
       'X-Shop-Id',
       // Lets a resent write (offline sync) return the first answer instead of running twice.
       'Idempotency-Key',
+      // Which Nafaa app and version sent the request (merchant journey in the admin panel).
+      'X-Nafaa-Client',
+      'X-Nafaa-App-Version',
     ],
-    exposedHeaders: ['Content-Disposition', 'Idempotent-Replayed'], // File downloads; replayed writes
+    // File downloads; replayed writes; X-Nafaa-Client-Headers tells the web app it may send the two headers above.
+    exposedHeaders: ['Content-Disposition', 'Idempotent-Replayed', 'X-Nafaa-Client-Headers'],
     maxAge: 86400, // 24 hours — cache preflight
   });
 

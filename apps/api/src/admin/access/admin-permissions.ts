@@ -81,6 +81,9 @@ export const ADMIN_AREAS: AdminAreaDef[] = [
     ],
   },
   area('communications', 'Broadcasts, email and SMS', 'Communications', [], 'Send messages to shops.'),
+  area('support', 'Live support', 'Merchants', [
+    { key: 'support.reply', label: 'Chat with shops in Live support', hint: 'Reply, internal notes, calls and screen share, assign, tag, resolve; start a chat and send a one-off notification, email or SMS to a shop.' },
+  ], 'Support settings, saved replies and deleting any message.'),
   area('mobile', 'Mobile apps', 'Mobile'),
   area('system', 'System health and jobs', 'System', [], 'Turn background jobs and switches on or off.'),
   area('settings', 'Platform settings and design', 'System'),
@@ -115,6 +118,7 @@ export const SYSTEM_ROLES: Array<{ key: string; name: string; description: strin
       ...views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'stores', 'marketplace', 'communications', 'mobile', 'system', 'audit', 'partners'),
       ...manages('notifications', 'tenants', 'users', 'deletion', 'billing', 'plans', 'online_store', 'stores', 'marketplace', 'communications', 'partners'),
       'billing.approve',
+      'support.view', 'support.reply', 'support.manage',
     ],
   },
   {
@@ -125,6 +129,7 @@ export const SYSTEM_ROLES: Array<{ key: string; name: string; description: strin
       ...views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'billing', 'plans', 'online_store', 'mobile'),
       ...manages('notifications', 'users'),
       'tenants.impersonate',
+      'support.view', 'support.reply',
     ],
   },
   {
@@ -153,6 +158,6 @@ export const SYSTEM_ROLES: Array<{ key: string; name: string; description: strin
     key: 'readonly',
     name: 'Read only',
     description: 'Can look at everything except staff and the audit log. Cannot change anything.',
-    permissions: [...views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'marketplace', 'marketing', 'communications', 'mobile', 'system', 'settings', 'exports', 'partners'), 'social.view'],
+    permissions: [...views('dashboard', 'notifications', 'tenants', 'users', 'merchant_data', 'deletion', 'bulk', 'billing', 'plans', 'promos', 'online_store', 'marketplace', 'marketing', 'communications', 'mobile', 'system', 'settings', 'exports', 'partners', 'support'), 'social.view'],
   },
 ];

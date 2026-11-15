@@ -6,7 +6,7 @@
 
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { ChevronRight, ChevronsUpDown, LogOut, Pin, Settings } from 'lucide-react-native';
+import { ChevronRight, ChevronsUpDown, Headset, LogOut, Pin, Settings } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { t } from '@/core/i18n';
@@ -15,8 +15,9 @@ import { isAllShops } from '@/core/auth/shopScope';
 import { useShops } from '@/core/auth/useShops';
 import { haptic } from '@/core/device/haptics';
 import {
-  Avatar, EmptyState, Icon, ListGroup, ListRow, PressableScale, Screen, SearchBar, SectionHeader, Text, toast, useLayout, useTheme, withAlpha,
+  Avatar, Badge, EmptyState, Icon, ListGroup, ListRow, PressableScale, Screen, SearchBar, SectionHeader, Text, toast, useLayout, useTheme, withAlpha,
 } from '@/design';
+import { SUPPORT_HREF, useSupportUnread } from '@/modules/support';
 import { BrandMark } from '../components/BrandMark';
 import { logoutWithConfirm } from '../components/ProfileSheet';
 import { useShellUi } from '../hooks/useShellUi';
@@ -41,6 +42,7 @@ export function MoreScreen() {
   const { groups, settings, byTo } = useVisibleNav();
   const { pinned, toggle } = usePinned();
   const [q, setQ] = useState('');
+  const supportUnread = useSupportUnread();
 
   const hits = useMemo(() => searchNav(q, groups, settings), [q, groups, settings]);
   const pinnedItems = pinned.map((to) => byTo.get(to)).filter((x): x is NavItem => !!x && !!x.href);
@@ -155,6 +157,7 @@ export function MoreScreen() {
           ))}
 
           <ListGroup>
+            <ListRow icon={Headset} iconTone="brand" title={t('Help & Support')} subtitle={t('Nafaa team se chat, screenshot bhejein')} trailing={supportUnread ? <Badge tone="danger" solid>{supportUnread}</Badge> : undefined} chevron onPress={() => router.push(SUPPORT_HREF as never)} />
             <ListRow icon={Settings} iconTone="neutral" title={t('Settings')} subtitle={t('Store, staff, receipt, appearance aur zaban')} chevron onPress={() => router.push('/settings')} />
             <ListRow icon={LogOut} title={t('Log out')} destructive onPress={() => void logoutWithConfirm()} />
           </ListGroup>

@@ -162,6 +162,7 @@ import { B2BWholesaleModule } from './modules/b2b-wholesale/b2b-wholesale.module
 import { PrayerRamzanModule } from './modules/prayer-ramzan/prayer-ramzan.module';
 import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.module';
 import { NafaaAiModule } from './modules/ai-assistant/ai-assistant.module';
+import { SupportModule } from './modules/support/support.module';
 import { SyncModule } from './modules/sync/sync.module';
 
 
@@ -315,6 +316,7 @@ import { SyncModule } from './modules/sync/sync.module';
     PrayerRamzanModule,
     AiAssistantModule,
     NafaaAiModule,
+    SupportModule,
   ],
   controllers: [AppController, HealthController],
   providers: [

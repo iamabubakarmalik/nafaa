@@ -23,9 +23,9 @@ import { errorText, useAddOnActions, useBillingOverview, useCanManageBilling, us
 import { fmtDateTime, rs, timeLeftText } from '../lib/catalog-meta';
 
 /** Pages that stay open while the plan has ended. */
-const OPEN_PATHS = ['/billing', '/plans', '/apps', '/plan-usage', '/help', '/profile'];
+const OPEN_PATHS = ['/billing', '/plans', '/apps', '/plan-usage', '/help', '/support', '/profile'];
 /** Pages that stay open while the shop is paused. */
-const PAUSED_OPEN_PATHS = ['/billing', '/plan-usage', '/help', '/profile'];
+const PAUSED_OPEN_PATHS = ['/billing', '/plan-usage', '/help', '/support', '/profile'];
 export const SUPPORT_WHATSAPP = '923241772933';
 export const SUPPORT_PHONE_TEXT = '0324-1772933';
 

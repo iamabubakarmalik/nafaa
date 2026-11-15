@@ -450,6 +450,9 @@ model Tenant {
   onboardingProgress OnboardingProgress[]
 
   users               User[]
+  liveSupportConversations LiveSupportConversation[]
+  liveSupportProactive     LiveSupportProactive[]
+  journey                  TenantJourney?
   products            Product[]
   customers           Customer[]
   sales               Sale[]
@@ -845,6 +848,11 @@ model User {
   lastSeenAt  DateTime?
   /// web, desktop or mobile: the app used at lastSeenAt.
   lastSeenVia String?
+  /// Last activity per Nafaa app (same throttle as lastSeenAt).
+  lastSeenWebAt     DateTime?
+  lastSeenDesktopAt DateTime?
+  lastSeenAndroidAt DateTime?
+  lastSeenIosAt     DateTime?
 
   commissionRules       CommissionRule[]       @relation("CommissionRuleUser")
   commissionEnrollments CommissionEnrollment[] @relation("CommissionEnrollmentUser")
@@ -951,6 +959,9 @@ model Session {
   deviceFingerprint String? // Hash of browser+os+device for matching
   deviceName        String? // Human-readable: "iPhone 15 - Safari"
   location          String? // City/country from IP
+  /// web | android | ios | desktop: the Nafaa app that signed in.
+  platform          String?
+  appVersion        String?
   lastUsedAt        DateTime @default(now())
   expiresAt         DateTime
   createdAt         DateTime @default(now())
@@ -2599,7 +2610,7 @@ model AdminNotification {
   tenantId   String?
   entityType String?
   entityId   String?
-  /// shops | billing | commerce | social | system | marketing | general.
+  /// shops | billing | commerce | social | system | marketing | support | general.
   /// Decides which admins see it (admin/notifications/admin-notify.logic.ts).
   category    String                   @default("general")
   /// Same key inside the event's window = one row with a higher count.
@@ -26890,4 +26901,180 @@ model BrandSocialAccountDay {
   @@unique([accountId, day])
   @@index([day])
   @@map("brand_social_account_days")
+}
+
+// ─── Live support (merchant ↔ Nafaa team chat) ─────────────────────────
+// Status, priority, sender and kind are plain text; the allowed values live in
+// src/modules/support/support.types.ts.
+
+/// One support thread of a shop. Merchants see only their own tenant's rows.
+model LiveSupportConversation {
+  id                 String    @id @default(uuid())
+  tenantId           String
+  shopId             String?
+  openedByUserId     String?
+  subject            String?
+  /// BOT | WAITING | OPEN | PENDING_MERCHANT | RESOLVED | CLOSED
+  status             String    @default("BOT")
+  /// LOW | NORMAL | HIGH | URGENT
+  priority           String    @default("NORMAL")
+  assignedAdminId    String?
+  assignedAt         DateTime?
+  tags               String[]  @default([])
+  lastMessageAt      DateTime  @default(now())
+  lastMessagePreview String?
+  unreadForMerchant  Int       @default(0)
+  unreadForAdmin     Int       @default(0)
+  /// Start of the current wait for a team reply; null when the team replied last.
+  waitingSince       DateTime?
+  /// First time the merchant was handed to the team (start of first-response time).
+  handedOverAt       DateTime?
+  firstResponseAt    DateTime?
+  /// up | down
+  rating             String?
+  ratingNote         String?
+  ratedAt            DateTime?
+  /// web | mobile | admin-started | proactive
+  source             String    @default("web")
+  /// Replies Nafaa AI gave in this conversation (capped per conversation).
+  botReplies         Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  resolvedAt         DateTime?
+  closedAt           DateTime?
+
+  tenant   Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messages LiveSupportMessage[]
+
+  @@index([tenantId, lastMessageAt])
+  @@index([status, lastMessageAt])
+  @@index([assignedAdminId, status])
+  @@index([lastMessageAt])
+  @@map("live_support_conversations")
+}
+
+/// One message in a support conversation. internal = admin-only note.
+model LiveSupportMessage {
+  id             String    @id @default(uuid())
+  conversationId String
+  /// MERCHANT | ADMIN | BOT | SYSTEM
+  sender         String
+  senderUserId   String?
+  /// TEXT | IMAGE | FILE | VOICE | CALL_EVENT | SYSTEM
+  kind           String    @default("TEXT")
+  text           String?   @db.Text
+  /// [{ url, name, mime, bytes, width, height, durationSec, waveform, recording }]
+  attachments    Json      @default("[]")
+  /// System codes, call details, AI chips.
+  meta           Json?
+  replyToId      String?
+  clientId       String?
+  internal       Boolean   @default(false)
+  deliveredAt    DateTime?
+  readAt         DateTime?
+  editedAt       DateTime?
+  /// Earlier versions of an edited message, oldest first: [{ text, at, by }]. Admin view only.
+  history        Json?
+  /// Soft delete: the content stays for the team; the shop no longer sees it.
+  deletedAt      DateTime?
+  /// MERCHANT | ADMIN
+  deletedBy      String?
+  deletedById    String?
+  /// A super admin removed the content for good (text, files, history); the row stays as a tombstone.
+  purgedAt       DateTime?
+  purgedById     String?
+  createdAt      DateTime  @default(now())
+
+  conversation LiveSupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderUserId])
+  @@map("live_support_messages")
+}
+
+/// Saved replies for the support team (inserted with "/" in the composer).
+model LiveSupportCannedReply {
+  id          String   @id @default(uuid())
+  title       String
+  text        String   @db.Text
+  tags        String[] @default([])
+  /// en | ur | roman
+  language    String   @default("roman")
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([title])
+  @@map("live_support_canned_replies")
+}
+
+/// Proactive support messages: one row per shop per message key (welcome,
+/// trial reminders, …), so each is sent once. key "opt_out" = the shop turned
+/// check-ins off. Stats read repliedAt.
+model LiveSupportProactive {
+  id             String    @id @default(uuid())
+  tenantId       String
+  key            String
+  conversationId String?
+  messageId      String?
+  sentAt         DateTime  @default(now())
+  /// The shop wrote in the same chat within 24 hours of the message.
+  repliedAt      DateTime?
+  /// Language the message went out in (en | ur | roman).
+  lang           String?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, key])
+  @@index([key, sentAt])
+  @@map("live_support_proactive")
+}
+
+/// Where a shop came from and which Nafaa apps it uses: signup platform and
+/// source (UTM, first touch from nafaa.pk, referrer, referral code) and the
+/// last time anyone in the shop used each app. One row per shop; read by the
+/// admin Journey tab and Funnel page. Milestones are derived from existing
+/// tables, not stored here.
+model TenantJourney {
+  tenantId           String    @id
+  /// web | android | ios | desktop
+  signupPlatform     String?
+  signupAppVersion   String?
+  signupUserAgent    String?
+  /// email | google | apple
+  signupMethod       String?
+  utmSource          String?
+  utmMedium          String?
+  utmCampaign        String?
+  utmTerm            String?
+  utmContent         String?
+  /// First touch carried from nafaa.pk (ft_* on the signup link).
+  ftSource           String?
+  ftMedium           String?
+  ftCampaign         String?
+  ftTerm             String?
+  ftContent          String?
+  /// Call-to-action id on nafaa.pk that sent the visitor.
+  cta                String?
+  referrerDomain     String?
+  referralCode       String?
+  /// First page of the app (or the nafaa.pk page) the visitor landed on.
+  landingPage        String?
+  /// True when the signup fields were inferred by the backfill script, not recorded at signup.
+  inferred           Boolean   @default(false)
+  signupRecordedAt   DateTime?
+  lastSeenWebAt      DateTime?
+  lastSeenDesktopAt  DateTime?
+  lastSeenAndroidAt  DateTime?
+  lastSeenIosAt      DateTime?
+  firstSeenAndroidAt DateTime?
+  firstSeenIosAt     DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @default(now()) @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([signupPlatform])
+  @@index([utmSource])
+  @@map("tenant_journey")
 }

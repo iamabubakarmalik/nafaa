@@ -32,6 +32,7 @@ import { AdminSystemControlModule } from './system-control/admin-system-control.
 import { AdminAuditInterceptor } from './access/admin-audit.interceptor';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AdminTenantsModule } from './tenants/admin-tenants.module';
+import { AdminJourneyModule } from './journey/admin-journey.module';
 import { AdminUsersModule } from './users/admin-users.module';
 
 @Module({
@@ -39,6 +40,7 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminAuthModule,
     AdminNotificationsModule,
     AdminTenantsModule,
+    AdminJourneyModule,
     AdminUsersModule,
     AdminDashboardModule,
     AdminStaffModule,

@@ -10,8 +10,11 @@ import { initSyncEngine } from '@core/lib/offline/syncEngine';
 import { startLanguageSync } from '@core/i18n/sync';
 import { registerSW } from 'virtual:pwa-register';
 import { t } from '@core/i18n';
+import { captureSignupSource } from '@core/lib/signup-source';
 
 if (typeof window !== 'undefined') {
+  // Before the router can drop the landing URL's campaign tags.
+  captureSignupSource();
   startLanguageSync();
 
   // ═══ Init offline sync engine ═══

@@ -41,6 +41,7 @@ import { ShortcutsHelp, useShortcutsHelp } from './keyboard/ShortcutsHelp';
 import { GO_TO, useGlobalKeys } from './keyboard/useGlobalKeys';
 import { useSidebarState } from './useSidebarState';
 import { AiDrawer, AiLauncher } from '@modules/ai-assistant';
+import { SupportHost } from '@modules/support';
 import { BillingBanner } from '@modules/billing/pricing/components/BillingBanner';
 import { PlanGate } from '@modules/billing/pricing/components/PlanGate';
 import { UpsellHost } from '@modules/billing/pricing/components/UpsellHost';
@@ -191,6 +192,8 @@ export default function AppShell() {
         </div>
       )}
       <AiLauncher />
+      {/* Live support: chat panel, its button and the call card, on every page. */}
+      <SupportHost />
       {/* New online order: popup and sound on every page. */}
       <OnlineOrderAlert />
     </div>

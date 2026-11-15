@@ -17,12 +17,15 @@ import * as Updates from 'expo-updates';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { t } from '@/core/i18n';
+import { isSupportChatVisible, isSupportNotification } from '@/modules/support/lib/visibility';
 import { notificationsApi, type AlertSound } from '../api/notifications';
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true, shouldPlaySound: true, shouldSetBadge: true, shouldShowBanner: true, shouldShowList: true,
-  }),
+  handleNotification: async (n) => {
+    // A support reply while the support chat is open is already on screen.
+    const show = !(isSupportNotification(n.request.content.data) && isSupportChatVisible());
+    return { shouldShowAlert: show, shouldPlaySound: show, shouldSetBadge: true, shouldShowBanner: show, shouldShowList: show };
+  },
 });
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

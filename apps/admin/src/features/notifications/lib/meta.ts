@@ -3,7 +3,7 @@
  * shared by the bell, the toasts and the notification center.
  */
 
-import { AlertOctagon, AlertTriangle, Bell, Building2, CreditCard, Info, Megaphone, Server, Share2, ShoppingBag, type LucideIcon } from 'lucide-react';
+import { AlertOctagon, AlertTriangle, Bell, Building2, CreditCard, Headphones, Info, Megaphone, Server, Share2, ShoppingBag, type LucideIcon } from 'lucide-react';
 import type { NotifyCategory, NotifySeverity } from '@/api/admin-notifications.api';
 
 export const CATEGORY_META: Record<NotifyCategory, { label: string; hint: string; icon: LucideIcon; tone: string }> = {
@@ -13,6 +13,7 @@ export const CATEGORY_META: Record<NotifyCategory, { label: string; hint: string
   social: { label: 'Nafaa Social', hint: 'Failed posts, posts to do by hand, logins, day summary', icon: Share2, tone: 'bg-pink-100 text-pink-700' },
   system: { label: 'System', hint: 'Failed background jobs and new server errors', icon: Server, tone: 'bg-slate-200 text-slate-700' },
   marketing: { label: 'Marketing', hint: 'Contact messages, demo bookings, new leads', icon: Megaphone, tone: 'bg-amber-100 text-amber-700' },
+  support: { label: 'Live support', hint: 'Shops asking for the team, new chat messages, low ratings', icon: Headphones, tone: 'bg-teal-100 text-teal-700' },
   general: { label: 'General', hint: 'Anything else for the team', icon: Bell, tone: 'bg-slate-100 text-slate-600' },
 };
 

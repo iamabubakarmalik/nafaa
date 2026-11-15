@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { adminNotificationsApi, type FeedItem, type NotifySeverity } from '@/api/admin-notifications.api';
 import { useCan } from '@/lib/access';
 import { claimAlert, playChime, showDesktop } from '../lib/alerts';
+import { useSupportLive } from '@/features/support/lib/live';
+import { playSupportMessage } from '@/features/support/lib/tones';
 
 export const FEED_KEY = ['admin-notify-feed'] as const;
 const POLL_MS = 15_000;
@@ -57,11 +59,14 @@ function alertFor(items: FeedItem[], open: (link: string) => void) {
   const fresh = items.filter((n) => claimAlert(`${n.id}:${n.lastAt}`));
   if (!fresh.length) return;
 
-  const loud = fresh.filter((n) => n.alert.sound);
+  // Live support has its own tone; while its socket is connected it also shows its own desktop alerts.
+  const supportLive = useSupportLive.getState().connected;
+  const loud = fresh.filter((n) => n.alert.sound && n.category !== 'support');
   if (loud.length) playChime(loud.reduce<NotifySeverity>((s, n) => (RANK[n.severity] > RANK[s] ? n.severity : s), 'info'));
+  if (!supportLive && fresh.some((n) => n.alert.sound && n.category === 'support')) playSupportMessage();
 
   if (document.visibilityState === 'hidden') {
-    for (const n of fresh.filter((x) => x.alert.desktop).slice(-3)) showDesktop({ ...n, title: titleOf(n) }, open);
+    for (const n of fresh.filter((x) => x.alert.desktop && !(supportLive && x.category === 'support')).slice(-3)) showDesktop({ ...n, title: titleOf(n) }, open);
   }
 
   const toasts = fresh.filter((n) => n.alert.toast);

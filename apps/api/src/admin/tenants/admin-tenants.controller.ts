@@ -26,6 +26,11 @@ export class AdminTenantsController {
     @Query('activity') activity?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('platform') platform?: string,
+    @Query('uses') uses?: string,
+    @Query('stuck') stuck?: string,
+    @Query('health') health?: string,
+    @Query('source') source?: string,
   ) {
     return this.service.list({
       search,
@@ -36,6 +41,13 @@ export class AdminTenantsController {
       activity: activity || undefined,
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
+      journey: {
+        platform: platform?.trim() || undefined,
+        uses: uses?.trim() || undefined,
+        stuck: stuck?.trim() || undefined,
+        health: health?.trim() || undefined,
+        source: source?.trim().slice(0, 80) || undefined,
+      },
     });
   }
 

@@ -16,9 +16,11 @@ import {
   KeyRound, MapPinCheck, Radio, ScrollText, ShieldCheck, ShoppingCart, UserCog, Signpost, Smartphone, Sparkles, Store, TabletSmartphone, Tag, Target,
   Timer, ToggleRight, Wrench, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
-import { Flag, Link2 } from 'lucide-react';
+import { Filter, Flag, Link2 } from 'lucide-react';
 import { CalendarDays, CheckCheck, Hand, MessagesSquare, PenSquare, Share2 } from 'lucide-react';
 import { InboxBadge } from '@/features/brand-social/components/InboxBadge';
+import { SupportBadge } from '@/features/support/components/SupportBadge';
+import { Headphones } from 'lucide-react';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
 
 type IconType = ComponentType<{ className?: string; style?: CSSProperties }>;
@@ -94,14 +96,25 @@ export const WORKSPACES: AdminWorkspace[] = [
     icon: Building2,
     tone: 'bg-sky-600 text-white',
     root: '/tenants',
-    prefixes: ['/tenants', '/users', '/customers', '/products', '/sales', '/deletion-requests', '/bulk-actions'],
+    prefixes: ['/tenants', '/funnel', '/users', '/customers', '/products', '/sales', '/deletion-requests', '/bulk-actions', '/support'],
     groups: [
+      {
+        id: 'support',
+        label: 'Live support',
+        icon: Headphones,
+        items: [
+          { to: '/support', label: 'Support inbox', icon: Headphones, exact: true, keywords: 'chat help live support messages calls inbox', badge: SupportBadge },
+          { to: '/support/reports', label: 'Support reports', icon: BarChart3, keywords: 'first response resolution rating sla' },
+          { to: '/support/settings', label: 'Support settings', icon: Settings2, keywords: 'working hours away canned saved replies proactive welcome', permission: 'support.manage' },
+        ],
+      },
       {
         id: 'shops',
         label: 'Shops',
         icon: Building2,
         items: [
           { to: '/tenants', label: 'Shops', icon: Building2, keywords: 'tenants businesses merchants stores' },
+          { to: '/funnel', label: 'Signup funnel', icon: Filter, keywords: 'journey acquisition conversion stuck trial onboarding platform android ios web source utm' },
           { to: '/users', label: 'Users', icon: Users, keywords: 'staff owners logins' },
           { to: '/deletion-requests', label: 'Deletion requests', icon: UserX, keywords: 'delete account gdpr' },
         ],
@@ -464,7 +477,7 @@ export const WORKSPACES: AdminWorkspace[] = [
 /** Permission area of each page (see apps/api/src/admin/access/admin-permissions.ts). */
 const AREA_BY_PREFIX: Array<[string, string]> = [
   ['/dashboard', 'dashboard'], ['/live', 'users'], ['/analytics', 'dashboard'], ['/notifications', 'notifications'],
-  ['/tenants', 'tenants'], ['/users', 'users'], ['/deletion-requests', 'deletion'], ['/partners', 'partners'],
+  ['/support', 'support'], ['/tenants', 'tenants'], ['/funnel', 'tenants'], ['/users', 'users'], ['/deletion-requests', 'deletion'], ['/partners', 'partners'],
   ['/products', 'merchant_data'], ['/sales', 'merchant_data'], ['/customers', 'merchant_data'], ['/bulk-actions', 'bulk'],
   ['/billing/settings', 'plans'], ['/billing', 'billing'], ['/invoices', 'billing'], ['/revenue', 'billing'], ['/setups', 'tenants'], ['/addons', 'plans'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
   ['/platform-discounts', 'promos'], ['/referrals', 'promos'],

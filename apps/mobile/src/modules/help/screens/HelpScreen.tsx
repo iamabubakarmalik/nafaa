@@ -4,7 +4,7 @@
  */
 
 import { router } from 'expo-router';
-import { ArrowRight, ChevronDown, Globe, Mail, MessageCircle, Phone, ScrollText, Search } from 'lucide-react-native';
+import { ArrowRight, ChevronDown, Globe, Headset, Mail, MessageCircle, Phone, ScrollText, Search } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { t } from '@/core/i18n';
@@ -12,6 +12,7 @@ import { useAuthStore } from '@/core/auth/store';
 import { Button, Card, Chip, EmptyState, Icon, ListGroup, ListRow, PressableScale, Screen, SearchBar, Segmented, Text, useDebouncedValue, useTheme } from '@/design';
 import { FAQS, GUIDES, TOPICS, type HelpTopic } from '../lib/content';
 import { mobileRouteFor } from '../lib/routeFor';
+import { SUPPORT_HREF, useSupportUnread } from '@/modules/support';
 import { SUPPORT, supportWhatsapp } from '../lib/support';
 
 type Tab = 'faq' | 'guides' | 'contact';
@@ -27,6 +28,7 @@ export function HelpScreen() {
   const [topic, setTopic] = useState<'all' | HelpTopic>('all');
   const [openId, setOpenId] = useState<string | null>(null);
   const q = useDebouncedValue(search, 150).trim().toLowerCase();
+  const supportUnread = useSupportUnread();
 
   const wa = supportWhatsapp(t('Assalam-o-Alaikum, mujhe Nafaa me madad chahiye.\nDukaan: {{shop}}\nNaam: {{name}}\nEmail: {{email}}\n\nMasla: ', { shop: tenant?.name ?? '', name: user?.fullName ?? '', email: user?.email ?? '' }));
 
@@ -54,6 +56,18 @@ export function HelpScreen() {
   return (
     <Screen title={t('Help')} narrow>
       <View style={{ gap: th.space(3) }}>
+        <Card tone="brand" onPress={() => router.push(SUPPORT_HREF as never)} accessibilityLabel={t('Help & Support')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: th.space(3) }}>
+            <View style={{ width: 44, height: 44, borderRadius: th.radius('lg'), backgroundColor: th.colors.brand.solid, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon icon={Headset} size={22} color={th.colors.brand.onSolid} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text weight="bold">{t('Live chat')}</Text>
+              <Text size="sm" tone="muted">{supportUnread ? t('{{count}} naye message', { count: supportUnread }) : t('Nafaa team se app mein baat karein, screenshot bhejein')}</Text>
+            </View>
+            <Icon icon={ArrowRight} size={18} tone="muted" flip />
+          </View>
+        </Card>
         <View style={{ flexDirection: 'row', gap: th.space(2) }}>
           <Button icon={MessageCircle} style={{ flex: 1 }} onPress={() => open(wa)}>{t('WhatsApp')}</Button>
           <Button icon={Phone} variant="secondary" style={{ flex: 1 }} onPress={() => open(`tel:${SUPPORT.phoneIntl}`)}>{t('Call')}</Button>

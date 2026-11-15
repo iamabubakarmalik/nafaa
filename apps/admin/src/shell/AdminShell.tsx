@@ -24,6 +24,7 @@ import { areaForPath, itemForPath } from './navigation/nav-config';
 import { useCan } from '@/lib/access';
 import { EmptyState } from '@/design-system/components';
 import { Lock } from 'lucide-react';
+import { SupportLive } from '@/features/support/components/SupportLive';
 
 /** Shown while a page's code downloads (pages are loaded on first visit). */
 function PageLoading() {
@@ -75,6 +76,7 @@ export default function AdminShell() {
           <Sidebar collapsed={collapsed} onToggleCollapse={toggle} onLogout={handleLogout} />
         </aside>
 
+        <SupportLive />
         <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} onLogout={handleLogout} />
 
         <div className="flex h-screen-dvh min-w-0 flex-col overflow-hidden">

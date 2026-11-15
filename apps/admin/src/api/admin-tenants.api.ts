@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import type { JourneySummary } from './admin-journey.api';
 
 export type TenantStatus = 'ACTIVE' | 'SUSPENDED' | 'TRIAL' | 'EXPIRED';
 
@@ -27,6 +28,8 @@ export interface AdminTenant {
   pauseReason?: string | null;
   /** The plan the shop is really on (not a newer unpaid renewal bill). */
   billing?: TenantBillingSummary;
+  /** Signup platform, source, stuck step and health (merchant journey). */
+  journey?: JourneySummary | null;
   subscriptions: Array<{
     id: string;
     status: string;
@@ -73,7 +76,10 @@ export interface TenantStats {
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;
 
 export const adminTenantsApi = {
-  list: (params?: { search?: string; status?: TenantStatus; model?: string; industry?: string; activity?: string; sort?: 'newest' | 'oldest' | 'name' | 'active'; page?: number; limit?: number }) =>
+  list: (params?: {
+    search?: string; status?: TenantStatus; model?: string; industry?: string; activity?: string; sort?: 'newest' | 'oldest' | 'name' | 'active'; page?: number; limit?: number;
+    platform?: string; uses?: string; stuck?: string; health?: string; source?: string;
+  }) =>
     apiClient
       .get<{ data: TenantsResponse }>('/admin/tenants', { params })
       .then(unwrap),

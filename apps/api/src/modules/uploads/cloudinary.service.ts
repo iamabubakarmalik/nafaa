@@ -61,10 +61,10 @@ export class CloudinaryService {
           public_id: options.publicId,
           resource_type: options.resourceType ?? 'image',
           overwrite: false,
-          // Image optimization
-          transformation: [
-            { quality: 'auto:good', fetch_format: 'auto' },
-          ],
+          // Image optimization (images only: audio, video and raw files are stored as sent)
+          ...((options.resourceType ?? 'image') === 'image' && {
+            transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
+          }),
         },
         (error, result) => {
           if (error) return reject(error);

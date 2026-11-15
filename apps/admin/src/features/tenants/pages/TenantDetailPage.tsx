@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import {
-  Activity, Building2, CheckCircle2, CircleAlert, CreditCard, Gift, Globe, LogIn, LogOut, MessageSquare, PauseCircle, Pencil, Package, Phone, PlayCircle, Receipt,
+  Activity, Building2, Route, CheckCircle2, CircleAlert, CreditCard, Gift, Globe, LogIn, LogOut, MessageSquare, PauseCircle, Pencil, Package, Phone, PlayCircle, Receipt,
   Puzzle, ShieldCheck, ShoppingCart, Smartphone, Store, Trash2, Truck, UserCog, Users, XCircle,
 } from 'lucide-react';
 import {
@@ -36,8 +36,10 @@ import { BUSINESS_MODELS, BusinessModelChips } from '../components/BusinessModel
 import { UserActions } from '@/features/users/components/UserActions';
 import { TenantPartnerCard } from '@/features/partners/components/TenantPartnerCard';
 import { PLAN_STATE, planEndHint, planEndLine } from '../lib/plan-state';
+import { ShopContactMenu } from '@/features/support/components/ShopContactActions';
+import TenantJourneyPanel from '@/features/journey/components/TenantJourneyPanel';
 
-type Tab = 'overview' | 'team' | 'plan' | 'billing' | 'online' | 'notes' | 'timeline';
+type Tab = 'overview' | 'journey' | 'team' | 'plan' | 'billing' | 'online' | 'notes' | 'timeline';
 
 function HealthRing({ score }: { score: number }) {
   const color = score >= 80 ? '#059669' : score >= 40 ? '#d97706' : '#e11d48';
@@ -174,6 +176,7 @@ export default function TenantDetailPage() {
 
   const tabs = [
     { id: 'overview' as const, label: 'Overview', icon: Activity },
+    { id: 'journey' as const, label: 'Journey', icon: Route },
     { id: 'team' as const, label: 'Team & devices', icon: Users, count: tenant._count.users },
     { id: 'plan' as const, label: 'Plan & add-ons', icon: Puzzle },
     { id: 'billing' as const, label: 'Billing', icon: CreditCard },
@@ -195,6 +198,11 @@ export default function TenantDetailPage() {
         meta={<span className="inline-flex flex-wrap items-center gap-x-2">@{tenant.slug}{tenant.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{tenant.phone}</span>}<span>· {industry.label}</span><span>· joined {formatDateTime(tenant.createdAt)}</span></span>}
         actions={
           <>
+            <ShopContactMenu hero hideSignIn shop={{
+              id: tenant.id, name: tenant.name, phone: tenant.phone,
+              ownerPhone: tenant.users.find((u: { role: string }) => u.role === 'OWNER')?.phone ?? null,
+              ownerEmail: tenant.users.find((u: { role: string }) => u.role === 'OWNER')?.email ?? null,
+            }} />
             {can('tenants.impersonate') && (
               <button type="button" className={heroPrimaryButton} disabled={impersonate.isPending} onClick={async () => {
                 if (await confirmDialog({ title: `Sign in as ${tenant.name}?`, text: 'Opens their merchant app in a new tab with owner access. Anything you do there is real and is logged under your name.', yes: 'Sign in as shop' })) impersonate.mutate();
@@ -292,6 +300,8 @@ export default function TenantDetailPage() {
           <TenantPartnerCard tenantId={tenant.id} tenantName={tenant.name} />
         </div>
       )}
+
+      {tab === 'journey' && <TenantJourneyPanel tenantId={tenant.id} />}
 
       {tab === 'team' && (
         <div className="grid gap-4 lg:grid-cols-2">

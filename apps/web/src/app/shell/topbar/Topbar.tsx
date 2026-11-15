@@ -24,6 +24,7 @@ import { ProfileDropdown } from './ProfileDropdown';
 import { QuickActionsDropdown } from './QuickActionsDropdown';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import { AiTopbarButton } from '@modules/ai-assistant';
+import { SupportTopbarButton } from '@modules/support';
 import { t as tr } from '@core/i18n';
 
 interface TopbarProps {
@@ -82,6 +83,7 @@ export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: TopbarPr
           <DesktopReloadButton />
           <SyncStatusIndicator />
           <AiTopbarButton />
+          <SupportTopbarButton />
           <NotificationBell />
           <div className="mx-0.5 hidden h-6 w-px bg-shell-line sm:block" aria-hidden />
           <ProfileDropdown user={user} tenant={tenant} onLogout={onLogout} />

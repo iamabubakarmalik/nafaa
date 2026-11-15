@@ -5,10 +5,14 @@ import { apiMessage, notificationText } from '../../common/i18n/api-message';
 import { DEFAULT_TZ, addDaysTz, dateKeyTz, startOfDayTz, subDaysTz } from '../../common/helpers/business-time.helper';
 import { notifyAdmins } from '../notifications/admin-notify';
 import { invalidateEntitlements } from '../../modules/billing/entitlements/entitlements.service';
+import { AdminJourneyService, type JourneyFilter } from '../journey/admin-journey.service';
 
 @Injectable()
 export class AdminTenantsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly journey: AdminJourneyService,
+  ) {}
 
   async list(params: {
     search?: string;
@@ -22,6 +26,8 @@ export class AdminTenantsService {
     sort?: 'newest' | 'oldest' | 'name' | 'active';
     page?: number;
     limit?: number;
+    /** Merchant journey filters: signup platform, apps used, stuck step, health, source. */
+    journey?: JourneyFilter;
   }) {
     const page = Math.max(1, params.page ?? 1);
     const limit = Math.min(100, Math.max(1, params.limit ?? 20));
@@ -52,6 +58,10 @@ export class AdminTenantsService {
     };
     const activity = tenantActivityWhere(params.activity);
     if (Object.keys(activity).length) where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), activity];
+    if (params.journey && this.journey.hasFilter(params.journey)) {
+      const ids = await this.journey.matchIds(params.journey);
+      where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), { id: { in: ids } }];
+    }
     const orderBy: Prisma.TenantOrderByWithRelationInput | Prisma.TenantOrderByWithRelationInput[] =
       params.sort === 'oldest' ? { createdAt: 'asc' }
         : params.sort === 'name' ? { name: 'asc' }
@@ -99,9 +109,12 @@ export class AdminTenantsService {
       const state = sub.plan.isFree ? 'free' : endsAt && endsAt > now && (sub.status === 'ACTIVE' || sub.status === 'TRIAL') ? (sub.status === 'TRIAL' ? 'trial' : 'active') : 'expired';
       return { planName: sub.plan.name, planSlug: sub.plan.slug, state, endsAt: sub.plan.isFree ? null : endsAt };
     };
+    // Journey columns are extra: a failure there must not break the Shops list.
+    const journey = await this.journey.summaries(items.map((t) => t.id)).catch(() => ({} as Awaited<ReturnType<AdminJourneyService['summaries']>>));
     const withBilling = items.map((t) => ({
       ...t,
       billing: { ...billingOf(t.id), paused: !!t.pausedAt && (!t.pausedUntil || t.pausedUntil > now), pausedUntil: t.pausedUntil, pauseReason: t.pauseReason },
+      journey: journey[t.id] ?? null,
     }));
 
     return {

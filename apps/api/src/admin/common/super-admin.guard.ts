@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ADMIN_AREA_KEY, ADMIN_PERMISSION_KEY } from '../access/admin-access.decorators';
+import { ADMIN_ANY_PERMISSION_KEY, ADMIN_AREA_KEY, ADMIN_PERMISSION_KEY } from '../access/admin-access.decorators';
 import { resolveAdminAccess } from '../access/admin-access';
 
 const READ_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
@@ -12,7 +12,8 @@ const READ_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
  *
  * - SUPER_ADMIN: always allowed, exactly as before.
  * - ADMIN_STAFF: allowed when their permissions include the key this
- *   handler needs: @AdminPermission(key) on the handler, otherwise
+ *   handler needs: one of @AdminAnyPermission(...keys) when set, else
+ *   @AdminPermission(key) on the handler, otherwise
  *   '<area>.view' for reads and '<area>.manage' for changes, where the area
  *   comes from @AdminArea on the handler or controller.
  * - Endpoints without an area stay super-admin only.
@@ -32,13 +33,20 @@ export class SuperAdminGuard implements CanActivate {
     const targets = [context.getHandler(), context.getClass()];
     const explicit = this.reflector.getAllAndOverride<string | undefined>(ADMIN_PERMISSION_KEY, targets);
     const area = this.reflector.getAllAndOverride<string | undefined>(ADMIN_AREA_KEY, targets);
+    const anyOf = this.reflector.getAllAndOverride<string[] | undefined>(ADMIN_ANY_PERMISSION_KEY, targets);
     const required = explicit ?? (area ? `${area}.${READ_METHODS.has(request.method) ? 'view' : 'manage'}` : null);
-    request.adminPermission = required ?? 'super_admin';
+    request.adminPermission = anyOf?.[0] ?? required ?? 'super_admin';
 
     const access = user ? await resolveAdminAccess(this.prisma, user.id, user.role) : null;
     if (!access) throw new ForbiddenException('Admin access only');
     request.adminAccess = access;
     if (access.isSuperAdmin) return true;
+    if (anyOf?.length) {
+      const match = anyOf.find((k) => access.permissions.includes(k));
+      if (!match) throw new ForbiddenException(`Your admin role does not include any of: ${anyOf.join(', ')}.`);
+      request.adminPermission = match;
+      return true;
+    }
     if (!required || !access.permissions.includes(required)) {
       throw new ForbiddenException(required ? `Your admin role does not include "${required}".` : 'Only a super admin can do this.');
     }

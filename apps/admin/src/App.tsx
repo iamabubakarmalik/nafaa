@@ -6,6 +6,7 @@ import LoginPage from '@/features/auth/pages/LoginPage';
 const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage'));
 const TenantsListPage = lazy(() => import('@/features/tenants/pages/TenantsListPage'));
 const TenantDetailPage = lazy(() => import('@/features/tenants/pages/TenantDetailPage'));
+const SignupFunnelPage = lazy(() => import('@/features/journey/pages/FunnelPage'));
 const UsersPage = lazy(() => import('@/features/users/pages/UsersPage'));
 const BillingPage = lazy(() => import('@/features/billing/pages/BillingPage'));
 const SubscriptionsPage = lazy(() => import('@/features/subscriptions/pages/SubscriptionsPage'));
@@ -91,6 +92,9 @@ const StaffPage = lazy(() => import('@/features/staff/pages/StaffPage'));
 const RolesPage = lazy(() => import('@/features/staff/pages/RolesPage'));
 const AuditLogPage = lazy(() => import('@/features/staff/pages/AuditLogPage'));
 const LiveNowPage = lazy(() => import('@/features/live/pages/LiveNowPage'));
+const SupportInboxPage = lazy(() => import('@/features/support/pages/SupportInboxPage'));
+const SupportReportsPage = lazy(() => import('@/features/support/pages/SupportReportsPage'));
+const SupportSettingsPage = lazy(() => import('@/features/support/pages/SupportSettingsPage'));
 const AiUsagePage = lazy(() => import('@/features/ai-usage/pages/AiUsagePage'));
 const SecurityPage = lazy(() => import('@/features/account/pages/SecurityPage'));
 const PartnersListPage = lazy(() => import('@/features/partners/pages/PartnersListPage'));
@@ -146,6 +150,7 @@ export default function App() {
 
               <Route path="/tenants" element={<TenantsListPage />} />
               <Route path="/tenants/:id" element={<TenantDetailPage />} />
+              <Route path="/funnel" element={<SignupFunnelPage />} />
               <Route path="/users" element={<UsersPage />} />
               <Route path="/customers" element={<AdminCustomersPage />} />
               <Route path="/deletion-requests" element={<DeletionRequestsPage />} />
@@ -219,6 +224,9 @@ export default function App() {
               <Route path="/account/security" element={<SecurityPage />} />
               <Route path="/ai-usage" element={<AiUsagePage />} />
               <Route path="/live" element={<LiveNowPage />} />
+              <Route path="/support" element={<SupportInboxPage />} />
+              <Route path="/support/reports" element={<SupportReportsPage />} />
+              <Route path="/support/settings" element={<SupportSettingsPage />} />
 
               {/* Nafaa Social: Nafaa's own social accounts (Marketing workspace) */}
               <Route path="/social" element={<SocialOverviewPage />} />

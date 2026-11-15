@@ -227,6 +227,40 @@ export class StaffAlertsService implements OnModuleDestroy {
   }
 
   /**
+   * Live support push (a team reply or a proactive message while nobody from
+   * the shop is in the app). Uses its own Android channel and iOS sound; the
+   * person's quiet hours and "silent" choice still apply. Text is written per
+   * person's app language.
+   */
+  async pushSupport(input: {
+    tenantId: string;
+    userIds: string[];
+    text: (language: string | null) => { title: string; body: string };
+    data: Record<string, unknown>;
+  }) {
+    if (!input.userIds.length) return [];
+    const people = (await this.people(input.tenantId, input.userIds)).filter((p) => p.tokens.length);
+    if (!people.length) return [];
+    const { tz } = await this.clocks.clock(input.tenantId);
+    const now = new Date();
+    const items: DeliveryItem[] = [];
+    for (const p of people) {
+      const silent = inQuietHours(p.prefs, now, tz) || p.prefs.sound === 'silent';
+      const { title, body } = input.text(p.language);
+      for (const t of p.tokens) {
+        items.push({
+          event: 'support',
+          tenantId: input.tenantId,
+          userId: p.id,
+          platform: t.platform,
+          message: { to: t.token, title, body, data: input.data, channelId: silent ? 'nafaa-silent' : 'nafaa-support', sound: silent ? null : 'bell.wav' },
+        });
+      }
+    }
+    return this.delivery.deliver(items);
+  }
+
+  /**
    * Push for a notification row created elsewhere (billing, transfers, AI
    * summary, …). A row for one person goes to that person; a business-wide
    * row goes to everyone who may receive the event.

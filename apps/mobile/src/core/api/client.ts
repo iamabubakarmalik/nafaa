@@ -14,6 +14,7 @@
 
 import axios, { type AxiosError, type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 import { useAuthStore } from '../auth/store';
 import { SHOP_HEADER } from '../auth/shopScope';
 import { translateBody } from '../i18n/serverMessage';
@@ -30,10 +31,16 @@ function resolveApiUrl(): string {
 export const API_URL = resolveApiUrl();
 export const APP_URL = process.env.EXPO_PUBLIC_APP_URL || 'https://nafaa.pk';
 
+/** Which Nafaa app is calling (admin merchant journey); the API falls back to the user agent without it. */
+const CLIENT_HEADERS = {
+  'X-Nafaa-Client': Platform.OS === 'ios' ? 'ios' : 'android',
+  'X-Nafaa-App-Version': Constants.expoConfig?.version ?? '',
+};
+
 export const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 30_000,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json', ...CLIENT_HEADERS },
 });
 
 type RequestHook = (config: InternalAxiosRequestConfig) => InternalAxiosRequestConfig | void;
@@ -67,7 +74,7 @@ export function refreshAccessToken(): Promise<string | null> {
     const refreshToken = useAuthStore.getState().refreshToken;
     if (!refreshToken) return null;
     try {
-      const res = await axios.post(`${API_URL}/auth/refresh`, { refreshToken }, { timeout: 15_000 });
+      const res = await axios.post(`${API_URL}/auth/refresh`, { refreshToken }, { timeout: 15_000, headers: CLIENT_HEADERS });
       const data = res.data?.data ?? res.data;
       if (data?.accessToken && data?.refreshToken) {
         await useAuthStore.getState().updateTokens(data.accessToken, data.refreshToken);

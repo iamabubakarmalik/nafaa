@@ -14,6 +14,7 @@ import { SideRail } from './components/SideRail';
 import { TAB_NAMES, useRoleProfile, useTabs } from './navigation/tabs';
 import { useNotifications } from '@/modules/notifications';
 import { useOnlineStore } from '@/modules/online-store';
+import { useSupportBoot } from '@/modules/support';
 
 /** User the start tab was opened for (once per launch and per sign-in). */
 let openedFor: string | null = null;
@@ -24,6 +25,7 @@ export function TabsLayout() {
   const { isTablet } = useLayout();
   useOnlineStore(true);
   useNotifications(true);
+  useSupportBoot();
   const profile = useRoleProfile();
   const shown = new Set(tabs.map((x) => x.name));
   // Role profile first (waiter → Tables, kitchen → Kitchen, cashier → POS), then Appearance → Start screen.

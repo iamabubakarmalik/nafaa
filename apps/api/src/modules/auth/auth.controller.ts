@@ -22,6 +22,19 @@ import { SetPasswordDto } from './dto/set-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AuthenticatedUser } from './interfaces/jwt-payload.interface';
+import { clientFromRequest } from '../journey/client-platform';
+import { JourneyCaptureService } from '../journey/journey-capture.service';
+
+/** User agent, IP and the Nafaa app of an auth request, stored on the session. */
+function authMeta(req: Request) {
+  return { userAgent: req.headers['user-agent'], ip: req.ip, client: clientFromRequest(req) };
+}
+
+/** A sign-in result that created a new shop. */
+function newTenantId(result: unknown): string | null {
+  const r = result as { isNewUser?: boolean; requiresEmailVerification?: boolean; tenant?: { id?: string } } | null;
+  return r && (r.isNewUser || r.requiresEmailVerification) && r.tenant?.id ? r.tenant.id : null;
+}
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -29,14 +42,18 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly config: ConfigService,
+    private readonly journey: JourneyCaptureService,
   ) {}
 
   @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register new shop' })
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(@Body() dto: RegisterDto, @Req() req: Request) {
+    const meta = authMeta(req);
+    const result = await this.authService.register(dto, meta);
+    this.journey.recordSignup(result.tenant.id, { client: meta.client, method: 'email', referralCode: dto.referralCode });
+    return result;
   }
 
   @Public()
@@ -44,10 +61,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Email/password login' })
   login(@Body() dto: LoginDto, @Req() req: Request) {
-    return this.authService.login(dto, {
-      userAgent: req.headers['user-agent'],
-      ip: req.ip,
-    });
+    return this.authService.login(dto, authMeta(req));
   }
 
   @Public()
@@ -240,7 +254,7 @@ export class AuthController {
     const appUrl = this.config.get<string>('APP_URL') || 'http://localhost:5173';
 
     try {
-      const result = await this.authService.googleAuth(req.user);
+      const result = await this.authService.googleAuth(req.user, authMeta(req));
 
       // New user — needs shopName
       if ('needsShopName' in result) {
@@ -272,8 +286,11 @@ export class AuthController {
   @Post('google/complete-signup')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Complete Google signup with shopName' })
-  completeGoogleSignup(@Body() dto: CompleteGoogleSignupDto) {
-    return this.authService.completeGoogleSignup(dto.tempToken, dto.shopName);
+  async completeGoogleSignup(@Body() dto: CompleteGoogleSignupDto, @Req() req: Request) {
+    const meta = authMeta(req);
+    const result = await this.authService.completeGoogleSignup(dto.tempToken, dto.shopName, meta);
+    this.journey.recordSignup(newTenantId(result), { client: meta.client, method: 'google' });
+    return result;
   }
 
   // ===== GOOGLE MOBILE (Native SDK ID token) =====
@@ -281,8 +298,11 @@ export class AuthController {
   @Post('google/mobile')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Mobile Google sign-in (idToken from native SDK)' })
-  googleMobile(@Body() dto: GoogleMobileDto) {
-    return this.authService.googleMobile(dto.idToken, dto.shopName);
+  async googleMobile(@Body() dto: GoogleMobileDto, @Req() req: Request) {
+    const meta = authMeta(req);
+    const result = await this.authService.googleMobile(dto.idToken, dto.shopName, meta);
+    this.journey.recordSignup(newTenantId(result), { client: meta.client, method: 'google' });
+    return result;
   }
 
   // ===== SIGN IN WITH APPLE (iOS identity token) =====
@@ -290,16 +310,22 @@ export class AuthController {
   @Post('apple')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Sign in with Apple (identity token from the iOS app)' })
-  appleSignIn(@Body() dto: AppleSignInDto, @Req() req: Request) {
-    return this.authService.appleSignIn(dto, { userAgent: req.headers['user-agent'], ip: req.ip });
+  async appleSignIn(@Body() dto: AppleSignInDto, @Req() req: Request) {
+    const meta = authMeta(req);
+    const result = await this.authService.appleSignIn(dto, meta);
+    this.journey.recordSignup(newTenantId(result), { client: meta.client, method: 'apple' });
+    return result;
   }
 
   @Public()
   @Post('apple/complete-signup')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Complete Apple sign-up with the shop name' })
-  completeAppleSignup(@Body() dto: CompleteAppleSignupDto, @Req() req: Request) {
-    return this.authService.completeAppleSignup(dto.tempToken, dto.shopName, { userAgent: req.headers['user-agent'], ip: req.ip });
+  async completeAppleSignup(@Body() dto: CompleteAppleSignupDto, @Req() req: Request) {
+    const meta = authMeta(req);
+    const result = await this.authService.completeAppleSignup(dto.tempToken, dto.shopName, meta);
+    this.journey.recordSignup(newTenantId(result), { client: meta.client, method: 'apple' });
+    return result;
   }
 
   // ===== GOOGLE DISCONNECT =====

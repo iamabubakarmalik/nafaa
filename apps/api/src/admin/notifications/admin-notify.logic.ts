@@ -6,7 +6,7 @@
 
 import { tzParts } from '../../common/helpers/business-time.helper';
 
-export const ADMIN_NOTIFY_CATEGORIES = ['shops', 'billing', 'commerce', 'social', 'system', 'marketing', 'general'] as const;
+export const ADMIN_NOTIFY_CATEGORIES = ['shops', 'billing', 'commerce', 'social', 'system', 'marketing', 'support', 'general'] as const;
 export type AdminNotifyCategory = (typeof ADMIN_NOTIFY_CATEGORIES)[number];
 
 export const ADMIN_NOTIFY_SEVERITIES = ['info', 'warning', 'critical'] as const;
@@ -28,6 +28,7 @@ export const CATEGORY_PERMISSIONS: Record<AdminNotifyCategory, string[]> = {
   social: ['social.view'],
   system: ['system.view'],
   marketing: ['marketing.view'],
+  support: ['support.view'],
   general: [],
 };
 
@@ -73,6 +74,7 @@ export function categoryForType(type: string | null | undefined, link?: string |
     if (link.startsWith('/social')) return 'social';
     if (link.startsWith('/system')) return 'system';
     if (link.startsWith('/marketing')) return 'marketing';
+    if (link.startsWith('/support')) return 'support';
   }
   return 'general';
 }
@@ -118,7 +120,7 @@ export interface AdminNotifyPrefs {
 }
 
 export const DEFAULT_PREFS: AdminNotifyPrefs = {
-  categories: { shops: true, billing: true, commerce: true, social: true, system: true, marketing: true, general: true },
+  categories: { shops: true, billing: true, commerce: true, social: true, system: true, marketing: true, support: true, general: true },
   toast: true,
   sound: true,
   desktop: true,

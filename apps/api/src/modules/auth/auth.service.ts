@@ -28,6 +28,10 @@ import { DEFAULT_ROLE_PERMISSIONS } from '../../common/constants/permissions.con
 import { apiMessage, notificationText } from '../../common/i18n/api-message';
 import { DEFAULT_APP_LANGUAGE, isAppLanguage } from '../../common/i18n/app-language';
 import { PartnerAttributionService } from '../partners/attribution/partner-attribution.service';
+import { platformFromUserAgent, type ClientInfo, type ClientPlatform } from '../journey/client-platform';
+
+/** Request details stored on the session: user agent, IP and the Nafaa app that signed in. */
+type AuthMeta = { userAgent?: string; ip?: string; client?: ClientInfo };
 
 function makeReferralCode(seed: string): string {
   const clean = seed.replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 6);
@@ -58,7 +62,7 @@ export class AuthService {
   // ═══════════════════════════════════════════════════════════
   // REGISTER — Auto creates: Tenant + Owner + Main Shop + Cash Register
   // ═══════════════════════════════════════════════════════════
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto, meta?: AuthMeta) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
@@ -205,7 +209,7 @@ export class AuthService {
       email: result.user.email,
       role: result.user.role,
       shopId: result.mainShop.id,
-    });
+    }, meta?.userAgent, meta?.ip, meta?.client);
 
     return {
       user: this.sanitizeUser({ ...result.user, shopId: result.mainShop.id }),
@@ -218,7 +222,7 @@ export class AuthService {
   // ═══════════════════════════════════════════════════════════
   // LOGIN
   // ═══════════════════════════════════════════════════════════
-  async login(dto: LoginDto, meta?: { userAgent?: string; ip?: string }) {
+  async login(dto: LoginDto, meta?: AuthMeta) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
       include: {
@@ -265,6 +269,7 @@ export class AuthService {
       },
       meta?.userAgent,
       meta?.ip,
+      meta?.client,
     );
 
     return {
@@ -282,7 +287,7 @@ export class AuthService {
     email: string;
     fullName: string;
     avatarUrl?: string;
-  }) {
+  }, meta?: AuthMeta) {
     let user = await this.prisma.user.findFirst({
       where: {
         OR: [
@@ -320,7 +325,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         shopId: user.shopId,
-      });
+      }, meta?.userAgent, meta?.ip, meta?.client);
 
       return {
         user: this.sanitizeUser(user),
@@ -356,7 +361,7 @@ export class AuthService {
   // ═══════════════════════════════════════════════════════════
   // COMPLETE GOOGLE SIGNUP — Also creates main shop
   // ═══════════════════════════════════════════════════════════
-  async completeGoogleSignup(tempToken: string, shopName: string) {
+  async completeGoogleSignup(tempToken: string, shopName: string, meta?: AuthMeta) {
     let payload: any;
     try {
       payload = await this.jwtService.verifyAsync(tempToken, {
@@ -382,7 +387,7 @@ export class AuthService {
         email: payload.email,
         fullName: payload.fullName,
         avatarUrl: payload.avatarUrl,
-      });
+      }, meta);
     }
 
     return this.createOwnerAccount({
@@ -392,6 +397,9 @@ export class AuthService {
       googleId: payload.googleId,
       avatarUrl: payload.avatarUrl,
       provider: AuthProvider.GOOGLE,
+      userAgent: meta?.userAgent,
+      ip: meta?.ip,
+      client: meta?.client,
     });
   }
 
@@ -410,6 +418,7 @@ export class AuthService {
     provider: AuthProvider;
     userAgent?: string;
     ip?: string;
+    client?: ClientInfo;
   }) {
     const { shopName } = input;
     const label = input.provider === AuthProvider.APPLE ? 'Apple' : 'Google';
@@ -499,7 +508,7 @@ export class AuthService {
       email: result.user.email,
       role: result.user.role,
       shopId: result.mainShop.id,
-    }, input.userAgent, input.ip);
+    }, input.userAgent, input.ip, input.client);
 
     return {
       user: this.sanitizeUser({ ...result.user, shopId: result.mainShop.id }),
@@ -512,7 +521,7 @@ export class AuthService {
   // ═══════════════════════════════════════════════════════════
   // GOOGLE MOBILE
   // ═══════════════════════════════════════════════════════════
-  async googleMobile(idToken: string, shopName?: string) {
+  async googleMobile(idToken: string, shopName?: string, meta?: AuthMeta) {
     let payload: any;
     try {
       const res = await fetch(
@@ -554,10 +563,10 @@ export class AuthService {
       avatarUrl: payload.picture,
     };
 
-    const result = await this.googleAuth(googleUser);
+    const result = await this.googleAuth(googleUser, meta);
 
     if ('needsShopName' in result && result.needsShopName && shopName) {
-      return this.completeGoogleSignup(result.tempToken, shopName);
+      return this.completeGoogleSignup(result.tempToken, shopName, meta);
     }
 
     return result;
@@ -570,7 +579,7 @@ export class AuthService {
   // ═══════════════════════════════════════════════════════════
   async appleSignIn(
     dto: { identityToken: string; nonce?: string; fullName?: string; shopName?: string },
-    meta?: { userAgent?: string; ip?: string },
+    meta?: AuthMeta,
   ) {
     const identity = await this.appleIdentity.verify(dto.identityToken, dto.nonce);
     const include = { tenant: true, assignedShop: true } as const;
@@ -600,6 +609,7 @@ export class AuthService {
         { sub: user.id, tenantId: user.tenantId, email: user.email, role: user.role, shopId: user.shopId },
         meta?.userAgent,
         meta?.ip,
+        meta?.client,
       );
       return { user: this.sanitizeUser(user), tenant: user.tenant, ...tokens, isNewUser: false };
     }
@@ -630,7 +640,7 @@ export class AuthService {
     return { needsShopName: true as const, tempToken, email: pending.email, fullName: pending.fullName };
   }
 
-  async completeAppleSignup(tempToken: string, shopName: string, meta?: { userAgent?: string; ip?: string }) {
+  async completeAppleSignup(tempToken: string, shopName: string, meta?: AuthMeta) {
     let payload: { purpose?: string; appleId?: string; email?: string; fullName?: string };
     try {
       payload = await this.jwtService.verifyAsync(tempToken, {
@@ -659,7 +669,7 @@ export class AuthService {
   private createAppleOwner(
     p: { appleId: string; email: string; fullName: string },
     shopName: string,
-    meta?: { userAgent?: string; ip?: string },
+    meta?: AuthMeta,
   ) {
     return this.createOwnerAccount({
       shopName,
@@ -669,6 +679,7 @@ export class AuthService {
       provider: AuthProvider.APPLE,
       userAgent: meta?.userAgent,
       ip: meta?.ip,
+      client: meta?.client,
     });
   }
 
@@ -906,6 +917,10 @@ export class AuthService {
       },
       matched.userAgent || undefined,
       matched.ipAddress || undefined,
+      // The new session keeps the app of the one it replaces (older sessions: from the user agent).
+      matched.platform || matched.userAgent
+        ? { platform: (matched.platform as ClientPlatform | null) ?? platformFromUserAgent(matched.userAgent), appVersion: matched.appVersion, userAgent: matched.userAgent }
+        : undefined,
     );
   }
 
@@ -1258,7 +1273,7 @@ export class AuthService {
   // ═══════════════════════════════════════════════════════════
   // HELPERS
   // ═══════════════════════════════════════════════════════════
-  private async issueTokens(payload: JwtPayload, userAgent?: string, ip?: string) {
+  private async issueTokens(payload: JwtPayload, userAgent?: string, ip?: string, client?: ClientInfo) {
     // Admin staff work only in the admin panel; they have no merchant access.
     if (payload.role === UserRole.ADMIN_STAFF) throw new UnauthorizedException('This is an admin panel account. Sign in at the Nafaa admin panel.');
     if (payload.role === UserRole.PARTNER) throw new UnauthorizedException('Ye partner account hai. partner.nafaa.pk par sign in karein.');
@@ -1293,6 +1308,8 @@ export class AuthService {
         deviceFingerprint: deviceInfo.fingerprint,
         deviceName,
         location,
+        platform: client?.platform ?? null,
+        appVersion: client?.appVersion ?? null,
         expiresAt,
       },
     });

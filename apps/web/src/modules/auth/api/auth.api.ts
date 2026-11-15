@@ -1,5 +1,6 @@
 import { apiClient } from '@core/api/client';
 import type { AuthTenant, AuthUser } from '@core/stores/auth.store';
+import { reportSignupSource } from '@core/lib/signup-source';
 
 export interface RegisterPayload {
   shopName: string;
@@ -52,7 +53,11 @@ const unwrapPlain = <T>(res: any): T => res?.data;
 
 export const authApi = {
   register: (payload: RegisterPayload) =>
-    apiClient.post('/auth/register', payload).then((r) => unwrap<AuthResponse>(r)),
+    apiClient.post('/auth/register', payload).then((r) => {
+      const res = unwrap<AuthResponse>(r);
+      reportSignupSource(res?.accessToken);
+      return res;
+    }),
 
   login: (payload: LoginPayload) =>
     apiClient.post('/auth/login', payload).then((r) => unwrap<AuthResponse>(r)),
@@ -87,7 +92,11 @@ export const authApi = {
   completeGoogleSignup: (tempToken: string, shopName: string) =>
     apiClient
       .post('/auth/google/complete-signup', { tempToken, shopName })
-      .then((r) => unwrap<AuthResponse>(r)),
+      .then((r) => {
+        const res = unwrap<AuthResponse>(r);
+        if (res?.isNewUser) reportSignupSource(res.accessToken);
+        return res;
+      }),
 
   disconnectGoogle: () =>
     apiClient.post('/auth/google/disconnect').then(unwrapPlain),

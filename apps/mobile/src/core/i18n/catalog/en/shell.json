@@ -109,6 +109,11 @@
   "GST rate, tax number, inclusive ya exclusive": "GST rate, tax number, inclusive or exclusive",
   "Happy hours": "Happy hours",
   "Har branch ka hisaab ek saath": "Every branch together",
+  "Help & Support": "Help & Support",
+  "Help & Support, {{count}} naye message": {
+    "one": "Help & Support, 1 new message",
+    "other": "Help & Support, {{count}} new messages"
+  },
   "Help center": "Help center",
   "Home": "Home",
   "Industry aur us ke features on/off": "Industry and its features on/off",
@@ -165,6 +170,9 @@
   "Nafaa AI": "Nafaa AI",
   "Nafaa band hai": "Nafaa is locked",
   "Nafaa Marketplace": "Nafaa Marketplace",
+  "Nafaa team se chat": "Chat with the Nafaa team",
+  "Nafaa team se chat, screenshot bhejein": "Chat with the Nafaa team, send screenshots",
+  "Nafaa team se live chat": "Live chat with the Nafaa team",
   "Nahi ja sake": "Couldn't be sent",
   "Naya job": "New job",
   "Network": "Network",

@@ -5,7 +5,7 @@
  * The admin announcement banner and the offline banner sit right under it.
  */
 
-import { Bell, ChevronDown, Plus } from 'lucide-react-native';
+import { Bell, ChevronDown, Headset, Plus } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
@@ -16,6 +16,7 @@ import { isAllShops } from '@/core/auth/shopScope';
 import { useShops } from '@/core/auth/useShops';
 import { usePermission, PERMISSIONS } from '@/core/permissions';
 import { Avatar, Icon, IconButton, NafaaAiMark, PressableScale, Text, useLayout, useTheme } from '@/design';
+import { SUPPORT_HREF, useSupportUnread } from '@/modules/support';
 import { AnnouncementBanner } from '../appControl';
 import { useShellUi } from '../hooks/useShellUi';
 import { AI_HREF } from '../navigation/routes';
@@ -66,6 +67,7 @@ export function AppHeader() {
   const open = useShellUi((s) => s.open);
   const can = usePermission();
   const { data: unread = 0 } = useUnreadCount();
+  const supportUnread = useSupportUnread();
   const { isTablet } = useLayout();
 
   return (
@@ -88,6 +90,7 @@ export function AppHeader() {
           </PressableScale>
         )}
         <SyncChip />
+        <IconButton icon={Headset} label={supportUnread ? t('Help & Support, {{count}} naye message', { count: supportUnread }) : t('Help & Support')} badge={supportUnread || undefined} onPress={() => router.push(SUPPORT_HREF as never)} />
         <IconButton icon={Bell} label={unread ? t('Notifications, {{unreadCount}} unread', { unreadCount: unread }) : t('Notifications')} badge={unread || undefined} onPress={() => router.push('/notifications')} />
         {!isTablet && (
           <PressableScale onPress={() => open('profile')} haptic="tap" accessibilityLabel={t('Account menu')} style={{ marginStart: 2 }}>

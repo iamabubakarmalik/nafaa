@@ -34,6 +34,7 @@ import { HomeLayoutContext, useHomeLayout, type HomeLayout } from '../layout/use
 import { useHomePrivacy, useMasked } from '../lib/privacy';
 import { DEFAULT_KPIS, KPI_DEFS } from '../widgets/Kpis';
 import { homeWidgets } from '../widgets/registry';
+import { SupportNudge } from '@/modules/support';
 
 export function HomeScreen() {
   const can = usePermission();
@@ -113,6 +114,7 @@ function ShopHome() {
       ) : (
         <Screen header={<AppHeader />} onRefresh={refresh} refreshing={refreshing} tabBarSpace contentStyle={isTablet ? { gap: th.space(4) } : undefined}>
           <TrialBanner />
+          <SupportNudge />
           <Greeting allShops={allShops} onCustomize={startCustomize} />
           {allShops ? <AllShopsHome /> : (
             <>
