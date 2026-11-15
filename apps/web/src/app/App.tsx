@@ -12,8 +12,6 @@ import { AppearanceBridge, AppearanceProvider } from '@/design-system';
 // ─── Notifications ─────────────────────────────────────────────
 import NotificationsPage from '@modules/notifications/NotificationsPage';
 
-// ─── Marketplace Publishing ────────────────────────────────────
-import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/pages/MarketplaceSettingsPage';
 
 // ─── Integrations Hub ──────────────────────────────────────────
 import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
@@ -47,30 +45,6 @@ import { AutomationPage, CommerceSettingsPage, CommerceSetupPage, CourierScorePa
 
 // ─── FBR Tax Integration ───────────────────────────────────────
 
-// ─── Marketplace Suite ─────────────────────────────────────────
-import MarketplaceDashboardPage from '../marketplace/dashboard/MarketplaceDashboardPage';
-import ShopProfilePage from '../marketplace/shop-profile/ShopProfilePage';
-import MarketplaceProductsPage from '../marketplace/products/MarketplaceProductsPage';
-import MarketplaceProductDetailPage from '../marketplace/products/MarketplaceProductDetailPage';
-import MarketplaceOrdersPage from '../marketplace/orders/MarketplaceOrdersPage';
-import MarketplaceReviewsPage from '../marketplace/reviews/MarketplaceReviewsPage';
-import MarketplaceMessagesPage from '../marketplace/messages/MarketplaceMessagesPage';
-import MarketplaceBargainsPage from '../marketplace/bargains/MarketplaceBargainsPage';
-import MarketplaceGroupBuysPage from '../marketplace/group-buys/MarketplaceGroupBuysPage';
-import MarketplaceAuctionsPage from '../marketplace/auctions/MarketplaceAuctionsPage';
-import MarketplaceLiveShopPage from '../marketplace/live-shop/MarketplaceLiveShopPage';
-import MarketplacePromotionsPage from '../marketplace/promotions/MarketplacePromotionsPage';
-import MarketplaceDeliveryPage from '../marketplace/delivery/MarketplaceDeliveryPage';
-import MarketplaceAnalyticsPage from '../marketplace/analytics/MarketplaceAnalyticsPage';
-import CouponsAdvancedPage from '../marketplace/coupons-advanced/CouponsAdvancedPage';
-import SalesFunnelPage from '../marketplace/sales-funnel/SalesFunnelPage';
-import CustomerSegmentationPage from '../marketplace/customer-segmentation/CustomerSegmentationPage';
-import LoyaltyRewardsPage from '../marketplace/loyalty/LoyaltyRewardsPage';
-import RiderTrackingPage from '../marketplace/rider-tracking/RiderTrackingPage';
-import AiRecommendationsPage from '../marketplace/ai-recommendations/AiRecommendationsPage';
-import MultiShopManagerPage from '../marketplace/multi-shop/MultiShopManagerPage';
-import NotificationCenterPage from '../marketplace/notifications/NotificationCenterPage';
-import SettingsHubPage from '../marketplace/settings-hub/SettingsHubPage';
 
 // ─── Auth ──────────────────────────────────────────────────────
 import LoginPage from '@modules/auth/pages/LoginPage';
@@ -251,6 +225,18 @@ const TradeMyOrdersPage = lazy(() => import('@modules/trade-network/pages/MyOrde
 const TradeReceivingPage = lazy(() => import('@modules/trade-network/pages/ReceivingPage'));
 const TradeAccountPage = lazy(() => import('@modules/trade-network/pages/AccountPage'));
 const TradeNetworkPage = lazy(() => import('@modules/trade-network/pages/NetworkPage'));
+// Nafaa Market (shop owner's Market workspace)
+const MarketHomePage = lazy(() => import('@modules/market/pages/MarketHomePage'));
+const MarketProfilePage = lazy(() => import('@modules/market/pages/MarketProfilePage'));
+const MarketProductsPage = lazy(() => import('@modules/market/pages/MarketProductsPage'));
+const MarketOrdersPage = lazy(() => import('@modules/market/pages/MarketOrdersPage'));
+const MarketDeliveryPage = lazy(() => import('@modules/market/pages/MarketDeliveryPage'));
+const MarketReviewsPage = lazy(() => import('@modules/market/pages/MarketReviewsPage'));
+const MarketOffersPage = lazy(() => import('@modules/market/pages/MarketOffersPage'));
+const MarketCustomersPage = lazy(() => import('@modules/market/pages/MarketCustomersPage'));
+const MarketMessagesPage = lazy(() => import('@modules/market/pages/MarketMessagesPage'));
+const MarketReportsPage = lazy(() => import('@modules/market/pages/MarketReportsPage'));
+const MarketSettingsPage = lazy(() => import('@modules/market/pages/MarketSettingsPage'));
 
 // ─── Industry Pack System ──────────────────────────────────────
 import '@app/providers/registerIndustries';
@@ -467,7 +453,6 @@ export default function App() {
                   <Route path="/settings/distribution" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsSectionPage section="distribution" />)} />
                   <Route path="/settings/data-export" element={secure(PERMISSIONS.SETTINGS_VIEW, secure(PERMISSIONS.BACKUP_MANAGE, <SettingsSectionPage section="data-export" />))} />
                   <Route path="/settings/danger" element={secure(PERMISSIONS.SETTINGS_VIEW, secure(PERMISSIONS.SETTINGS_MANAGE, <SettingsSectionPage section="danger" />))} />
-                  <Route path="/marketplace/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceSettingsPage />)} />
                   <Route path="/integrations" element={secure(PERMISSIONS.SETTINGS_VIEW, <IntegrationHubPage />)} />
                   <Route path="/online-store" element={secure(PERMISSIONS.SALES_VIEW, <CommerceHomePage />)} />
                   <Route path="/online-store/soon/:key" element={secure(PERMISSIONS.SALES_VIEW, <CommerceSoonPage />)} />
@@ -567,31 +552,23 @@ export default function App() {
                   <Route path="/integrations/shipments" element={<IntegrationHubPage defaultTab="shipments" />} />
                   <Route path="/integrations/logs" element={<IntegrationHubPage defaultTab="logs" />} />
 
-                  {/* ═══ Marketplace Full Suite ═══ */}
-                  <Route path="/marketplace" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceDashboardPage />)} />
-                  <Route path="/marketplace/dashboard" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceDashboardPage />)} />
-                  <Route path="/marketplace/shop-profile" element={secure(PERMISSIONS.SETTINGS_VIEW, <ShopProfilePage />)} />
-                  <Route path="/marketplace/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <MarketplaceProductsPage />)} />
-                  <Route path="/marketplace/products/:productId" element={secure(PERMISSIONS.PRODUCTS_EDIT, <MarketplaceProductDetailPage />)} />
-                  <Route path="/marketplace/orders" element={secure(PERMISSIONS.SALES_VIEW, <MarketplaceOrdersPage />)} />
-                  <Route path="/marketplace/reviews" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceReviewsPage />)} />
-                  <Route path="/marketplace/messages" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceMessagesPage />)} />
-                  <Route path="/marketplace/bargains" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceBargainsPage />)} />
-                  <Route path="/marketplace/group-buys" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceGroupBuysPage />)} />
-                  <Route path="/marketplace/auctions" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceAuctionsPage />)} />
-                  <Route path="/marketplace/live-shop" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceLiveShopPage />)} />
-                  <Route path="/marketplace/promotions" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplacePromotionsPage />)} />
-                  <Route path="/marketplace/delivery" element={secure(PERMISSIONS.SETTINGS_VIEW, <MarketplaceDeliveryPage />)} />
-                  <Route path="/marketplace/analytics" element={secure(PERMISSIONS.REPORTS_VIEW, <MarketplaceAnalyticsPage />)} />
-                  <Route path="/marketplace/coupons-advanced" element={secure(PERMISSIONS.SETTINGS_VIEW, <CouponsAdvancedPage />)} />
-                  <Route path="/marketplace/sales-funnel" element={secure(PERMISSIONS.REPORTS_VIEW, <SalesFunnelPage />)} />
-                  <Route path="/marketplace/segments" element={secure(PERMISSIONS.SETTINGS_VIEW, <CustomerSegmentationPage />)} />
-                  <Route path="/marketplace/loyalty" element={secure(PERMISSIONS.SETTINGS_VIEW, <LoyaltyRewardsPage />)} />
-                  <Route path="/marketplace/rider-tracking" element={secure(PERMISSIONS.SETTINGS_VIEW, <RiderTrackingPage />)} />
-                  <Route path="/marketplace/ai-insights" element={secure(PERMISSIONS.SETTINGS_VIEW, <AiRecommendationsPage />)} />
-                  <Route path="/marketplace/multi-shop" element={secure(PERMISSIONS.SETTINGS_VIEW, <MultiShopManagerPage />)} />
-                  <Route path="/marketplace/notifications" element={secure(PERMISSIONS.SETTINGS_VIEW, <NotificationCenterPage />)} />
-                  <Route path="/marketplace/settings-hub" element={secure(PERMISSIONS.SETTINGS_VIEW, <SettingsHubPage />)} />
+                  {/* ═══ Nafaa Market ═══ */}
+                  <Route path="/market" element={secure(PERMISSIONS.SALES_VIEW, <Suspense fallback={null}><MarketHomePage /></Suspense>)} />
+                  <Route path="/market/profile" element={secure(PERMISSIONS.SETTINGS_VIEW, <Suspense fallback={null}><MarketProfilePage /></Suspense>)} />
+                  <Route path="/market/products" element={secure(PERMISSIONS.PRODUCTS_VIEW, <Suspense fallback={null}><MarketProductsPage /></Suspense>)} />
+                  <Route path="/market/orders" element={secure(PERMISSIONS.SALES_VIEW, <Suspense fallback={null}><MarketOrdersPage /></Suspense>)} />
+                  <Route path="/market/delivery" element={secure(PERMISSIONS.SETTINGS_VIEW, <Suspense fallback={null}><MarketDeliveryPage /></Suspense>)} />
+                  <Route path="/market/reviews" element={secure(PERMISSIONS.SETTINGS_VIEW, <Suspense fallback={null}><MarketReviewsPage /></Suspense>)} />
+                  <Route path="/market/offers" element={secure(PERMISSIONS.DISCOUNTS_VIEW, <Suspense fallback={null}><MarketOffersPage /></Suspense>)} />
+                  <Route path="/market/customers" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <Suspense fallback={null}><MarketCustomersPage /></Suspense>)} />
+                  <Route path="/market/messages" element={secure(PERMISSIONS.CUSTOMERS_VIEW, <Suspense fallback={null}><MarketMessagesPage /></Suspense>)} />
+                  <Route path="/market/reports" element={secure(PERMISSIONS.REPORTS_VIEW, <Suspense fallback={null}><MarketReportsPage /></Suspense>)} />
+                  <Route path="/market/settings" element={secure(PERMISSIONS.SETTINGS_VIEW, <Suspense fallback={null}><MarketSettingsPage /></Suspense>)} />
+                  <Route path="/market/*" element={<Navigate to="/market" replace />} />
+                  {/* Old Marketplace links */}
+                  <Route path="/marketplace/settings" element={<Navigate to="/market/profile" replace />} />
+                  <Route path="/marketplace/*" element={<Navigate to="/market" replace />} />
+                  <Route path="/marketplace" element={<Navigate to="/market" replace />} />
 
                   <Route path="/barcode-labels" element={secure(PERMISSIONS.BARCODE_LABELS_VIEW, <BarcodeLabelsPage />)} />
                   <Route path="/shops/new" element={secure(PERMISSIONS.SHOPS_MANAGE, <ShopFormPage />)} />

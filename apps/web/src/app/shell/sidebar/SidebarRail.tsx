@@ -99,7 +99,7 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
         </span>
       </button>
 
-      {commerce && (
+      {(commerce || isMarketplace) && (
         <NavLink
           to={lastMainPath()}
           aria-label={t('Back to Nafaa')}
@@ -111,7 +111,7 @@ export function SidebarRail({ role, permissions, onToggleCollapse }: SidebarProp
         </NavLink>
       )}
       <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto overflow-x-hidden px-2 [scrollbar-width:none]">
-        {!commerce && visiblePinned.map((it) => {
+        {!commerce && !isMarketplace && visiblePinned.map((it) => {
           const Icon = it.icon;
           const active = isActivePath(location.pathname, it.to);
           return (

@@ -60,7 +60,7 @@ export const rs = (n: number | null | undefined) => `Rs ${rsFmt.format(Math.roun
 
 const CHANNEL_LABEL: Record<string, string> = {
   SHOPIFY: 'Shopify', DARAZ: 'Daraz', WOOCOMMERCE: 'WooCommerce', CUSTOM_WEBSITE: 'Website', FOODPANDA: 'Foodpanda',
-  NAFAA_STORE: 'Nafaa Store', META: 'Facebook / Instagram',
+  NAFAA_STORE: 'Nafaa Store', NAFAA_MARKET: 'Nafaa Market', META: 'Facebook / Instagram',
 };
 
 /**

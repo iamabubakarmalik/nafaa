@@ -36,11 +36,9 @@ export class ListShopsDto {
   @IsOptional() @Type(() => Boolean)
   freeDelivery?: boolean;
 
-  @IsOptional() @Type(() => Boolean)
-  bargainEnabled?: boolean;
-
-  @IsOptional() @Type(() => Boolean)
-  groupBuyEnabled?: boolean;
+  /** Market section: FOOD, GROCERY, PHARMACY, SHOPPING, BOOKING, WHOLESALE. */
+  @IsOptional() @IsString()
+  gate?: string;
 
   @IsOptional() @Type(() => Number)
   minRating?: number;

@@ -1,6 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, ShopVerificationLevel } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MarketCatalogService } from '../_shared/market-catalog.service';
+import { MarketSettingsService } from '../_shared/market-settings.service';
+import { isMarketGate } from '../_shared/market-config';
+import { isOpenAt } from '../_shared/market-hours';
 import { ListShopsDto } from './dto/list-shops.dto';
 import { ShopProductsDto } from './dto/shop-products.dto';
 import { ShopReviewsQueryDto } from './dto/shop-reviews.dto';
@@ -21,36 +25,18 @@ const VERIFICATION_ORDER: Record<ShopVerificationLevel, number> = {
   UNVERIFIED: 0, BRONZE: 1, SILVER: 2, GOLD: 3, PLATINUM: 4,
 };
 
-/**
- * Given a workingHours JSON object of shape:
- *   { mon: { open: "09:00", close: "22:00" }, tue: {...}, ... }
- * return whether the shop is currently open.
- */
+/** Open right now in Pakistan time (the server runs in UTC). */
 function isShopOpenNow(workingHours: any, holidayDates?: Date[]): boolean {
-  if (!workingHours) return true;
-  const now = new Date();
-  // Holiday check
-  if (holidayDates?.length) {
-    const today = now.toISOString().slice(0, 10);
-    if (holidayDates.some((d) => d.toISOString().slice(0, 10) === today)) return false;
-  }
-  const dayKey = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][now.getDay()];
-  const today = workingHours[dayKey];
-  if (!today || today.closed) return false;
-  if (!today.open || !today.close) return true;
-  const [oH, oM] = String(today.open).split(':').map(Number);
-  const [cH, cM] = String(today.close).split(':').map(Number);
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const openMin = oH * 60 + (oM ?? 0);
-  const closeMin = cH * 60 + (cM ?? 0);
-  return closeMin > openMin
-    ? nowMin >= openMin && nowMin <= closeMin
-    : nowMin >= openMin || nowMin <= closeMin; // overnight
+  return isOpenAt(workingHours, holidayDates);
 }
 
 @Injectable()
 export class MarketplaceShopsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly settings: MarketSettingsService,
+    private readonly catalog: MarketCatalogService,
+  ) {}
 
   // ═══════════════════════════════════════════════════════════
   // LIST SHOPS (filters + sort + pagination)
@@ -65,8 +51,9 @@ export class MarketplaceShopsService {
     if (dto.area)     where.area = { equals: dto.area, mode: 'insensitive' };
     if (dto.industry) where.industry = dto.industry;
     if (dto.freeDelivery) where.freeDeliveryAbove = { not: null };
-    if (dto.bargainEnabled) where.bargainEnabled = true;
-    if (dto.groupBuyEnabled) where.groupBuyEnabled = true;
+    const gate = isMarketGate(dto.gate) ? dto.gate : null;
+    // Shops without a saved gate take it from their business type (checked below).
+    if (gate) where.AND = [{ OR: [{ gate }, { gate: null }] }];
     if (dto.minRating !== undefined) where.ratingAverage = { gte: dto.minRating };
     if (dto.minVerification) {
       const allowed = Object.entries(VERIFICATION_ORDER)
@@ -91,7 +78,7 @@ export class MarketplaceShopsService {
       where.lng = { gte: dto.lng - deltaLng, lte: dto.lng + deltaLng };
     }
 
-    const rawTake = dto.lat && dto.lng ? 300 : (dto.limit ?? 20) + (dto.offset ?? 0);
+    const rawTake = dto.lat && dto.lng ? 300 : gate ? 500 : (dto.limit ?? 20) + (dto.offset ?? 0);
     const raw = await this.prisma.shopMarketplaceProfile.findMany({
       where,
       take: rawTake,
@@ -103,27 +90,28 @@ export class MarketplaceShopsService {
         totalOrders: true, followerCount: true,
         offersDelivery: true, offersPickup: true, offersDineIn: true,
         deliveryFee: true, freeDeliveryAbove: true,
-        minOrderAmount: true, estimatedDeliveryMinutes: true,
-        bargainEnabled: true, groupBuyEnabled: true, auctionEnabled: true,
-        liveShopEnabled: true, listedAt: true,
+        minOrderAmount: true, estimatedDeliveryMinutes: true, listedAt: true,
         acceptsCod: true, acceptsCard: true, acceptsJazzcash: true, acceptsEasypaisa: true,
+        isOpen: true, isPaused: true, workingHours: true, holidayDates: true,
+        gate: true, flowSettings: true, tenant: { select: { businessType: true } },
       },
     });
 
-    // Attach distance if lat/lng
-    const withDist = raw.map((s) => ({
+    // Attach gate, flow, open-now and distance
+    const withDist = raw.map(({ tenant, workingHours, holidayDates, ...s }) => ({
       ...s,
+      ...this.settings.shopGate({ gate: s.gate, flowSettings: s.flowSettings, tenant }),
+      currentlyOpen: s.isOpen && !s.isPaused && isShopOpenNow(workingHours, holidayDates),
       distanceKm:
         dto.lat && dto.lng && s.lat != null && s.lng != null
           ? haversineKm(dto.lat, dto.lng, s.lat, s.lng)
           : null,
     }));
 
-    // Radius filter
-    const filtered =
-      dto.lat && dto.lng
-        ? withDist.filter((s) => s.distanceKm !== null && s.distanceKm <= (dto.radiusKm ?? 10))
-        : withDist;
+    // Radius and gate filters
+    const filtered = withDist
+      .filter((s) => !(dto.lat && dto.lng) || (s.distanceKm !== null && s.distanceKm <= (dto.radiusKm ?? 10)))
+      .filter((s) => !gate || s.gate === gate);
 
     // Sort
     const sortBy = dto.sortBy ?? 'popular';
@@ -186,15 +174,7 @@ export class MarketplaceShopsService {
     lat?: number,
     lng?: number,
   ) {
-    const [
-      productCount,
-      isFollowing,
-      recentReviews,
-      activeGroupBuys,
-      activeAuctions,
-      liveNow,
-      hasBargains,
-    ] = await Promise.all([
+    const [productCount, isFollowing, recentReviews, tenant] = await Promise.all([
       this.prisma.productMarketplaceProfile.count({
         where: { shopId: shop.shopId, isListedOnMarketplace: true, isAvailable: true },
       }),
@@ -214,21 +194,7 @@ export class MarketplaceShopsService {
           customer: { select: { fullName: true, avatarUrl: true } },
         },
       }),
-      this.prisma.groupBuy.count({
-        where: { shopId: shop.shopId, status: 'ACTIVE', expiresAt: { gt: new Date() } },
-      }),
-      this.prisma.auction.count({
-        where: { shopId: shop.shopId, status: 'LIVE' },
-      }),
-      this.prisma.liveShop.findFirst({
-        where: { shopId: shop.shopId, status: 'LIVE' },
-        select: { id: true, title: true, streamUrl: true, peakViewerCount: true, startedAt: true },
-      }),
-      customerId
-        ? this.prisma.bargain.count({
-            where: { customerId, shopId: shop.shopId, status: { in: ['PENDING', 'COUNTER_OFFERED'] } },
-          })
-        : 0,
+      this.prisma.tenant.findUnique({ where: { id: shop.tenantId }, select: { businessType: true } }),
     ]);
 
     const distanceKm =
@@ -238,16 +204,19 @@ export class MarketplaceShopsService {
 
     const currentlyOpen = shop.isOpen && !shop.isPaused && isShopOpenNow(shop.workingHours, shop.holidayDates);
 
+    // Private and legacy fields stay out of the public response.
+    const {
+      cnicNumber: _c, businessRegNumber: _b, taxNumber: _t, documents: _d, integrationId: _i,
+      bargainEnabled: _be, bargainMinPercent: _bm, groupBuyEnabled: _ge, auctionEnabled: _ae, liveShopEnabled: _le,
+      ...pub
+    } = shop;
     return {
-      ...shop,
+      ...pub,
+      ...this.settings.shopGate({ gate: shop.gate, flowSettings: shop.flowSettings, tenant }),
       distanceKm,
       currentlyOpen,
       productCount,
       isFollowing: !!isFollowing,
-      activeGroupBuys,
-      activeAuctions,
-      liveNow,
-      customerHasActiveBargains: !!hasBargains,
       recentReviews,
     };
   }
@@ -257,10 +226,10 @@ export class MarketplaceShopsService {
   // ═══════════════════════════════════════════════════════════
 
   async getShopProducts(shopId: string, dto: ShopProductsDto) {
+    // Hidden products never show; stock is read live below.
     const where: Prisma.ProductMarketplaceProfileWhereInput = {
-      shopId, isListedOnMarketplace: true,
+      shopId, isListedOnMarketplace: true, isAvailable: true, product: { isActive: true },
     };
-    if (dto.inStockOnly) where.isAvailable = true;
     if (dto.category) where.marketplaceCategory = dto.category;
     if (dto.search) {
       where.OR = [
@@ -291,8 +260,6 @@ export class MarketplaceShopsService {
           publicPrice: true, compareAtPrice: true, publicImages: true,
           marketplaceCategory: true, tags: true, isAvailable: true,
           totalSold: true, ratingAverage: true, ratingCount: true, viewCount: true,
-          bargainEnabled: true, bargainMinPrice: true,
-          groupBuyEnabled: true, auctionEnabled: true,
         },
       }),
       this.prisma.productMarketplaceProfile.count({ where }),
@@ -305,8 +272,23 @@ export class MarketplaceShopsService {
       }),
     ]);
 
+    const offers = await this.catalog.offers(items.map((i) => i.productId));
+    let cards = items.map((i) => {
+      const o = offers.get(i.productId);
+      return {
+        ...i,
+        price: o?.price ?? Number(i.publicPrice),
+        priceMax: o?.priceMax ?? Number(i.publicPrice),
+        availability: o?.availability ?? 'out_of_stock',
+        inStock: !!o && o.availability !== 'out_of_stock',
+        maxQty: o?.maxQty ?? 0,
+        leadTime: o?.leadTime ?? null,
+      };
+    });
+    if (dto.inStockOnly === true) cards = cards.filter((c) => c.inStock);
+
     return {
-      items,
+      items: cards,
       total,
       limit: dto.limit ?? 24,
       offset: dto.offset ?? 0,

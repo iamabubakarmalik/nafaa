@@ -233,6 +233,12 @@ export interface MarketPlatformConfig {
   payments: { cod: boolean; jazzcash: boolean; easypaisa: boolean; card: boolean; bankTransfer: boolean };
   /** New shops need staff approval before they appear. */
   requireApproval: boolean;
+  /**
+   * Customers may spend wallet money / loyalty points at checkout. Off until
+   * Nafaa pays shops back for the part it funds; points are still earned.
+   */
+  walletSpend: boolean;
+  loyaltySpend: boolean;
 }
 
 export const DEFAULT_PLATFORM_CONFIG: MarketPlatformConfig = {
@@ -242,6 +248,8 @@ export const DEFAULT_PLATFORM_CONFIG: MarketPlatformConfig = {
   commissionPercent: 0,
   payments: { cod: true, jazzcash: false, easypaisa: false, card: false, bankTransfer: false },
   requireApproval: false,
+  walletSpend: false,
+  loyaltySpend: false,
 };
 
 /** Merge a stored override over the defaults, ignoring anything malformed. */
@@ -264,5 +272,7 @@ export function readPlatformConfig(raw: string | null | undefined): MarketPlatfo
       bankTransfer: pay.bankTransfer === true,
     },
     requireApproval: v.requireApproval === true,
+    walletSpend: v.walletSpend === true,
+    loyaltySpend: v.loyaltySpend === true,
   };
 }

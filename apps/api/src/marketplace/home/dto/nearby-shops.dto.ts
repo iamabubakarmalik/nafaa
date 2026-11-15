@@ -28,4 +28,8 @@ export class NearbyShopsDto {
 
   @IsOptional() @Type(() => Number) @IsInt() @Min(0)
   offset?: number = 0;
+
+  /** Market section: FOOD, GROCERY, PHARMACY, SHOPPING, BOOKING, WHOLESALE. */
+  @IsOptional() @IsString()
+  gate?: string;
 }

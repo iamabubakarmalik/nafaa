@@ -19,4 +19,8 @@ export class DiscoverQueryDto {
 
   @IsOptional() @IsString()
   category?: string;
+
+  /** Market section: FOOD, GROCERY, PHARMACY, SHOPPING, BOOKING, WHOLESALE. */
+  @IsOptional() @IsString()
+  gate?: string;
 }

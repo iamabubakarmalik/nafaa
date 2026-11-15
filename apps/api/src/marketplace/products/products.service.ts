@@ -1,27 +1,46 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MarketCatalogService, ProductOffer } from '../_shared/market-catalog.service';
+import { MarketSettingsService } from '../_shared/market-settings.service';
+
+/** Live price and stock fields added to every product card. */
+function offerFields(o: ProductOffer | undefined, fallbackPrice: unknown) {
+  return {
+    price: o?.price ?? Number(fallbackPrice ?? 0),
+    priceMax: o?.priceMax ?? Number(fallbackPrice ?? 0),
+    availability: o?.availability ?? 'out_of_stock',
+    inStock: !!o && o.availability !== 'out_of_stock',
+    maxQty: o?.maxQty ?? 0,
+    leadTime: o?.leadTime ?? null,
+    requiresPrescription: o?.requiresPrescription ?? false,
+  };
+}
 import { SearchProductsDto } from './dto/search-products.dto';
 import { ProductReviewsQueryDto } from './dto/product-reviews.dto';
 
 @Injectable()
 export class MarketplaceProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly catalog: MarketCatalogService,
+    private readonly settings: MarketSettingsService,
+  ) {}
 
   // ═══════════════════════════════════════════════════════════
   // SEARCH / LIST
   // ═══════════════════════════════════════════════════════════
 
   async search(dto: SearchProductsDto, customerId?: string) {
+    // Hidden products (isAvailable = false) never show; stock is checked live below.
     const where: Prisma.ProductMarketplaceProfileWhereInput = {
       isListedOnMarketplace: true,
+      isAvailable: true,
+      product: { isActive: true },
     };
-    if (dto.inStockOnly !== false) where.isAvailable = true;
     if (dto.shopId) where.shopId = dto.shopId;
     if (dto.category) where.marketplaceCategory = dto.category;
     if (dto.subCategory) where.marketplaceSubCategory = dto.subCategory;
-    if (dto.bargainEnabled) where.bargainEnabled = true;
-    if (dto.groupBuyEnabled) where.groupBuyEnabled = true;
     if (dto.minRating !== undefined) where.ratingAverage = { gte: dto.minRating };
     if (dto.onDiscount) where.compareAtPrice = { not: null };
     if (dto.minPrice !== undefined) where.publicPrice = { gte: dto.minPrice };
@@ -36,21 +55,19 @@ export class MarketplaceProductsService {
       ];
     }
 
-    // Shop-level filters (city, free delivery) via marketplaceProfile of shop
-    if (dto.city || dto.freeDelivery) {
-      where.shop = {
-        is: {
-          marketplaceProfile: {
-            is: {
-              isListedOnMarketplace: true,
-              isOpen: true,
-              ...(dto.city ? { city: { equals: dto.city, mode: 'insensitive' } } : {}),
-              ...(dto.freeDelivery ? { freeDeliveryAbove: { not: null } } : {}),
-            },
+    // Only shops that are live on the Market (plus city / free delivery filters).
+    where.shop = {
+      is: {
+        marketplaceProfile: {
+          is: {
+            isListedOnMarketplace: true,
+            isPaused: false,
+            ...(dto.city ? { city: { equals: dto.city, mode: 'insensitive' } } : {}),
+            ...(dto.freeDelivery ? { freeDeliveryAbove: { not: null } } : {}),
           },
         },
-      };
-    }
+      },
+    };
 
     const orderBy: Prisma.ProductMarketplaceProfileOrderByWithRelationInput[] = (() => {
       switch (dto.sortBy) {
@@ -75,7 +92,6 @@ export class MarketplaceProductsService {
           publicImages: true, marketplaceCategory: true, marketplaceSubCategory: true,
           tags: true, isAvailable: true,
           totalSold: true, ratingAverage: true, ratingCount: true, viewCount: true,
-          bargainEnabled: true, groupBuyEnabled: true, auctionEnabled: true,
           shop: {
             select: {
               id: true,
@@ -118,8 +134,12 @@ export class MarketplaceProductsService {
       inWishlist = new Set(wish.map((w) => w.productId));
     }
 
+    const offers = await this.catalog.offers(items.map((i) => i.productId));
+    let cards = items.map((i) => ({ ...i, ...offerFields(offers.get(i.productId), i.publicPrice), isInWishlist: inWishlist.has(i.productId) }));
+    if (dto.inStockOnly === true) cards = cards.filter((c) => c.inStock);
+
     return {
-      items: items.map((i) => ({ ...i, isInWishlist: inWishlist.has(i.productId) })),
+      items: cards,
       total,
       limit: dto.limit ?? 24,
       offset: dto.offset ?? 0,
@@ -144,9 +164,10 @@ export class MarketplaceProductsService {
           include: {
             variants: {
               where: { isActive: true },
+              orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
               select: {
                 id: true, name: true, sku: true, barcode: true,
-                price: true,
+                size: true, color: true, colorHex: true, imageUrl: true,
               },
             },
             images: {
@@ -163,15 +184,15 @@ export class MarketplaceProductsService {
               select: {
                 shopId: true, slug: true, publicName: true, tagline: true,
                 logoUrl: true, coverUrl: true, city: true, area: true,
-                industry: true, verificationLevel: true,
+                industry: true, verificationLevel: true, gate: true, flowSettings: true, isListedOnMarketplace: true,
+                isOpen: true, isPaused: true, offersDineIn: true,
                 ratingAverage: true, ratingCount: true, totalOrders: true, followerCount: true,
                 offersDelivery: true, offersPickup: true, deliveryFee: true,
                 freeDeliveryAbove: true, minOrderAmount: true,
                 estimatedDeliveryMinutes: true,
                 acceptsCod: true, acceptsCard: true, acceptsJazzcash: true,
                 acceptsEasypaisa: true, acceptsRaast: true, acceptsWallet: true,
-                bargainEnabled: true, bargainMinPercent: true,
-                groupBuyEnabled: true, liveShopEnabled: true,
+                tenant: { select: { businessType: true } },
               },
             },
           },
@@ -179,8 +200,8 @@ export class MarketplaceProductsService {
       },
     });
 
-    if (!profile || !profile.isListedOnMarketplace) {
-      throw new NotFoundException('Product not found');
+    if (!profile || !profile.isListedOnMarketplace || !profile.isAvailable || !profile.shop.marketplaceProfile?.isListedOnMarketplace) {
+      throw new NotFoundException('Ye product Market par nahi mila');
     }
 
     // View tracking (fire-and-forget)
@@ -197,7 +218,7 @@ export class MarketplaceProductsService {
       .catch(() => {});
 
     // Related / activity
-    const [reviews, related, activeGroupBuy, activeAuction, inWishlist, isFollowingShop] =
+    const [reviews, related, offers, inWishlist, isFollowingShop] =
       await Promise.all([
         this.prisma.marketplaceReview.findMany({
           where: {
@@ -229,21 +250,7 @@ export class MarketplaceProductsService {
             publicImages: true, ratingAverage: true, ratingCount: true,
           },
         }),
-        this.prisma.groupBuy.findFirst({
-          where: { productId, status: 'ACTIVE', expiresAt: { gt: new Date() } },
-          orderBy: { currentCount: 'desc' },
-          select: {
-            id: true, groupPrice: true, regularPrice: true,
-            minParticipants: true, currentCount: true, expiresAt: true,
-          },
-        }),
-        this.prisma.auction.findFirst({
-          where: { productId, status: 'LIVE' },
-          select: {
-            id: true, title: true, currentPrice: true, bidCount: true,
-            startsAt: true, endsAt: true,
-          },
-        }),
+        this.catalog.offers([productId]),
         customerId
           ? this.prisma.wishlistItem.findUnique({
               where: { customerId_productId: { customerId, productId } },
@@ -256,12 +263,20 @@ export class MarketplaceProductsService {
           : null,
       ]);
 
+    const offer = offers.get(productId);
+    const relatedOffers = await this.catalog.offers(related.map((r) => r.productId));
+    const { tenant: shopTenant, ...shopProfile } = profile.shop.marketplaceProfile!;
     return {
       ...profile,
+      shop: { ...profile.shop, marketplaceProfile: { ...shopProfile, ...this.settings.shopGate({ ...shopProfile, tenant: shopTenant }) } },
+      ...offerFields(offer, profile.publicPrice),
+      // One entry per size/colour with its own live price and stock.
+      lines: (offer?.variants ?? []).map((l) => ({
+        variantId: l.variantId, variantName: l.variantName, price: l.price, compareAtPrice: l.compareAtPrice,
+        availability: l.availability, maxQty: l.maxQty, leadTime: l.leadTime, image: l.image,
+      })),
       reviews,
-      related,
-      activeGroupBuy,
-      activeAuction,
+      related: related.map((r) => ({ ...r, ...offerFields(relatedOffers.get(r.productId), r.publicPrice) })),
       isInWishlist: !!inWishlist,
       isFollowingShop: !!isFollowingShop,
     };
@@ -322,7 +337,7 @@ export class MarketplaceProductsService {
       where: { productId },
       select: { publicName: true, marketplaceCategory: true },
     });
-    if (!base) throw new NotFoundException('Product not found');
+    if (!base) throw new NotFoundException('Ye product Market par nahi mila');
 
     const others = await this.prisma.productMarketplaceProfile.findMany({
       where: {

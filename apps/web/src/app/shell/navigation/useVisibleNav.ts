@@ -2,14 +2,15 @@
  * The navigation the current user is allowed to see.
  *
  * Combines the core groups, the active industry's groups and the connected
- * sales channels, then filters by workspace (shop / all shops / marketplace),
+ * sales channels, then filters by workspace (shop / all shops / Market),
  * ownership and permissions. How the business sells (Tenant.businessModels)
  * moves its main group up: Online store for online sellers, Distribution for
  * wholesalers and distributors. The expanded sidebar, the collapsed rail and the
  * mobile drawer all read from this hook so they never disagree.
  *
  * Inside the online store (isCommercePath) the menu is the commerce
- * workspace instead: its own groups plus the connected channels.
+ * workspace instead: its own groups plus the connected channels. Under
+ * /market (isMarketPath) it is the Nafaa Market workspace.
  */
 
 import { createElement, useMemo, type ComponentType } from 'react';
@@ -18,7 +19,7 @@ import { Globe, Plus } from 'lucide-react';
 import { permissionForPath } from '@core/lib/route-permissions';
 import { hasPermission, isOwner, isOwnerOnlyPath, PERMISSIONS } from '@core/lib/permissions';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
-import { useWorkspaceStore, WORKSPACES } from '@core/stores/workspace.store';
+import { WORKSPACES } from '@core/stores/workspace.store';
 import { useIsAllShops } from '@core/stores/auth.store';
 import { channelMeta, channelPath, useSalesChannels } from '@integrations/online-orders/hooks/useSalesChannels';
 import { useCommerceSetup } from '@integrations/online-orders/hooks/useCommerceSetup';
@@ -29,15 +30,13 @@ import { useDistributionState } from '@modules/distribution/hooks/useDistributio
 import { useBusinessModels } from '@core/lib/business-models';
 import { cn } from '@core/lib/cn';
 import { hasApp, hasFeature, useEntitlements } from '@modules/billing/pricing/hooks/usePricing';
-import { allShopsNavGroups, canSeeSettingsItem, commerceNavGroups, isCommercePath, fromIndustryGroup, isSettingsPath, marketplaceNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
+import { allShopsNavGroups, canSeeSettingsItem, commerceNavGroups, isCommercePath, isMarketPath, fromIndustryGroup, isSettingsPath, marketNavGroups, posNavGroups, SETTINGS_ITEMS, type NavGroup, type NavItem } from './nav-config';
 import { t } from '@core/i18n';
 
 type Channel = { id: string; type: string; platform?: string | null; displayName: string; isWebsite: boolean; live: boolean; pendingOrders: number };
 
 export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const industry = useCurrentIndustry();
-  const { activeWorkspace } = useWorkspaceStore();
-  const isMarketplace = activeWorkspace === 'marketplace';
   const isAllShops = useIsAllShops();
   const { data: channels } = useSalesChannels();
   const comingSoon = usePlatformControls().data?.comingSoon;
@@ -47,6 +46,9 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const fullDistribution = distribution && dist.data?.settings.mode !== 'WHOLESALE';
   const { sellsOnline, sellsToShops } = useBusinessModels();
   const { pathname } = useLocation();
+  // The Market workspace follows the URL, like the online store.
+  const isMarketplace = isMarketPath(pathname);
+  const activeWorkspace = isMarketplace ? 'marketplace' as const : 'pos' as const;
   const commerce = !isMarketplace && isCommercePath(pathname);
   // Sidebar items the seller hid in Online store settings (still found by search).
   const { data: commerceSetup } = useCommerceSetup(commerce || sellsOnline);
@@ -68,7 +70,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
       { id: 'c-channels', label: t('Sales channels'), icon: Globe, color: '#0284c7', defaultOpen: true, order: 7, items: channelItems(channels) },
     ];
     const main = isMarketplace
-      ? marketplaceNavGroups
+      ? marketNavGroups
       : isAllShops
         ? allShopsNavGroups
         : [...pos, ...(industry?.navGroups?.map(fromIndustryGroup) ?? [])];
@@ -116,7 +118,7 @@ export function useVisibleNav(role?: unknown, permissions?: string[]) {
   const settingsItems = useMemo(() => SETTINGS_ITEMS.filter((i) => canSeeSettingsItem(i, role, permissions)), [role, permissions]);
 
   // The gear opens the first page that lives inside Settings, never an everyday page it links to.
-  const settingsHome = isMarketplace ? '/marketplace/settings-hub' : settingsItems.find((i) => !i.external)?.to ?? '/profile';
+  const settingsHome = isMarketplace ? '/market/settings' : settingsItems.find((i) => !i.external)?.to ?? '/profile';
 
   return { groups, searchGroups, settingsItems, settingsHome, industry, isMarketplace, isAllShops, commerce, workspace: WORKSPACES[activeWorkspace], activeWorkspace };
 }

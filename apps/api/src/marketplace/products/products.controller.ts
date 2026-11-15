@@ -35,7 +35,7 @@ export class MarketplaceProductsController {
 
   @Public()
   @Get(':productId')
-  @ApiOperation({ summary: 'Product detail (with variants, reviews, related, group buy, auction)' })
+  @ApiOperation({ summary: 'Product detail with live price and stock per size, reviews and related items' })
   detail(@Param('productId') productId: string, @Req() req: Request) {
     const customerId = (req as any).customer?.id as string | undefined;
     return this.svc.getProductDetail(productId, customerId);

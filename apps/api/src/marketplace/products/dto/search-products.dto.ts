@@ -39,12 +39,6 @@ export class SearchProductsDto {
   inStockOnly?: boolean;
 
   @IsOptional() @Type(() => Boolean)
-  bargainEnabled?: boolean;
-
-  @IsOptional() @Type(() => Boolean)
-  groupBuyEnabled?: boolean;
-
-  @IsOptional() @Type(() => Boolean)
   onDiscount?: boolean;
 
   @IsOptional() @Type(() => Boolean)

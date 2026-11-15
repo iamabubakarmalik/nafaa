@@ -1,5 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MarketChannelService } from '../_shared/market-channel.service';
+import { MarketSettingsService } from '../_shared/market-settings.service';
+import { isMarketGate, sanitizeFlow } from '../_shared/market-config';
 
 function slugify(s: string): string {
   return s
@@ -45,6 +48,24 @@ function mapDtoToSchema(dto: any): any {
   if (dto.addressLine1 !== undefined) data.addressLine1 = dto.addressLine1;
   if (dto.addressLine2 !== undefined) data.addressLine2 = dto.addressLine2;
 
+  // Market section and its flow switches
+  if (dto.gate !== undefined) {
+    if (dto.gate !== null && dto.gate !== '' && !isMarketGate(dto.gate)) throw new BadRequestException('Market section sahi nahi');
+    data.gate = dto.gate || null;
+  }
+  if (dto.flowSettings !== undefined) data.flowSettings = sanitizeFlow(dto.flowSettings);
+
+  // Opening hours ({ mon: { open, close, closed } }) and holiday dates (YYYY-MM-DD)
+  if (dto.workingHours !== undefined) {
+    data.workingHours = dto.workingHours && typeof dto.workingHours === 'object' && !Array.isArray(dto.workingHours) ? dto.workingHours : null;
+  }
+  if (Array.isArray(dto.holidayDates)) {
+    data.holidayDates = dto.holidayDates
+      .filter((d: unknown) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}/.test(d))
+      .slice(0, 60)
+      .map((d: string) => new Date(`${d.slice(0, 10)}T00:00:00.000Z`));
+  }
+
   // Nullable numeric fields
   if (dto.freeDeliveryAbove !== undefined) {
     data.freeDeliveryAbove = dto.freeDeliveryAbove || null;
@@ -77,7 +98,21 @@ function mapSchemaToDto(profile: any, shopName?: string): any {
 
 @Injectable()
 export class ShopPublishingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly channel: MarketChannelService,
+    private readonly settings: MarketSettingsService,
+  ) {}
+
+  /** Adds the resolved section (gate), sub-filter and flow to a profile response. */
+  private withGate(dto: any, businessType: string | null | undefined, profile: { gate?: string | null; flowSettings?: unknown } | null) {
+    const g = this.settings.shopGate({ gate: profile?.gate ?? null, flowSettings: profile?.flowSettings ?? null, tenant: { businessType } });
+    return { ...dto, gate: profile?.gate ?? null, resolvedGate: g.gate, gateFilter: g.gateFilter, flowSettings: profile?.flowSettings ?? {}, flow: g.flow };
+  }
+
+  private async businessType(tenantId: string) {
+    return (await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { businessType: true } }))?.businessType ?? null;
+  }
 
   private async resolveShop(tenantId: string, shopId?: string | null) {
     if (!tenantId) {
@@ -110,14 +145,15 @@ export class ShopPublishingService {
   async getProfile(tenantId: string, shopId?: string | null) {
     const shop = await this.resolveShop(tenantId, shopId);
 
+    const businessType = await this.businessType(tenantId);
     if (shop.marketplaceProfile) {
-      return {
+      return this.withGate({
         ...mapSchemaToDto(shop.marketplaceProfile, shop.name),
         shopId: shop.id,
-      };
+      }, businessType, shop.marketplaceProfile);
     }
 
-    return {
+    return this.withGate({
       shopId: shop.id,
       isListedOnMarketplace: false,
       publicName: shop.name,
@@ -141,7 +177,7 @@ export class ShopPublishingService {
       contactPhone: '',
       contactEmail: '',
       whatsappNumber: '',
-    };
+    }, businessType, null);
   }
 
   async updateProfile(tenantId: string, shopId: string | null | undefined, dto: any) {
@@ -155,7 +191,7 @@ export class ShopPublishingService {
         where: { shopId: resolvedShopId },
         data,
       });
-      return mapSchemaToDto(updated, shop.name);
+      return this.withGate(mapSchemaToDto(updated, shop.name), await this.businessType(tenantId), updated);
     }
 
     const created = await this.prisma.shopMarketplaceProfile.create({
@@ -172,7 +208,7 @@ export class ShopPublishingService {
         ...data,
       },
     });
-    return mapSchemaToDto(created, shop.name);
+    return this.withGate(mapSchemaToDto(created, shop.name), await this.businessType(tenantId), created);
   }
 
   async publish(tenantId: string, shopId?: string | null) {
@@ -195,8 +231,10 @@ export class ShopPublishingService {
       where: { shopId: shop.id },
       data: { isListedOnMarketplace: true, listedAt: new Date() },
     });
+    // Market orders reach the shop's Online Orders through this channel.
+    await this.channel.ensureChannel(shop.id);
 
-    return { success: true, message: 'Shop is now live on marketplace!' };
+    return { success: true, message: 'Dukaan ab Nafaa Market par live hai' };
   }
 
   async unpublish(tenantId: string, shopId?: string | null) {

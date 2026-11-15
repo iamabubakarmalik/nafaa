@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../../modules/auth/guards/jwt-auth.guard';
 import { BizNotificationsService } from './biz-notifications.service';
 
 @ApiTags('Marketplace Notifications')
-@Controller('marketplace/notifications')
+@Controller('marketplace/manage/notifications')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class BizNotificationsController {

@@ -11,6 +11,8 @@ import { MarketplaceWishlistModule } from './wishlist/wishlist.module';
 import { MarketplaceReviewsModule } from './reviews/reviews.module';
 import { MarketplaceNotificationsModule } from './notifications/notifications.module';
 import { MarketplaceSupportModule } from './support/support.module';
+import { MarketCoreModule } from './_shared/market-core.module';
+import { MarketConfigController } from './_shared/market-config.controller';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { MarketplaceSupportModule } from './support/support.module';
     MarketplaceReviewsModule,
     MarketplaceNotificationsModule,
     MarketplaceSupportModule,
+    MarketCoreModule,
   ],
+  controllers: [MarketConfigController],
 })
 export class MarketplaceModule {}

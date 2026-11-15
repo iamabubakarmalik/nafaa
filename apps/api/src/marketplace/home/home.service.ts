@@ -1,9 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MarketCatalogService } from '../_shared/market-catalog.service';
+import { MarketSettingsService } from '../_shared/market-settings.service';
+import { MarketGate, isMarketGate } from '../_shared/market-config';
+import { isOpenAt } from '../_shared/market-hours';
 import { DiscoverQueryDto } from './dto/discover-query.dto';
 import { NearbyShopsDto } from './dto/nearby-shops.dto';
 import { TrendingProductsDto } from './dto/trending-products.dto';
+
+/** Shop fields needed to work out the gate, flow and open-now state. */
+const GATE_SELECT = {
+  gate: true, flowSettings: true, isOpen: true, isPaused: true, workingHours: true, holidayDates: true,
+  tenant: { select: { businessType: true } },
+} as const;
+
+/** Prefilter for a gate: shops with that gate saved, or none saved yet (resolved from the business type). */
+const gateWhere = (gate: MarketGate | null): Prisma.ShopMarketplaceProfileWhereInput => (gate ? { OR: [{ gate }, { gate: null }] } : {});
 
 /**
  * Haversine distance between two lat/lng points in km.
@@ -22,13 +35,32 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 
 @Injectable()
 export class MarketplaceHomeService {
-  constructor(private readonly prisma: PrismaService) {}
-  
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly settings: MarketSettingsService,
+    private readonly catalog: MarketCatalogService,
+  ) {}
+
+  /** Adds gate, gateFilter, flow and currentlyOpen; drops shops outside the asked gate. */
+  private decorate<T extends { gate: string | null; flowSettings: unknown; isOpen: boolean; isPaused: boolean; workingHours: unknown; holidayDates: Date[]; tenant: { businessType: string | null } }>(
+    rows: T[], gate: MarketGate | null, limit?: number,
+  ) {
+    const out = rows
+      .map(({ tenant, workingHours, holidayDates, ...r }) => ({
+        ...r,
+        ...this.settings.shopGate({ gate: r.gate, flowSettings: r.flowSettings, tenant }),
+        currentlyOpen: r.isOpen && !r.isPaused && isOpenAt(workingHours, holidayDates),
+      }))
+      .filter((r) => !gate || r.gate === gate);
+    return limit ? out.slice(0, limit) : out;
+  }
+
   // ═══════════════════════════════════════════════════════════
   // MAIN DISCOVER FEED — one call gives everything the home screen needs
   // ═══════════════════════════════════════════════════════════
 
   async discover(dto: DiscoverQueryDto, customerId?: string) {
+    const gate = isMarketGate(dto.gate) ? dto.gate : null;
     const [
       banners,
       categories,
@@ -36,8 +68,6 @@ export class MarketplaceHomeService {
       nearbyShops,
       trendingProducts,
       flashSales,
-      activeGroupBuys,
-      liveShops,
       recommendedForYou,
     ] = await Promise.all([
       this.getActiveBanners(dto.city),
@@ -45,13 +75,11 @@ export class MarketplaceHomeService {
       this.getFeaturedShops(dto),
       dto.lat && dto.lng
         ? this.getNearbyShopsRaw({
-            lat: dto.lat, lng: dto.lng, radiusKm: dto.radiusKm ?? 5, limit: 10,
-          } as any)
-        : this.getPopularShops(dto.city, 10),
+            lat: dto.lat, lng: dto.lng, radiusKm: dto.radiusKm ?? 5, limit: 10, gate: gate ?? undefined,
+          } as NearbyShopsDto & { gate?: string })
+        : this.getPopularShops(dto.city, 10, gate),
       this.getTrendingProducts({ lat: dto.lat, lng: dto.lng, limit: 12 } as TrendingProductsDto),
       this.getActiveFlashSales(),
-      this.getActiveGroupBuys(dto.city),
-      this.getLiveShopsNow(),
       customerId ? this.getRecommendedForCustomer(customerId, 12) : [],
     ]);
 
@@ -62,8 +90,9 @@ export class MarketplaceHomeService {
       nearbyShops,
       trendingProducts,
       flashSales,
-      activeGroupBuys,
-      liveShops,
+      // Group buys and live shopping are switched off; empty lists keep older apps working.
+      activeGroupBuys: [],
+      liveShops: [],
       recommendedForYou,
     };
   }
@@ -82,7 +111,8 @@ export class MarketplaceHomeService {
     };
   }
 
-  private async getNearbyShopsRaw(dto: NearbyShopsDto) {
+  private async getNearbyShopsRaw(dto: NearbyShopsDto & { gate?: string }) {
+    const gate = isMarketGate(dto.gate) ? dto.gate : null;
     const radiusKm = dto.radiusKm ?? 5;
     // Rough bbox for prefilter (0.009 deg ≈ 1 km)
     const deltaLat = radiusKm / 111;
@@ -94,6 +124,7 @@ export class MarketplaceHomeService {
       isPaused: false,
       lat: { gte: dto.lat - deltaLat, lte: dto.lat + deltaLat },
       lng: { gte: dto.lng - deltaLng, lte: dto.lng + deltaLng },
+      ...(gate ? { AND: [gateWhere(gate)] } : {}),
     };
     if (dto.industry) where.industry = dto.industry;
     if (dto.search) {
@@ -114,13 +145,13 @@ export class MarketplaceHomeService {
         ratingAverage: true, ratingCount: true, totalOrders: true,
         offersDelivery: true, offersPickup: true,
         deliveryFee: true, minOrderAmount: true,
-        estimatedDeliveryMinutes: true, bargainEnabled: true,
-        groupBuyEnabled: true, auctionEnabled: true,
+        estimatedDeliveryMinutes: true,
+        ...GATE_SELECT,
       },
     });
 
     // Compute exact distance + filter to radius
-    const withDistance = raw
+    const withDistance = this.decorate(raw, gate)
       .map((s) => ({
         ...s,
         distanceKm: s.lat && s.lng ? haversineKm(dto.lat, dto.lng, s.lat, s.lng) : null,
@@ -148,8 +179,10 @@ export class MarketplaceHomeService {
   // ═══════════════════════════════════════════════════════════
 
   private async getFeaturedShops(dto: DiscoverQueryDto) {
-    return this.prisma.shopMarketplaceProfile.findMany({
+    const gate = isMarketGate(dto.gate) ? dto.gate : null;
+    const rows = await this.prisma.shopMarketplaceProfile.findMany({
       where: {
+        ...gateWhere(gate),
         isListedOnMarketplace: true,
         isOpen: true,
         verificationLevel: { in: ['GOLD', 'PLATINUM'] },
@@ -157,32 +190,37 @@ export class MarketplaceHomeService {
         ...(dto.industry ? { industry: dto.industry } : {}),
       },
       orderBy: [{ ratingAverage: 'desc' }, { totalOrders: 'desc' }],
-      take: 10,
+      take: gate ? 60 : 10,
       select: {
         id: true, shopId: true, slug: true, publicName: true, tagline: true,
         logoUrl: true, coverUrl: true, city: true, area: true,
         industry: true, verificationLevel: true,
         ratingAverage: true, ratingCount: true, totalOrders: true,
+        ...GATE_SELECT,
       },
     });
+    return this.decorate(rows, gate, 10);
   }
 
-  private async getPopularShops(city: string | undefined, limit: number) {
-    return this.prisma.shopMarketplaceProfile.findMany({
+  private async getPopularShops(city: string | undefined, limit: number, gate: MarketGate | null = null) {
+    const rows = await this.prisma.shopMarketplaceProfile.findMany({
       where: {
+        ...gateWhere(gate),
         isListedOnMarketplace: true,
         isOpen: true,
         ...(city ? { city: { equals: city, mode: 'insensitive' } } : {}),
       },
       orderBy: [{ totalOrders: 'desc' }, { ratingAverage: 'desc' }],
-      take: limit,
+      take: gate ? limit * 6 : limit,
       select: {
         id: true, shopId: true, slug: true, publicName: true, tagline: true,
         logoUrl: true, coverUrl: true, city: true, area: true,
         industry: true, verificationLevel: true,
         ratingAverage: true, ratingCount: true,
+        ...GATE_SELECT,
       },
     });
+    return this.decorate(rows, gate, limit);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -211,10 +249,12 @@ export class MarketplaceHomeService {
     const where: Prisma.ProductMarketplaceProfileWhereInput = {
       isListedOnMarketplace: true,
       isAvailable: true,
+      product: { isActive: true },
+      shop: { is: { marketplaceProfile: { is: { isListedOnMarketplace: true, isPaused: false } } } },
       ...(dto.category ? { marketplaceCategory: dto.category } : {}),
     };
 
-    return this.prisma.productMarketplaceProfile.findMany({
+    const rows = await this.prisma.productMarketplaceProfile.findMany({
       where,
       orderBy: [{ totalSold: 'desc' }, { viewCount: 'desc' }, { ratingAverage: 'desc' }],
       take: dto.limit ?? 20,
@@ -224,8 +264,12 @@ export class MarketplaceHomeService {
         publicPrice: true, compareAtPrice: true,
         publicImages: true, marketplaceCategory: true,
         totalSold: true, ratingAverage: true, ratingCount: true,
-        bargainEnabled: true, groupBuyEnabled: true, auctionEnabled: true,
       },
+    });
+    const offers = await this.catalog.offers(rows.map((r) => r.productId));
+    return rows.map((r) => {
+      const o = offers.get(r.productId);
+      return { ...r, price: o?.price ?? Number(r.publicPrice), availability: o?.availability ?? 'out_of_stock', inStock: !!o && o.availability !== 'out_of_stock', maxQty: o?.maxQty ?? 0 };
     });
   }
 
@@ -244,42 +288,6 @@ export class MarketplaceHomeService {
 
   private async getActiveFlashSales() {
     return [];
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // ACTIVE GROUP BUYS
-  // ═══════════════════════════════════════════════════════════
-
-  private async getActiveGroupBuys(_city?: string) {
-    return this.prisma.groupBuy.findMany({
-      where: { status: 'ACTIVE', expiresAt: { gt: new Date() } },
-      orderBy: { currentCount: 'desc' },
-      take: 10,
-      select: {
-        id: true, shopId: true, productId: true,
-        productName: true, imageUrl: true,
-        regularPrice: true, groupPrice: true,
-        minParticipants: true, maxParticipants: true, currentCount: true,
-        expiresAt: true,
-      },
-    });
-  }
-
-  // ═══════════════════════════════════════════════════════════
-  // LIVE SHOPS RIGHT NOW
-  // ═══════════════════════════════════════════════════════════
-
-  private async getLiveShopsNow() {
-    return this.prisma.liveShop.findMany({
-      where: { status: 'LIVE' },
-      orderBy: { peakViewerCount: 'desc' },
-      take: 10,
-      select: {
-        id: true, shopId: true, title: true, coverImageUrl: true,
-        streamUrl: true, peakViewerCount: true, totalViewers: true,
-        startedAt: true, featuredProductIds: true,
-      },
-    });
   }
 
   // ═══════════════════════════════════════════════════════════

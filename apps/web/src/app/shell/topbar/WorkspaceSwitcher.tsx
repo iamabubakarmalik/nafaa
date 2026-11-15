@@ -1,23 +1,21 @@
 /**
- * Workspace switcher (Business POS / Nafaa Marketplace).
+ * Workspace switcher (Business POS / Nafaa Market).
  *
  * Opens with Alt/⌥+W (Ctrl/⌘+Shift+W would close the browser window). The
- * workspace also follows the URL: marketplace routes switch to Marketplace,
- * core POS routes switch back.
+ * workspace follows the URL: /market routes are the Market, every other
+ * route is the POS.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Check, ChevronsUpDown } from 'lucide-react';
-import { useWorkspaceStore, WORKSPACES, type WorkspaceId } from '@core/stores/workspace.store';
+import { detectWorkspaceFromPath, useWorkspaceStore, WORKSPACES, type WorkspaceId } from '@core/stores/workspace.store';
 import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 import { cn } from '@core/lib/cn';
 import { BrandMark } from '../sidebar/BrandMark';
 import { Kbd } from '@/design-system/components';
 import { Panel, useDismiss } from '../ui';
 import { t } from '@core/i18n';
-
-const POS_ROUTES = ['/dashboard', '/pos', '/products', '/customers', '/sales', '/inventory'];
 
 export function WorkspaceSwitcher() {
   const navigate = useNavigate();
@@ -38,11 +36,10 @@ export function WorkspaceSwitcher() {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
+  // The workspace follows the URL: /market is the Market, everything else the POS.
   useEffect(() => {
-    const path = location.pathname;
-    const marketplaceRoute = path.startsWith('/marketplace');
-    if (marketplaceRoute && activeWorkspace !== 'marketplace') setWorkspace('marketplace');
-    else if (!marketplaceRoute && activeWorkspace !== 'pos' && POS_ROUTES.some((x) => path.startsWith(x))) setWorkspace('pos');
+    const ws = detectWorkspaceFromPath(location.pathname);
+    if (ws !== activeWorkspace) setWorkspace(ws);
   }, [location.pathname, activeWorkspace, setWorkspace]);
 
   const switchTo = (id: WorkspaceId) => {

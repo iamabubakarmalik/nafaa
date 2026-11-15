@@ -1,6 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { MarketplaceOrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ShopScope } from '../../common/shop-scope';
+import { OnlineOrdersService } from '../../integrations/online-orders/online-orders.service';
+import { courierLink, courierName } from '../../integrations/online-orders/couriers';
+import { MarketCatalogService, lineKey } from '../_shared/market-catalog.service';
+import { MARKET_STATUS_LABEL, MarketStatusSyncService } from '../_shared/market-status-sync.service';
 import { ListOrdersDto } from './dto/list-orders.dto';
 import { CancelOrderDto } from './dto/cancel-order.dto';
 import { RateOrderDto } from './dto/rate-order.dto';
@@ -15,7 +20,12 @@ const COMPLETED_STATUSES: MarketplaceOrderStatus[] = [
 
 @Injectable()
 export class MarketplaceOrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly onlineOrders: OnlineOrdersService,
+    private readonly sync: MarketStatusSyncService,
+    private readonly catalog: MarketCatalogService,
+  ) {}
 
   // ═══════════════════════════════════════════════════════════
   // LIST ORDERS
@@ -149,25 +159,51 @@ export class MarketplaceOrdersService {
     });
     if (!order) throw new NotFoundException('Order not found');
 
-    // Enrich with related — group-buy status, bargains
-    const bargainIds = order.items.map((i) => i.bargainId).filter(Boolean) as string[];
-    const bargains = bargainIds.length
-      ? await this.prisma.bargain.findMany({
-          where: { id: { in: bargainIds } },
-          select: {
-            id: true, originalPrice: true, finalPrice: true, status: true,
-          },
-        })
-      : [];
-
+    const live = await this.liveStatus(order.channelOrderId);
     return {
       ...order,
+      statusLabel: MARKET_STATUS_LABEL[order.status],
+      live,
       isActive: ACTIVE_STATUSES.includes(order.status),
       isCompleted: COMPLETED_STATUSES.includes(order.status),
       canCancel: CANCELLABLE_STATUSES.includes(order.status),
       canRate: order.status === 'DELIVERED' && !order.isRated,
       canReorder: COMPLETED_STATUSES.includes(order.status),
-      bargains,
+    };
+  }
+
+  /** Live state from the shop's Online Orders record: status, rider and courier tracking. */
+  private async liveStatus(channelOrderId: string | null) {
+    if (!channelOrderId) return null;
+    const co = await this.prisma.channelOrder.findUnique({
+      where: { id: channelOrderId },
+      select: {
+        orderStatus: true, acceptedAt: true, dispatchedAt: true, deliveredAt: true, cancelledAt: true, cancelReason: true,
+        courierCode: true, courierName: true, trackingNumber: true, courierStatus: true, courierStatusAt: true, assignedToId: true,
+      },
+    });
+    if (!co) return null;
+    const rider = co.assignedToId
+      ? await this.prisma.user.findUnique({ where: { id: co.assignedToId }, select: { fullName: true, phone: true } })
+      : null;
+    return {
+      orderStatus: co.orderStatus,
+      acceptedAt: co.acceptedAt,
+      dispatchedAt: co.dispatchedAt,
+      deliveredAt: co.deliveredAt,
+      cancelledAt: co.cancelledAt,
+      cancelReason: co.cancelReason,
+      rider: rider ? { name: rider.fullName, phone: rider.phone } : null,
+      courier: co.courierCode || co.trackingNumber
+        ? {
+            code: co.courierCode,
+            name: co.courierName ?? courierName(co.courierCode),
+            trackingNumber: co.trackingNumber,
+            trackUrl: courierLink(co.courierCode, co.trackingNumber),
+            status: co.courierStatus,
+            statusAt: co.courierStatusAt,
+          }
+        : null,
     };
   }
 
@@ -179,8 +215,8 @@ export class MarketplaceOrdersService {
     const order = await this.prisma.marketplaceOrder.findFirst({
       where: { id: orderId, customerId },
       select: {
-        id: true, orderNumber: true, status: true, deliveryType: true,
-        estimatedDeliveryAt: true, actualDeliveryAt: true,
+        id: true, orderNumber: true, status: true, deliveryType: true, channelOrderId: true,
+        estimatedDeliveryAt: true, actualDeliveryAt: true, deliverySlotStart: true, deliverySlotEnd: true,
         riderId: true, riderName: true, riderPhone: true,
         createdAt: true, updatedAt: true,
         statusHistory: {
@@ -204,14 +240,14 @@ export class MarketplaceOrdersService {
     if (!order) throw new NotFoundException('Order not found');
 
     // Build a canonical timeline with all possible statuses
-    const canonicalStatuses: MarketplaceOrderStatus[] = [
-      'PENDING', 'CONFIRMED', 'PREPARING',
-      (order.deliveryType as string) === 'DELIVERY' ? 'OUT_FOR_DELIVERY' : 'READY_FOR_PICKUP',
-      'DELIVERED',
-    ];
+    const pickup = ['PICKUP', 'SELF_PICKUP', 'DINE_IN'].includes(order.deliveryType as string);
+    const canonicalStatuses: MarketplaceOrderStatus[] = pickup
+      ? ['PENDING', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'DELIVERED']
+      : ['PENDING', 'CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED'];
     const completed = new Set(order.statusHistory.map((h) => h.status));
     const timeline = canonicalStatuses.map((s) => ({
       status: s,
+      label: MARKET_STATUS_LABEL[s],
       reached: completed.has(s) || (
         // If current status is later in flow, mark previous as reached
         canonicalStatuses.indexOf(order.status) >= canonicalStatuses.indexOf(s)
@@ -224,6 +260,8 @@ export class MarketplaceOrdersService {
       order,
       timeline,
       currentStatus: order.status,
+      statusLabel: MARKET_STATUS_LABEL[order.status],
+      live: await this.liveStatus(order.channelOrderId),
       isActive: ACTIVE_STATUSES.includes(order.status),
     };
   }
@@ -235,104 +273,45 @@ export class MarketplaceOrdersService {
   async cancelOrder(customerId: string, orderId: string, dto: CancelOrderDto) {
     const order = await this.prisma.marketplaceOrder.findFirst({
       where: { id: orderId, customerId },
+      select: { id: true, tenantId: true, status: true, channelOrderId: true },
     });
-    if (!order) throw new NotFoundException('Order not found');
+    if (!order) throw new NotFoundException('Order nahi mila');
     if (!CANCELLABLE_STATUSES.includes(order.status)) {
-      throw new BadRequestException(
-        `Order can no longer be cancelled (current status: ${order.status})`,
-      );
+      throw new BadRequestException('Ye order ab cancel nahi ho sakta. Dukaan se baat karein.');
     }
+    const reason = dto.reason?.trim() || 'Customer ne cancel kiya';
 
-    const walletRefund = Number(order.walletUsed);
-    const loyaltyRefund = order.loyaltyPointsUsed;
-
-    await this.prisma.$transaction(async (tx) => {
-      await tx.marketplaceOrder.update({
-        where: { id: orderId },
-        data: {
-          status: MarketplaceOrderStatus.CANCELLED,
-          cancelledAt: new Date(),
-          cancelledBy: 'CUSTOMER',
-          cancelReason: dto.reason,
-          paymentStatus: order.paymentStatus === 'PAID' ? 'REFUNDED' : 'FAILED',
-        },
-      });
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId,
-          status: MarketplaceOrderStatus.CANCELLED,
-          note: dto.reason ?? 'Cancelled by customer',
-          changedBy: 'CUSTOMER',
-        },
-      });
-
-      // Refund wallet
-      if (walletRefund > 0) {
-        const customer = await tx.marketplaceCustomer.findUnique({
-          where: { id: customerId },
-          select: { walletBalance: true },
-        });
-        const newBalance = Number(customer!.walletBalance) + walletRefund;
-        await tx.marketplaceCustomer.update({
-          where: { id: customerId },
-          data: { walletBalance: newBalance },
-        });
-        await tx.customerWalletTxn.create({
-          data: {
-            customerId,
-            type: 'REFUND',
-            amount: walletRefund,
-            balanceAfter: newBalance,
-            reason: `Refund for cancelled order ${order.orderNumber}`,
-            referenceType: 'ORDER',
-            referenceId: order.id,
-          },
-        });
+    if (order.channelOrderId) {
+      // Cancel at the source: the POS bill is voided and the stock comes back.
+      const co = await this.prisma.channelOrder.findUnique({ where: { id: order.channelOrderId }, select: { orderStatus: true } });
+      if (co && !['PENDING', 'ACCEPTING', 'CONFIRMED', 'CANCELLED', 'REJECTED'].includes(co.orderStatus)) {
+        throw new BadRequestException('Dukaan order tayyar kar rahi hai, ab cancel nahi ho sakta. Dukaan se baat karein.');
       }
-
-      // Refund loyalty
-      if (loyaltyRefund > 0) {
-        await tx.marketplaceCustomer.update({
-          where: { id: customerId },
-          data: { loyaltyPoints: { increment: loyaltyRefund } },
+      const actor = await this.onlineOrders.systemActor(order.tenantId);
+      await this.onlineOrders.cancel(actor, new ShopScope(null, true), order.channelOrderId, `Customer: ${reason}`);
+      await this.sync.syncFromChannel(order.channelOrderId, { by: 'CUSTOMER', note: reason });
+    } else {
+      await this.prisma.$transaction(async (tx) => {
+        const res = await tx.marketplaceOrder.updateMany({
+          where: { id: order.id, status: order.status },
+          data: { status: 'CANCELLED', cancelledAt: new Date(), cancelledBy: 'CUSTOMER', cancelReason: reason, paymentStatus: 'FAILED' },
         });
-      }
-
-      // Refund paid amount to wallet if paid via non-COD
-      if (order.paymentStatus === 'PAID' && order.paymentMethod !== 'COD') {
-        const customer = await tx.marketplaceCustomer.findUnique({
-          where: { id: customerId },
-          select: { walletBalance: true },
-        });
-        const netPaid = Number(order.total) - walletRefund;
-        if (netPaid > 0) {
-          const newBalance = Number(customer!.walletBalance) + netPaid;
-          await tx.marketplaceCustomer.update({
-            where: { id: customerId },
-            data: { walletBalance: newBalance },
-          });
+        if (!res.count) return;
+        await tx.orderStatusHistory.create({ data: { orderId: order.id, status: 'CANCELLED', note: reason, changedBy: 'CUSTOMER' } });
+        const o = await tx.marketplaceOrder.findUnique({ where: { id: order.id }, select: { walletUsed: true, loyaltyPointsUsed: true, orderNumber: true } });
+        const wallet = Number(o?.walletUsed ?? 0);
+        if (wallet > 0) {
+          const c = await tx.marketplaceCustomer.update({ where: { id: customerId }, data: { walletBalance: { increment: wallet } }, select: { walletBalance: true } });
           await tx.customerWalletTxn.create({
-            data: {
-              customerId,
-              type: 'REFUND',
-              amount: netPaid,
-              balanceAfter: newBalance,
-              reason: `Payment refund for cancelled order ${order.orderNumber}`,
-              referenceType: 'ORDER',
-              referenceId: order.id,
-            },
+            data: { customerId, type: 'REFUND', amount: wallet, balanceAfter: c.walletBalance, reason: `Cancel order ${o!.orderNumber} ka refund`, referenceType: 'ORDER', referenceId: order.id },
           });
         }
-      }
-
-      // Release bargain locks
-      await tx.bargain.updateMany({
-        where: { orderId: order.id },
-        data: { orderId: null, convertedAt: null, status: 'ACCEPTED' },
+        if (o?.loyaltyPointsUsed) {
+          await tx.marketplaceCustomer.update({ where: { id: customerId }, data: { loyaltyPoints: { increment: o.loyaltyPointsUsed } } });
+        }
       });
-    });
-
-    return { success: true, message: 'Order cancelled' };
+    }
+    return { success: true, message: 'Order cancel ho gaya' };
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -354,46 +333,35 @@ export class MarketplaceOrdersService {
     let skippedCount = 0;
     const skipped: string[] = [];
 
+    const live = await this.catalog.lines(order.items.map((i) => ({ productId: i.productId, variantId: i.variantId })));
     for (const item of order.items) {
-      // Verify product still exists + available
-      const product = await this.prisma.productMarketplaceProfile.findUnique({
-        where: { productId: item.productId },
-        select: {
-          isAvailable: true, isListedOnMarketplace: true,
-          publicPrice: true, shopId: true,
-        },
-      });
-      if (!product?.isAvailable || !product.isListedOnMarketplace) {
+      const info = live.get(lineKey(item.productId, item.variantId));
+      if (!info || info.problem) {
         skipped.push(item.productName);
         skippedCount++;
         continue;
       }
-      // Add to cart at CURRENT price (not old order price)
       const existing = await this.prisma.marketplaceCartLine.findFirst({
-        where: {
-          cartId: cart.id, productId: item.productId,
-          variantId: item.variantId, bargainId: null, groupBuyId: null,
-        },
+        where: { cartId: cart.id, productId: item.productId, variantId: item.variantId },
       });
+      const qty = Math.min(info.maxQty, (existing?.quantity ?? 0) + item.quantity);
       if (existing) {
-        await this.prisma.marketplaceCartLine.update({
-          where: { id: existing.id },
-          data: { quantity: existing.quantity + item.quantity },
-        });
+        await this.prisma.marketplaceCartLine.update({ where: { id: existing.id }, data: { quantity: qty, unitPrice: info.price } });
       } else {
         await this.prisma.marketplaceCartLine.create({
           data: {
             cartId: cart.id,
-            shopId: product.shopId,
+            shopId: info.shopId,
             productId: item.productId,
             variantId: item.variantId,
-            productName: item.productName,
-            variantName: item.variantName,
-            imageUrl: item.imageUrl,
-            unitPrice: product.publicPrice,
-            quantity: item.quantity,
+            productName: info.name,
+            variantName: info.variantName,
+            imageUrl: info.image,
+            unitPrice: info.price,
+            quantity: Math.min(info.maxQty, item.quantity),
             notes: item.notes,
-            modifiers: item.modifiers as any,
+            options: (item.options ?? Prisma.DbNull) as Prisma.InputJsonValue,
+            modifiers: (item.modifiers ?? Prisma.DbNull) as Prisma.InputJsonValue,
           },
         });
       }
@@ -405,7 +373,7 @@ export class MarketplaceOrdersService {
       addedCount,
       skippedCount,
       skippedItems: skipped,
-      message: `${addedCount} items added to cart${skippedCount ? ` (${skippedCount} skipped)` : ''}`,
+      message: `${addedCount} item cart me add ho gaye${skippedCount ? ` (${skippedCount} abhi available nahi)` : ''}`,
     };
   }
 

@@ -118,8 +118,8 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {/* Online store workspace: a way back to the rest of Nafaa */}
-      {commerce && (
+      {/* Online store and Market workspaces: a way back to the rest of Nafaa */}
+      {(commerce || isMarketplace) && (
         <div className="px-3 pt-3">
           <Link
             to={lastMainPath()}
@@ -131,15 +131,15 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
         </div>
       )}
       {/* Store header */}
-      <div className={cn('flex items-center gap-2 px-3 pb-2', commerce ? 'pt-1' : 'pt-3')}>
+      <div className={cn('flex items-center gap-2 px-3 pb-2', commerce || isMarketplace ? 'pt-1' : 'pt-3')}>
         <div className="flex min-w-0 flex-1 items-center gap-2.5 p-1.5">
           {commerce ? (
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-500 text-white shadow-sm"><Globe className="h-[1.125rem] w-[1.125rem]" /></span>
           ) : <BrandMark industryId={industry?.id} marketplace={isMarketplace} />}
           <div className="min-w-0">
-            <div className="truncate text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">{commerce ? t('Online store') : tenantName || t('My store')}</div>
+            <div className="truncate text-[0.875rem] font-semibold leading-tight text-slate-900 dark:text-ink-white">{commerce ? t('Online store') : isMarketplace ? t('Nafaa Market') : tenantName || t('My store')}</div>
             <div className="truncate text-[0.75rem] capitalize text-slate-500 dark:text-ink-400">
-              {commerce ? <span className="normal-case">{tenantName || t('My store')}</span> : <>{subtitle}{tenantSlug ? <span className="normal-case"> · @{tenantSlug}</span> : null}</>}
+              {commerce || isMarketplace ? <span className="normal-case">{tenantName || t('My store')}</span> : <>{subtitle}{tenantSlug ? <span className="normal-case"> · @{tenantSlug}</span> : null}</>}
             </div>
           </div>
         </div>
@@ -197,7 +197,7 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
           <div className="px-2.5 text-[0.75rem] text-slate-500">{total === 0 ? t('No matches') : t('{{count}} results', { count: total })}</div>
         )}
 
-        {!query && !commerce && pinned.length > 0 && (
+        {!query && !commerce && !isMarketplace && pinned.length > 0 && (
           <NavSection title={t('Pinned')} icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />}>
             {pinned.map((it) => (
               <NavRow key={`pin-${it.to}`} item={it} fav onToggleFav={(e) => toggle(it.to, e)} onItemClick={onItemClick} />
@@ -205,7 +205,7 @@ function SidebarExpanded({ tenantName, tenantSlug, businessType, role, permissio
           </NavSection>
         )}
 
-        {!query && !commerce && recent.length > 0 && (
+        {!query && !commerce && !isMarketplace && recent.length > 0 && (
           <div>
             <GroupHeader label={t('Recently visited')} icon={Clock} open={showRecent} onClick={() => setShowRecent((v) => !v)} />
             {showRecent && (

@@ -215,6 +215,8 @@ export const posNavGroups: NavGroup[] = [
     items: [
       { to: COMMERCE_HOME, label: t('Online store'), icon: Store, permission: P.SALES_VIEW, app: ONLINE_APPS, keywords: 'online store ecommerce e-commerce daraz shopify woocommerce website commerce dukaan' },
       { to: '/online-orders', label: t('Online orders'), icon: ShoppingBag, permission: P.SALES_VIEW, liveCount: 'online-orders', app: ONLINE_APPS, keywords: 'website cod delivery foodpanda daraz shopify order' },
+      // Nafaa Market has its own workspace (marketNavGroups); the main menu only opens it.
+      { to: '/market', label: t('Market'), icon: Store, permission: P.SALES_VIEW, keywords: 'nafaa market marketplace online dukaan customers app' },
     ],
   },
   {
@@ -367,64 +369,38 @@ export const allShopsNavGroups: NavGroup[] = [
   },
 ];
 
-/* ─── Marketplace workspace ─── */
-export const marketplaceNavGroups: NavGroup[] = [
+/* ─── Nafaa Market workspace ───
+   Like the online store, paths under /market swap the sidebar for this menu,
+   with a way back to the rest of Nafaa. Market orders open in the Online
+   Orders board (filtered to the shop's Market channel). */
+export const MARKET_HOME = '/market';
+export const isMarketPath = (path: string) => path === MARKET_HOME || path.startsWith(`${MARKET_HOME}/`);
+
+export const marketNavGroups: NavGroup[] = [
   {
-    id: 'mp-overview', label: t('Overview'), icon: LayoutDashboard, color: '#a855f7', defaultOpen: true, order: 0,
+    id: 'm-shop', label: t('Market'), icon: Store, color: '#a855f7', defaultOpen: true, order: 1,
     items: [
-      { to: '/marketplace/dashboard', label: t('Dashboard'), icon: LayoutDashboard, permission: P.SETTINGS_VIEW, hot: true },
-      { to: '/marketplace/analytics', label: t('Analytics'), icon: BarChart3, permission: P.REPORTS_VIEW },
-      { to: '/marketplace/sales-funnel', label: t('Sales funnel'), icon: TrendingUp, permission: P.REPORTS_VIEW },
-      { to: '/marketplace/ai-insights', label: t('AI insights'), icon: Brain, permission: P.SETTINGS_VIEW, badge: t('AI') },
+      { to: MARKET_HOME, label: t('Market home'), icon: LayoutDashboard, permission: P.SALES_VIEW, keywords: 'nafaa market marketplace home dashboard go live publish' },
+      { to: '/market/profile', label: t('Shop profile'), icon: Store, permission: P.SETTINGS_VIEW, keywords: 'market profile logo cover hours delivery address publish' },
+      { to: '/market/products', label: t('Online products'), icon: Package, permission: P.PRODUCTS_VIEW, keywords: 'market products list unlist online price photo' },
+      { to: '/market/orders', label: t('Orders'), icon: ShoppingBag, permission: P.SALES_VIEW, keywords: 'market orders online orders board' },
+      { to: '/market/delivery', label: t('Delivery & riders'), icon: Bike, permission: P.SETTINGS_VIEW, keywords: 'market rider delivery zone fee' },
     ],
   },
   {
-    id: 'mp-storefront', label: t('Storefront'), icon: Store, color: '#ec4899', defaultOpen: true, order: 5,
+    id: 'm-customers', label: t('Customers'), icon: Users, color: '#3b82f6', defaultOpen: true, order: 2,
     items: [
-      { to: '/marketplace/shop-profile', label: t('Shop profile'), icon: Store, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/products', label: t('Products'), icon: Package, permission: P.PRODUCTS_VIEW },
-      { to: '/marketplace/settings', label: t('Publish settings'), icon: Globe, permission: P.SETTINGS_VIEW },
+      { to: '/market/reviews', label: t('Reviews'), icon: Star, permission: P.SETTINGS_VIEW, keywords: 'market review rating reply' },
+      { to: '/market/offers', label: t('Offers'), icon: BadgePercent, permission: P.DISCOUNTS_VIEW, keywords: 'market coupon sale promotion discount' },
+      { to: '/market/customers', label: t('Customers'), icon: Users, permission: P.CUSTOMERS_VIEW, keywords: 'market customers repeat' },
+      { to: '/market/messages', label: t('Messages'), icon: MessageCircle, permission: P.CUSTOMERS_VIEW, keywords: 'market chat messages customer' },
     ],
   },
   {
-    id: 'mp-orders', label: t('Orders & fulfillment'), icon: ShoppingCart, color: '#f97316', defaultOpen: true, order: 10,
+    id: 'm-manage', label: t('Manage'), icon: Settings, color: '#64748b', defaultOpen: true, order: 3,
     items: [
-      { to: '/marketplace/orders', label: t('Orders'), icon: ShoppingCart, permission: P.SALES_VIEW, hot: true },
-      { to: '/marketplace/delivery', label: t('Delivery'), icon: Bike, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/rider-tracking', label: t('Rider tracking'), icon: Navigation, permission: P.SETTINGS_VIEW, badge: t('LIVE') },
-    ],
-  },
-  {
-    id: 'mp-engage', label: t('Customer engagement'), icon: MessageCircle, color: '#3b82f6', order: 15,
-    items: [
-      { to: '/marketplace/reviews', label: t('Reviews'), icon: Star, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/messages', label: t('Messages'), icon: MessageCircle, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/bargains', label: t('Bargains'), icon: MessageCircle, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/segments', label: t('Customer segments'), icon: Users, permission: P.SETTINGS_VIEW },
-    ],
-  },
-  {
-    id: 'mp-boost', label: t('Sales boosters'), icon: Zap, color: '#eab308', order: 20,
-    items: [
-      { to: '/marketplace/group-buys', label: t('Group buys'), icon: Users, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/auctions', label: t('Auctions'), icon: Sparkles, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/live-shop', label: t('Live shop'), icon: Sparkles, permission: P.SETTINGS_VIEW, badge: t('NEW') },
-    ],
-  },
-  {
-    id: 'mp-marketing', label: t('Marketing'), icon: Megaphone, color: '#dc2626', order: 25,
-    items: [
-      { to: '/marketplace/promotions', label: t('Promotions'), icon: Megaphone, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/coupons-advanced', label: t('Coupons'), icon: Tag, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/loyalty', label: t('Loyalty & rewards'), icon: Trophy, permission: P.SETTINGS_VIEW },
-    ],
-  },
-  {
-    id: 'mp-system', label: t('Manage'), icon: Settings, color: '#64748b', order: 100,
-    items: [
-      { to: '/marketplace/multi-shop', label: t('Multi-shop manager'), icon: Building2, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/notifications', label: t('Notifications'), icon: Bell, permission: P.SETTINGS_VIEW },
-      { to: '/marketplace/settings-hub', label: t('Marketplace settings'), icon: Settings, permission: P.SETTINGS_VIEW },
+      { to: '/market/reports', label: t('Reports'), icon: TrendingUp, permission: P.REPORTS_VIEW, keywords: 'market report sales top products' },
+      { to: '/market/settings', label: t('Market settings'), icon: Settings2, permission: P.SETTINGS_VIEW, keywords: 'market settings switches substitutes prescription booking notifications' },
     ],
   },
 ];
@@ -515,7 +491,7 @@ export const SETTINGS_SECTIONS: SettingsGroup[] = [
       { to: '/settings/google', label: t('Google'), icon: Search, permission: VIEW, desc: t('Google Shopping, Maps par stock, reviews'), keywords: 'google merchant center shopping maps business profile review local inventory feed' },
       { to: '/settings/accounting', label: t('Accounting'), icon: Wallet2, permission: VIEW, desc: t('Zoho Books, QuickBooks, Xero, Tally — roz ka hisaab'), keywords: 'accounting zoho books quickbooks xero tally tallyprime journal accountant' },
       { to: '/settings/developer', label: t('API & webhooks'), icon: Code2, permission: VIEW, desc: t('Zapier, Make, Google Sheets, apna software'), keywords: 'api key webhook zapier make n8n google sheets developer erp integration' },
-      { to: '/marketplace/settings', label: t('Marketplace publishing'), icon: Send, permission: VIEW, desc: t('Nafaa marketplace par kya dikhe'), keywords: 'marketplace publish online' },
+      { to: '/market/profile', label: t('Nafaa Market'), icon: Send, permission: VIEW, external: true, desc: t('Nafaa Market par dukaan aur products'), keywords: 'marketplace market publish online' },
     ],
   },
   {
@@ -714,7 +690,7 @@ export function fromIndustryGroup(g: IndustryNavGroup): NavGroup {
 
 /* ─── Small persistence helpers ─── */
 export const LAST_APP_PATH_KEY = 'nafaa-last-app-path';
-/** The last page outside the online store, where "Back to Nafaa" returns. */
+/** The last page outside the online store and the Market, where "Back to Nafaa" returns. */
 export const LAST_MAIN_PATH_KEY = 'nafaa-last-main-path';
 export const lastMainPath = () => {
   try { return sessionStorage.getItem(LAST_MAIN_PATH_KEY) || '/dashboard'; } catch { return '/dashboard'; }

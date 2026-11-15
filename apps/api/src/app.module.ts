@@ -138,9 +138,6 @@ import { CustomerSubscriptionsModule } from './modules/customer-subscriptions/cu
 
 // ─── Batch D: Fraud + Split + Voice + Emergency + FBR + Courier + WhatsApp
 import { FraudDetectionModule } from './modules/fraud-detection/fraud-detection.module';
-import { SplitPaymentModule } from './marketplace/split-payment/split-payment.module';
-import { VoiceSearchModule } from './marketplace/voice-search/voice-search.module';
-import { EmergencyDeliveryModule } from './marketplace/emergency-delivery/emergency-delivery.module';
 import { FbrModule } from './integrations/fbr/fbr.module';
 import { WhatsappModule } from './integrations/whatsapp/whatsapp.module';
 // ─── Integration Framework ─────────────────────────────────
@@ -157,7 +154,6 @@ import { TaxAuthorityModule } from './integrations/tax-authority/tax-authority.c
 
 // ─── Batch E: Cart Recovery + Try Before Buy + B2B + Prayer + AI ────
 import { CartRecoveryModule } from './marketplace/cart-recovery/cart-recovery.module';
-import { TryBeforeBuyModule } from './marketplace/try-before-buy/try-before-buy.module';
 import { B2BWholesaleModule } from './modules/b2b-wholesale/b2b-wholesale.module';
 import { PrayerRamzanModule } from './modules/prayer-ramzan/prayer-ramzan.module';
 import { AiAssistantModule } from './marketplace/ai-assistant/ai-assistant.module';
@@ -291,9 +287,6 @@ import { SyncModule } from './modules/sync/sync.module';
 
     // ─── Batch D ───
     FraudDetectionModule,
-    SplitPaymentModule,
-    VoiceSearchModule,
-    EmergencyDeliveryModule,
     FbrModule,
     WhatsappModule,
 
@@ -311,7 +304,6 @@ import { SyncModule } from './modules/sync/sync.module';
 
     // ─── Batch E ───
     CartRecoveryModule,
-    TryBeforeBuyModule,
     B2BWholesaleModule,
     PrayerRamzanModule,
     AiAssistantModule,

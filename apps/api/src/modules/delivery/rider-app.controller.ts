@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, NotFoundException, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { Public } from '../auth/decorators/public.decorator';
@@ -6,11 +6,15 @@ import { DeliveryService } from './delivery.service';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RealtimeService } from '../../core/realtime/realtime.service';
+import { RiderClaims, RiderTokenGuard, signRiderToken } from './rider-token';
+
+type RiderRequest = Request & { rider: RiderClaims };
 
 /**
- * Rider App API — separate endpoints for the mobile rider app.
- * NOTE: rider auth will be added in a later batch; for now these are `@Public`
- * with riderId in path/body. Add proper rider auth guard when the mobile app is built.
+ * Rider App API for the rider device. Every rider endpoint needs a signed
+ * rider token (`x-rider-token`), issued by shop staff through
+ * POST rider-app/riders/:riderId/token. A rider only reads and changes their
+ * own assignments.
  */
 @ApiTags('Delivery / Rider App')
 @Controller('rider-app')
@@ -21,20 +25,45 @@ export class RiderAppController {
     private readonly rt: RealtimeService,
   ) {}
 
+  /** Shop staff (normal login) issue a token for one of their riders. */
+  @Post('riders/:riderId/token')
+  @ApiOperation({ summary: 'Issue a rider token (staff only)' })
+  async issueToken(@Req() req: Request, @Param('riderId') riderId: string) {
+    const tenantId = (req as any).user?.tenantId as string | undefined;
+    const rider = tenantId ? await this.prisma.mktRider.findFirst({ where: { id: riderId, tenantId }, select: { id: true } }) : null;
+    if (!rider) throw new NotFoundException('Rider nahi mila');
+    return signRiderToken(rider.id, tenantId!);
+  }
+
+  private ownRider(req: RiderRequest, riderId: string) {
+    if (req.rider.r !== riderId) throw new ForbiddenException('Ye rider aap nahi hain');
+  }
+
+  private async ownAssignment(req: RiderRequest, id: string) {
+    const a = await this.prisma.mktDeliveryAssignment.findUnique({ where: { id } });
+    if (!a || a.riderId !== req.rider.r || a.tenantId !== req.rider.t) throw new NotFoundException('Delivery nahi mili');
+    return a;
+  }
+
   @Public()
+  @UseGuards(RiderTokenGuard)
   @Post('riders/:riderId/location')
   @ApiOperation({ summary: 'Rider pings current location' })
   updateLocation(
+    @Req() req: RiderRequest,
     @Param('riderId') riderId: string,
     @Body() dto: UpdateLocationDto & { orderId?: string },
   ) {
+    this.ownRider(req, riderId);
     return this.svc.updateRiderLocation(riderId, dto, dto.orderId);
   }
 
   @Public()
+  @UseGuards(RiderTokenGuard)
   @Get('riders/:riderId/pending')
   @ApiOperation({ summary: 'New pending assignments for rider' })
-  async pending(@Param('riderId') riderId: string) {
+  async pending(@Req() req: RiderRequest, @Param('riderId') riderId: string) {
+    this.ownRider(req, riderId);
     const assignments = await this.prisma.mktDeliveryAssignment.findMany({
       where: { riderId, status: 'PENDING' },
     });
@@ -58,17 +87,21 @@ export class RiderAppController {
   }
 
   @Public()
+  @UseGuards(RiderTokenGuard)
   @Get('riders/:riderId/active')
   @ApiOperation({ summary: 'Currently active assignments' })
-  active(@Param('riderId') riderId: string) {
+  active(@Req() req: RiderRequest, @Param('riderId') riderId: string) {
+    this.ownRider(req, riderId);
     return this.prisma.mktDeliveryAssignment.findMany({
       where: { riderId, status: { in: ['ACCEPTED', 'PICKED_UP'] } },
     });
   }
 
   @Public()
+  @UseGuards(RiderTokenGuard)
   @Post('assignments/:id/accept')
-  async accept(@Param('id') id: string) {
+  async accept(@Req() req: RiderRequest, @Param('id') id: string) {
+    await this.ownAssignment(req, id);
     const a = await this.prisma.mktDeliveryAssignment.update({
       where: { id },
       data: { status: 'ACCEPTED', acceptedAt: new Date() },
@@ -78,8 +111,10 @@ export class RiderAppController {
   }
 
   @Public()
+  @UseGuards(RiderTokenGuard)
   @Post('assignments/:id/reject')
-  async reject(@Param('id') id: string, @Body() body: { reason?: string }) {
+  async reject(@Req() req: RiderRequest, @Param('id') id: string, @Body() body: { reason?: string }) {
+    await this.ownAssignment(req, id);
     return this.prisma.mktDeliveryAssignment.update({
       where: { id },
       data: { status: 'REJECTED', rejectedAt: new Date(), rejectReason: body.reason },
@@ -87,8 +122,10 @@ export class RiderAppController {
   }
 
   @Public()
+  @UseGuards(RiderTokenGuard)
   @Post('assignments/:id/pickup')
-  async pickup(@Param('id') id: string) {
+  async pickup(@Req() req: RiderRequest, @Param('id') id: string) {
+    await this.ownAssignment(req, id);
     const a = await this.prisma.mktDeliveryAssignment.update({
       where: { id },
       data: { status: 'PICKED_UP', pickedUpAt: new Date() },
@@ -102,12 +139,12 @@ export class RiderAppController {
   }
 
   @Public()
+  @UseGuards(RiderTokenGuard)
   @Post('assignments/:id/deliver')
-  async deliver(@Param('id') id: string, @Body() body: { otpCode?: string; proofUrl?: string }) {
-    const a = await this.prisma.mktDeliveryAssignment.findUnique({ where: { id } });
-    if (!a) throw new Error('Not found');
+  async deliver(@Req() req: RiderRequest, @Param('id') id: string, @Body() body: { otpCode?: string; proofUrl?: string }) {
+    const a = await this.ownAssignment(req, id);
     if (a.otpCode && a.otpCode !== body.otpCode) {
-      throw new Error('Invalid OTP');
+      throw new ForbiddenException('OTP ghalat hai');
     }
     const updated = await this.prisma.$transaction(async (tx) => {
       const u = await tx.mktDeliveryAssignment.update({

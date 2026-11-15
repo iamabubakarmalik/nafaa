@@ -14,7 +14,8 @@
 import { useEffect, useState } from 'react';
 import { Menu, Search } from 'lucide-react';
 import { DesktopReloadButton } from '@modules/desktop/components/DesktopReloadButton';
-import { useWorkspaceStore } from '@core/stores/workspace.store';
+import { useLocation } from 'react-router-dom';
+import { detectWorkspaceFromPath } from '@core/stores/workspace.store';
 import { IconButton } from '@/design-system/components';
 import { GlobalSearchTrigger, useGlobalSearch } from './GlobalSearch';
 import NotificationBell from './NotificationBell';
@@ -42,7 +43,7 @@ const greetingFor = (hour: number) =>
 
 export function Topbar({ user, tenant, onOpenMobileSidebar, onLogout }: TopbarProps) {
   const [now, setNow] = useState(() => new Date());
-  const isMarketplace = useWorkspaceStore((s) => s.activeWorkspace) === 'marketplace';
+  const isMarketplace = detectWorkspaceFromPath(useLocation().pathname) === 'marketplace';
   const openSearch = useGlobalSearch((s) => s.setOpen);
 
   useEffect(() => {

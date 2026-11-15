@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsInt, IsObject, IsOptional, IsString, Max, MaxLength, Min } from 'class-validator';
 
 export class AddToCartDto {
   @IsString()
@@ -11,15 +11,14 @@ export class AddToCartDto {
   @Type(() => Number) @IsInt() @Min(1) @Max(999)
   quantity!: number;
 
-  @IsOptional() @IsString()
+  @IsOptional() @IsString() @MaxLength(500)
   notes?: string;
 
+  /** Restaurant add-ons (POS modifier groups). */
   @IsOptional()
-  modifiers?: any; // Restaurant / customization options
+  modifiers?: any;
 
-  @IsOptional() @IsString()
-  bargainId?: string;
-
-  @IsOptional() @IsString()
-  groupBuyId?: string;
+  /** Category flow choices: cake form, booking slot, substitute preference, gift message. */
+  @IsOptional() @IsObject()
+  options?: Record<string, unknown>;
 }

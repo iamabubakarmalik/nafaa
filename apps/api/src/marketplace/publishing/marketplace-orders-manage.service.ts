@@ -1,9 +1,24 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { MarketplaceOrderStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ShopScope } from '../../common/shop-scope';
+import { AuthenticatedUser } from '../../modules/auth/interfaces/jwt-payload.interface';
+import { OnlineOrdersService } from '../../integrations/online-orders/online-orders.service';
+import { MarketStatusSyncService } from '../_shared/market-status-sync.service';
+
+/** Statuses a seller may set; everything else follows from Online Orders. */
+const SELLER_STATUSES: MarketplaceOrderStatus[] = ['CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
+const CHANNEL_STATUS: Partial<Record<MarketplaceOrderStatus, string>> = {
+  CONFIRMED: 'CONFIRMED', PREPARING: 'PREPARING', READY_FOR_PICKUP: 'READY', OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY', DELIVERED: 'DELIVERED',
+};
 
 @Injectable()
 export class MarketplaceOrdersManageService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly onlineOrders: OnlineOrdersService,
+    private readonly sync: MarketStatusSyncService,
+  ) {}
 
   private async resolveShopId(tenantId: string, shopId?: string | null): Promise<string> {
     if (shopId) return shopId;
@@ -108,63 +123,68 @@ export class MarketplaceOrdersManageService {
     return order;
   }
 
-  async updateStatus(tenantId: string, shopId: string | null | undefined, orderId: string, status: string, note?: string) {
-    const resolvedShopId = await this.resolveShopId(tenantId, shopId);
-
+  /**
+   * Seller status change. A Market order with a ChannelOrder is changed only
+   * through Online Orders (accept makes the POS bill, cancel voids it); the
+   * Market order then follows through MarketStatusSyncService.
+   */
+  async updateStatus(user: AuthenticatedUser, shopId: string | null | undefined, orderId: string, status: string, note?: string) {
+    const resolvedShopId = await this.resolveShopId(user.tenantId, shopId);
     const order = await this.prisma.marketplaceOrder.findFirst({
-      where: { id: orderId, shopId: resolvedShopId },
+      where: { id: orderId, shopId: resolvedShopId, tenantId: user.tenantId },
     });
-    if (!order) throw new NotFoundException('Order not found');
+    if (!order) throw new NotFoundException('Order nahi mila');
+    const target = String(status ?? '').toUpperCase() as MarketplaceOrderStatus;
+    if (!SELLER_STATUSES.includes(target)) throw new BadRequestException('Ye status yahan se nahi lag sakta');
 
-    return this.prisma.marketplaceOrder.update({
-      where: { id: orderId },
-      data: {
-        status: status as any,
-        shopNotes: note || order.shopNotes,
-      },
+    if (order.channelOrderId) {
+      const scope = new ShopScope(null, true);
+      const co = await this.prisma.channelOrder.findUnique({ where: { id: order.channelOrderId }, select: { nafaaSaleId: true, orderStatus: true } });
+      if (!co) throw new NotFoundException('Online order nahi mila');
+      if (target === 'CANCELLED') {
+        await this.onlineOrders.cancel(user, scope, order.channelOrderId, note, co.orderStatus === 'PENDING' ? 'REJECTED' : 'CANCELLED');
+      } else {
+        // Accept first: it makes the POS bill and takes the stock.
+        if (!co.nafaaSaleId) await this.onlineOrders.accept(user, scope, order.channelOrderId, {});
+        const channelStatus = CHANNEL_STATUS[target];
+        if (channelStatus && channelStatus !== 'CONFIRMED') {
+          await this.onlineOrders.updateStatus(user, scope, order.channelOrderId, { status: channelStatus, reason: note });
+        }
+      }
+      if (note) await this.prisma.marketplaceOrder.update({ where: { id: order.id }, data: { shopNotes: note } });
+      await this.sync.syncFromChannel(order.channelOrderId, { by: 'SHOP', note });
+      return this.prisma.marketplaceOrder.findUnique({ where: { id: order.id } });
+    }
+
+    // Older orders placed before the Market channel existed.
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.marketplaceOrder.update({
+        where: { id: orderId },
+        data: {
+          status: target,
+          shopNotes: note || order.shopNotes,
+          ...(target === 'DELIVERED' && { actualDeliveryAt: new Date() }),
+          ...(target === 'CANCELLED' && { cancelledBy: 'SHOP', cancelledAt: new Date(), cancelReason: note ?? null }),
+        },
+      });
+      await tx.orderStatusHistory.create({ data: { orderId, status: target, note: note ?? null, changedBy: 'SHOP' } });
+      return updated;
     });
   }
 
-  async accept(tenantId: string, shopId: string | null | undefined, orderId: string) {
-    return this.updateStatus(tenantId, shopId, orderId, 'CONFIRMED');
+  async accept(user: AuthenticatedUser, shopId: string | null | undefined, orderId: string) {
+    return this.updateStatus(user, shopId, orderId, 'CONFIRMED');
   }
 
-  async reject(tenantId: string, shopId: string | null | undefined, orderId: string, reason: string) {
-    const resolvedShopId = await this.resolveShopId(tenantId, shopId);
-
-    const order = await this.prisma.marketplaceOrder.findFirst({
-      where: { id: orderId, shopId: resolvedShopId },
-    });
-    if (!order) throw new NotFoundException('Order not found');
-
-    return this.prisma.marketplaceOrder.update({
-      where: { id: orderId },
-      data: {
-        status: 'CANCELLED',
-        cancelledBy: 'SHOP',
-        cancelledAt: new Date(),
-        cancelReason: reason,
-      },
-    });
+  async reject(user: AuthenticatedUser, shopId: string | null | undefined, orderId: string, reason: string) {
+    return this.updateStatus(user, shopId, orderId, 'CANCELLED', reason);
   }
 
-  async markReady(tenantId: string, shopId: string | null | undefined, orderId: string) {
-    return this.updateStatus(tenantId, shopId, orderId, 'READY_FOR_PICKUP');
+  async markReady(user: AuthenticatedUser, shopId: string | null | undefined, orderId: string) {
+    return this.updateStatus(user, shopId, orderId, 'READY_FOR_PICKUP');
   }
 
-  async markDelivered(tenantId: string, shopId: string | null | undefined, orderId: string) {
-    const resolvedShopId = await this.resolveShopId(tenantId, shopId);
-    const order = await this.prisma.marketplaceOrder.findFirst({
-      where: { id: orderId, shopId: resolvedShopId },
-    });
-    if (!order) throw new NotFoundException('Order not found');
-
-    return this.prisma.marketplaceOrder.update({
-      where: { id: orderId },
-      data: {
-        status: 'DELIVERED',
-        actualDeliveryAt: new Date(),
-      },
-    });
+  async markDelivered(user: AuthenticatedUser, shopId: string | null | undefined, orderId: string) {
+    return this.updateStatus(user, shopId, orderId, 'DELIVERED');
   }
 }

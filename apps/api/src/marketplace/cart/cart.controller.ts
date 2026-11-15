@@ -19,7 +19,7 @@ export class MarketplaceCartController {
   @Get()
   @ApiOperation({ summary: 'Get cart grouped by shop with totals & validation' })
   get(@GetCustomer() c: AuthenticatedCustomer) {
-    return this.svc.getCart(c.id);
+    return this.svc.view(c.id);
   }
 
   @Get('count')
@@ -29,7 +29,7 @@ export class MarketplaceCartController {
   }
 
   @Post('add')
-  @ApiOperation({ summary: 'Add product / variant / bargain / group-buy to cart' })
+  @ApiOperation({ summary: 'Add a product or size to the cart (live price and stock check)' })
   add(@GetCustomer() c: AuthenticatedCustomer, @Body() dto: AddToCartDto) {
     return this.svc.addToCart(c.id, dto);
   }

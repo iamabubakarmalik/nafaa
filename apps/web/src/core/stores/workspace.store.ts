@@ -22,10 +22,10 @@ export const WORKSPACES: Record<WorkspaceId, Workspace> = {
   },
   marketplace: {
     id: 'marketplace',
-    label: t('Nafaa Marketplace'),
-    shortLabel: t('Marketplace'),
-    description: t('Public storefront, orders & customer growth'),
-    rootPath: '/marketplace/dashboard',
+    label: t('Nafaa Market'),
+    shortLabel: t('Market'),
+    description: t('Market par dukaan, online products aur customers'),
+    rootPath: '/market',
   },
 };
 
@@ -46,6 +46,6 @@ export const useWorkspaceStore = create<WorkspaceState>()(
 
 // Auto-detect from URL
 export function detectWorkspaceFromPath(pathname: string): WorkspaceId {
-  if (pathname.startsWith('/marketplace')) return 'marketplace';
+  if (pathname === '/market' || pathname.startsWith('/market/')) return 'marketplace';
   return 'pos';
 }

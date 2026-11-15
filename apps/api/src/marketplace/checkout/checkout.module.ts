@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { MarketCoreModule } from '../_shared/market-core.module';
 import { CustomerAuthGuard } from '../_shared/guards/customer-auth.guard';
 import { MarketplaceCartModule } from '../cart/cart.module';
 import { MarketplaceCheckoutController } from './checkout.controller';
@@ -10,6 +11,7 @@ import { MarketplaceCheckoutService } from './checkout.service';
 @Module({
   imports: [
     PrismaModule,
+    MarketCoreModule,
     MarketplaceCartModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
