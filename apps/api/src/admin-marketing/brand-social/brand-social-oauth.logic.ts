@@ -80,7 +80,7 @@ export const OAUTH: Record<OAuthPlatform, OAuthConfig> = {
   },
   PINTEREST: {
     authorizeUrl: 'https://www.pinterest.com/oauth/',
-    scopes: ['boards:read', 'pins:read', 'pins:write', 'user_accounts:read'],
+    scopes: ['boards:read', 'boards:write', 'pins:read', 'pins:write', 'user_accounts:read'],
     scopeSep: ',',
     idParam: 'client_id',
     pkce: false,

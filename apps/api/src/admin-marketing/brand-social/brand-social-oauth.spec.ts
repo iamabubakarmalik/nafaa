@@ -51,7 +51,7 @@ describe('authorize URLs', () => {
   it('Pinterest: www.pinterest.com/oauth/', () => {
     const u = new URL(buildAuthorizeUrl('PINTEREST', base));
     expect(u.origin + u.pathname).toBe('https://www.pinterest.com/oauth/');
-    expect(u.searchParams.get('scope')).toBe('boards:read,pins:read,pins:write,user_accounts:read');
+    expect(u.searchParams.get('scope')).toBe('boards:read,boards:write,pins:read,pins:write,user_accounts:read');
   });
   it('every OAuth platform has a config and a redirect URI per slug', () => {
     for (const p of OAUTH_PLATFORMS) {

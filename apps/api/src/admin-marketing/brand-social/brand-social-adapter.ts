@@ -120,6 +120,8 @@ export function errorParts(body: unknown): { message: string; code: string } {
 /** Sorts an HTTP failure into a publisher kind. */
 export function kindOf(status: number, code: string, message: string): string {
   const t = `${code} ${message}`.toLowerCase();
+  // A token without a needed scope: reconnecting with the missing permission fixes it.
+  if (/sufficient permissions|insufficient[_ ]scope|missing:\s*\[/.test(t)) return 'permission';
   const tokenWords = /invalid_grant|access_token_invalid|invalid[_ ]token|token.*expired|unauthori[sz]ed/.test(t);
   if (status === 401 || (tokenWords && status >= 400 && status < 500 && status !== 429 && status !== 403)) return 'token';
   if (status === 402 || /creditsdepleted|credits|payment required|client-not-enrolled|usage cap/.test(t)) return 'plan';
