@@ -48,6 +48,16 @@ function mapDtoToSchema(dto: any): any {
   if (dto.addressLine1 !== undefined) data.addressLine1 = dto.addressLine1;
   if (dto.addressLine2 !== undefined) data.addressLine2 = dto.addressLine2;
 
+  // Shop photos (http/https links, up to 12) and sub-categories (up to 10)
+  if (dto.galleryUrls !== undefined) {
+    if (!Array.isArray(dto.galleryUrls)) throw new BadRequestException('Photos ki list sahi nahi');
+    data.galleryUrls = [...new Set<string>(dto.galleryUrls.filter((u: unknown) => typeof u === 'string' && /^https?:\/\/\S+$/.test(u.trim())).map((u: string) => u.trim()))].slice(0, 12);
+  }
+  if (dto.subCategories !== undefined) {
+    if (!Array.isArray(dto.subCategories)) throw new BadRequestException('Categories ki list sahi nahi');
+    data.subCategories = [...new Set<string>(dto.subCategories.filter((c: unknown) => typeof c === 'string' && c.trim()).map((c: string) => c.trim().slice(0, 60)))].slice(0, 10);
+  }
+
   // Market section and its flow switches
   if (dto.gate !== undefined) {
     if (dto.gate !== null && dto.gate !== '' && !isMarketGate(dto.gate)) throw new BadRequestException('Market section sahi nahi');

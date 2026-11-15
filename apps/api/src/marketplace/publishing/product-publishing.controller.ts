@@ -27,10 +27,12 @@ export class ProductPublishingController {
   list(@Req() req: Request, @Query() query: any) {
     const { tenantId, shopId } = this.ctx(req);
     return this.svc.listForManagement(tenantId, shopId, {
-      isListedOnMarketplace: query.isListedOnMarketplace === 'true' ? true
-        : query.isListedOnMarketplace === 'false' ? false : undefined,
+      isListedOnMarketplace: query.isListedOnMarketplace === 'true' || query.listed === 'yes' ? true
+        : query.isListedOnMarketplace === 'false' || query.listed === 'no' ? false : undefined,
       search: query.search,
-      category: query.category,
+      category: query.category ? String(query.category) : undefined,
+      stock: query.stock === 'in' || query.stock === 'out' ? query.stock : undefined,
+      photo: query.photo === 'none' ? 'none' : undefined,
       sortBy: query.sortBy || 'listed',
       page: query.page ? Number(query.page) : 1,
       limit: query.limit ? Number(query.limit) : 24,

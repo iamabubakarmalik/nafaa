@@ -32,6 +32,8 @@ import { BizNotificationsController } from './biz-notifications.controller';
 import { BizNotificationsService } from './biz-notifications.service';
 import { SettingsHubController } from './settings-hub.controller';
 import { SettingsHubService } from './settings-hub.service';
+import { MarketCustomersController } from './market-customers.controller';
+import { MarketCustomersService } from './market-customers.service';
 
 
 @Module({
@@ -49,6 +51,7 @@ import { SettingsHubService } from './settings-hub.service';
     TrackingController,
     BizNotificationsController,
     SettingsHubController,
+    MarketCustomersController,
   ],
   providers: [
     ShopPublishingService,
@@ -63,6 +66,7 @@ import { SettingsHubService } from './settings-hub.service';
     TrackingService,
     BizNotificationsService,
     SettingsHubService,
+    MarketCustomersService,
   ],
 })
 export class PublishingModule {}

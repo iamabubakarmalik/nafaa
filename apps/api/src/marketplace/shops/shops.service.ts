@@ -174,6 +174,11 @@ export class MarketplaceShopsService {
     lat?: number,
     lng?: number,
   ) {
+    // Shop visit for the seller dashboard (ProductView with source 'shop'; productId holds the shop id).
+    this.prisma.productView
+      .create({ data: { customerId: customerId ?? null, productId: shop.shopId, shopId: shop.shopId, source: 'shop' } })
+      .catch(() => {});
+
     const [productCount, isFollowing, recentReviews, tenant] = await Promise.all([
       this.prisma.productMarketplaceProfile.count({
         where: { shopId: shop.shopId, isListedOnMarketplace: true, isAvailable: true },

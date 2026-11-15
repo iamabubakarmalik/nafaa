@@ -22,7 +22,12 @@ export class ProductPublishingService {
   async listForManagement(tenantId: string, shopId: string | null | undefined, opts: {
   isListedOnMarketplace?: boolean;
   search?: string;
+  /** POS category id. */
   category?: string;
+  /** Branch stock: 'in' = some on hand, 'out' = none. */
+  stock?: 'in' | 'out';
+  /** 'none' = no POS photo and no Market photo. */
+  photo?: 'none';
   sortBy?: 'name' | 'listed' | 'price_asc' | 'price_desc' | 'sold' | 'rating';
   page?: number;
   limit?: number;
@@ -68,6 +73,17 @@ export class ProductPublishingService {
         },
       ],
     });
+  }
+
+  if (opts.category) conditions.push({ categoryId: opts.category });
+  if (opts.stock === 'in') {
+    conditions.push({ shopStocks: { some: { shopId: resolvedShopId, stock: { gt: 0 } } } });
+  } else if (opts.stock === 'out') {
+    conditions.push({ shopStocks: { none: { shopId: resolvedShopId, stock: { gt: 0 } } } });
+  }
+  if (opts.photo === 'none') {
+    conditions.push({ images: { none: {} } });
+    conditions.push({ OR: [{ marketplaceProfile: { is: null } }, { marketplaceProfile: { is: { publicImages: { isEmpty: true } } } }] });
   }
 
   const productWhere: any = { AND: conditions };

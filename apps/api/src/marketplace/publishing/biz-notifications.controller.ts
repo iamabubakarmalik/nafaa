@@ -13,7 +13,7 @@ export class BizNotificationsController {
 
   private ctx(req: Request) {
     const user = (req as any).user;
-    return { tenantId: user?.tenantId as string, userId: user?.id as string };
+    return { tenantId: user?.tenantId as string, userId: user?.id as string, shopId: (user?.shopId as string | null | undefined) ?? null };
   }
 
   @Get()
@@ -48,13 +48,13 @@ export class BizNotificationsController {
 
   @Get('preferences')
   getPreferences(@Req() req: Request) {
-    const { tenantId, userId } = this.ctx(req);
-    return this.svc.getPreferences(tenantId, userId);
+    const { tenantId, shopId } = this.ctx(req);
+    return this.svc.getPreferences(tenantId, shopId);
   }
 
   @Patch('preferences')
   updatePreferences(@Req() req: Request, @Body() data: any) {
-    const { tenantId, userId } = this.ctx(req);
-    return this.svc.updatePreferences(tenantId, userId, data);
+    const { tenantId, shopId } = this.ctx(req);
+    return this.svc.updatePreferences(tenantId, shopId, data);
   }
 }

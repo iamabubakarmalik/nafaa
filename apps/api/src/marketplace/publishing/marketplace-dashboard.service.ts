@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { startOfDayTz, startOfMonthTz, subDaysTz } from '../../common/helpers/business-time.helper';
 
 @Injectable()
 export class MarketplaceDashboardService {
@@ -21,12 +22,17 @@ export class MarketplaceDashboardService {
       where: { shopId: resolvedShopId },
     });
 
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
+    // Pakistan days, not server (UTC) days.
+    const todayStart = startOfDayTz();
+    const monthStart = startOfMonthTz();
+    const weekStart = subDaysTz(todayStart, 6);
+    // Shop visits are ProductView rows with source 'shop'; product page views use 'detail'.
+    const [viewsToday, views7d, productViewsToday, productViews7d] = await Promise.all([
+      this.prisma.productView.count({ where: { shopId: resolvedShopId, source: 'shop', viewedAt: { gte: todayStart } } }),
+      this.prisma.productView.count({ where: { shopId: resolvedShopId, source: 'shop', viewedAt: { gte: weekStart } } }),
+      this.prisma.productView.count({ where: { shopId: resolvedShopId, source: 'detail', viewedAt: { gte: todayStart } } }),
+      this.prisma.productView.count({ where: { shopId: resolvedShopId, source: 'detail', viewedAt: { gte: weekStart } } }),
+    ]);
 
     const [totalProducts, listedProducts] = await Promise.all([
       this.prisma.product.count({ where: { tenantId, isActive: true } }),
@@ -102,6 +108,10 @@ export class MarketplaceDashboardService {
         ratingAverage: shopProfile?.ratingAverage || 0,
         ratingCount: shopProfile?.ratingCount || 0,
         followerCount: shopProfile?.followerCount || 0,
+        viewsToday,
+        views7d,
+        productViewsToday,
+        productViews7d,
       },
       products: {
         total: totalProducts,

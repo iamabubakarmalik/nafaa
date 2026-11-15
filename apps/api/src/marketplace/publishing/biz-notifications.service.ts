@@ -72,25 +72,38 @@ export class BizNotificationsService {
     return { success: true };
   }
 
-  async getPreferences(tenantId: string, userId: string) {
-    // Use NotificationPreference model if exists, else return defaults
-    const defaultChannels: any = {
-      NEW_ORDER: { push: true, email: true, sms: true },
-      ORDER_CANCELLED: { push: true, email: true, sms: false },
-      REVIEW_RECEIVED: { push: true, email: false, sms: false },
-      BARGAIN_OFFER: { push: true, email: false, sms: false },
-      LOW_STOCK: { push: true, email: true, sms: false },
-      PAYMENT_RECEIVED: { push: true, email: true, sms: false },
-      PAYOUT_PROCESSED: { push: true, email: true, sms: false },
-      DISPUTE_OPENED: { push: true, email: true, sms: true },
-      MESSAGE_RECEIVED: { push: true, email: false, sms: false },
-      SUBSCRIPTION_EXPIRING: { push: true, email: true, sms: false },
-      SYSTEM_ALERT: { push: true, email: true, sms: false },
-      ACHIEVEMENT: { push: true, email: false, sms: false },
-    };
+  // ─── Preferences: one JSON per shop in SystemSetting `market:seller-notify:<tenantId>:<shopId>` ───
 
+  private async prefsKey(tenantId: string, shopId: string | null) {
+    let id = shopId;
+    if (id) {
+      const own = await this.prisma.shop.findFirst({ where: { id, tenantId }, select: { id: true } });
+      id = own?.id ?? null;
+    }
+    if (!id) {
+      const first = await this.prisma.shop.findFirst({ where: { tenantId }, orderBy: { createdAt: 'asc' }, select: { id: true } });
+      if (!first) throw new NotFoundException('Koi dukaan nahi mili');
+      id = first.id;
+    }
+    return `market:seller-notify:${tenantId}:${id}`;
+  }
+
+  private defaults(): NotifyPrefs {
+    const on = (email: boolean, sms: boolean) => ({ push: true, email, sms });
     return {
-      channels: defaultChannels,
+      channels: {
+        NEW_ORDER: on(true, true),
+        ORDER_CANCELLED: on(true, false),
+        REVIEW_RECEIVED: on(false, false),
+        LOW_STOCK: on(true, false),
+        PAYMENT_RECEIVED: on(true, false),
+        PAYOUT_PROCESSED: on(true, false),
+        DISPUTE_OPENED: on(true, true),
+        MESSAGE_RECEIVED: on(false, false),
+        SUBSCRIPTION_EXPIRING: on(true, false),
+        SYSTEM_ALERT: on(true, false),
+        ACHIEVEMENT: on(false, false),
+      },
       quietHoursEnabled: false,
       quietHoursStart: '22:00',
       quietHoursEnd: '07:00',
@@ -98,7 +111,55 @@ export class BizNotificationsService {
     };
   }
 
-  async updatePreferences(tenantId: string, userId: string, data: any) {
-    return { success: true };
+  /** Saved preferences over the defaults; unknown keys and bad values are dropped. */
+  private merge(base: NotifyPrefs, raw: unknown): NotifyPrefs {
+    const v = raw && typeof raw === 'object' ? (raw as Record<string, any>) : {};
+    const out: NotifyPrefs = { ...base, channels: { ...base.channels } };
+    if (v.channels && typeof v.channels === 'object') {
+      for (const [k, c] of Object.entries(v.channels as Record<string, any>)) {
+        if (!out.channels[k] || !c || typeof c !== 'object') continue;
+        out.channels[k] = {
+          push: typeof c.push === 'boolean' ? c.push : out.channels[k].push,
+          email: typeof c.email === 'boolean' ? c.email : out.channels[k].email,
+          sms: typeof c.sms === 'boolean' ? c.sms : out.channels[k].sms,
+        };
+      }
+    }
+    const hhmm = (x: unknown) => typeof x === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(x);
+    if (typeof v.quietHoursEnabled === 'boolean') out.quietHoursEnabled = v.quietHoursEnabled;
+    if (hhmm(v.quietHoursStart)) out.quietHoursStart = v.quietHoursStart;
+    if (hhmm(v.quietHoursEnd)) out.quietHoursEnd = v.quietHoursEnd;
+    if (typeof v.soundEnabled === 'boolean') out.soundEnabled = v.soundEnabled;
+    return out;
   }
+
+  private async readPrefs(key: string): Promise<NotifyPrefs> {
+    const row = await this.prisma.systemSetting.findUnique({ where: { key }, select: { value: true } });
+    let saved: unknown = null;
+    try { saved = row ? JSON.parse(row.value) : null; } catch { saved = null; }
+    return this.merge(this.defaults(), saved);
+  }
+
+  async getPreferences(tenantId: string, shopId: string | null) {
+    return this.readPrefs(await this.prefsKey(tenantId, shopId));
+  }
+
+  async updatePreferences(tenantId: string, shopId: string | null, data: unknown) {
+    const key = await this.prefsKey(tenantId, shopId);
+    const next = this.merge(await this.readPrefs(key), data);
+    await this.prisma.systemSetting.upsert({
+      where: { key },
+      update: { value: JSON.stringify(next) },
+      create: { key, value: JSON.stringify(next), category: 'market', description: 'Seller Market notification preferences' },
+    });
+    return next;
+  }
+}
+
+export interface NotifyPrefs {
+  channels: Record<string, { push: boolean; email: boolean; sms: boolean }>;
+  quietHoursEnabled: boolean;
+  quietHoursStart: string;
+  quietHoursEnd: string;
+  soundEnabled: boolean;
 }
