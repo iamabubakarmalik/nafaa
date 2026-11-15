@@ -8,6 +8,7 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MarketCatalogService, MarketLine, lineKey } from '../_shared/market-catalog.service';
+import { modifierGroupsFor, priceModifiers } from '../_shared/market-modifiers';
 import { MarketSettingsService } from '../_shared/market-settings.service';
 import { isOpenAt } from '../_shared/market-hours';
 import { AddToCartDto } from './dto/add-to-cart.dto';
@@ -31,6 +32,7 @@ export const PROBLEM_TEXT: Record<string, string> = {
   VARIANT_REQUIRED: 'Size ya rang chunein',
   OUT_OF_STOCK: 'Ye item abhi stock me nahi hai',
   QTY: 'Itni quantity stock me nahi hai',
+  OPTIONS: 'Is item ke add-ons badal gaye hain, dobara chunein',
 };
 
 @Injectable()
@@ -56,7 +58,8 @@ export class MarketplaceCartService {
     }
 
     const shopIds = [...new Set(cart.lines.map((l) => l.shopId))];
-    const [live, shops] = await Promise.all([
+    const withAddons = cart.lines.filter((l) => l.modifiers).map((l) => l.productId);
+    const [live, shops, addonGroups] = await Promise.all([
       this.catalog.lines(cart.lines.map((l) => ({ productId: l.productId, variantId: l.variantId }))),
       this.prisma.shopMarketplaceProfile.findMany({
         where: { shopId: { in: shopIds } },
@@ -70,6 +73,7 @@ export class MarketplaceCartService {
           gate: true, flowSettings: true, integrationId: true, tenant: { select: { businessType: true } },
         },
       }),
+      modifierGroupsFor(this.prisma, withAddons),
     ]);
     const shopMap = new Map(shops.map((s) => [s.shopId, s]));
 
@@ -77,8 +81,10 @@ export class MarketplaceCartService {
       const shop = shopMap.get(shopId) ?? null;
       const lines = cart.lines.filter((l) => l.shopId === shopId).map((l) => {
         const info: MarketLine | undefined = live.get(lineKey(l.productId, l.variantId));
-        const price = info ? info.price : n(l.unitPrice);
-        const problem = !info ? 'NOT_LISTED' : info.problem ?? (l.quantity > info.maxQty ? 'QTY' : null);
+        // Add-ons are priced again from the POS every time.
+        const addons = l.modifiers ? priceModifiers(addonGroups.get(l.productId) ?? [], l.modifiers) : null;
+        const price = info ? r2(info.price + (addons?.ok ? addons.extra : 0)) : n(l.unitPrice);
+        const problem = !info ? 'NOT_LISTED' : info.problem ?? (addons && !addons.ok ? 'OPTIONS' : l.quantity > info.maxQty ? 'QTY' : null);
         return {
           id: l.id,
           productId: l.productId,
@@ -88,7 +94,7 @@ export class MarketplaceCartService {
           imageUrl: info?.image ?? l.imageUrl,
           unitPrice: price,
           savedPrice: n(l.unitPrice),
-          priceChanged: !!info && Math.abs(info.price - n(l.unitPrice)) > 0.009,
+          priceChanged: !!info && Math.abs(price - n(l.unitPrice)) > 0.009,
           compareAtPrice: info?.compareAtPrice ?? null,
           availability: info?.availability ?? 'out_of_stock',
           maxQty: info?.maxQty ?? 0,
@@ -168,7 +174,11 @@ export class MarketplaceCartService {
     }
 
     const options = cleanJson(dto.options);
-    const modifiers = cleanJson(dto.modifiers);
+    cleanJson(dto.modifiers);
+    const addons = priceModifiers((await modifierGroupsFor(this.prisma, [dto.productId])).get(dto.productId) ?? [], dto.modifiers);
+    if (!addons.ok) throw new BadRequestException(addons.error);
+    const modifiers = (addons.stored ?? undefined) as Prisma.InputJsonValue | undefined;
+    const unitPrice = new Prisma.Decimal(r2(info.price + addons.extra));
     const cart = await this.prisma.marketplaceCart.upsert({ where: { customerId }, update: {}, create: { customerId } });
     // Same product and size without extra choices adds up on one line.
     const existing = !options && !modifiers
@@ -184,7 +194,7 @@ export class MarketplaceCartService {
     if (existing) {
       await this.prisma.marketplaceCartLine.update({
         where: { id: existing.id },
-        data: { quantity: qty, unitPrice: new Prisma.Decimal(info.price), notes: dto.notes ?? existing.notes },
+        data: { quantity: qty, unitPrice, notes: dto.notes ?? existing.notes },
       });
     } else {
       await this.prisma.marketplaceCartLine.create({
@@ -196,7 +206,7 @@ export class MarketplaceCartService {
           productName: info.name,
           variantName: info.variantName,
           imageUrl: info.image,
-          unitPrice: new Prisma.Decimal(info.price),
+          unitPrice,
           quantity: dto.quantity,
           notes: dto.notes,
           ...(options !== undefined && { options }),
@@ -217,7 +227,13 @@ export class MarketplaceCartService {
       }
     }
     const options = cleanJson(dto.options);
-    const modifiers = cleanJson(dto.modifiers);
+    let modifiers: Prisma.InputJsonValue | undefined;
+    if (dto.modifiers !== undefined) {
+      cleanJson(dto.modifiers);
+      const addons = priceModifiers((await modifierGroupsFor(this.prisma, [line.productId])).get(line.productId) ?? [], dto.modifiers);
+      if (!addons.ok) throw new BadRequestException(addons.error);
+      modifiers = (addons.stored ?? Prisma.DbNull) as unknown as Prisma.InputJsonValue;
+    }
     await this.prisma.marketplaceCartLine.update({
       where: { id: lineId },
       data: {

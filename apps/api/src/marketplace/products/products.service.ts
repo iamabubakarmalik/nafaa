@@ -2,7 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MarketCatalogService, ProductOffer } from '../_shared/market-catalog.service';
+import { modifierGroupsFor } from '../_shared/market-modifiers';
 import { MarketSettingsService } from '../_shared/market-settings.service';
+import { isShopVisible, visibleShopWhere } from '../_shared/market-visibility';
 
 /** Live price and stock fields added to every product card. */
 function offerFields(o: ProductOffer | undefined, fallbackPrice: unknown) {
@@ -60,7 +62,7 @@ export class MarketplaceProductsService {
       is: {
         marketplaceProfile: {
           is: {
-            isListedOnMarketplace: true,
+            ...visibleShopWhere(await this.settings.platform()),
             isPaused: false,
             ...(dto.city ? { city: { equals: dto.city, mode: 'insensitive' } } : {}),
             ...(dto.freeDelivery ? { freeDeliveryAbove: { not: null } } : {}),
@@ -184,7 +186,7 @@ export class MarketplaceProductsService {
               select: {
                 shopId: true, slug: true, publicName: true, tagline: true,
                 logoUrl: true, coverUrl: true, city: true, area: true,
-                industry: true, verificationLevel: true, gate: true, flowSettings: true, isListedOnMarketplace: true,
+                industry: true, verificationLevel: true, gate: true, flowSettings: true, isListedOnMarketplace: true, verifiedAt: true,
                 isOpen: true, isPaused: true, offersDineIn: true,
                 ratingAverage: true, ratingCount: true, totalOrders: true, followerCount: true,
                 offersDelivery: true, offersPickup: true, deliveryFee: true,
@@ -200,7 +202,7 @@ export class MarketplaceProductsService {
       },
     });
 
-    if (!profile || !profile.isListedOnMarketplace || !profile.isAvailable || !profile.shop.marketplaceProfile?.isListedOnMarketplace) {
+    if (!profile || !profile.isListedOnMarketplace || !profile.isAvailable || !isShopVisible(profile.shop.marketplaceProfile, await this.settings.platform())) {
       throw new NotFoundException('Ye product Market par nahi mila');
     }
 
@@ -264,12 +266,17 @@ export class MarketplaceProductsService {
       ]);
 
     const offer = offers.get(productId);
-    const relatedOffers = await this.catalog.offers(related.map((r) => r.productId));
+    const [relatedOffers, addonGroups] = await Promise.all([
+      this.catalog.offers(related.map((r) => r.productId)),
+      modifierGroupsFor(this.prisma, [productId]),
+    ]);
     const { tenant: shopTenant, ...shopProfile } = profile.shop.marketplaceProfile!;
     return {
       ...profile,
       shop: { ...profile.shop, marketplaceProfile: { ...shopProfile, ...this.settings.shopGate({ ...shopProfile, tenant: shopTenant }) } },
       ...offerFields(offer, profile.publicPrice),
+      // Restaurant add-ons; the customer sends back [{ groupId, optionIds }].
+      modifierGroups: addonGroups.get(productId) ?? [],
       // One entry per size/colour with its own live price and stock.
       lines: (offer?.variants ?? []).map((l) => ({
         variantId: l.variantId, variantName: l.variantName, price: l.price, compareAtPrice: l.compareAtPrice,

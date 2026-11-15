@@ -34,6 +34,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AdminTenantsModule } from './tenants/admin-tenants.module';
 import { AdminJourneyModule } from './journey/admin-journey.module';
 import { AdminUsersModule } from './users/admin-users.module';
+import { AdminMarketModule } from './market/admin-market.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { AdminUsersModule } from './users/admin-users.module';
     AdminHealthModule,
     AdminBulkModule,
     AdminExportsModule,
+    AdminMarketModule,
   ],
   // Every admin change is written to the audit log (see access/admin-audit.interceptor.ts).
   providers: [{ provide: APP_INTERCEPTOR, useClass: AdminAuditInterceptor }],

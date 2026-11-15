@@ -3,6 +3,8 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MarketCatalogService } from '../_shared/market-catalog.service';
 import { MarketSettingsService } from '../_shared/market-settings.service';
+import { visibleShopWhere } from '../_shared/market-visibility';
+import { liveBanners } from '../_shared/market-home';
 import { MarketGate, isMarketGate } from '../_shared/market-config';
 import { isOpenAt } from '../_shared/market-hours';
 import { DiscoverQueryDto } from './dto/discover-query.dto';
@@ -69,8 +71,9 @@ export class MarketplaceHomeService {
       trendingProducts,
       flashSales,
       recommendedForYou,
+      sections,
     ] = await Promise.all([
-      this.getActiveBanners(dto.city),
+      this.getActiveBanners(dto.city, gate),
       this.getTopCategories(),
       this.getFeaturedShops(dto),
       dto.lat && dto.lng
@@ -81,10 +84,12 @@ export class MarketplaceHomeService {
       this.getTrendingProducts({ lat: dto.lat, lng: dto.lng, limit: 12 } as TrendingProductsDto),
       this.getActiveFlashSales(),
       customerId ? this.getRecommendedForCustomer(customerId, 12) : [],
+      this.getCuratedSections(gate),
     ]);
 
     return {
       banners,
+      sections,
       categories,
       featuredShops,
       nearbyShops,
@@ -119,7 +124,7 @@ export class MarketplaceHomeService {
     const deltaLng = radiusKm / (111 * Math.cos((dto.lat * Math.PI) / 180));
 
     const where: Prisma.ShopMarketplaceProfileWhereInput = {
-      isListedOnMarketplace: true,
+      ...visibleShopWhere(await this.settings.platform()),
       isOpen: true,
       isPaused: false,
       lat: { gte: dto.lat - deltaLat, lte: dto.lat + deltaLat },
@@ -180,10 +185,11 @@ export class MarketplaceHomeService {
 
   private async getFeaturedShops(dto: DiscoverQueryDto) {
     const gate = isMarketGate(dto.gate) ? dto.gate : null;
+    const picked = await this.getPickedShops((await this.settings.home()).featuredShopIds, gate, dto.city);
     const rows = await this.prisma.shopMarketplaceProfile.findMany({
       where: {
         ...gateWhere(gate),
-        isListedOnMarketplace: true,
+        ...visibleShopWhere(await this.settings.platform()),
         isOpen: true,
         verificationLevel: { in: ['GOLD', 'PLATINUM'] },
         ...(dto.city ? { city: { equals: dto.city, mode: 'insensitive' } } : {}),
@@ -199,14 +205,69 @@ export class MarketplaceHomeService {
         ...GATE_SELECT,
       },
     });
-    return this.decorate(rows, gate, 10);
+    // Shops picked in the admin panel come first, in their saved order.
+    const pickedIds = new Set(picked.map((r) => r.shopId));
+    return [...picked, ...this.decorate(rows.filter((r) => !pickedIds.has(r.shopId)), gate)].slice(0, 10);
+  }
+
+  /** Visible shops by id, in the given order, for the featured row and curated sections. */
+  private async getPickedShops(shopIds: string[], gate: MarketGate | null, city?: string) {
+    if (!shopIds.length) return [];
+    const rows = await this.prisma.shopMarketplaceProfile.findMany({
+      where: {
+        shopId: { in: shopIds },
+        ...visibleShopWhere(await this.settings.platform()),
+        ...(city ? { city: { equals: city, mode: 'insensitive' } } : {}),
+      },
+      select: {
+        id: true, shopId: true, slug: true, publicName: true, tagline: true,
+        logoUrl: true, coverUrl: true, city: true, area: true,
+        industry: true, verificationLevel: true,
+        ratingAverage: true, ratingCount: true, totalOrders: true,
+        ...GATE_SELECT,
+      },
+    });
+    rows.sort((a, b) => shopIds.indexOf(a.shopId) - shopIds.indexOf(b.shopId));
+    return this.decorate(rows, gate);
+  }
+
+  /** Home sections curated in the admin panel, with their shops or products loaded. */
+  private async getCuratedSections(gate: MarketGate | null) {
+    const home = await this.settings.home();
+    const list = home.sections.filter((s) => !s.gate || s.gate === gate);
+    const out = await Promise.all(list.map(async (s) => {
+      if (s.type === 'shops') {
+        const shops = await this.getPickedShops(s.shopIds ?? [], s.gate ?? gate);
+        return shops.length ? { id: s.id, title: s.title, type: s.type, shops, products: [] } : null;
+      }
+      const ids = s.productIds ?? [];
+      if (!ids.length) return null;
+      const rows = await this.prisma.productMarketplaceProfile.findMany({
+        where: {
+          productId: { in: ids }, isListedOnMarketplace: true, isAvailable: true, product: { isActive: true },
+          shop: { is: { marketplaceProfile: { is: { ...visibleShopWhere(await this.settings.platform()), isPaused: false } } } },
+        },
+        select: {
+          id: true, productId: true, shopId: true, publicName: true, publicPrice: true, compareAtPrice: true,
+          publicImages: true, marketplaceCategory: true, ratingAverage: true, ratingCount: true, totalSold: true,
+        },
+      });
+      rows.sort((a, b) => ids.indexOf(a.productId) - ids.indexOf(b.productId));
+      const offers = await this.catalog.offers(rows.map((r) => r.productId));
+      const products = rows.map((r) => {
+        const o = offers.get(r.productId);
+        return { ...r, price: o?.price ?? Number(r.publicPrice), availability: o?.availability ?? 'out_of_stock', inStock: !!o && o.availability !== 'out_of_stock' };
+      });
+      return products.length ? { id: s.id, title: s.title, type: s.type, shops: [], products } : null;
+    }));
+    return out.filter((s) => s !== null);
   }
 
   private async getPopularShops(city: string | undefined, limit: number, gate: MarketGate | null = null) {
     const rows = await this.prisma.shopMarketplaceProfile.findMany({
       where: {
         ...gateWhere(gate),
-        isListedOnMarketplace: true,
+        ...visibleShopWhere(await this.settings.platform()),
         isOpen: true,
         ...(city ? { city: { equals: city, mode: 'insensitive' } } : {}),
       },
@@ -250,7 +311,7 @@ export class MarketplaceHomeService {
       isListedOnMarketplace: true,
       isAvailable: true,
       product: { isActive: true },
-      shop: { is: { marketplaceProfile: { is: { isListedOnMarketplace: true, isPaused: false } } } },
+      shop: { is: { marketplaceProfile: { is: { ...visibleShopWhere(await this.settings.platform()), isPaused: false } } } },
       ...(dto.category ? { marketplaceCategory: dto.category } : {}),
     };
 
@@ -274,12 +335,12 @@ export class MarketplaceHomeService {
   }
 
   // ═══════════════════════════════════════════════════════════
-  // BANNERS  (placeholder — until CMS/promotions module lands)
+  // BANNERS  (admin panel: Marketplace > Home & banners)
   // ═══════════════════════════════════════════════════════════
 
-  private async getActiveBanners(_city?: string) {
-    // Return a static-shaped list for now. Promotions module will populate this later.
-    return [];
+  private async getActiveBanners(city: string | undefined, gate: MarketGate | null) {
+    const home = await this.settings.home();
+    return liveBanners(home, { city, gate }).map(({ id, image, title, link, gate: g }) => ({ id, image, title, link, gate: g ?? null }));
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -361,7 +422,7 @@ export class MarketplaceHomeService {
     const [shops, products, categories] = await Promise.all([
       this.prisma.shopMarketplaceProfile.findMany({
         where: {
-          isListedOnMarketplace: true,
+          ...visibleShopWhere(await this.settings.platform()),
           publicName: { contains: q, mode: 'insensitive' },
         },
         take: 5,

@@ -185,6 +185,42 @@ export class MarketStatusSyncService implements OnModuleInit, OnModuleDestroy {
     }).catch(() => null);
   }
 
+  /**
+   * Cancels an open Market order that has no ChannelOrder (nothing reached
+   * the POS), refunds wallet/points and tells the customer. Used by the
+   * admin panel; orders with a ChannelOrder are cancelled through Online
+   * Orders and arrive here through syncFromChannel.
+   */
+  async cancelWithoutChannel(orderId: string, opts: { by: string; reason: string }): Promise<boolean> {
+    const order = await this.prisma.marketplaceOrder.findUnique({
+      where: { id: orderId },
+      select: { id: true, orderNumber: true, customerId: true, status: true, paymentStatus: true, walletUsed: true, loyaltyPointsUsed: true, channelOrderId: true },
+    });
+    if (!order || order.channelOrderId || !OPEN_STATUSES.includes(order.status)) return false;
+    const done = await this.prisma.$transaction(async (tx) => {
+      const res = await tx.marketplaceOrder.updateMany({
+        where: { id: order.id, status: order.status, channelOrderId: null },
+        data: {
+          status: 'CANCELLED', cancelledAt: new Date(), cancelledBy: opts.by, cancelReason: opts.reason,
+          paymentStatus: order.paymentStatus === 'PAID' ? 'REFUNDED' : 'FAILED',
+        },
+      });
+      if (!res.count) return false;
+      await tx.orderStatusHistory.create({ data: { orderId: order.id, status: 'CANCELLED', note: opts.reason, changedBy: opts.by } });
+      await this.refundCustomer(tx, order);
+      return true;
+    });
+    if (!done) return false;
+    const msg = notice('CANCELLED', order.orderNumber, '', false);
+    if (msg) {
+      await this.notifications.create({
+        customerId: order.customerId, type: 'ORDER', title: msg.title, body: msg.body,
+        actionUrl: `/orders/${order.id}`, data: { orderId: order.id, status: 'CANCELLED' },
+      }).catch(() => null);
+    }
+    return true;
+  }
+
   /** Copies the ChannelOrder's status, rider and tracking to its Market order. */
   async syncFromChannel(channelOrderId: string, opts: { by?: string; note?: string } = {}) {
     const co = await this.prisma.channelOrder.findUnique({

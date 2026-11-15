@@ -48,6 +48,10 @@ export class MarketIntakeService {
     const method = order.paymentMethod;
     const slot = order.deliverySlotStart?.toISOString() ?? null;
 
+    const itemExtras = order.items
+      .filter((i) => i.notes || i.modifiers || i.options)
+      .map((i) => ({ name: i.productName, variant: i.variantName ?? null, quantity: i.quantity, notes: i.notes ?? null, modifiers: i.modifiers ?? null, options: i.options ?? null }));
+
     const normalized: NormalizedOrder = {
       platform: 'custom',
       externalOrderId: order.orderNumber,
@@ -71,7 +75,8 @@ export class MarketIntakeService {
       paymentMethod: method === 'COD' ? 'cod' : method.toLowerCase(),
       paymentStatus: order.paymentStatus === 'PAID' ? 'PAID' : 'PENDING',
       cancelled: false,
-      notes: [order.customerNotes, slot ? `Delivery ka waqt: ${slot}` : null].filter(Boolean).join(' · ') || undefined,
+      // The slot travels in metadata.deliverySlot and is shown in Pakistan time by the POS drawer.
+      notes: order.customerNotes || undefined,
       paymentTitle: method === 'COD' ? 'Cash on delivery' : method === 'WALLET' ? 'Nafaa Market wallet' : `Online payment (${method})`,
       shippingMethod: `Nafaa Market · ${fulfilment === 'DELIVERY' ? 'Delivery' : fulfilment === 'PICKUP' ? 'Pickup' : 'Dine-in'}`,
       shopId: order.shopId,
@@ -92,6 +97,8 @@ export class MarketIntakeService {
           ...(slot && { deliverySlot: { start: slot, end: order.deliverySlotEnd?.toISOString() ?? null } }),
           // Customer uploads (prescription photos) for the POS order drawer.
           ...(order.attachments && { attachments: order.attachments }),
+          // Per-line choices from the category flow (add-ons, cake message, substitute preference, notes).
+          ...(itemExtras.length && { itemExtras }),
         } as Prisma.InputJsonValue,
       },
     }).catch(() => null);

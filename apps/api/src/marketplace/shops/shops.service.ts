@@ -3,6 +3,7 @@ import { Prisma, ShopVerificationLevel } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MarketCatalogService } from '../_shared/market-catalog.service';
 import { MarketSettingsService } from '../_shared/market-settings.service';
+import { isShopVisible, visibleShopWhere } from '../_shared/market-visibility';
 import { isMarketGate } from '../_shared/market-config';
 import { isOpenAt } from '../_shared/market-hours';
 import { ListShopsDto } from './dto/list-shops.dto';
@@ -44,7 +45,7 @@ export class MarketplaceShopsService {
 
   async listShops(dto: ListShopsDto, customerId?: string) {
     const where: Prisma.ShopMarketplaceProfileWhereInput = {
-      isListedOnMarketplace: true,
+      ...visibleShopWhere(await this.settings.platform()),
     };
     if (dto.onlyOpen) { where.isOpen = true; where.isPaused = false; }
     if (dto.city)     where.city = { equals: dto.city, mode: 'insensitive' };
@@ -154,7 +155,7 @@ export class MarketplaceShopsService {
 
   async getShopBySlug(slug: string, customerId?: string, lat?: number, lng?: number) {
     const shop = await this.prisma.shopMarketplaceProfile.findFirst({
-      where: { slug, isListedOnMarketplace: true },
+      where: { slug, ...visibleShopWhere(await this.settings.platform()) },
     });
     if (!shop) throw new NotFoundException('Shop not found');
     return this.enrichShopDetail(shop, customerId, lat, lng);
@@ -164,7 +165,7 @@ export class MarketplaceShopsService {
     const shop = await this.prisma.shopMarketplaceProfile.findUnique({
       where: { shopId },
     });
-    if (!shop || !shop.isListedOnMarketplace) throw new NotFoundException('Shop not found');
+    if (!isShopVisible(shop, await this.settings.platform())) throw new NotFoundException('Shop not found');
     return this.enrichShopDetail(shop, customerId, lat, lng);
   }
 
@@ -360,7 +361,7 @@ export class MarketplaceShopsService {
 
   async followShop(customerId: string, shopId: string) {
     const shop = await this.prisma.shopMarketplaceProfile.findUnique({ where: { shopId } });
-    if (!shop || !shop.isListedOnMarketplace) throw new NotFoundException('Shop not found');
+    if (!isShopVisible(shop, await this.settings.platform())) throw new NotFoundException('Shop not found');
 
     await this.prisma.$transaction([
       this.prisma.customerFollowsShop.upsert({
@@ -457,7 +458,7 @@ export class MarketplaceShopsService {
     if (!base) throw new NotFoundException('Shop not found');
     return this.prisma.shopMarketplaceProfile.findMany({
       where: {
-        isListedOnMarketplace: true, isOpen: true,
+        ...visibleShopWhere(await this.settings.platform()), isOpen: true,
         industry: base.industry,
         shopId: { not: shopId },
         ...(base.city ? { city: base.city } : {}),

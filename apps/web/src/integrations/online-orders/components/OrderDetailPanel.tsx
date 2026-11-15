@@ -20,6 +20,7 @@ import { CourierHint } from './couriers/CourierHint';
 import { RiskCard } from './RiskBadge';
 import { ConfirmCard } from './ConfirmCard';
 import { OrderExtras } from './OrderExtras';
+import { MarketOrderPanel } from '@modules/market/components/MarketOrderPanel';
 import { OrderBranchPicker } from './OrderBranchPicker';
 import { DarazOrderSection } from './daraz/Daraz';
 import { PaymentLinkSection } from './PaymentLinkSection';
@@ -244,6 +245,8 @@ export function OrderDetailPanel({ orderId, onClose }: { orderId: string; onClos
             <button onClick={copyAddress} className={chip}><Copy className="h-3.5 w-3.5" /> {' '}{t('Address copy')}</button>
           </div>
         </section>
+
+        <MarketOrderPanel metadata={o.metadata} />
 
         <OrderExtras order={o} onChanged={refresh} />
 

@@ -48,6 +48,19 @@ const StoreDetailPage = lazy(() => import('@/features/stores/pages/StoreDetailPa
 const StoreDomainsPage = lazy(() => import('@/features/stores/pages/StoreDomainsPage'));
 const StoreReportsPage = lazy(() => import('@/features/stores/pages/StoreReportsPage'));
 const StoreControlsPage = lazy(() => import('@/features/stores/pages/StoreControlsPage'));
+const MarketOverviewPage = lazy(() => import('@/features/market/pages/MarketOverviewPage'));
+const MarketShopsPage = lazy(() => import('@/features/market/pages/MarketShopsPage'));
+const MarketShopDetailPage = lazy(() => import('@/features/market/pages/MarketShopDetailPage'));
+const MarketOrdersPage = lazy(() => import('@/features/market/pages/MarketOrdersPage'));
+const MarketOrderDetailPage = lazy(() => import('@/features/market/pages/MarketOrderDetailPage'));
+const MarketReviewsPage = lazy(() => import('@/features/market/pages/MarketReviewsPage'));
+const MarketCustomersPage = lazy(() => import('@/features/market/pages/MarketCustomersPage'));
+const MarketCustomerDetailPage = lazy(() => import('@/features/market/pages/MarketCustomerDetailPage'));
+const MarketHomePage = lazy(() => import('@/features/market/pages/MarketHomePage'));
+const MarketSettlementsPage = lazy(() => import('@/features/market/pages/MarketSettlementsPage'));
+const MarketSupportPage = lazy(() => import('@/features/market/pages/MarketSupportPage'));
+const MarketTicketPage = lazy(() => import('@/features/market/pages/MarketTicketPage'));
+const MarketSettingsPage = lazy(() => import('@/features/market/pages/MarketSettingsPage'));
 const MobileOverviewPage = lazy(() => import('@/features/mobile/pages/MobileOverviewPage'));
 const MobileDevicesPage = lazy(() => import('@/features/mobile/pages/MobileDevicesPage'));
 const MobileDeviceDetailPage = lazy(() => import('@/features/mobile/pages/MobileDeviceDetailPage'));
@@ -195,6 +208,22 @@ export default function App() {
               <Route path="/stores/reports" element={<StoreReportsPage />} />
               <Route path="/stores/controls" element={<StoreControlsPage />} />
               <Route path="/stores/:id" element={<StoreDetailPage />} />
+
+              {/* Nafaa Market: fixed paths before the :id pages */}
+              <Route path="/market" element={<MarketOverviewPage />} />
+              <Route path="/market/shops" element={<MarketShopsPage />} />
+              <Route path="/market/approvals" element={<MarketShopsPage approvals />} />
+              <Route path="/market/shops/:shopId" element={<MarketShopDetailPage />} />
+              <Route path="/market/orders" element={<MarketOrdersPage />} />
+              <Route path="/market/orders/:id" element={<MarketOrderDetailPage />} />
+              <Route path="/market/reviews" element={<MarketReviewsPage />} />
+              <Route path="/market/customers" element={<MarketCustomersPage />} />
+              <Route path="/market/customers/:id" element={<MarketCustomerDetailPage />} />
+              <Route path="/market/home" element={<MarketHomePage />} />
+              <Route path="/market/settlements" element={<MarketSettlementsPage />} />
+              <Route path="/market/support" element={<MarketSupportPage />} />
+              <Route path="/market/support/:id" element={<MarketTicketPage />} />
+              <Route path="/market/settings" element={<MarketSettingsPage />} />
 
               <Route path="/mobile" element={<MobileOverviewPage />} />
               <Route path="/mobile/devices" element={<MobileDevicesPage />} />

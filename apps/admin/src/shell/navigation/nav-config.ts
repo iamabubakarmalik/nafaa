@@ -21,6 +21,7 @@ import { CalendarDays, CheckCheck, Hand, MessagesSquare, PenSquare, Share2 } fro
 import { InboxBadge } from '@/features/brand-social/components/InboxBadge';
 import { SupportBadge } from '@/features/support/components/SupportBadge';
 import { Headphones } from 'lucide-react';
+import { BadgeCheck, LayoutTemplate, LifeBuoy, ShoppingBasket, Star, Store as StoreIcon } from 'lucide-react';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
 
 type IconType = ComponentType<{ className?: string; style?: CSSProperties }>;
@@ -47,7 +48,7 @@ export interface AdminNavGroup {
 }
 
 export type WorkspaceId =
-  | 'platform' | 'merchants' | 'partners' | 'billing' | 'online-store' | 'marketing' | 'communications' | 'mobile' | 'system' | 'staff';
+  | 'platform' | 'merchants' | 'partners' | 'billing' | 'online-store' | 'marketplace' | 'marketing' | 'communications' | 'mobile' | 'system' | 'staff';
 
 export interface AdminWorkspace {
   id: WorkspaceId;
@@ -257,6 +258,42 @@ export const WORKSPACES: AdminWorkspace[] = [
           { to: '/stores/domains', label: 'Domains', icon: Link2, keywords: 'custom domain dns ssl verify hosting' },
           { to: '/stores/reports', label: 'Abuse reports', icon: Flag, keywords: 'report scam fake moderation queue' },
           { to: '/stores/controls', label: 'Website controls', icon: SlidersHorizontal, keywords: 'checkout kill switch banner maintenance themes payments blocked policy' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'marketplace',
+    label: 'Marketplace',
+    shortLabel: 'Market',
+    description: 'Nafaa Market: shops, orders, reviews, customers and platform rules',
+    icon: ShoppingBasket,
+    tone: 'bg-orange-500 text-white',
+    root: '/market',
+    prefixes: ['/market'],
+    groups: [
+      {
+        id: 'market-ops',
+        label: 'Nafaa Market',
+        icon: ShoppingBasket,
+        items: [
+          { to: '/market', label: 'Overview', icon: BarChart3, exact: true, keywords: 'marketplace market gmv orders cities' },
+          { to: '/market/shops', label: 'Shops', icon: StoreIcon, keywords: 'marketplace market sellers verification pause feature' },
+          { to: '/market/approvals', label: 'Approvals', icon: BadgeCheck, keywords: 'marketplace market approve reject pending shops verification cnic' },
+          { to: '/market/orders', label: 'Orders', icon: ShoppingCart, keywords: 'marketplace market stuck cancel refund' },
+          { to: '/market/reviews', label: 'Reviews', icon: Star, keywords: 'marketplace market ratings moderation hide reported' },
+          { to: '/market/customers', label: 'Customers', icon: Users, keywords: 'marketplace market buyers block wallet points' },
+          { to: '/market/support', label: 'Support', icon: LifeBuoy, keywords: 'marketplace market tickets help customer' },
+        ],
+      },
+      {
+        id: 'market-setup',
+        label: 'Setup and money',
+        icon: Settings2,
+        items: [
+          { to: '/market/home', label: 'Home & banners', icon: LayoutTemplate, keywords: 'marketplace market banners featured sections curation' },
+          { to: '/market/settlements', label: 'Settlements', icon: HandCoins, keywords: 'marketplace market commission payouts wallet points owed' },
+          { to: '/market/settings', label: 'Settings', icon: SlidersHorizontal, keywords: 'marketplace market sections gates cities commission payments approval' },
         ],
       },
     ],
@@ -481,7 +518,7 @@ const AREA_BY_PREFIX: Array<[string, string]> = [
   ['/products', 'merchant_data'], ['/sales', 'merchant_data'], ['/customers', 'merchant_data'], ['/bulk-actions', 'bulk'],
   ['/billing/settings', 'plans'], ['/billing', 'billing'], ['/invoices', 'billing'], ['/revenue', 'billing'], ['/setups', 'tenants'], ['/addons', 'plans'], ['/subscriptions', 'plans'], ['/plans', 'plans'], ['/distribution', 'plans'],
   ['/platform-discounts', 'promos'], ['/referrals', 'promos'],
-  ['/commerce', 'online_store'], ['/stores', 'stores'], ['/marketing', 'marketing'], ['/social', 'marketing'],
+  ['/commerce', 'online_store'], ['/stores', 'stores'], ['/market', 'marketplace'], ['/marketing', 'marketing'], ['/social', 'marketing'],
   ['/broadcast', 'communications'], ['/bulk-communications', 'communications'], ['/email-templates', 'communications'],
   ['/email-logs', 'communications'], ['/sms-templates', 'communications'], ['/sms-logs', 'communications'],
   ['/mobile', 'mobile'], ['/health', 'system'], ['/system', 'system'], ['/activity', 'system'], ['/ai-usage', 'system'], ['/exports', 'exports'],
