@@ -360,6 +360,21 @@ export class BrandSocialPostsService {
     return this.one(id);
   }
 
+  /**
+   * Archive for an automation key: only posts that are not out yet. Approved
+   * or scheduled posts need a key with the `schedule` scope.
+   */
+  async archiveByKey(id: string, actor: SocialActor): Promise<BrandPostView> {
+    const post = await this.row(id);
+    const status = post.status as BrandPostStatus;
+    const open: BrandPostStatus[] = ['IDEA', 'DRAFT', 'IN_REVIEW', 'REJECTED', 'FAILED'];
+    const queued: BrandPostStatus[] = ['APPROVED', 'SCHEDULED'];
+    if (!open.includes(status) && !(queued.includes(status) && actor.canSchedule)) {
+      throw new ForbiddenException('This key cannot archive a post that is already approved or out.');
+    }
+    return this.archive(id);
+  }
+
   async duplicate(id: string, actor: SocialActor): Promise<BrandPostView> {
     const p = await this.row(id);
     const row = await this.prisma.brandSocialPost.create({

@@ -2,14 +2,16 @@
  * Nafaa Social automation API (`/api/brand-social/automation`) for an
  * automated marketer. No admin login: `Authorization: Bearer nsk_...` (an
  * automation key from the admin Settings page). It can write posts (always
- * IN_REVIEW), add media, import content packs, draft first comments and read;
- * it can never approve, publish, connect accounts or change settings.
+ * IN_REVIEW), add media, import content packs, draft first comments and read.
+ * It can archive posts that are not out yet (approved or scheduled ones only
+ * with the `schedule` scope) and delete files no post uses. It can never
+ * approve, publish, connect accounts or change settings.
  * Every call, allowed or refused, goes to the admin audit log with the key
  * name as the actor. Rate limit: 120 calls a minute per key (plus the
  * global per-IP limit).
  */
 import {
-  Body, CallHandler, CanActivate, Controller, ExecutionContext, Get, HttpCode, HttpException, HttpStatus, Injectable, Logger, NestInterceptor,
+  Body, CallHandler, CanActivate, Controller, Delete, ExecutionContext, Get, HttpCode, HttpException, HttpStatus, Injectable, Logger, NestInterceptor,
   Param, Patch, Post, Query, SetMetadata, createParamDecorator, UnauthorizedException, ForbiddenException, UploadedFile, UseGuards, UseInterceptors,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
@@ -138,6 +140,8 @@ export class BrandSocialAutomationController {
   create(@Body() b: PostInput, @AutomationActorParam() a: AutomationActor) { return this.posts.create(b ?? {}, actorOf(a)); }
   @Patch('posts/:id') @Scope('posts')
   update(@Param('id') id: string, @Body() b: PostInput, @AutomationActorParam() a: AutomationActor) { return this.posts.update(id, b ?? {}, actorOf(a)); }
+  @Delete('posts/:id') @Scope('posts')
+  archive(@Param('id') id: string, @AutomationActorParam() a: AutomationActor) { return this.posts.archiveByKey(id, actorOf(a)); }
   @Post('posts/:id/comment-draft') @HttpCode(200) @Scope('comments')
   commentDraft(@Param('id') id: string, @Body() b: CommentDraftInput, @AutomationActorParam() a: AutomationActor) { return this.posts.commentDraft(id, b?.text, actorOf(a)); }
 
@@ -146,6 +150,8 @@ export class BrandSocialAutomationController {
   presign(@Body() b: { fileName?: string; contentType?: string; fileSize?: number }) { return this.media.presign(b ?? {}); }
   @Post('assets') @Scope('assets')
   addAsset(@Body() b: AssetInput, @AutomationActorParam() a: AutomationActor) { return this.media.create(b ?? ({} as AssetInput), actorOf(a)); }
+  @Delete('assets/:id') @Scope('assets')
+  removeAsset(@Param('id') id: string) { return this.media.remove(id); }
   @Post('assets/upload') @Scope('assets')
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: MEDIA_MAX_BYTES, files: 1 } }))
   upload(@UploadedFile() file: Express.Multer.File, @Body() b: Record<string, unknown>, @AutomationActorParam() a: AutomationActor) { return this.media.upload(file, b ?? {}, actorOf(a)); }
