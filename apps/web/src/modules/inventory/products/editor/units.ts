@@ -9,7 +9,7 @@ export const RETAIL_UNITS = [
 ];
 
 export const VARIANT_PRESETS = [
-  { group: t('Size'), values: ['Chhota', 'Darmiyana', 'Bara', 'XL'] },
-  { group: t('Rang'), values: ['Kaala', 'Safed', 'Laal', 'Neela', 'Hara'] },
-  { group: t('Flavour'), values: ['Sada', 'Chocolate', 'Strawberry', 'Mango'] },
+  { group: t('Size'), values: [t('Chhota'), t('Darmiyana'), t('Bara'), 'XL'] },
+  { group: t('Rang'), values: [t('Kaala'), t('Safed'), t('Laal'), t('Neela'), t('Hara')] },
+  { group: t('Flavour'), values: [t('Sada'), t('Chocolate'), t('Strawberry'), t('Mango')] },
 ];

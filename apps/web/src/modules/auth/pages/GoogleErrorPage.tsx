@@ -25,7 +25,7 @@ export default function GoogleErrorPage() {
       )}
 
       <GoogleButton label={t('Google se dobara try karein')} />
-      <OrDivider label="ya" />
+      <OrDivider label={t('ya')} />
       <Link
         to="/login"
         className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-600 text-sm font-semibold text-brand-fg shadow-sm hover:bg-brand-700"

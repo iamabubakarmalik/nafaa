@@ -38,12 +38,14 @@ function write(value: Stored) {
   }
 }
 
-function hasSavedSession(): boolean {
+/** The saved session, or null when the device is signed out. */
+function savedSession(): { language: Locale | null } | null {
   try {
     const raw = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null');
-    return !!raw?.state?.isAuthenticated;
+    if (!raw?.state?.isAuthenticated) return null;
+    return { language: normalizeLocale(raw.state.user?.language) };
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -55,7 +57,11 @@ function hasSavedSession(): boolean {
 export function initialLocale(): Locale {
   const stored = read();
   if (stored) return stored.locale;
-  return hasSavedSession() ? 'roman' : DEFAULT_LOCALE;
+  const session = savedSession();
+  if (!session) return DEFAULT_LOCALE;
+  // The user's own saved language wins; only a user without one is a
+  // pre-language account.
+  return session.language ?? 'roman';
 }
 
 export const hasUnsyncedChoice = (): boolean => !!read()?.unsynced;

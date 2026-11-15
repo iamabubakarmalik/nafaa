@@ -131,7 +131,7 @@ export function AiLauncher() {
       onClick={toggle}
       aria-label={tr('Nafaa AI kholein (Alt+I)')}
       title={tr('Nafaa AI (Alt+I)')}
-      className="group fixed bottom-5 end-5 z-[60] flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 print:hidden"
+      className="ai-launcher group fixed bottom-5 end-5 z-[60] flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-lg ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 print:hidden"
     >
       <NafaaAiMark size={34} state={streaming ? 'thinking' : 'idle'} />
     </button>

@@ -241,7 +241,7 @@ export function ProductEditorPage<X>({ config }: { config: EditorConfig<X> }) {
       )}
 
       {/* Action bar */}
-      <div className="sticky bottom-3 z-30 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
+      <div data-sticky-footer className="sticky bottom-3 z-30 flex flex-wrap items-center gap-2 rounded-2xl bg-white/95 p-3 shadow-lg ring-1 ring-slate-200 backdrop-blur">
         <Button variant="secondary" onClick={e.back} disabled={e.stepIndex === 0} leftIcon={<ArrowLeft className="h-4 w-4 rtl-flip" />}>{t('Peeche')}</Button>
         <p className="hidden flex-1 text-center text-[0.8125rem] text-slate-500 sm:block">
           {t('Step {{value}} / {{count}} · {{title}}', { value: e.stepIndex + 1, count: e.steps.length, title: e.step.title })}

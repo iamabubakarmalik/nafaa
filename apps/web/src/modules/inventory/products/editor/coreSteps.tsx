@@ -82,8 +82,8 @@ export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?:
 /* ─────────────────────────── Step 2: price ─────────────────────────── */
 
 const PACK_PRESETS: Array<{ name: string; rate: number; type: UnitDraft['conversionType'] }> = [
-  { name: 'Aadha darjan', rate: 6, type: 'PACK' }, { name: 'Darjan', rate: 12, type: 'DOZEN' }, { name: 'Pack (10)', rate: 10, type: 'PACK' },
-  { name: 'Dabba (24)', rate: 24, type: 'BOX' }, { name: 'Carton', rate: 120, type: 'CARTON' }, { name: 'Bori (50)', rate: 50, type: 'CUSTOM' },
+  { name: tr('Aadha darjan'), rate: 6, type: 'PACK' }, { name: tr('Darjan'), rate: 12, type: 'DOZEN' }, { name: tr('Pack (10)'), rate: 10, type: 'PACK' },
+  { name: tr('Dabba (24)'), rate: 24, type: 'BOX' }, { name: tr('Carton'), rate: 120, type: 'CARTON' }, { name: tr('Bori (50)'), rate: 50, type: 'CUSTOM' },
 ];
 
 /** Switch for saved packs and variants: they are turned off, never deleted. */
@@ -298,7 +298,7 @@ export function priceStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; allowZe
       d.core.units.forEach((u) => {
         const name = u.unitName.trim().toLowerCase();
         if (!u.isBase && !name) e.units = tr('Packing ka naam likhein');
-        else if (!u.isBase && !(u.conversionRate > 0)) e.units = tr('{{value}}: kitne aate hain likhein', { value: u.unitName || 'Packing' });
+        else if (!u.isBase && !(u.conversionRate > 0)) e.units = tr('{{value}}: kitne aate hain likhein', { value: u.unitName || tr('Packing') });
         else if (!u.isBase && name === baseName) e.units = tr('"{{value}}" product ka asal unit hai — packing ka doosra naam rakhein', { value: u.unitName.trim() });
         else if (!u.isBase && names.has(name)) e.units = tr('Do packing ka naam "{{value}}" hai — naam alag rakhein', { value: u.unitName.trim() });
         if (!u.isBase) names.add(name);

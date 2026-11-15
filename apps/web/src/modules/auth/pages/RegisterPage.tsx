@@ -164,7 +164,7 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <OrDivider label="ya" />
+          <OrDivider label={t('ya')} />
           <GoogleButton
             label={t('Google se account banayein')}
             onBeforeRedirect={() => { if (businessType) rememberSignupIndustry(businessType); rememberSignupModels(models); }}

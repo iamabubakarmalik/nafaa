@@ -53,7 +53,12 @@ export function startLanguageSync() {
       void saveToServer(currentLocale());
       return;
     }
-    if (server === currentLocale()) return;
+    if (server === currentLocale()) {
+      // Keep a local copy so a reload does not mistake a signed-in device with
+      // no stored choice for a pre-language one (which starts in Roman Urdu).
+      rememberLocale(server);
+      return;
+    }
     rememberLocale(server);
     if (isLogin) reloadPage();
   };

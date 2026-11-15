@@ -3265,5 +3265,21 @@
   "Zyada se zyada kitne bechne hain": "Most to sell",
   "Zyada stock": "Overstock",
   "Zyada stock pehle": "Most stock first",
-  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "Most columns are matched automatically. Do check the stock column, and choose the branch where the stock will go."
+  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "Most columns are matched automatically. Do check the stock column, and choose the branch where the stock will go.",
+  "Chhota": "Small",
+  "Darmiyana": "Medium",
+  "Bara": "Large",
+  "Kaala": "Black",
+  "Safed": "White",
+  "Laal": "Red",
+  "Neela": "Blue",
+  "Hara": "Green",
+  "Sada": "Plain",
+  "Chocolate": "Chocolate",
+  "Strawberry": "Strawberry",
+  "Mango": "Mango",
+  "Aadha darjan": "Half dozen",
+  "Pack (10)": "Pack of 10",
+  "Dabba (24)": "Box of 24",
+  "Bori (50)": "Sack of 50"
 }
