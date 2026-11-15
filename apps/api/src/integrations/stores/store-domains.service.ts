@@ -22,6 +22,7 @@ import {
 } from './lib/hosting';
 import { blockedDomain, loadControls } from './store-controls';
 import { readSettings } from './store-settings';
+import { notifyAdmins } from '../../admin/notifications/admin-notify';
 
 export interface VercelDomain { name: string; verified?: boolean; redirect?: string | null; verification?: Array<{ type: string; domain: string; value: string; reason?: string }>; error?: { code?: string; message?: string } }
 export interface DnsRecord { type: 'A' | 'CNAME' | 'TXT'; name: string; value: string; ok: boolean | null }
@@ -110,6 +111,37 @@ export class StoreDomainsService {
    */
   async check(d: StoreDomain): Promise<StoreDomain> {
     if (isRemovedByNafaa(d)) return d;
+    const out = await this.checkOnce(d);
+    this.notifyDomainChange(d, out);
+    return out;
+  }
+
+  /** Admin team: a custom domain became active, or a check started failing. */
+  private notifyDomainChange(before: StoreDomain, after: StoreDomain) {
+    try {
+      if (isRemovedByNafaa(after)) return;
+      const base = { category: 'commerce' as const, link: `/stores/${after.storeId}`, tenantId: after.tenantId, entityType: 'store_domain', entityId: after.id };
+      if (after.status === 'ACTIVE' && before.status !== 'ACTIVE') {
+        notifyAdmins({
+          ...base, event: 'commerce.domain_verified', type: 'SUCCESS',
+          title: `Domain connected: ${after.hostname}`,
+          message: 'The custom domain is verified and serves the store with SSL.',
+          dedupeKey: `domain-ok:${after.id}`, windowMinutes: 7 * 24 * 60, quietRepeat: true,
+        });
+      } else if (after.error && after.error !== before.error) {
+        notifyAdmins({
+          ...base, event: 'commerce.domain_failed', severity: 'warning',
+          title: `Domain check failed: ${after.hostname}`,
+          message: after.error,
+          dedupeKey: `domain-failed:${after.id}`, windowMinutes: 24 * 60, quietRepeat: true,
+        });
+      }
+    } catch {
+      // never break a domain check
+    }
+  }
+
+  private async checkOnce(d: StoreDomain): Promise<StoreDomain> {
     try {
       const { info, verified, dnsOk } = await this.probe(d.hostname, d.redirectTo);
       const records: DnsRecord[] = [

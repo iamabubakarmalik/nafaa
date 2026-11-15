@@ -5,7 +5,7 @@
  * warnings are still shown when a post is saved.
  */
 
-import type { PostKind, PostMedia, SocialPlatform } from '@/api/admin-brand-social.api';
+import type { PostKind, PostMedia, PostOptions, SocialPlatform } from '@/api/admin-brand-social.api';
 import { PLATFORM } from './platforms';
 
 /** The caption a platform gets: its own override, or the shared one. */
@@ -76,6 +76,7 @@ export interface LocalWarning { platform?: SocialPlatform | null; level: 'error'
 export function localWarnings(input: {
   kind: PostKind; caption: string; captions: Partial<Record<SocialPlatform, string>>; hashtags: string[];
   media: PostMedia[]; platforms: SocialPlatform[]; link: string; scheduledAt: string | null;
+  options?: PostOptions;
 }): LocalWarning[] {
   const out: LocalWarning[] = [];
   const { kind, media, platforms } = input;
@@ -112,6 +113,20 @@ export function localWarnings(input: {
         const r = v ? ratio(v) : null;
         if (r && Math.abs(r - 9 / 16) > 0.03) out.push({ platform: p, level: 'warning', message: 'Reels look best as 9:16 vertical video.' });
       }
+    }
+    if (kind === 'STORY' && (p === 'INSTAGRAM' || p === 'FACEBOOK')) {
+      const m = videos[0] ?? media[0];
+      if (!m && p === 'FACEBOOK') out.push({ platform: p, level: 'error', message: 'A Facebook story needs one image or video.' });
+      const r = m ? ratio(m) : null;
+      if (r && Math.abs(r - 9 / 16) > 0.06) out.push({ platform: p, level: 'error', message: `${info.label} stories must be vertical 9:16 (for example 1080 x 1920); this ${m!.kind} is ${r.toFixed(2)}:1.` });
+      if (m?.kind === 'video' && m.durationSec && (m.durationSec < 3 || m.durationSec > 60)) out.push({ platform: p, level: 'error', message: `${info.label} video stories must be 3 to 60 seconds; this video is ${Math.round(m.durationSec)} s.` });
+    }
+    if (p === 'X' && input.options?.x?.poll) {
+      const poll = input.options.x.poll;
+      const filled = poll.options.map((o) => o.trim()).filter(Boolean);
+      if (filled.length < 2) out.push({ platform: p, level: 'error', message: 'An X poll needs 2 to 4 choices.' });
+      if (filled.some((o) => [...o].length > 25)) out.push({ platform: p, level: 'error', message: 'Each X poll choice can be at most 25 characters.' });
+      if (media.length) out.push({ platform: p, level: 'error', message: 'An X post with a poll cannot carry images or video. Remove the media or the poll.' });
     }
     if (p === 'TIKTOK' && !videos.length) out.push({ platform: p, level: 'warning', message: 'TikTok posts are usually videos.' });
     if (p === 'YOUTUBE' && !videos.length) out.push({ platform: p, level: 'error', message: 'YouTube needs a video.' });

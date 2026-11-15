@@ -3,6 +3,7 @@ import { Prisma, TenantStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { apiMessage, notificationText } from '../../common/i18n/api-message';
 import { DEFAULT_TZ, addDaysTz, dateKeyTz, startOfDayTz, subDaysTz } from '../../common/helpers/business-time.helper';
+import { notifyAdmins } from '../notifications/admin-notify';
 import { invalidateEntitlements } from '../../modules/billing/entitlements/entitlements.service';
 
 @Injectable()
@@ -367,6 +368,12 @@ export class AdminTenantsService {
       throw new NotFoundException('Cannot delete system tenant');
     }
     await this.prisma.tenant.delete({ where: { id } });
+    notifyAdmins({
+      category: 'shops', event: 'shop.deleted', severity: 'warning',
+      title: `Shop deleted: ${tenant.name}`,
+      message: `${tenant.name} and all its data were deleted permanently from the admin panel.`,
+      link: '/tenants', entityType: 'tenant', entityId: id, metadata: { slug: tenant.slug },
+    });
     return { message: 'Tenant deleted permanently' };
   }
 }

@@ -62,6 +62,8 @@ export interface SocialAccount {
   tokenExpiresAt: string | null;
   scopes: string[];
   followers: number | null;
+  /** Followers now minus followers 7 days ago, when both are known. */
+  followersChange7d?: number | null;
   lastError: string | null;
   lastCheckedAt: string | null;
   createdAt: string;
@@ -123,7 +125,9 @@ export interface TikTokPostOptions {
   brandedContent: boolean;
 }
 
-export interface PostOptions { tiktok?: TikTokPostOptions }
+/** X poll: 2 to 4 choices (25 characters each), open 5 minutes to 7 days; text posts only. */
+export interface XPoll { options: string[]; durationMinutes: number }
+export interface PostOptions { tiktok?: TikTokPostOptions; x?: { poll?: XPoll | null } }
 
 export interface AccountOptions {
   platform: SocialPlatform;
@@ -184,6 +188,11 @@ export interface PublishState {
   commentError?: string | null;
   manual?: boolean;
   postedById?: string | null;
+  /** Removed from the platform through Nafaa. */
+  deletedAt?: string | null;
+  editedAt?: string | null;
+  /** Instagram: comments turned off from Nafaa. */
+  commentsOff?: boolean;
 }
 
 export interface PostWarning {
@@ -329,6 +338,85 @@ export interface SocialOverview {
   queue: SocialPost[];
   needsYou: { approvals: SocialPost[]; failed: SocialPost[]; handoff: SocialPost[] };
   accounts: SocialAccount[];
+  totals7d?: { followers: number; followersChange: number | null; reach: number; engagement: number; impressions: number };
+  topPosts?: Array<{
+    id: string; title: string; kind: PostKind; publishedAt: string | null; thumbUrl: string | null;
+    reach: number; engagement: number; links: Array<{ platform: SocialPlatform; permalink: string }>;
+  }>;
+  inboxUnread?: number;
+}
+
+// ─── Published posts and results ───────────────────────────────────────
+
+export type MetricKey = 'reach' | 'impressions' | 'likes' | 'comments' | 'shares' | 'saves' | 'plays' | 'clicks' | 'engagement';
+export type MetricTotals = Record<MetricKey, number>;
+
+export interface PlatformActions {
+  edit: { ok: boolean; fields: Array<'message' | 'title' | 'description' | 'link'>; reason: string | null };
+  delete: { ok: boolean; reason: string | null };
+  toggleComments: { ok: boolean; reason: string | null };
+  comments: { ok: boolean; reason: string | null };
+}
+
+export interface PublishedPlatform {
+  platform: SocialPlatform;
+  status: PublishStatus;
+  postId: string | null;
+  permalink: string | null;
+  at: string | null;
+  manual: boolean;
+  deletedAt: string | null;
+  commentsOff?: boolean;
+  metrics: PostMetrics | null;
+  actions: PlatformActions;
+}
+
+export interface PublishedPost {
+  id: string; code: string; title: string; kind: PostKind; pillar: string | null; campaign: string | null;
+  status: PostStatus; publishedAt: string | null; thumbUrl: string | null; mediaCount: number; caption: string;
+  texts: Partial<Record<SocialPlatform, string>>;
+  platforms: PublishedPlatform[];
+  totals: MetricTotals;
+  fetchedAt: string | null;
+}
+export interface PublishedResult { posts: PublishedPost[]; total: number; totals: MetricTotals }
+export interface PublishedFilters { from?: string; to?: string; platform?: string; kind?: string; pillar?: string; search?: string; sort?: string; dir?: 'asc' | 'desc' }
+
+export interface PostResults {
+  postId: string;
+  platforms: PublishedPlatform[];
+  totals: MetricTotals;
+  trend: Array<{ day: string; reach: number; impressions: number; engagement: number }>;
+  refreshAfter: string | null;
+  notes: Array<{ platform: SocialPlatform; message: string }>;
+}
+export interface LiveEditInput { message?: string; title?: string; description?: string; link?: string | null }
+
+// ─── Comments inbox ─────────────────────────────────────────────────────
+
+export interface SocialComment {
+  id: string;
+  platform: SocialPlatform;
+  post: { id: string; title: string; code: string; permalink: string | null; thumbUrl: string | null };
+  externalId: string;
+  parentId: string | null;
+  author: { name: string; handle: string | null };
+  text: string;
+  permalink: string | null;
+  commentedAt: string;
+  mine: boolean;
+  hidden: boolean;
+  status: 'NEW' | 'DONE';
+  repliedAt: string | null;
+  deletedAt: string | null;
+  replies: Array<{ id: string; text: string; commentedAt: string }>;
+  can: { reply: boolean; hide: boolean; delete: boolean; reason: string | null };
+}
+export interface InboxFilters { status?: string; platform?: string; postId?: string; search?: string }
+export interface InboxResult {
+  comments: SocialComment[];
+  unread: number;
+  sources: Array<{ platform: SocialPlatform; ok: boolean; message: string | null; checkedAt: string | null }>;
 }
 
 export interface AnalyticsResult {
@@ -461,6 +549,26 @@ export const brandSocialApi = {
   updateAsset: (id: string, body: { title?: string; tags?: string[]; folder?: string | null }) =>
     apiClient.patch(`${BASE}/assets/${id}`, body).then(unwrap<SocialAsset>),
   deleteAsset: (id: string) => apiClient.delete(`${BASE}/assets/${id}`).then(() => undefined),
+
+  // Published posts: results, edit and delete on the platforms
+  published: (f: PublishedFilters = {}) => apiClient.get(`${BASE}/published`, { params: clean(f) }).then(unwrap<PublishedResult>),
+  results: (id: string) => apiClient.get(`${BASE}/posts/${id}/results`).then(unwrap<PostResults>),
+  refreshResults: (id: string) => apiClient.post(`${BASE}/posts/${id}/results/refresh`).then(unwrap<PostResults>),
+  editLive: (id: string, p: SocialPlatform, body: LiveEditInput) =>
+    apiClient.post(`${BASE}/posts/${id}/platforms/${p}/edit`, body).then(unwrap<PostResults>),
+  deleteLive: (id: string, p: SocialPlatform) => apiClient.delete(`${BASE}/posts/${id}/platforms/${p}`).then(unwrap<PostResults>),
+  toggleComments: (id: string, p: SocialPlatform, enabled: boolean) =>
+    apiClient.post(`${BASE}/posts/${id}/platforms/${p}/comments-toggle`, { enabled }).then(unwrap<PostResults>),
+
+  // Comments inbox
+  comments: (f: InboxFilters = {}) => apiClient.get(`${BASE}/comments`, { params: clean(f) }).then(unwrap<InboxResult>),
+  commentsUnread: () => apiClient.get(`${BASE}/comments/unread`).then(unwrap<{ unread: number }>),
+  checkComments: (postId?: string) => apiClient.post(`${BASE}/comments/check`, postId ? { postId } : {}).then(unwrap<{ added: number }>),
+  replyComment: (id: string, text: string) => apiClient.post(`${BASE}/comments/${id}/reply`, { text }).then(unwrap<SocialComment>),
+  hideComment: (id: string, hidden: boolean) => apiClient.post(`${BASE}/comments/${id}/hide`, { hidden }).then(unwrap<SocialComment>),
+  deleteComment: (id: string) => apiClient.delete(`${BASE}/comments/${id}`).then(unwrap<SocialComment>),
+  commentDone: (id: string, done: boolean) => apiClient.post(`${BASE}/comments/${id}/done`, { done }).then(unwrap<SocialComment>),
+  commentsDone: (ids: string[]) => apiClient.post(`${BASE}/comments/done`, { ids }).then(unwrap<{ count: number }>),
 
   // Analytics / ads
   analytics: (from: string, to: string) => apiClient.get(`${BASE}/analytics`, { params: { from, to } }).then(unwrap<AnalyticsResult>),

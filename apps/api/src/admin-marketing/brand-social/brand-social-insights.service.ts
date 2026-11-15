@@ -23,13 +23,13 @@ import { BrandSocialSettingsService } from './brand-social-settings.service';
 import { BrandSocialPlatformsService } from './brand-social-platforms.service';
 import { jobsDisabled } from './brand-social-publisher.service';
 import { engagementOf, parsePktDateTime, rate } from './brand-social.logic';
-import type { AdsOverviewResponse, AnalyticsResponse, BrandPlatform, OverviewResponse, PostMediaItem, PublishStateMap } from './brand-social.types';
+import type { AdsOverviewResponse, AnalyticsResponse, BrandPlatform, BrandPostKind, OverviewResponse, PostMediaItem, PublishStateMap } from './brand-social.types';
 
 const DAY = 86_400_000;
 const dayDate = (key: string) => new Date(`${key}T00:00:00.000Z`);
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : Number(v) || 0);
 
-interface MetricRow { reach: number; impressions: number; likes: number; comments: number; shares: number; saves: number; plays: number; clicks: number; raw: Record<string, unknown> }
+export interface MetricRow { reach: number; impressions: number; likes: number; comments: number; shares: number; saves: number; plays: number; clicks: number; raw: Record<string, unknown> }
 
 @Injectable()
 export class BrandSocialInsightsService {
@@ -87,17 +87,11 @@ export class BrandSocialInsightsService {
       const state = (post.publishState ?? {}) as PublishStateMap;
       for (const platform of ['FACEBOOK', 'INSTAGRAM'] as const) {
         const s = state[platform];
-        if (s?.status !== 'PUBLISHED' || s.manual || !s.postId) continue;
+        if (s?.status !== 'PUBLISHED' || s.manual || !s.postId || s.deletedAt) continue;
         const account = accounts.find((a) => a.platform === platform);
         if (!account) continue;
         try {
-          const m = platform === 'FACEBOOK' ? await this.fbPost(account, s.postId, post) : await this.igPost(account, s.postId, post);
-          const data = { ...m, engagement: engagementOf(m), raw: m.raw as Prisma.InputJsonValue, fetchedAt: new Date() };
-          await this.prisma.brandSocialPostMetric.upsert({
-            where: { postId_platform_day: { postId: post.id, platform, day: today } },
-            create: { postId: post.id, platform, day: today, ...data },
-            update: data,
-          });
+          await this.saveMetric(post.id, platform, await this.metaPostMetrics(account, platform, s.postId, post), today);
         } catch (e) {
           this.logger.warn(`Insights ${post.id}/${platform}: ${toSocialError(e).text}`);
         }
@@ -106,8 +100,26 @@ export class BrandSocialInsightsService {
     }
   }
 
+  /** Saves the numbers of one post on one platform as today's row (PKT day). */
+  async saveMetric(postId: string, platform: BrandPlatform, m: MetricRow, day = dayDate(dateKeyTz(new Date()))) {
+    const data = {
+      reach: m.reach, impressions: m.impressions, likes: m.likes, comments: m.comments, shares: m.shares, saves: m.saves, plays: m.plays, clicks: m.clicks,
+      engagement: engagementOf(m), raw: m.raw as Prisma.InputJsonValue, fetchedAt: new Date(),
+    };
+    await this.prisma.brandSocialPostMetric.upsert({
+      where: { postId_platform_day: { postId, platform, day } },
+      create: { postId, platform, day, ...data },
+      update: data,
+    });
+  }
+
+  /** Numbers of one Facebook or Instagram post. Metrics Graph refuses are listed in raw.refused. */
+  metaPostMetrics(account: BrandSocialAccount, platform: 'FACEBOOK' | 'INSTAGRAM', postId: string, post: BrandSocialPost): Promise<MetricRow> {
+    return platform === 'FACEBOOK' ? this.fbPost(account, postId, post) : this.igPost(account, postId, post);
+  }
+
   /** Insight values by name; tries all at once, then one by one, skipping refused metrics. */
-  private async insights(account: BrandSocialAccount, objectId: string, metrics: string[], params: Record<string, unknown> = {}): Promise<Record<string, number>> {
+  private async insights(account: BrandSocialAccount, objectId: string, metrics: string[], params: Record<string, unknown> = {}, edge = 'insights'): Promise<Record<string, number>> {
     const read = (res: { data?: any[] }) => {
       const out: Record<string, number> = {};
       for (const d of res?.data ?? []) {
@@ -117,11 +129,11 @@ export class BrandSocialInsightsService {
       return out;
     };
     try {
-      return read(await this.graph.call(account, { path: `${objectId}/insights`, params: { metric: metrics.join(','), ...params } }));
+      return read(await this.graph.call(account, { path: `${objectId}/${edge}`, params: { metric: metrics.join(','), ...params } }));
     } catch {
       const out: Record<string, number> = {};
       for (const m of metrics) {
-        try { Object.assign(out, read(await this.graph.call(account, { path: `${objectId}/insights`, params: { metric: m, ...params }, attempts: 1 }))); } catch { /* metric not available */ }
+        try { Object.assign(out, read(await this.graph.call(account, { path: `${objectId}/${edge}`, params: { metric: m, ...params }, attempts: 1 }))); } catch { /* metric not available */ }
       }
       return out;
     }
@@ -134,40 +146,58 @@ export class BrandSocialInsightsService {
     return null;
   }
 
+  /**
+   * Facebook: reactions, comments and shares counts from the post fields;
+   * views, reach and clicks from post insights. A video published through
+   * /videos has a video id, so its numbers come from video_insights.
+   */
   private async fbPost(account: BrandSocialAccount, postId: string, post: BrandSocialPost): Promise<MetricRow> {
-    const f = await this.fields<any>(account, postId, [
-      'reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0),shares',
-      'reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0)',
-    ]);
-    const video = ((post.media ?? []) as unknown as PostMediaItem[]).some((m) => m.kind === 'video');
-    const ins = await this.insights(account, postId, ['post_impressions', 'post_impressions_unique', 'post_media_view', 'post_total_media_view_unique', 'post_clicks', ...(video ? ['post_video_views'] : [])]);
+    const media = (post.media ?? []) as unknown as PostMediaItem[];
+    const video = post.kind !== 'STORY' && media.some((m) => m.kind === 'video');
+    const isVideoId = video && !postId.includes('_');
+    const f = await this.fields<any>(account, postId, isVideoId
+      ? ['reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0)', 'comments.summary(total_count).limit(0)']
+      : ['reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0),shares', 'reactions.summary(total_count).limit(0),comments.summary(total_count).limit(0)']);
+    const asked = isVideoId
+      ? ['total_video_views', 'total_video_impressions', 'total_video_impressions_unique']
+      : ['post_impressions', 'post_impressions_unique', 'post_media_view', 'post_total_media_view_unique', 'post_clicks', ...(video ? ['post_video_views'] : [])];
+    const ins = isVideoId ? await this.insights(account, postId, asked, {}, 'video_insights') : await this.insights(account, postId, asked);
+    const refused = asked.filter((k) => !(k in ins));
     return {
-      reach: ins.post_total_media_view_unique || ins.post_impressions_unique || 0,
-      impressions: ins.post_media_view || ins.post_impressions || 0,
+      reach: ins.post_total_media_view_unique || ins.post_impressions_unique || ins.total_video_impressions_unique || 0,
+      impressions: ins.post_media_view || ins.post_impressions || ins.total_video_impressions || 0,
       likes: num(f?.reactions?.summary?.total_count),
       comments: num(f?.comments?.summary?.total_count),
       shares: num(f?.shares?.count),
       saves: 0,
-      plays: ins.post_video_views || 0,
+      plays: ins.post_video_views || ins.total_video_views || 0,
       clicks: ins.post_clicks || 0,
-      raw: { fields: f ?? null, insights: ins },
+      raw: { fields: f ?? null, insights: ins, ...(refused.length ? { refused } : {}) },
     };
   }
 
+  /**
+   * Instagram: like and comment counts from the media fields; reach, views,
+   * saves, shares and interactions from media insights (stories: reach,
+   * views, replies, shares). Plays are views on reels.
+   */
   private async igPost(account: BrandSocialAccount, mediaId: string, post: BrandSocialPost): Promise<MetricRow> {
-    const f = await this.fields<any>(account, mediaId, ['like_count,comments_count,media_product_type']);
-    const ins = await this.insights(account, mediaId, ['reach', 'views', 'saved', 'shares', 'total_interactions', 'likes', 'comments']);
+    const f = await this.fields<any>(account, mediaId, ['like_count,comments_count,media_product_type', 'like_count,comments_count']);
+    const story = f?.media_product_type === 'STORY' || post.kind === 'STORY';
+    const asked = story ? ['reach', 'views', 'replies', 'shares', 'total_interactions'] : ['reach', 'views', 'saved', 'shares', 'total_interactions', 'likes', 'comments'];
+    const ins = await this.insights(account, mediaId, asked);
     const reel = f?.media_product_type === 'REELS' || post.kind === 'REEL';
+    const refused = asked.filter((k) => !(k in ins));
     return {
       reach: ins.reach || 0,
       impressions: ins.views || 0,
       likes: ins.likes || num(f?.like_count),
-      comments: ins.comments || num(f?.comments_count),
+      comments: ins.comments || ins.replies || num(f?.comments_count),
       shares: ins.shares || 0,
       saves: ins.saved || 0,
       plays: reel ? ins.views || 0 : 0,
       clicks: 0,
-      raw: { fields: f ?? null, insights: ins },
+      raw: { fields: f ?? null, insights: ins, ...(refused.length ? { refused } : {}) },
     };
   }
 
@@ -357,6 +387,13 @@ export class BrandSocialInsightsService {
     ]);
     const reach7d = recent.reduce((s, m) => s + m.reach, 0);
     const eng7d = recent.reduce((s, m) => s + m.engagement, 0);
+    const impressions7d = recent.reduce((s, m) => s + m.impressions, 0);
+    const [topPosts, inboxUnread] = await Promise.all([
+      this.topPosts(recent),
+      this.prisma.brandSocialComment.count({ where: { status: 'NEW', mine: false, deletedAt: null } }).catch(() => 0),
+    ]);
+    const live = accountsRes.accounts.filter((x) => x.status !== 'DISCONNECTED');
+    const changes = live.map((a) => a.followersChange7d).filter((v): v is number => v != null);
     const byPlatform = new Map<BrandPlatform, number | null>();
     for (const a of accountsRes.accounts.filter((x) => x.status !== 'DISCONNECTED')) {
       const prev = byPlatform.get(a.platform);
@@ -375,7 +412,39 @@ export class BrandSocialInsightsService {
       queue: queueV,
       needsYou: { approvals: approvalsV, failed: failedV, handoff: handoffV },
       accounts: accountsRes.accounts,
+      totals7d: {
+        followers: live.reduce((s, a) => s + (a.followers ?? 0), 0),
+        followersChange: changes.length ? changes.reduce((s, v) => s + v, 0) : null,
+        reach: reach7d, engagement: eng7d, impressions: impressions7d,
+      },
+      topPosts,
+      inboxUnread,
     };
+  }
+
+  /** The 3 posts with the most engagement (then reach) among the latest metric rows given. */
+  private async topPosts(rows: Array<{ postId: string; reach: number; engagement: number }>): Promise<OverviewResponse['topPosts']> {
+    const by = new Map<string, { reach: number; engagement: number }>();
+    for (const m of rows) {
+      const t = by.get(m.postId) ?? { reach: 0, engagement: 0 };
+      t.reach += m.reach; t.engagement += m.engagement;
+      by.set(m.postId, t);
+    }
+    const best = [...by.entries()].sort((a, b) => b[1].engagement - a[1].engagement || b[1].reach - a[1].reach).slice(0, 3);
+    if (!best.length) return [];
+    const posts = await this.prisma.brandSocialPost.findMany({ where: { id: { in: best.map(([id]) => id) } }, select: { id: true, title: true, kind: true, publishedAt: true, media: true, publishState: true } });
+    return best.flatMap(([id, t]) => {
+      const p = posts.find((x) => x.id === id);
+      if (!p) return [];
+      const media = (p.media ?? []) as unknown as PostMediaItem[];
+      const state = (p.publishState ?? {}) as PublishStateMap;
+      const links = (Object.entries(state) as Array<[BrandPlatform, PublishStateMap[BrandPlatform]]>)
+        .filter(([, s]) => s?.status === 'PUBLISHED' && s.permalink && !s.deletedAt).map(([platform, s]) => ({ platform, permalink: s!.permalink! }));
+      return [{
+        id, title: p.title, kind: p.kind as BrandPostKind, publishedAt: p.publishedAt?.toISOString() ?? null,
+        thumbUrl: media[0]?.thumbUrl ?? (media[0]?.kind === 'image' ? media[0].url : null), reach: t.reach, engagement: t.engagement, links,
+      }];
+    });
   }
 
   /** Posts with at least one platform waiting to be posted by hand. */

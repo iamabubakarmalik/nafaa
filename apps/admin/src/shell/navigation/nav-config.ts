@@ -17,7 +17,8 @@ import {
   Timer, ToggleRight, Wrench, TrendingUp, Truck, UserX, Users, Wallet,
 } from 'lucide-react';
 import { Flag, Link2 } from 'lucide-react';
-import { CalendarDays, Hand, PenSquare, Share2 } from 'lucide-react';
+import { CalendarDays, CheckCheck, Hand, MessagesSquare, PenSquare, Share2 } from 'lucide-react';
+import { InboxBadge } from '@/features/brand-social/components/InboxBadge';
 import { ENTRY_SECTIONS } from '@/features/marketing/cms/entries/sections';
 
 type IconType = ComponentType<{ className?: string; style?: CSSProperties }>;
@@ -32,6 +33,8 @@ export interface AdminNavItem {
   exact?: boolean;
   /** Permission needed to see the item; defaults to `<area>.view` from areaForPath(). */
   permission?: string | null;
+  /** Small live count shown at the end of the row (rendered only when the item is visible). */
+  badge?: ComponentType;
 }
 
 export interface AdminNavGroup {
@@ -278,6 +281,8 @@ export const WORKSPACES: AdminWorkspace[] = [
           { to: '/social/calendar', label: 'Content calendar', icon: CalendarDays, keywords: 'schedule posts plan', permission: 'social.view' },
           { to: '/social/posts/new', label: 'New post', icon: PenSquare, keywords: 'compose write caption reel', permission: 'social.edit' },
           { to: '/social/approvals', label: 'Approvals', icon: ShieldCheck, keywords: 'review approve reject', permission: 'social.view' },
+          { to: '/social/published', label: 'Published', icon: CheckCheck, keywords: 'live posts results views reach likes comments shares links edit delete', permission: 'social.view' },
+          { to: '/social/inbox', label: 'Comments', icon: MessagesSquare, keywords: 'inbox replies comments reply hide', permission: 'social.view', badge: InboxBadge },
           { to: '/social/handoff', label: 'To post by hand', icon: Hand, keywords: 'manual tiktok youtube x linkedin pinterest threads', permission: 'social.view' },
           { to: '/social/media', label: 'Social media library', icon: Images, keywords: 'images videos assets', permission: 'social.view' },
           { to: '/social/analytics', label: 'Social analytics', icon: TrendingUp, keywords: 'followers reach engagement best time', permission: 'social.view' },

@@ -1349,12 +1349,14 @@ export class AuthService {
   }
 
   private notifyAdminNewSignup(tenant: any, user: any, provider: string, referralCode?: string) {
+    const via = provider === 'EMAIL' ? 'email' : provider.charAt(0) + provider.slice(1).toLowerCase();
     this.adminNotifications
-      .create({
+      .notify({
+        category: 'shops',
+        event: 'shop.signup',
         type: 'NEW_TENANT',
-        priority: 'NORMAL',
-        title: `🎉 New Shop (${provider})`,
-        message: `${tenant.name} (${user.fullName}) ne ${provider.toLowerCase()} se signup kiya`,
+        title: `New shop: ${tenant.name}`,
+        message: `${user.fullName} signed up with ${via}${user.email ? ` (${user.email})` : ''}${tenant.businessType ? ` · ${String(tenant.businessType).toLowerCase().replace(/_/g, ' ')}` : ''}${referralCode ? ` · referral ${referralCode}` : ''}.`,
         link: `/tenants/${tenant.id}`,
         tenantId: tenant.id,
         entityType: 'tenant',

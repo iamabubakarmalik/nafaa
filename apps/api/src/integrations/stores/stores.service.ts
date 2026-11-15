@@ -29,6 +29,7 @@ import { pkCityList } from './lib/shipping';
 import { storefrontUrl, subdomainHost } from './lib/host';
 import { THEME_IDS, ThemeId } from './theme/theme-doc';
 import { blockedWord, loadControls } from './store-controls';
+import { notifyAdmins } from '../../admin/notifications/admin-notify';
 
 const PAGE_KINDS = ['ABOUT', 'CONTACT', 'FAQ', 'CUSTOM'] as const;
 const COLLECTION_SORTS = ['manual', 'best_selling', 'newest', 'price_asc', 'price_desc', 'title_asc', 'title_desc'];
@@ -233,6 +234,15 @@ export class StoresService {
     this.catalog.forget(ctx.store.id);
     void this.revalidate.sendWithResolve(ctx.store.id).catch(() => false);
     if (status === 'LIVE') void this.pingSitemap(ctx);
+    if (firstLaunch) {
+      void this.prisma.tenant.findUnique({ where: { id: ctx.store.tenantId }, select: { name: true } }).then((t) => notifyAdmins({
+        category: 'commerce', event: 'commerce.store_live', type: 'SUCCESS',
+        title: `Nafaa Store is live: ${ctx.store.name}`,
+        message: `${t?.name ?? 'A shop'} opened its website to customers (${ctx.store.slug}).`,
+        link: `/stores/${ctx.store.id}`, tenantId: ctx.store.tenantId, entityType: 'nafaa_store', entityId: ctx.store.id,
+        dedupeKey: `store-live:${ctx.store.id}`, once: true,
+      })).catch(() => undefined);
+    }
     return this.full(await this.access.requireStore(user, id));
   }
 

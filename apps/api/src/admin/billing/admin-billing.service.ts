@@ -16,6 +16,7 @@ import { startOfDayTz } from '../../common/helpers/business-time.helper';
 import { dayRange } from '../common/date-range';
 import { applyPaidInvoiceAddOns } from '../../modules/billing/pricing/pricing-core';
 import { EntitlementsService } from '../../modules/billing/entitlements/entitlements.service';
+import { notifyAdmins, rs } from '../notifications/admin-notify';
 
 @Injectable()
 export class AdminBillingService {
@@ -184,6 +185,14 @@ export class AdminBillingService {
     if (activated) {
       await this.subscriptions.announceActivation(activated);
     }
+
+    void this.prisma.tenant.findUnique({ where: { id: payment.tenantId }, select: { name: true } }).then((t) => notifyAdmins({
+      category: 'billing', event: 'billing.payment_received', type: 'PAYMENT_APPROVED',
+      title: `Payment received: ${rs(payment.amount)}`,
+      message: `${t?.name ?? 'A shop'} paid by ${String(payment.provider).toLowerCase().replace(/_/g, ' ')}${fullyPaid ? '' : ' (part payment, invoice still open)'}. Approved by ${adminUser.email}.`,
+      link: `/tenants/${payment.tenantId}`, tenantId: payment.tenantId, entityType: 'payment', entityId: payment.id,
+      metadata: { amount: payment.amount, provider: payment.provider, approvedBy: adminUser.id },
+    })).catch(() => undefined);
 
     // Paid channels resume at once instead of waiting for the hourly check.
     this.entitlements.invalidate(payment.tenantId);

@@ -4,6 +4,7 @@ import {
 } from '@nestjs/common';
 import { UserRole } from '@prisma/client';
 import { AuthService } from '../auth/auth.service';
+import { notifyAdmins } from '../../admin/notifications/admin-notify';
 import { PrismaService } from '../../prisma/prisma.service';
 import { hashPassword } from '../../common/utils/password.util';
 import { AuthenticatedUser } from '../auth/interfaces/jwt-payload.interface';
@@ -474,7 +475,20 @@ export class OnboardingService {
     });
 
     this.sendCompletionEmail(user, updated).catch(() => {});
+    void this.notifyAdminsCompleted(user.tenantId).catch(() => undefined);
     return this.enrich(updated);
+  }
+
+  private async notifyAdminsCompleted(tenantId: string) {
+    const t = await this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true, businessType: true, createdAt: true } });
+    const hours = t ? Math.max(0, Math.round((Date.now() - t.createdAt.getTime()) / 3_600_000)) : null;
+    notifyAdmins({
+      category: 'shops', event: 'shop.onboarding_completed', type: 'SUCCESS',
+      title: `Setup finished: ${t?.name ?? 'Shop'}`,
+      message: `Finished onboarding${hours !== null ? (hours < 1 ? ' within an hour of signing up' : ` ${hours < 48 ? `${hours} hours` : `${Math.round(hours / 24)} days`} after signing up`) : ''}${t?.businessType ? ` · ${String(t.businessType).toLowerCase().replace(/_/g, ' ')}` : ''}.`,
+      link: `/tenants/${tenantId}`, tenantId, entityType: 'tenant', entityId: tenantId,
+      dedupeKey: `onboarding-done:${tenantId}`, once: true,
+    });
   }
 
   async reset(user: AuthenticatedUser) {

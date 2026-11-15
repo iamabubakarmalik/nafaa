@@ -10,6 +10,7 @@ import { TenantTimezoneService } from '../../common/helpers/tenant-timezone.serv
 import { normalizeShopifySiteUrl } from './shopify-shop';
 import { apiMessage } from '../../common/i18n/api-message';
 import { CHANNEL_ADDON, EntitlementsService } from '../../modules/billing/entitlements/entitlements.service';
+import { notifyChannelDown } from '../../admin/notifications/admin-notify';
 
 /** Website jaise channels — har ek ki apni key, settings aur safha */
 export const WEBSITE_TYPES: IntegrationType[] = ['CUSTOM_WEBSITE', 'WOOCOMMERCE', 'SHOPIFY', 'DARAZ', 'FOODPANDA'];
@@ -451,6 +452,7 @@ export class WebsiteSetupService {
       where: { id: integration.id },
       data: { isActive: active, status: active ? IntegrationStatus.CONNECTED : IntegrationStatus.DISCONNECTED },
     });
+    if (!active && integration.isActive) notifyChannelDown(this.prisma, integration, 'The shop turned this channel off.', { byShop: true });
     return this.channelOverview(user, id);
   }
 
@@ -459,6 +461,7 @@ export class WebsiteSetupService {
     this.assertCanManage(user);
     const integration = await this.requireChannel(user.tenantId, id);
     const orders = await this.prisma.channelOrder.count({ where: { integrationId: id } });
+    if (integration.isActive) notifyChannelDown(this.prisma, integration, 'The shop removed this channel. Its past orders are kept.', { byShop: true });
     if (orders > 0) {
       // Orders ki history na mitay — sirf band karke chhupa do
       await this.prisma.integration.update({

@@ -67,6 +67,29 @@ export type AdapterResult =
 
 export interface MetricValues { reach: number; impressions: number; likes: number; comments: number; shares: number; saves: number; plays: number; clicks: number; raw: Record<string, unknown> }
 
+/** A comment or reply read from a platform for the comments inbox. */
+export interface RemoteComment {
+  id: string;
+  /** The comment it replies to (null for a reply to the post itself). */
+  parentId: string | null;
+  authorId: string | null;
+  authorName: string;
+  authorHandle: string | null;
+  text: string;
+  permalink: string | null;
+  /** ISO time. */
+  at: string;
+  /** Written by Nafaa's own account. */
+  mine: boolean;
+  hidden: boolean;
+}
+
+/** Changes to a live post (each platform takes only its own fields). */
+export interface PostEdit { message?: string; title?: string; description?: string; link?: string | null }
+
+/** The account the comment calls act for. */
+export interface AccountRef { externalId: string; handle: string | null }
+
 export interface SocialAdapter {
   readonly platform: OAuthPlatform;
   exchangeCode(app: PlatformApp, code: string, redirectUri: string, verifier: string | null): Promise<TokenSet>;
@@ -77,6 +100,16 @@ export interface SocialAdapter {
   comment?(ctx: PublishContext, postId: string, text: string): Promise<string | null>;
   /** Numbers for published posts (by platform post id). Missing ids are left out. */
   metrics?(accessToken: string, externalId: string, postIds: string[]): Promise<Map<string, MetricValues>>;
+  /** Removes a live post from the platform. */
+  deletePost?(accessToken: string, postId: string): Promise<void>;
+  /** Changes the text fields of a live post. */
+  editPost?(accessToken: string, postId: string, edit: PostEdit): Promise<void>;
+  /** Recent comments and replies on one post (newest first, a page or two). */
+  listComments?(accessToken: string, account: AccountRef, postId: string): Promise<RemoteComment[]>;
+  /** Replies to a comment; returns the new comment id. */
+  replyComment?(accessToken: string, account: AccountRef, postId: string, commentId: string, text: string): Promise<string | null>;
+  hideComment?(accessToken: string, commentId: string, hidden: boolean): Promise<void>;
+  deleteComment?(accessToken: string, commentId: string): Promise<void>;
 }
 
 /** A post still processing on the platform after this long fails. */
@@ -89,7 +122,7 @@ export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /* ───────────────────────── HTTP ───────────────────────── */
 
 export interface HttpOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   query?: Record<string, string | number | boolean | null | undefined>;
   headers?: Record<string, string>;
   bearer?: string;

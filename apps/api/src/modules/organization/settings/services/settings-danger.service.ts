@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, Injectable, UnauthorizedExcept
 import { TenantStatus } from '@prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { comparePassword } from '../../../../common/utils/password.util';
+import { notifyAdmins } from '../../../../admin/notifications/admin-notify';
 import { AuthenticatedUser } from '../../../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -92,6 +93,14 @@ export class SettingsDangerService {
       where: { id: user.tenantId },
       data: { status: 'SUSPENDED' },
     });
+
+    void this.prisma.tenant.findUnique({ where: { id: user.tenantId }, select: { name: true } }).then((t) => notifyAdmins({
+      category: 'shops', event: 'shop.deletion_requested', severity: 'warning', type: 'TENANT_SUSPENDED',
+      title: `Shop deletion requested: ${t?.name ?? 'Shop'}`,
+      message: `The owner asked to delete the shop. It is suspended now; process it after ${scheduledFor.slice(0, 10)} unless they cancel.`,
+      link: '/deletion-requests', tenantId: user.tenantId, entityType: 'tenant', entityId: user.tenantId,
+      dedupeKey: `shop-deletion:${user.tenantId}`, windowMinutes: 24 * 60,
+    })).catch(() => undefined);
 
     return {
       success: true,

@@ -13,8 +13,8 @@ import { Injectable } from '@nestjs/common';
 import { SocialGraphError } from './brand-social-graph.service';
 import { youtubeRoute, youtubeSafe } from './brand-social-oauth.logic';
 import {
-  AdapterResult, emptyMetrics, httpJson, mediaHead, MetricValues, n, PlatformApp, platformError, ProfileInfo, PublishContext, SocialAdapter,
-  streamUpload, TokenSet, videoMime,
+  AccountRef, AdapterResult, emptyMetrics, httpJson, mediaHead, MetricValues, n, PlatformApp, platformError, PostEdit, ProfileInfo, PublishContext, RemoteComment,
+  SocialAdapter, streamUpload, TokenSet, videoMime,
 } from './brand-social-adapter';
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
@@ -99,6 +99,7 @@ export class BrandSocialYoutubeService implements SocialAdapter {
     return { postId: String(body.id), permalink: short ? `https://www.youtube.com/shorts/${body.id}` : `https://www.youtube.com/watch?v=${body.id}` };
   }
 
+  /** Video statistics: views, likes, comments (YouTube no longer gives dislikes or shares). */
   async metrics(token: string, _externalId: string, ids: string[]): Promise<Map<string, MetricValues>> {
     const out = new Map<string, MetricValues>();
     for (let i = 0; i < ids.length; i += 50) {
@@ -106,9 +107,85 @@ export class BrandSocialYoutubeService implements SocialAdapter {
         .then((x) => x.data).catch(() => null);
       for (const v of r?.items ?? []) {
         const s = v.statistics ?? {};
-        out.set(String(v.id), { ...emptyMetrics(), impressions: n(s.viewCount), plays: n(s.viewCount), likes: n(s.likeCount), comments: n(s.commentCount), raw: { statistics: s } });
+        out.set(String(v.id), {
+          ...emptyMetrics(), impressions: n(s.viewCount), reach: n(s.viewCount), plays: n(s.viewCount), likes: n(s.likeCount), comments: n(s.commentCount),
+          saves: n(s.favoriteCount), raw: { statistics: s },
+        });
       }
     }
     return out;
+  }
+
+  /* ───── live video and comments (youtube.force-ssl) ───── */
+
+  /**
+   * videos.update replaces the whole snippet, so the current one is read
+   * first and only the title and description change (tags, category and
+   * language are kept).
+   */
+  async editPost(token: string, videoId: string, edit: PostEdit): Promise<void> {
+    const cur = (await httpJson<{ items?: any[] }>('YOUTUBE', `${API}/videos`, { bearer: token, query: { part: 'snippet', id: videoId } })).data?.items?.[0];
+    if (!cur) throw new SocialGraphError('unknown', 'YouTube no longer has this video.');
+    const sn = cur.snippet ?? {};
+    const snippet: Record<string, unknown> = {
+      title: edit.title != null ? youtubeSafe(edit.title, 100) || sn.title : sn.title,
+      description: edit.description != null ? youtubeSafe(edit.description, 5000) : sn.description ?? '',
+      categoryId: sn.categoryId ?? '22',
+      ...(Array.isArray(sn.tags) ? { tags: sn.tags } : {}),
+      ...(sn.defaultLanguage ? { defaultLanguage: sn.defaultLanguage } : {}),
+    };
+    await httpJson('YOUTUBE', `${API}/videos`, { method: 'PUT', bearer: token, query: { part: 'snippet' }, json: { id: videoId, snippet } });
+  }
+
+  async deletePost(token: string, videoId: string): Promise<void> {
+    await httpJson('YOUTUBE', `${API}/videos`, { method: 'DELETE', bearer: token, query: { id: videoId } });
+  }
+
+  /** Comment threads on the video, newest first, with their replies (up to 100 threads). */
+  async listComments(token: string, account: AccountRef, videoId: string): Promise<RemoteComment[]> {
+    const out: RemoteComment[] = [];
+    let pageToken: string | undefined;
+    const add = (c: any, parentId: string | null) => {
+      const sn = c?.snippet ?? {};
+      out.push({
+        id: String(c.id), parentId, authorId: sn.authorChannelId?.value ?? null, authorName: sn.authorDisplayName ?? 'YouTube user',
+        authorHandle: sn.authorDisplayName && String(sn.authorDisplayName).startsWith('@') ? sn.authorDisplayName : null,
+        text: String(sn.textOriginal ?? sn.textDisplay ?? ''), permalink: `https://www.youtube.com/watch?v=${videoId}&lc=${c.id}`,
+        at: sn.publishedAt ? new Date(sn.publishedAt).toISOString() : new Date().toISOString(),
+        mine: !!sn.authorChannelId?.value && sn.authorChannelId.value === account.externalId, hidden: sn.moderationStatus === 'rejected',
+      });
+    };
+    for (let page = 0; page < 2; page++) {
+      const r = (await httpJson<{ items?: any[]; nextPageToken?: string }>('YOUTUBE', `${API}/commentThreads`, {
+        bearer: token, query: { part: 'snippet,replies', videoId, maxResults: 50, order: 'time', textFormat: 'plainText', pageToken },
+      })).data;
+      for (const t of r?.items ?? []) {
+        const top = t.snippet?.topLevelComment;
+        if (!top?.id) continue;
+        add(top, null);
+        for (const c of t.replies?.comments ?? []) add(c, c.snippet?.parentId ?? top.id);
+      }
+      pageToken = r?.nextPageToken;
+      if (!pageToken) break;
+    }
+    return out;
+  }
+
+  /** YouTube replies only to top-level comments; the caller passes the thread's top comment. */
+  async replyComment(token: string, _account: AccountRef, _videoId: string, commentId: string, text: string): Promise<string | null> {
+    const r = (await httpJson<{ id?: string }>('YOUTUBE', `${API}/comments`, {
+      method: 'POST', bearer: token, query: { part: 'snippet' }, json: { snippet: { parentId: commentId, textOriginal: text.slice(0, 10_000) } },
+    })).data;
+    return r?.id ?? null;
+  }
+
+  /** Hide = "rejected" (removed from the public page); unhide = "published". */
+  async hideComment(token: string, commentId: string, hidden: boolean): Promise<void> {
+    await httpJson('YOUTUBE', `${API}/comments/setModerationStatus`, { method: 'POST', bearer: token, query: { id: commentId, moderationStatus: hidden ? 'rejected' : 'published' } });
+  }
+
+  /** Only comments written by the channel itself can be deleted. */
+  async deleteComment(token: string, commentId: string): Promise<void> {
+    await httpJson('YOUTUBE', `${API}/comments`, { method: 'DELETE', bearer: token, query: { id: commentId } });
   }
 }

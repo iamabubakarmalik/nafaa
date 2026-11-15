@@ -16,6 +16,7 @@ import { nextInvoiceNumber } from '../pricing/invoice-number';
 import { AddOnChoice, FULL_ACTIVATION_KEY, SETUP_KEY, applyPaidInvoiceAddOns, checkoutLines, resolveChoices, writeInvoiceItems } from '../pricing/pricing-core';
 import { loadBillingSettings } from '../entitlements/billing-settings';
 import { invalidateEntitlements } from '../entitlements/entitlements.service';
+import { notifyAdmins, rs } from '../../../admin/notifications/admin-notify';
 
 /** Months added to the billing period for each interval. */
 const INTERVAL_MONTHS: Record<BillingInterval, number> = {
@@ -483,10 +484,18 @@ export class SubscriptionsService {
     });
     if (!sub) throw new NotFoundException('No active subscription');
 
-    return this.prisma.subscription.update({
+    const updated = await this.prisma.subscription.update({
       where: { id: sub.id },
       data: { cancelAtPeriodEnd: true },
     });
+    void this.prisma.tenant.findUnique({ where: { id: user.tenantId }, select: { name: true } }).then((t) => notifyAdmins({
+      category: 'billing', event: 'billing.subscription_cancel_requested', severity: 'warning', type: 'SUBSCRIPTION_CANCELLED',
+      title: `Cancelling: ${t?.name ?? 'Shop'}`,
+      message: `The owner cancelled their plan. It ends on ${updated.currentPeriodEnd.toISOString().slice(0, 10)} unless they turn it back on.`,
+      link: `/tenants/${user.tenantId}`, tenantId: user.tenantId, entityType: 'subscription', entityId: sub.id,
+      dedupeKey: `sub-cancel:${sub.id}`, windowMinutes: 24 * 60,
+    })).catch(() => undefined);
+    return updated;
   }
 
   /**
@@ -664,6 +673,8 @@ export class SubscriptionsService {
       timeZone: 'Asia/Karachi',
     }).format(sub.currentPeriodEnd);
 
+    void this.notifyAdminsActivated(sub, stacked).catch(() => undefined);
+
     this.notifications
       .create({
         tenantId: sub.tenantId,
@@ -706,6 +717,37 @@ export class SubscriptionsService {
     }
 
     return sub;
+  }
+
+  /** Admin team: started / renewed / upgraded / downgraded, compared with the shop's previous paid plan. */
+  private async notifyAdminsActivated(
+    sub: { id: string; tenantId: string; planId: string; interval: BillingInterval; amount: number; currentPeriodEnd: Date; plan: { name: string; priceMonthly: number }; tenant: { name: string } },
+    stacked: boolean,
+  ) {
+    const prev = stacked ? null : await this.prisma.subscription.findFirst({
+      where: { tenantId: sub.tenantId, id: { not: sub.id }, invoices: { some: { status: 'PAID' } } },
+      orderBy: { currentPeriodEnd: 'desc' },
+      select: { planId: true, plan: { select: { name: true, priceMonthly: true } } },
+    });
+    const kind = stacked || prev?.planId === sub.planId ? 'renewed'
+      : !prev ? 'started'
+      : sub.plan.priceMonthly >= prev.plan.priceMonthly ? 'upgraded' : 'downgraded';
+    const until = sub.currentPeriodEnd.toISOString().slice(0, 10);
+    const titles = {
+      started: `New subscription: ${sub.tenant.name}`,
+      renewed: `Renewed: ${sub.tenant.name}`,
+      upgraded: `Upgraded: ${sub.tenant.name}`,
+      downgraded: `Downgraded: ${sub.tenant.name}`,
+    };
+    notifyAdmins({
+      category: 'billing', event: `billing.subscription_${kind}`, type: 'PAYMENT_APPROVED',
+      severity: kind === 'downgraded' ? 'warning' : 'info',
+      title: titles[kind],
+      message: `${prev && kind !== 'renewed' ? `${prev.plan.name} → ` : ''}${sub.plan.name} (${sub.interval.toLowerCase()}, ${rs(sub.amount)}) until ${until}.`,
+      link: `/tenants/${sub.tenantId}`, tenantId: sub.tenantId, entityType: 'subscription', entityId: sub.id,
+      metadata: { kind, plan: sub.plan.name, previousPlan: prev?.plan.name ?? null, amount: sub.amount, interval: sub.interval },
+      dedupeKey: `sub-activated:${sub.id}:${until}`, once: true,
+    });
   }
 
   /** @deprecated Kept as an alias — use {@link activateFromPayment}. */

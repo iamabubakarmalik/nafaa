@@ -15,6 +15,7 @@ import { apiText } from '../../common/i18n/api-message';
 import { PrismaService } from '../../prisma/prisma.service';
 import { decrypt } from '../../core/lib/crypto';
 import { pushPaused } from '../online-orders/commerce-controls';
+import { notifyChannelDown } from '../../admin/notifications/admin-notify';
 import {
   GRAPH_BASE, GraphErrorBody, MetaErrorKind, appSecretProof, backoffMs, classifyGraphError, friendlyMetaError, metaAppConfig, retryable,
   tokenErrorStatus, usageFromHeaders,
@@ -164,10 +165,15 @@ export class MetaGraphService {
 
   /** Saves a token problem on the connection so the web shows "Dobara joren". */
   async markTokenError(tenantId: string, graph: GraphErrorBody | null) {
-    await this.prisma.metaConnection.updateMany({
+    const status = tokenErrorStatus(graph);
+    const r = await this.prisma.metaConnection.updateMany({
       where: { tenantId, status: 'CONNECTED' },
-      data: { status: tokenErrorStatus(graph), lastError: friendlyMetaError('token'), lastErrorAt: new Date() },
+      data: { status, lastError: friendlyMetaError('token'), lastErrorAt: new Date() },
     }).catch(() => null);
+    if (r?.count) {
+      notifyChannelDown(this.prisma, { id: `meta:${tenantId}`, tenantId, type: 'META' },
+        status === 'REVOKED' ? 'Facebook permission was removed. The shop must connect Facebook and Instagram again.' : 'The Facebook login expired. The shop must connect Facebook and Instagram again.');
+    }
   }
 
   private async request<T>(accessToken: string | null, opts: MetaCallOptions, tenantId: string | null, proof = true): Promise<T> {

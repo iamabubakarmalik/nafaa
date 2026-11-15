@@ -12,8 +12,8 @@ import { classifyGraphError, type GraphErrorBody } from '../../integrations/meta
 import { SocialGraphError } from './brand-social-graph.service';
 import { threadsRoute } from './brand-social-oauth.logic';
 import {
-  AdapterResult, CONTAINER_TIMEOUT_MS, emptyMetrics, httpJson, HttpOptions, MetricValues, n, PlatformApp, platformError, platformErrorText,
-  ProfileInfo, PublishContext, sleep, SocialAdapter, TokenSet,
+  AccountRef, AdapterResult, CONTAINER_TIMEOUT_MS, emptyMetrics, httpJson, HttpOptions, MetricValues, n, PlatformApp, platformError, platformErrorText,
+  ProfileInfo, PublishContext, RemoteComment, sleep, SocialAdapter, TokenSet,
 } from './brand-social-adapter';
 
 const HOST = 'https://graph.threads.com';
@@ -144,19 +144,79 @@ export class BrandSocialThreadsService implements SocialAdapter {
     return r?.id ?? null;
   }
 
+  /**
+   * Post insights: views, likes, replies, reposts, quotes, shares. All at
+   * once, else one by one so a refused metric (shares is newer) is skipped.
+   */
   async metrics(token: string, _externalId: string, ids: string[]): Promise<Map<string, MetricValues>> {
     const out = new Map<string, MetricValues>();
+    const names = ['views', 'likes', 'replies', 'reposts', 'quotes', 'shares'];
+    const read = (r: { data?: any[] } | null, v: Record<string, number>) => { for (const d of r?.data ?? []) if (d?.name) v[d.name] = n(d.total_value?.value ?? d.values?.[0]?.value); };
     for (const id of ids) {
-      const r = await this.call<{ data?: any[] }>(`${id}/insights`, token, { query: { metric: 'views,likes,replies,reposts,quotes,shares' } }).catch(() => null);
-      if (!r?.data) continue;
       const v: Record<string, number> = {};
-      for (const d of r.data) if (d?.name) v[d.name] = n(d.total_value?.value ?? d.values?.[0]?.value);
+      const refused: string[] = [];
+      const all = await this.call<{ data?: any[] }>(`${id}/insights`, token, { query: { metric: names.join(',') } }).catch(() => null);
+      if (all?.data) read(all, v);
+      else {
+        for (const m of names) {
+          const one = await this.call<{ data?: any[] }>(`${id}/insights`, token, { query: { metric: m } }).catch(() => null);
+          if (one?.data) read(one, v); else refused.push(m);
+        }
+        if (refused.length === names.length) continue;
+      }
       out.set(id, {
         ...emptyMetrics(),
-        reach: v.views ?? 0, impressions: v.views ?? 0, likes: v.likes ?? 0, comments: v.replies ?? 0,
-        shares: (v.reposts ?? 0) + (v.quotes ?? 0) + (v.shares ?? 0), raw: { insights: v },
+        reach: v.views ?? 0, impressions: v.views ?? 0, plays: 0, likes: v.likes ?? 0, comments: v.replies ?? 0,
+        shares: (v.reposts ?? 0) + (v.quotes ?? 0) + (v.shares ?? 0), raw: { insights: v, ...(refused.length ? { refused } : {}) },
       });
     }
     return out;
+  }
+
+  /* ───── live post and replies (threads_delete, threads_read_replies, threads_manage_replies) ───── */
+
+  async deletePost(token: string, postId: string): Promise<void> {
+    await this.call(postId, token, { method: 'DELETE' });
+  }
+
+  /** Every reply under the post (all levels), newest first, up to 100. */
+  async listComments(token: string, _account: AccountRef, postId: string): Promise<RemoteComment[]> {
+    const out: RemoteComment[] = [];
+    let after: string | undefined;
+    for (let page = 0; page < 2; page++) {
+      const r = await this.call<{ data?: any[]; paging?: { cursors?: { after?: string }; next?: string } }>(`${postId}/conversation`, token, {
+        query: { fields: 'id,text,username,permalink,timestamp,hide_status,is_reply_owned_by_me,replied_to', reverse: 'false', limit: 50, after },
+      });
+      for (const c of r?.data ?? []) {
+        if (!c?.id) continue;
+        const parent = c.replied_to?.id ? String(c.replied_to.id) : null;
+        out.push({
+          id: String(c.id), parentId: parent && parent !== postId ? parent : null, authorId: null,
+          authorName: c.username ? `@${c.username}` : 'Threads user', authorHandle: c.username ? `@${c.username}` : null,
+          text: String(c.text ?? ''), permalink: c.permalink ?? null, at: c.timestamp ? new Date(c.timestamp).toISOString() : new Date().toISOString(),
+          mine: !!c.is_reply_owned_by_me, hidden: String(c.hide_status ?? '').toUpperCase() === 'HIDDEN',
+        });
+      }
+      after = r?.paging?.next ? r.paging.cursors?.after : undefined;
+      if (!after) break;
+    }
+    return out;
+  }
+
+  async replyComment(token: string, account: AccountRef, _postId: string, commentId: string, text: string): Promise<string | null> {
+    const c = await this.call<{ id?: string }>(`${account.externalId}/threads`, token, { method: 'POST', form: { media_type: 'TEXT', text: text.slice(0, 500), reply_to_id: commentId } });
+    if (!c?.id) throw new SocialGraphError('unknown', 'Threads did not take the reply.');
+    await this.ready(token, c.id, 4, 3_000);
+    const r = await this.call<{ id?: string }>(`${account.externalId}/threads_publish`, token, { method: 'POST', form: { creation_id: c.id } });
+    return r?.id ?? null;
+  }
+
+  async hideComment(token: string, commentId: string, hidden: boolean): Promise<void> {
+    await this.call(`${commentId}/manage_reply`, token, { method: 'POST', form: { hide: hidden ? 'true' : 'false' } });
+  }
+
+  /** Only Nafaa's own replies can be deleted. */
+  async deleteComment(token: string, commentId: string): Promise<void> {
+    await this.call(commentId, token, { method: 'DELETE' });
   }
 }

@@ -37,6 +37,8 @@ import { MediaStrip } from '../components/composer/MediaStrip';
 import { SchedulePicker } from '../components/composer/SchedulePicker';
 import { TikTokConsent, TikTokSettings } from '../components/composer/TikTokSettings';
 import { PreviewPanel, type PreviewData } from '../components/Previews';
+import { XPollSettings } from '../components/composer/XPollSettings';
+import { ResultsCard } from '../components/LiveResults';
 
 interface Form {
   title: string;
@@ -121,6 +123,19 @@ export default function ComposerPage() {
       setForm((f) => ({ ...f, platforms: accounts.filter((a) => a.status === 'CONNECTED').map((a) => a.platform) }));
     }
   }, [isNew, accounts, dirty, form.platforms.length, params]);
+
+  // A new feed post or carousel for Facebook / Instagram also goes to Threads and Pinterest when they are connected
+  // (once per kind, so a platform the writer removes stays removed).
+  const companionsFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!isNew) return;
+    if (form.kind !== 'POST' && form.kind !== 'CAROUSEL') { companionsFor.current = null; return; }
+    if (companionsFor.current === form.kind || !form.platforms.some((p) => p === 'FACEBOOK' || p === 'INSTAGRAM')) return;
+    companionsFor.current = form.kind;
+    const live = new Set(accounts.filter((a) => a.status === 'CONNECTED').map((a) => a.platform));
+    const add = (['THREADS', 'PINTEREST'] as const).filter((p) => live.has(p) && !form.platforms.includes(p));
+    if (add.length) setForm((f) => ({ ...f, platforms: [...f.platforms, ...add] }));
+  }, [isNew, form.kind, form.platforms, accounts]);
 
   const set = <K extends keyof Form>(k: K, v: Form[K]) => { setForm((f) => ({ ...f, [k]: v })); setDirty(true); };
   const setMedia = (media: PostMedia[]) => {
@@ -383,8 +398,13 @@ export default function ComposerPage() {
               )}
             </Card>
 
-            <Card title="Media" description={form.kind === 'CAROUSEL' ? 'Carousel: the order here is the swipe order.' : form.kind === 'REEL' ? 'Reel: one vertical video, 9:16, 3 to 90 seconds.' : 'Images or a video.'}>
+            <Card title="Media" description={form.kind === 'CAROUSEL' ? 'Carousel: the order here is the swipe order.' : form.kind === 'REEL' ? 'Reel: one vertical video, 9:16, 3 to 90 seconds.' : form.kind === 'STORY' ? 'Story: one vertical 9:16 image or video (video 3 to 60 seconds).' : 'Images or a video.'}>
               <MediaStrip media={form.media} onChange={setMedia} disabled={readOnly} max={form.kind === 'CAROUSEL' || form.kind === 'POST' ? 10 : form.kind === 'TEXT' ? 0 : 1} />
+              {form.kind === 'STORY' && (
+                <Alert tone="info" className="mt-3" title="Stories go to Instagram and Facebook">
+                  Stickers (polls, questions, links, mentions, music) cannot be added through the Instagram or Facebook API. If the story needs one, post it from the app instead. Stories disappear after 24 hours.
+                </Alert>
+              )}
             </Card>
 
             <Card title="Link" description="Tracked with UTM tags per platform, so signups show in Analytics.">
@@ -406,6 +426,11 @@ export default function ComposerPage() {
               {form.link && form.platforms.includes('INSTAGRAM') && <p className="mt-2 text-[0.75rem] text-slate-500">Instagram captions cannot hold a clickable link; the tracked link is used in the first comment or bio instead.</p>}
             </Card>
 
+            {form.platforms.includes('X') && (form.kind === 'TEXT' || form.kind === 'POST') && (
+              <XPollSettings value={form.options.x?.poll ?? null} hasMedia={form.media.length > 0} disabled={readOnly}
+                onChange={(poll) => set('options', { ...form.options, x: poll ? { poll } : { poll: null } })} />
+            )}
+
             {tiktokDirect && tiktokAccount && (
               <TikTokSettings
                 account={tiktokAccount} creator={creatorQ.data} loading={creatorQ.isLoading && !locked} refreshing={creatorRefreshing} onRefresh={refreshCreator}
@@ -424,6 +449,9 @@ export default function ComposerPage() {
             <Checks warnings={warnings} />
             {post && Object.keys(post.publishState ?? {}).length > 0 && (
               <PublishResults post={post} onRetry={(p) => simple.mutate({ kind: 'retry', platform: p })} retrying={simple.isPending} canPublish={can('social.publish')} handoff={handoffPlatforms} />
+            )}
+            {post?.publishedAt && (
+              <ResultsCard postId={post.id} defaults={(p) => ({ message: post.texts?.[p] ?? post.caption, title: post.title, description: post.texts?.[p] ?? post.caption, link: post.links?.[p] ?? post.link })} />
             )}
             <Card title="Preview" description="How it looks on each platform.">
               <PreviewPanel platforms={form.platforms} build={build} />

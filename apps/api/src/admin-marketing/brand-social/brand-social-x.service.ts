@@ -11,8 +11,8 @@ import { Injectable } from '@nestjs/common';
 import { SocialGraphError } from './brand-social-graph.service';
 import { evenChunks, xRoute } from './brand-social-oauth.logic';
 import {
-  AdapterResult, emptyMetrics, errorParts, httpJson, HttpOptions, kindOf, mediaHead, mediaRange, MetricValues, n, PlatformApp, platformErrorText,
-  ProfileInfo, PublishContext, sleep, SocialAdapter, TokenSet,
+  AccountRef, AdapterResult, emptyMetrics, errorParts, httpJson, HttpOptions, kindOf, mediaHead, mediaRange, MetricValues, n, PlatformApp, platformErrorText,
+  ProfileInfo, PublishContext, RemoteComment, sleep, SocialAdapter, TokenSet,
 } from './brand-social-adapter';
 import type { PostMediaItem } from './brand-social.types';
 
@@ -110,8 +110,15 @@ export class BrandSocialXService implements SocialAdapter {
     const items = route.video ? [route.video] : route.images;
     const ids: string[] = [];
     for (const m of items) ids.push(await this.upload(ctx.accessToken, m));
+    // A poll goes on text posts only (validation blocks a poll with media).
+    const poll = !ids.length ? ctx.post.options.x?.poll : null;
     const r = await this.call<{ data?: { id?: string } }>('tweets', ctx.accessToken, {
-      method: 'POST', json: { text: ctx.text, ...(ids.length ? { media: { media_ids: ids } } : {}) },
+      method: 'POST',
+      json: {
+        text: ctx.text,
+        ...(ids.length ? { media: { media_ids: ids } } : {}),
+        ...(poll && poll.options.length >= 2 ? { poll: { options: poll.options.slice(0, 4), duration_minutes: poll.durationMinutes } } : {}),
+      },
     });
     const id = r.data?.id;
     if (!id) throw new SocialGraphError('unknown', 'X did not return an id for the new post.');
@@ -124,17 +131,75 @@ export class BrandSocialXService implements SocialAdapter {
     return r.data?.id ?? null;
   }
 
+  async deletePost(token: string, postId: string): Promise<void> {
+    await this.call(`tweets/${postId}`, token, { method: 'DELETE' });
+  }
+
+  /**
+   * Replies in the post's conversation from the last 7 days (recent search).
+   * Reading needs a plan that allows search; a refusal comes back as a
+   * "plan" error and the inbox shows it.
+   */
+  async listComments(token: string, account: AccountRef, postId: string): Promise<RemoteComment[]> {
+    const r = await this.call<{ data?: any[]; includes?: { users?: any[] } }>('tweets/search/recent', token, {
+      query: {
+        query: `conversation_id:${postId}`, max_results: 50,
+        'tweet.fields': 'author_id,created_at,referenced_tweets,conversation_id', expansions: 'author_id', 'user.fields': 'username,name',
+      },
+    });
+    const users = new Map((r?.includes?.users ?? []).map((u: any) => [String(u.id), u]));
+    const user = account.handle?.replace(/^@/, '');
+    return (r?.data ?? []).map((t: any): RemoteComment => {
+      const u = users.get(String(t.author_id));
+      const parent = (t.referenced_tweets ?? []).find((x: any) => x?.type === 'replied_to')?.id;
+      return {
+        id: String(t.id), parentId: parent && String(parent) !== postId ? String(parent) : null, authorId: t.author_id ? String(t.author_id) : null,
+        authorName: u?.name ?? (u?.username ? `@${u.username}` : 'X user'), authorHandle: u?.username ? `@${u.username}` : null,
+        text: String(t.text ?? ''), permalink: u?.username ? `https://x.com/${u.username}/status/${t.id}` : user ? `https://x.com/i/web/status/${t.id}` : null,
+        at: t.created_at ? new Date(t.created_at).toISOString() : new Date().toISOString(),
+        mine: String(t.author_id) === account.externalId, hidden: false,
+      };
+    });
+  }
+
+  async replyComment(token: string, _account: AccountRef, _postId: string, commentId: string, text: string): Promise<string | null> {
+    const r = await this.call<{ data?: { id?: string } }>('tweets', token, { method: 'POST', json: { text, reply: { in_reply_to_tweet_id: commentId } } });
+    return r.data?.id ?? null;
+  }
+
+  /** Needs tweet.moderate.write; works on replies to Nafaa's own posts. */
+  async hideComment(token: string, commentId: string, hidden: boolean): Promise<void> {
+    await this.call(`tweets/${commentId}/hidden`, token, { method: 'PUT', json: { hidden } });
+  }
+
+  /** Only Nafaa's own replies can be deleted. */
+  async deleteComment(token: string, commentId: string): Promise<void> {
+    await this.call(`tweets/${commentId}`, token, { method: 'DELETE' });
+  }
+
+  /**
+   * public_metrics (impressions, likes, replies, reposts, quotes, bookmarks)
+   * and, for Nafaa's own posts under 30 days, non_public_metrics link clicks.
+   * When X refuses the private numbers, the public ones are read alone.
+   */
   async metrics(token: string, _externalId: string, ids: string[]): Promise<Map<string, MetricValues>> {
     const out = new Map<string, MetricValues>();
+    type Row = { id: string; public_metrics?: Record<string, number>; non_public_metrics?: Record<string, number> };
     for (let i = 0; i < ids.length; i += 100) {
-      const r = await this.call<{ data?: Array<{ id: string; public_metrics?: Record<string, number> }> }>('tweets', token, {
-        query: { ids: ids.slice(i, i + 100).join(','), 'tweet.fields': 'public_metrics' },
-      }).catch(() => null);
+      const batch = ids.slice(i, i + 100).join(',');
+      let refused: string[] = [];
+      let r = await this.call<{ data?: Row[] }>('tweets', token, { query: { ids: batch, 'tweet.fields': 'public_metrics,non_public_metrics' } }).catch(() => null);
+      if (!r?.data) {
+        refused = ['non_public_metrics'];
+        r = await this.call<{ data?: Row[] }>('tweets', token, { query: { ids: batch, 'tweet.fields': 'public_metrics' } }).catch(() => null);
+      }
       for (const t of r?.data ?? []) {
         const p = t.public_metrics ?? {};
+        const np = t.non_public_metrics ?? {};
         out.set(String(t.id), {
           ...emptyMetrics(), impressions: n(p.impression_count), reach: n(p.impression_count), likes: n(p.like_count), comments: n(p.reply_count),
-          shares: n(p.retweet_count) + n(p.quote_count), saves: n(p.bookmark_count), raw: { public_metrics: p },
+          shares: n(p.retweet_count) + n(p.quote_count), saves: n(p.bookmark_count), clicks: n(np.url_link_clicks),
+          raw: { public_metrics: p, non_public_metrics: np, ...(refused.length ? { refused } : {}) },
         });
       }
     }

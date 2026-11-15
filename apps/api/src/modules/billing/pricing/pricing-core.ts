@@ -171,9 +171,9 @@ export async function applyPaidInvoiceAddOns(tx: Prisma.TransactionClient, invoi
       ]);
       await tx.adminNotification.create({
         data: {
-          type: 'USER_ACTION', priority: 'HIGH',
-          title: `Setup karna hai: ${service?.name ?? 'Service'} — ${shop?.name ?? ''}`,
-          message: `${shop?.name ?? 'Shop'} ne ${service?.name ?? 'service'} li hai${item.amount > 0 ? ` (Rs ${Math.round(item.amount).toLocaleString('en-PK')})` : ' (saal ke plan ke saath muft)'}. Phone: ${shop?.phone ?? '—'}. Kaam mukammal hone par Setup requests me "Done" karein.`,
+          type: 'USER_ACTION', priority: 'HIGH', category: 'billing',
+          title: `Setup to do: ${service?.name ?? 'Service'} for ${shop?.name ?? 'a shop'}`,
+          message: `${shop?.name ?? 'A shop'} bought ${service?.name ?? 'a service'}${item.amount > 0 ? ` (Rs ${Math.round(item.amount).toLocaleString('en-PK')})` : ' (free with the yearly plan)'}. Phone: ${shop?.phone ?? '—'}. Mark it done on Setup requests when finished.`,
           link: '/setups', tenantId: invoice.tenantId, entityType: 'Invoice', entityId: invoiceId,
         },
       });

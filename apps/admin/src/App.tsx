@@ -113,6 +113,8 @@ const SocialMetaCallbackPage = lazy(() => import('@/features/brand-social/pages/
 const SocialPlatformCallbackPage = lazy(() => import('@/features/brand-social/pages/PlatformCallbackPage'));
 const SocialSettingsPage = lazy(() => import('@/features/brand-social/pages/SettingsPage'));
 const SocialAdsPage = lazy(() => import('@/features/brand-social/pages/AdsPage'));
+const SocialPublishedPage = lazy(() => import('@/features/brand-social/pages/PublishedPage'));
+const SocialInboxPage = lazy(() => import('@/features/brand-social/pages/InboxPage'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -223,6 +225,8 @@ export default function App() {
               <Route path="/social/calendar" element={<SocialCalendarPage />} />
               <Route path="/social/posts/:id" element={<SocialComposerPage />} />
               <Route path="/social/approvals" element={<SocialApprovalsPage />} />
+              <Route path="/social/published" element={<SocialPublishedPage />} />
+              <Route path="/social/inbox" element={<SocialInboxPage />} />
               <Route path="/social/handoff" element={<SocialHandoffPage />} />
               <Route path="/social/media" element={<SocialMediaPage />} />
               <Route path="/social/analytics" element={<SocialAnalyticsPage />} />

@@ -8,7 +8,7 @@
 import { zonedToUtc } from '../../common/helpers/business-time.helper';
 import type { MetaErrorKind, GraphErrorBody } from '../../integrations/meta/meta-graph';
 import { platformTextLength } from './brand-social-oauth.logic';
-import { normalizePostOptions, normalizeTikTokOptions, tiktokOptionIssues } from './brand-social-tiktok.logic';
+import { normalizePostOptions, normalizeTikTokOptions, tiktokOptionIssues, xPollIssues } from './brand-social-tiktok.logic';
 import {
   API_PLATFORMS, BRAND_PLATFORMS, POST_KINDS, POST_STATUSES,
   type BrandPlatform, type BrandPostKind, type BrandPostStatus, type BrandSocialSettings, type ContentPack,
@@ -185,15 +185,14 @@ export function validatePost(p: ValidationInput, utm?: { medium?: string; defaul
       case 'INSTAGRAM': {
         if (!p.media.length) { add(platform, 'error', 'needs_media', 'Instagram needs at least one image or video.'); break; }
         if (p.media.length > 10) add(platform, 'error', 'carousel_long', 'An Instagram carousel can have at most 10 items.');
-        const reel = p.kind === 'REEL' || p.kind === 'VIDEO' || (!!video && !images.length);
+        const reel = p.kind !== 'STORY' && (p.kind === 'REEL' || p.kind === 'VIDEO' || (!!video && !images.length));
         if (reel && video) {
           const d = video.durationSec ?? null;
           if (d != null && (d < 3 || d > 90)) add(platform, 'error', 'reel_length', `Instagram reels must be 3 to 90 seconds; this video is ${Math.round(d)} s.`);
           const r = ratio(video);
           if (r != null && Math.abs(r - 9 / 16) > 0.02) add(platform, 'warning', 'reel_ratio', 'Reels look best at 9:16 (for example 1080 x 1920).');
         } else if (p.kind === 'STORY') {
-          const r = ratio(p.media[0]);
-          if (r != null && Math.abs(r - 9 / 16) > 0.05) add(platform, 'warning', 'story_ratio', 'Stories look best at 9:16.');
+          storyChecks(platform, p.media, add);
         } else {
           for (const [i, m] of images.entries()) {
             const r = ratio(m);
@@ -206,10 +205,16 @@ export function validatePost(p: ValidationInput, utm?: { medium?: string; defaul
         break;
       }
       case 'FACEBOOK':
+        if (p.kind === 'STORY') {
+          if (!p.media.length) add(platform, 'error', 'needs_media', 'A Facebook story needs one image or video.');
+          else storyChecks(platform, p.media, add);
+          break;
+        }
         if (p.media.length > 10) add(platform, 'warning', 'too_many', 'Facebook takes the first 10 images.');
         if (images.length && videos.length) add(platform, 'warning', 'mixed_media', 'Facebook posts the video only when a post has both images and a video.');
         break;
       case 'X':
+        for (const msg of xPollIssues(p.options?.x?.poll, p.media.length)) add(platform, 'error', 'x_poll', msg);
         if (videos.length > 1 || (videos.length && images.length) || images.length > 4) add(platform, 'warning', 'x_media', 'X takes up to 4 images or 1 video.');
         break;
       case 'TIKTOK':
@@ -238,8 +243,27 @@ export function validatePost(p: ValidationInput, utm?: { medium?: string; defaul
         break;
     }
   }
+  if (p.kind === 'STORY') {
+    const feed = p.platforms.filter((x) => !['FACEBOOK', 'INSTAGRAM', 'YOUTUBE', 'TIKTOK'].includes(x) && isApiPlatform(x));
+    if (feed.length) add(null, 'warning', 'story_feed', `${feed.map((x) => PLATFORM_LABEL[x]).join(', ')} ${feed.length === 1 ? 'has' : 'have'} no stories through the API; ${feed.length === 1 ? 'it gets' : 'they get'} a normal post.`);
+  }
   if (p.firstComment && p.firstComment.length > 2_200) add(null, 'warning', 'comment_long', 'The first comment is longer than 2,200 characters.');
   return out;
+}
+
+/**
+ * Facebook and Instagram stories: one vertical 9:16 image or video (only the
+ * first item goes out), video up to 60 seconds. Stickers, polls, questions
+ * and link stickers cannot be added through the APIs.
+ */
+function storyChecks(platform: BrandPlatform, media: PostMediaItem[], add: (pl: BrandPlatform | null, level: PostWarning['level'], code: string, message: string) => void) {
+  const name = PLATFORM_LABEL[platform];
+  const m = media.find((x) => x.kind === 'video') ?? media[0];
+  if (!m) return;
+  const r = ratio(m);
+  if (r != null && Math.abs(r - 9 / 16) > 0.06) add(platform, 'error', 'story_ratio', `${name} stories must be vertical 9:16 (for example 1080 x 1920); this ${m.kind} is ${r.toFixed(2)}:1.`);
+  if (m.kind === 'video' && m.durationSec != null && (m.durationSec < 3 || m.durationSec > 60)) add(platform, 'error', 'story_length', `${name} video stories must be 3 to 60 seconds; this video is ${Math.round(m.durationSec)} s.`);
+  if (media.length > 1) add(platform, 'warning', 'story_one', `A ${name} story takes one image or video; only the ${m === media[0] ? 'first item' : 'video'} goes out.`);
 }
 
 const ratio = (m: { width?: number | null; height?: number | null } | undefined) =>

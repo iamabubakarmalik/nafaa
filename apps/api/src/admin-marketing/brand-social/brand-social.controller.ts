@@ -23,7 +23,10 @@ import { BrandSocialPublisherService } from './brand-social-publisher.service';
 import { BrandSocialSettingsService } from './brand-social-settings.service';
 import { BrandSocialPlatformsService } from './brand-social-platforms.service';
 import { platformFromSlug } from './brand-social-oauth.logic';
+import { BrandSocialResultsService } from './brand-social-results.service';
+import { BrandSocialCommentsService } from './brand-social-comments.service';
 import type {
+  CommentDoneInput, CommentHideInput, CommentReplyInput, CommentsToggleInput, InboxQuery, PlatformEditInput, PublishedQuery,
   AccountPatchInput, PlatformAppInput, AiCaptionInput, AiPlanInput, AssetInput, AssetPatchInput, AutomationKeyInput, BulkInput, ManualAccountInput,
   MarkPostedInput, MetaSelectInput, PostInput, PostListQuery, RejectInput, RetryInput, ScheduleInput,
 } from './brand-social.types';
@@ -45,6 +48,8 @@ export class BrandSocialController {
     private readonly ai: BrandSocialAiService,
     private readonly settings: BrandSocialSettingsService,
     private readonly platforms: BrandSocialPlatformsService,
+    private readonly results: BrandSocialResultsService,
+    private readonly comments: BrandSocialCommentsService,
   ) {}
 
   private app(slug: string) {
@@ -115,6 +120,35 @@ export class BrandSocialController {
   markPosted(@GetUser() u: AuthenticatedUser, @Param('id') id: string, @Body() b: MarkPostedInput) { return this.publisher.markPosted(id, b ?? ({} as MarkPostedInput), actor(u)); }
   @Patch('posts/:id/schedule') @AdminPermission('social.edit')
   schedule(@Param('id') id: string, @Body() b: ScheduleInput) { return this.posts.schedule(id, b?.scheduledAt ?? null); }
+
+  /* ───── published posts: results, edit and delete on the platforms ───── */
+  @Get('published') published(@Query() q: PublishedQuery) { return this.results.published(q ?? {}); }
+  @Get('posts/:id/results') postResults(@Param('id') id: string) { return this.results.results(id); }
+  /** Pulls fresh numbers for one post now (once every 2 minutes per post). */
+  @Post('posts/:id/results/refresh') @HttpCode(200) @AdminPermission('social.view')
+  refreshResults(@Param('id') id: string) { return this.results.refresh(id); }
+  @Post('posts/:id/platforms/:platform/edit') @HttpCode(200) @AdminPermission('social.publish')
+  editLive(@GetUser() u: AuthenticatedUser, @Param('id') id: string, @Param('platform') p: string, @Body() b: PlatformEditInput) { return this.results.edit(id, p, b ?? {}, actor(u)); }
+  @Delete('posts/:id/platforms/:platform') @AdminPermission('social.publish')
+  deleteLive(@GetUser() u: AuthenticatedUser, @Param('id') id: string, @Param('platform') p: string) { return this.results.remove(id, p, actor(u)); }
+  @Post('posts/:id/platforms/:platform/comments-toggle') @HttpCode(200) @AdminPermission('social.publish')
+  commentsToggle(@Param('id') id: string, @Param('platform') p: string, @Body() b: CommentsToggleInput) { return this.results.toggleComments(id, p, b?.enabled); }
+
+  /* ───── comments inbox ───── */
+  @Get('comments') inbox(@Query() q: InboxQuery) { return this.comments.list(q ?? {}); }
+  @Get('comments/unread') async inboxUnread() { return { unread: await this.comments.unread() }; }
+  @Post('comments/check') @HttpCode(200) @AdminPermission('social.view')
+  inboxCheck(@Body() b: { postId?: string }) { return this.comments.checkNow(typeof b?.postId === 'string' ? b.postId : undefined); }
+  @Post('comments/done') @HttpCode(200) @AdminPermission('social.view')
+  inboxDoneMany(@GetUser() u: AuthenticatedUser, @Body() b: { ids?: string[] }) { return this.comments.doneMany(b?.ids, actor(u)); }
+  @Post('comments/:id/reply') @HttpCode(200) @AdminPermission('social.publish')
+  inboxReply(@GetUser() u: AuthenticatedUser, @Param('id') id: string, @Body() b: CommentReplyInput) { return this.comments.reply(id, b?.text, actor(u)); }
+  @Post('comments/:id/hide') @HttpCode(200) @AdminPermission('social.publish')
+  inboxHide(@Param('id') id: string, @Body() b: CommentHideInput) { return this.comments.hide(id, b?.hidden); }
+  @Delete('comments/:id') @AdminPermission('social.publish')
+  inboxDelete(@GetUser() u: AuthenticatedUser, @Param('id') id: string) { return this.comments.remove(id, actor(u)); }
+  @Post('comments/:id/done') @HttpCode(200) @AdminPermission('social.view')
+  inboxDone(@GetUser() u: AuthenticatedUser, @Param('id') id: string, @Body() b: CommentDoneInput) { return this.comments.done(id, b?.done, actor(u)); }
 
   /* ───── analytics, ads ───── */
   @Get('analytics') analytics(@Query() q: { from?: string; to?: string }) { return this.insights.analytics(q ?? {}); }

@@ -22,6 +22,7 @@ import { encrypt } from '../../core/lib/crypto';
 import { DIALOG_BASE, expiryFrom, parseSignedRequest, signState, tokenHealth, verifyState } from './meta-graph';
 import { MetaGraphError, MetaGraphService, metaFail, StoredPage } from './meta-graph.service';
 import { metaAccess } from './meta-access';
+import { notifyChannelDown } from '../../admin/notifications/admin-notify';
 
 /** Permissions the Login for Business configuration should ask for. */
 export const META_SCOPES = {
@@ -319,6 +320,7 @@ export class MetaService {
       await this.graph.call(user.tenantId, { method: 'DELETE', path: `${conn.pageId}/subscribed_apps`, token: `page:${conn.pageId}`, attempts: 1 }).catch(() => null);
     }
     await this.prisma.metaConnection.update({ where: { tenantId: user.tenantId }, data: this.wipe('DISCONNECTED') });
+    notifyChannelDown(this.prisma, { id: `meta:${user.tenantId}`, tenantId: user.tenantId, type: 'META' }, 'The shop disconnected Facebook and Instagram.', { byShop: true });
     return { ok: true };
   }
 

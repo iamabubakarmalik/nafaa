@@ -19,6 +19,8 @@ import { BrandSocialTiktokService } from './brand-social-tiktok.service';
 import { BrandSocialXService } from './brand-social-x.service';
 import { BrandSocialPinterestService } from './brand-social-pinterest.service';
 import { BrandSocialWebhooksController } from './brand-social-webhooks.controller';
+import { BrandSocialResultsService } from './brand-social-results.service';
+import { BrandSocialCommentsService } from './brand-social-comments.service';
 
 /**
  * Nafaa Social: Nafaa's own social media accounts, posts, publishing,
@@ -34,7 +36,7 @@ import { BrandSocialWebhooksController } from './brand-social-webhooks.controlle
   providers: [
     BrandSocialSettingsService, BrandSocialGraphService, BrandSocialAccountsService, BrandSocialPostsService,
     BrandSocialPublisherService, BrandSocialInsightsService, BrandSocialMediaService, BrandSocialAiService,
-    BrandSocialPlatformsService, BrandSocialThreadsService, BrandSocialYoutubeService, BrandSocialTiktokService, BrandSocialXService, BrandSocialPinterestService,
+    BrandSocialPlatformsService, BrandSocialResultsService, BrandSocialCommentsService, BrandSocialThreadsService, BrandSocialYoutubeService, BrandSocialTiktokService, BrandSocialXService, BrandSocialPinterestService,
     AutomationKeyGuard, AutomationAuditInterceptor,
     // Provided here rather than importing MetaModule: that module pulls in the
     // online-orders graph and creates an import cycle at boot.

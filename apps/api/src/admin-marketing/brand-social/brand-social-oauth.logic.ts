@@ -39,7 +39,7 @@ export interface OAuthConfig {
 export const OAUTH: Record<OAuthPlatform, OAuthConfig> = {
   THREADS: {
     authorizeUrl: 'https://threads.com/oauth/authorize',
-    scopes: ['threads_basic', 'threads_content_publish', 'threads_manage_insights', 'threads_read_replies', 'threads_manage_replies'],
+    scopes: ['threads_basic', 'threads_content_publish', 'threads_manage_insights', 'threads_read_replies', 'threads_manage_replies', 'threads_delete'],
     scopeSep: ',',
     idParam: 'client_id',
     pkce: false,
@@ -49,7 +49,8 @@ export const OAUTH: Record<OAuthPlatform, OAuthConfig> = {
   },
   YOUTUBE: {
     authorizeUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-    scopes: ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.readonly'],
+    // force-ssl: edit and delete videos, reply to and moderate comments.
+    scopes: ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.readonly', 'https://www.googleapis.com/auth/youtube.force-ssl'],
     scopeSep: ' ',
     idParam: 'client_id',
     extra: { access_type: 'offline', prompt: 'consent', include_granted_scopes: 'true' },
@@ -70,7 +71,7 @@ export const OAUTH: Record<OAuthPlatform, OAuthConfig> = {
   },
   X: {
     authorizeUrl: 'https://x.com/i/oauth2/authorize',
-    scopes: ['tweet.read', 'tweet.write', 'users.read', 'media.write', 'offline.access'],
+    scopes: ['tweet.read', 'tweet.write', 'tweet.moderate.write', 'users.read', 'media.write', 'offline.access'],
     scopeSep: ' ',
     idParam: 'client_id',
     pkce: true,

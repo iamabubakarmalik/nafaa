@@ -17,6 +17,7 @@ import { EntitlementsService } from '../entitlements/entitlements.service';
 import { FEATURES, UNLIMITED } from '../entitlements/feature-catalog';
 import { loadBillingSettings } from '../entitlements/billing-settings';
 import { nextInvoiceNumber } from './invoice-number';
+import { notifyAdmins } from '../../../admin/notifications/admin-notify';
 import { SETUP_KEY, addOnAllowedOn, applyPaidInvoiceAddOns, proratedLine, writeInvoiceItems } from './pricing-core';
 import { BillingNotifier } from './billing-notifier';
 
@@ -234,6 +235,13 @@ export class BillingPricingService {
     });
     this.entitlements.invalidate(tenantId);
     await this.notifier.movedToFree(tenantId);
+    void this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } }).then((t) => notifyAdmins({
+      category: 'billing', event: 'billing.subscription_downgraded', severity: 'warning', type: 'SUBSCRIPTION_CANCELLED',
+      title: `Downgraded: ${t?.name ?? 'Shop'}`,
+      message: `${ent.plan?.name ? `${ent.plan.name} → ` : ''}Free plan, chosen by the shop.`,
+      link: `/tenants/${tenantId}`, tenantId, entityType: 'tenant', entityId: tenantId,
+      dedupeKey: `to-free:${tenantId}`, windowMinutes: 24 * 60,
+    })).catch(() => undefined);
     return this.overview(tenantId);
   }
 }

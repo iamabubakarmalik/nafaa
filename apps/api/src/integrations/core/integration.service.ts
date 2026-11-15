@@ -7,6 +7,7 @@ import { mappingKey } from '../online-orders/mapping-key';
 import { apiMessage } from '../../common/i18n/api-message';
 import { attributionColumns } from '../../modules/growth/marketing/attribution';
 import { CHANNEL_ADDON, EntitlementsService } from '../../modules/billing/entitlements/entitlements.service';
+import { notifyChannelDown } from '../../admin/notifications/admin-notify';
 
 type OrderReceivedListener = (order: any, integration: any) => Promise<void> | void;
 
@@ -160,10 +161,12 @@ export class IntegrationService {
 
   async disconnect(tenantId: string, integrationId: string) {
     await this.assertOwned(tenantId, integrationId);
-    return this.prisma.integration.update({
+    const updated = await this.prisma.integration.update({
       where: { id: integrationId },
       data: { status: IntegrationStatus.DISCONNECTED, isActive: false },
     });
+    notifyChannelDown(this.prisma, updated, 'The shop disconnected this channel.', { byShop: true });
+    return updated;
   }
 
   async reconnect(tenantId: string, integrationId: string) {

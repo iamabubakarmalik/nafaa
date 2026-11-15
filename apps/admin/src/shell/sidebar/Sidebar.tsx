@@ -48,6 +48,7 @@ function ActiveBar() {
 
 function NavRow({ item, onClick }: { item: AdminNavItem; onClick?: () => void }) {
   const Icon = item.icon as IconType;
+  const Badge = item.badge;
   return (
     <NavLink to={item.to} end={item.exact} onClick={onClick} className={({ isActive }) => cn(ROW, isActive ? ROW_ACTIVE : ROW_IDLE)}>
       {({ isActive }) => (
@@ -55,6 +56,7 @@ function NavRow({ item, onClick }: { item: AdminNavItem; onClick?: () => void })
           {isActive && <ActiveBar />}
           <Icon className={cn('h-4 w-4 shrink-0', isActive && 'text-brand-600 dark:text-brand-400')} />
           <span className="min-w-0 flex-1 truncate">{item.label}</span>
+          {Badge && <Badge />}
         </>
       )}
     </NavLink>

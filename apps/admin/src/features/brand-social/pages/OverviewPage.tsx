@@ -7,10 +7,10 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, ArrowRight, Bot, CalendarDays, CheckCircle2, Hand, Lightbulb, Plus, ShieldCheck, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Bot, CalendarDays, CheckCircle2, ExternalLink, Hand, Lightbulb, MessagesSquare, Plus, ShieldCheck, Trophy, XCircle } from 'lucide-react';
 import { Alert, Badge, Button, Card, EmptyState, PageHero, PageShell, Skeleton, heroButton, heroPrimaryButton } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
-import { brandSocialApi, type SocialPost } from '@/api/admin-brand-social.api';
+import { brandSocialApi, type SocialOverview, type SocialPost } from '@/api/admin-brand-social.api';
 import { cn } from '@/lib/cn';
 import { num } from '@/lib/format';
 import { PLATFORM, PlatformMark, PlatformStack } from '../lib/platforms';
@@ -44,14 +44,15 @@ export default function OverviewPage() {
         loading={q.isLoading}
         actions={<>
           <button type="button" className={heroButton} onClick={guide.open} aria-label="How this page works (G)"><Lightbulb className="h-4 w-4" /></button>
+          <Link to="/social/inbox" className={heroButton}><MessagesSquare className="h-4 w-4" />Comments{d?.inboxUnread ? <span className="rounded-full bg-white/25 px-1.5 text-[0.6875rem] font-bold tabular-nums">{d.inboxUnread}</span> : null}</Link>
           <Link to="/social/calendar" className={heroButton}><CalendarDays className="h-4 w-4" />Calendar</Link>
           <Link to="/social/posts/new" className={heroPrimaryButton}><Plus className="h-4 w-4" />New post</Link>
         </>}
         stats={d ? [
-          { label: 'Followers', value: num(d.followers.total), hint: `${d.followers.byPlatform.filter((f) => f.followers != null).length} platforms` },
+          { label: 'Followers', value: num(d.totals7d?.followers ?? d.followers.total), hint: d.totals7d?.followersChange != null ? `${signed(d.totals7d.followersChange)} in 7 days` : `${d.followers.byPlatform.filter((f) => f.followers != null).length} platforms` },
           { label: 'Posts this week', value: num(d.postsThisWeek) },
           { label: 'Reach, 7 days', value: num(d.reach7d) },
-          { label: 'Engagement rate', value: `${(d.engagementRate7d ?? 0).toFixed(1)}%`, hint: 'Last 7 days' },
+          { label: 'Engagement, 7 days', value: num(d.totals7d?.engagement ?? 0), hint: `${(d.engagementRate7d ?? 0).toFixed(1)}% rate` },
           { label: 'Waiting approval', value: num(d.pendingApprovals) },
           { label: 'Failed', value: num(d.failed) },
         ] : undefined}
@@ -125,6 +126,8 @@ export default function OverviewPage() {
             </Card>
           </div>
 
+          <TopPosts posts={d.topPosts ?? []} />
+
           <Card title="Accounts" actions={<Link to="/social/accounts" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">Manage<ArrowRight className="h-3.5 w-3.5" /></Link>}>
             {!d.accounts.length ? (
               <p className="text-[0.8125rem] text-slate-500">No accounts yet. <Link to="/social/accounts" className="font-semibold text-brand-700 underline">Connect Facebook & Instagram</Link> and add the others.</p>
@@ -138,7 +141,11 @@ export default function OverviewPage() {
                       className={cn('flex items-center gap-2 rounded-xl py-1.5 pe-3 ps-1.5 ring-1', bad ? 'bg-rose-50 ring-rose-200' : warn ? 'bg-amber-50 ring-amber-200' : 'bg-white ring-slate-200 hover:ring-slate-300')}>
                       <AccountAvatar account={a} platform={a.platform} size={30} />
                       <span className="leading-tight">
-                        <span className="block text-[0.8125rem] font-semibold text-slate-900">{PLATFORM[a.platform].label}</span>
+                        <span className="flex items-center gap-1.5 text-[0.8125rem] font-semibold text-slate-900">
+                          {PLATFORM[a.platform].label}
+                          {a.followers != null && <span className="text-[0.75rem] font-medium tabular-nums text-slate-500">{num(a.followers)}</span>}
+                          {a.followersChange7d != null && a.followersChange7d !== 0 && <span className={cn('text-[0.6875rem] font-semibold tabular-nums', a.followersChange7d > 0 ? 'text-success-700' : 'text-rose-600')}>{signed(a.followersChange7d)}</span>}
+                        </span>
                         <span className={cn('flex items-center gap-1 text-[0.6875rem]', bad ? 'text-rose-700' : warn ? 'text-amber-800' : 'text-slate-500')}>
                           {bad ? <><AlertTriangle className="h-3 w-3" />Reconnect</> : warn ? <><AlertTriangle className="h-3 w-3" />{a.lastError ? 'Check' : 'Token expiring'}</> : a.status === 'MANUAL' || !a.autoPublish ? 'By hand' : 'Auto-publish'}
                         </span>
@@ -175,6 +182,51 @@ export default function OverviewPage() {
         />
       )}
     </PageShell>
+  );
+}
+
+const signed = (n: number) => `${n > 0 ? '+' : ''}${num(n)}`;
+
+/** The 3 posts with the most engagement in the last 7 days, with their live links. */
+function TopPosts({ posts }: { posts: NonNullable<SocialOverview['topPosts']> }) {
+  return (
+    <Card flush title="Top posts, 7 days" description="By engagement across every platform"
+      actions={<Link to="/social/published" className="inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-brand-700 hover:underline">All published<ArrowRight className="h-3.5 w-3.5" /></Link>}>
+      {!posts.length ? (
+        <EmptyState icon={<Trophy className="h-6 w-6" />} title="No results yet" description="Posts from the last 7 days show here once their numbers are read." />
+      ) : (
+        <ol className="grid divide-y divide-slate-100 md:grid-cols-3 md:divide-x md:divide-y-0">
+          {posts.map((p, i) => (
+            <li key={p.id} className="flex gap-3 p-4">
+              <span className="text-[1.25rem] font-bold tabular-nums text-slate-300">{i + 1}</span>
+              <div className="min-w-0 flex-1">
+                <Link to={`/social/posts/${p.id}`} className="flex items-center gap-2 hover:text-brand-700">
+                  <PostThumb media={p.thumbUrl ? [{ url: p.thumbUrl, kind: 'image' }] : []} kind={p.kind} size={36} />
+                  <span className="min-w-0">
+                    <span className="block truncate text-[0.8125rem] font-semibold text-slate-900">{p.title || 'Untitled post'}</span>
+                    <span className="block text-[0.75rem] text-slate-500">{p.publishedAt ? relative(p.publishedAt) : ''}</span>
+                  </span>
+                </Link>
+                <p className="mt-2 flex gap-3 text-[0.75rem] tabular-nums text-slate-500">
+                  <span>Engagement <b className="text-slate-900">{num(p.engagement)}</b></span>
+                  <span>Reach <b className="text-slate-900">{num(p.reach)}</b></span>
+                </p>
+                {p.links.length > 0 && (
+                  <span className="mt-2 flex flex-wrap gap-1">
+                    {p.links.map((l) => (
+                      <a key={l.platform} href={l.permalink} target="_blank" rel="noreferrer" title={`Open on ${PLATFORM[l.platform].label}`}
+                        className="inline-flex h-6 items-center gap-1 rounded-full bg-slate-50 px-2 text-[0.6875rem] font-medium text-slate-700 ring-1 ring-slate-200 hover:ring-slate-300">
+                        <PlatformMark p={l.platform} size={12} />{PLATFORM[l.platform].label}<ExternalLink className="h-3 w-3" />
+                      </a>
+                    ))}
+                  </span>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Card>
   );
 }
 

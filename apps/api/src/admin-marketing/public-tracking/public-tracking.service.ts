@@ -5,6 +5,7 @@ import { QueueService } from '../../core/queue/queue.service';
 import { calculateLeadScore, scoreToTemperature } from '../_shared/helpers/lead-scoring.helper';
 import { generateTicketNumber } from '../_shared/helpers/ticket-number.helper';
 import { randomUUID } from 'crypto';
+import { notifyAdmins } from '../../admin/notifications/admin-notify';
 import type {
   TrackPageviewDto,
   TrackEventDto,
@@ -288,6 +289,16 @@ export class PublicTrackingService {
       });
     }
 
+    if (!isSpam) {
+      notifyAdmins({
+        category: 'marketing', event: 'marketing.contact_form', severity: priority === 'URGENT' ? 'warning' : 'info', type: 'USER_ACTION',
+        title: `New message: ${dto.subject || dto.fullName}`.slice(0, 200),
+        message: `${dto.fullName}${dto.companyName ? ` (${dto.companyName})` : ''}: ${dto.message.replace(/\s+/g, ' ').slice(0, 300)}`,
+        link: `/marketing/contact-forms/${form.id}`, entityType: 'contact_form', entityId: form.id,
+        metadata: { ticketNumber, email: form.email, phone: dto.phone ?? null },
+      });
+    }
+
     return { ok: true, ticketNumber };
   }
 
@@ -380,6 +391,14 @@ export class PublicTrackingService {
       utmCampaign: dto.utmCampaign,
       budget: dto.budget,
       timeline: dto.timeline,
+    });
+
+    notifyAdmins({
+      category: 'marketing', event: 'marketing.demo_booking', severity: 'warning', type: 'USER_ACTION',
+      title: `Demo booked: ${dto.companyName || dto.fullName}`.slice(0, 200),
+      message: `${dto.fullName} wants a demo on ${dto.preferredDate.slice(0, 10)}${dto.preferredTime ? ` at ${dto.preferredTime}` : ''}${dto.city ? ` · ${dto.city}` : ''}${dto.industry ? ` · ${dto.industry}` : ''}. Phone: ${dto.phone || '—'}.`,
+      link: `/marketing/demos/${booking.id}`, entityType: 'demo_booking', entityId: booking.id,
+      metadata: { bookingNumber, email: booking.email },
     });
 
     return { ok: true, bookingNumber };
@@ -542,6 +561,16 @@ export class PublicTrackingService {
         status: 'NEW',
       },
     });
+    // Contact forms and demo bookings already raise their own notification.
+    if (input.originType !== 'contact_form' && input.originType !== 'demo_booking') {
+      notifyAdmins({
+        category: 'marketing', event: 'marketing.new_lead', type: 'USER_ACTION',
+        title: `New lead: ${input.fullName || input.email || 'website visitor'}`.slice(0, 200),
+        message: `From ${String(input.source ?? input.originType ?? 'the website').toLowerCase().replace(/_/g, ' ')}${input.companyName ? ` · ${input.companyName}` : ''}.`,
+        link: `/marketing/leads/${lead.id}`, entityType: 'marketing_lead', entityId: lead.id,
+        dedupeKey: `lead:${input.originType ?? 'other'}`, windowMinutes: 60,
+      });
+    }
     return lead.id;
   }
 

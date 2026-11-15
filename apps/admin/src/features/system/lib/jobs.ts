@@ -10,6 +10,8 @@ interface JobInfo { label: string; area: JobArea; text: string }
 
 const INFO: Record<string, JobInfo> = {
   'AccountingService.nightly': { label: 'Accounting sync', area: 'Billing and tax', text: 'Sends the day’s sales to connected accounting software.' },
+  'AdminNotifyWatchService.watchSocial': { label: 'Nafaa Social alerts', area: 'Platform', text: 'Tells admins when a Nafaa Social post fails, waits to be posted by hand, or an account needs reconnecting.' },
+  'AdminNotifyWatchService.dailyChecks': { label: 'Daily admin alerts', area: 'Platform', text: 'Trials ending in 2 days and social logins about to expire (10:00), and the Nafaa Social day summary (21:00). Each is sent once a day.' },
   'AdminDeletionRequestsService.notifyDue': { label: 'Deletion request reminders', area: 'Platform', text: 'Tells admins about account deletion requests that are due. Never deletes anything.' },
   'AdRulesService.runAll': { label: 'Ad rules', area: 'Marketing and ads', text: 'Applies shops’ automatic rules to their Meta ads.' },
   'BillVoidService.sweep': { label: 'Voided bill settle', area: 'Shops', text: 'Settles stock and totals for restaurant bills that were voided.' },

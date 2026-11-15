@@ -7,6 +7,7 @@
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
+import { notifyAdmins } from '../../admin/notifications/admin-notify';
 
 export interface ErrorInput {
   source: 'http' | 'job';
@@ -84,7 +85,7 @@ export class ErrorLogService implements OnModuleDestroy {
         lastTenantId: p.input.tenantId ?? null,
       };
       try {
-        await this.prisma.serverError.upsert({
+        const row = await this.prisma.serverError.upsert({
           where: { fingerprint },
           create: {
             fingerprint,
@@ -100,7 +101,18 @@ export class ErrorLogService implements OnModuleDestroy {
           },
           // A resolved error that comes back is open again, with the newest stack.
           update: { count: { increment: p.count }, stack: p.stack ?? undefined, resolvedAt: null, resolvedById: null, ...last },
+          select: { id: true, count: true, firstSeenAt: true },
         });
+        // A new kind of API error (jobs report their own failures).
+        if (p.input.source !== 'job' && row.count === p.count && row.firstSeenAt.getTime() === p.at.getTime()) {
+          notifyAdmins({
+            category: 'system', event: 'system.new_error', severity: (p.input.status ?? 500) >= 500 ? 'warning' : 'info', type: 'SYSTEM_ALERT',
+            title: `New server error: ${p.input.method ? `${p.input.method} ` : ''}${p.input.route}`.slice(0, 200),
+            message: p.message.split('\n')[0].slice(0, 400),
+            link: '/system/errors', entityType: 'server_error', entityId: row.id,
+            dedupeKey: `server-error:${fingerprint}`, windowMinutes: 24 * 60, quietRepeat: true,
+          });
+        }
       } catch (e) {
         this.logger.warn(`Could not save error ${fingerprint}: ${e instanceof Error ? e.message : e}`);
       }

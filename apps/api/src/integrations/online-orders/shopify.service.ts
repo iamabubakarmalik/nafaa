@@ -17,6 +17,7 @@ import { GuardHold, holdLinks, markTracking, recordStockPushes, StockPushRecord 
 import { forEachLinkPage, linkScope, PAGE_DELAY_MS, trackLinks } from './link-sync';
 import { lookupShopFromDomain, normalizeShopifySiteUrl, parseShopAddress, shopAddressError, shopAddressMessage } from './shopify-shop';
 import { apiMessage, apiText, messageText, MessageText } from '../../common/i18n/api-message';
+import { notifyChannelDown } from '../../admin/notifications/admin-notify';
 
 /**
  * Shopify — ek click me jorna (OAuth, "legacy install flow"):
@@ -465,6 +466,7 @@ export class ShopifyService {
       data: { status: IntegrationStatus.DISCONNECTED, isActive: false, credentials: Prisma.JsonNull as any, webhookVerified: false },
     });
     await this.log(integration, 'SHOPIFY_UNINSTALLED', true);
+    notifyChannelDown(this.prisma, integration, 'The shop removed the Nafaa app from Shopify. Orders and stock no longer sync.', { severity: 'warning' });
   }
 
   /** Shopify ke lazmi GDPR webhooks (app config me compliance URL) */
@@ -1479,6 +1481,7 @@ export class ShopifyService {
           where: { id: integration.id },
           data: { credentials: { ...c, shopifyReauth: true }, status: IntegrationStatus.ERROR },
         });
+        notifyChannelDown(this.prisma, integration, 'Shopify asked for permission again. The shop must reinstall the app from its channel page.', { severity: 'warning' });
       }
       await this.log(integration, 'SHOPIFY_TOKEN_REFRESH', false,
         terminal ? 'Shopify ne dobara ijazat maangi — channel page par "Dobara install" dabayein' : `Refresh nahi hua (${res?.status ?? 'network'})`);

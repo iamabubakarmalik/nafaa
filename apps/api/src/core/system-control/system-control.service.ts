@@ -13,6 +13,7 @@ import { DiscoveryService } from '@nestjs/core';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ErrorLogService } from './error-log.service';
 import { JOB_DEFINITIONS, JOB_STATE, runJob, setJobRuntime } from './cron.decorator';
+import { notifyAdmins } from '../../admin/notifications/admin-notify';
 
 export interface MaintenanceState {
   on: boolean;
@@ -69,7 +70,16 @@ export class SystemControlService implements OnApplicationBootstrap, OnModuleDes
   ) {
     setJobRuntime({
       isPaused: (key) => this.paused.has(key),
-      onFailure: (key, error) => this.errors.capture({ source: 'job', route: key, error }),
+      onFailure: (key, error) => {
+        this.errors.capture({ source: 'job', route: key, error });
+        notifyAdmins({
+          category: 'system', event: 'system.job_failed', severity: 'warning', type: 'SYSTEM_ALERT',
+          title: `Background job failed: ${key}`,
+          message: (error instanceof Error ? error.message : String(error ?? 'Unknown error')).slice(0, 500),
+          link: '/system/jobs', entityType: 'job', entityId: key,
+          dedupeKey: `job-failed:${key}`, windowMinutes: 6 * 60,
+        });
+      },
     });
   }
 

@@ -2599,6 +2599,14 @@ model AdminNotification {
   tenantId   String?
   entityType String?
   entityId   String?
+  /// shops | billing | commerce | social | system | marketing | general.
+  /// Decides which admins see it (admin/notifications/admin-notify.logic.ts).
+  category    String                   @default("general")
+  /// Same key inside the event's window = one row with a higher count.
+  dedupeKey   String?
+  occurrences Int                      @default(1)
+  /// Last time the event happened (createdAt for a single occurrence).
+  lastAt      DateTime                 @default(now())
   createdAt  DateTime                  @default(now())
   updatedAt  DateTime                  @updatedAt
 
@@ -2609,6 +2617,9 @@ model AdminNotification {
   @@index([priority])
   @@index([createdAt])
   @@index([tenantId])
+  @@index([category])
+  @@index([lastAt])
+  @@index([dedupeKey, createdAt])
 }
 
 enum AuthProvider {
@@ -26763,7 +26774,8 @@ model BrandSocialPost {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  metrics BrandSocialPostMetric[]
+  metrics  BrandSocialPostMetric[]
+  comments BrandSocialComment[]
 
   @@index([status, nextRunAt])
   @@index([scheduledAt])
@@ -26820,6 +26832,45 @@ model BrandSocialPostMetric {
   @@unique([postId, platform, day])
   @@index([day])
   @@map("brand_social_post_metrics")
+}
+
+/// A comment or reply on one of Nafaa's own published posts, read by the comments inbox job.
+model BrandSocialComment {
+  id           String    @id @default(uuid())
+  postId       String
+  platform     String
+  /// The platform's comment id.
+  externalId   String
+  /// The platform post (or video / media) id the comment belongs to.
+  objectId     String
+  /// The comment this one replies to, when it is a reply.
+  parentId     String?
+  authorId     String?
+  authorName   String    @default("")
+  authorHandle String?
+  text         String    @default("") @db.Text
+  permalink    String?
+  commentedAt  DateTime
+  /// Written by Nafaa's own account (replies sent from Nafaa or on the platform).
+  mine         Boolean   @default(false)
+  hidden       Boolean   @default(false)
+  /// NEW | DONE
+  status       String    @default("NEW")
+  doneAt       DateTime?
+  doneById     String?
+  repliedAt    DateTime?
+  /// Removed on the platform (deleted from Nafaa or no longer returned).
+  deletedAt    DateTime?
+  raw          Json      @default("{}")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  post BrandSocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([platform, externalId])
+  @@index([status, commentedAt])
+  @@index([postId])
+  @@map("brand_social_comments")
 }
 
 /// Daily account numbers (PKT day).

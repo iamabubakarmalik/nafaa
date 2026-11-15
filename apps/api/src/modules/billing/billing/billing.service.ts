@@ -167,13 +167,13 @@ export class BillingService {
     const isHighValue = dto.amount >= 5000;
 
     this.adminNotifications
-      .create({
+      .notify({
+        category: 'billing',
+        event: 'billing.payment_submitted',
         type: isHighValue ? 'HIGH_VALUE_PAYMENT' : 'NEW_PAYMENT',
-        priority: isHighValue ? 'HIGH' : 'NORMAL',
-        title: isHighValue
-          ? `💰 High Value Payment: Rs ${dto.amount}`
-          : `💳 New Payment Submitted: Rs ${dto.amount}`,
-        message: `${tenant?.name ?? 'Tenant'} ne ${dto.provider} se Rs ${dto.amount} submit kiya. Approval pending.`,
+        severity: 'warning',
+        title: `Payment to approve: Rs ${Math.round(dto.amount).toLocaleString('en-PK')}`,
+        message: `${tenant?.name ?? 'A shop'} sent Rs ${Math.round(dto.amount).toLocaleString('en-PK')} by ${String(dto.provider).toLowerCase().replace(/_/g, ' ')}${dto.payerName ? ` (${dto.payerName})` : ''}. Check the receipt and approve it.`,
         link: '/billing',
         tenantId: user.tenantId,
         entityType: 'payment',

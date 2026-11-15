@@ -11,7 +11,7 @@
  * The composer mirrors these checks (apps/admin/src/features/brand-social/lib/tiktok.ts).
  */
 
-import { TIKTOK_PRIVACY_LEVELS, type PostOptions, type TikTokPostOptions, type TikTokPrivacyLevel } from './brand-social.types';
+import { TIKTOK_PRIVACY_LEVELS, type PostOptions, type XPollOptions, type TikTokPostOptions, type TikTokPrivacyLevel } from './brand-social.types';
 
 export const isTikTokPrivacy = (v: unknown): v is TikTokPrivacyLevel => typeof v === 'string' && (TIKTOK_PRIVACY_LEVELS as readonly string[]).includes(v);
 
@@ -44,8 +44,20 @@ export function normalizeTikTokOptions(raw: unknown): TikTokPostOptions | null {
 /** Cleans the whole options object; unknown platform keys are dropped. */
 export function normalizePostOptions(raw: unknown): PostOptions {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
-  const tiktok = normalizeTikTokOptions((raw as Record<string, unknown>).tiktok);
-  return tiktok ? { tiktok } : {};
+  const r = raw as Record<string, unknown>;
+  const tiktok = normalizeTikTokOptions(r.tiktok);
+  const poll = normalizeXPoll((r.x as { poll?: unknown } | null | undefined)?.poll);
+  return { ...(tiktok ? { tiktok } : {}), ...(poll ? { x: { poll } } : {}) };
+}
+
+/** Cleans an X poll from input: trimmed choices (at most 4), a whole number of minutes. Null when empty. */
+export function normalizeXPoll(raw: unknown): XPollOptions | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  const options = (Array.isArray(r.options) ? r.options : []).map((o) => String(o ?? '').trim()).filter(Boolean).slice(0, 4);
+  if (!options.length) return null;
+  const d = Math.round(Number(r.durationMinutes));
+  return { options, durationMinutes: Number.isFinite(d) && d > 0 ? d : 24 * 60 };
 }
 
 /**
@@ -61,7 +73,26 @@ export function mergePostOptions(saved: unknown, input: unknown): PostOptions {
     const t = normalizeTikTokOptions((input as Record<string, unknown>).tiktok);
     if (t) next.tiktok = t; else delete next.tiktok;
   }
+  if (Object.prototype.hasOwnProperty.call(input, 'x')) {
+    const poll = normalizeXPoll(((input as Record<string, unknown>).x as { poll?: unknown } | null | undefined)?.poll);
+    if (poll) next.x = { poll }; else delete next.x;
+  }
   return next;
+}
+
+export const X_POLL_MIN_MINUTES = 5;
+export const X_POLL_MAX_MINUTES = 7 * 24 * 60;
+
+/** Problems with an X poll (each blocks X). */
+export function xPollIssues(poll: XPollOptions | null | undefined, mediaCount: number): string[] {
+  if (!poll) return [];
+  const out: string[] = [];
+  if (poll.options.length < 2) out.push('An X poll needs 2 to 4 choices.');
+  if (poll.options.some((o) => [...o].length > 25)) out.push('Each X poll choice can be at most 25 characters.');
+  if (new Set(poll.options.map((o) => o.toLowerCase())).size !== poll.options.length) out.push('X poll choices must be different.');
+  if (poll.durationMinutes < X_POLL_MIN_MINUTES || poll.durationMinutes > X_POLL_MAX_MINUTES) out.push('An X poll stays open from 5 minutes to 7 days.');
+  if (mediaCount > 0) out.push('An X post with a poll cannot carry images or video. Remove the media or the poll.');
+  return out;
 }
 
 /** True when Nafaa posts to this TikTok account directly (not to the drafts inbox). */

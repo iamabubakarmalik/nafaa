@@ -66,6 +66,13 @@ export interface PlatformPublishState {
   /** Marked posted by hand. */
   manual?: boolean;
   postedById?: string | null;
+  /** Removed from the platform through Nafaa (the post stays in Nafaa with its results). */
+  deletedAt?: string | null;
+  deletedById?: string | null;
+  /** Last change of the live post from Nafaa (caption, title, link). */
+  editedAt?: string | null;
+  /** Instagram: comments turned off from Nafaa. */
+  commentsOff?: boolean;
 }
 
 export type PublishStateMap = Partial<Record<BrandPlatform, PlatformPublishState>>;
@@ -94,6 +101,8 @@ export interface BrandAccountView {
   tokenExpiresAt: string | null;
   scopes: string[];
   followers: number | null;
+  /** Followers now minus followers 7 days ago, when both are known. */
+  followersChange7d: number | null;
   lastError: string | null;
   lastCheckedAt: string | null;
   createdAt: string;
@@ -245,9 +254,16 @@ export interface TikTokPostOptions {
   brandedContent: boolean;
 }
 
+/** An X poll: 2 to 4 choices of up to 25 characters, open 5 minutes to 7 days. Text posts only (no media). */
+export interface XPollOptions {
+  options: string[];
+  durationMinutes: number;
+}
+
 /** Per-post platform options (brand_social_posts.options). */
 export interface PostOptions {
   tiktok?: TikTokPostOptions;
+  x?: { poll?: XPollOptions | null };
 }
 
 export interface PostMediaItem {
@@ -505,7 +521,125 @@ export interface OverviewResponse {
   queue: BrandPostView[];
   needsYou: { approvals: BrandPostView[]; failed: BrandPostView[]; handoff: BrandPostView[] };
   accounts: BrandAccountView[];
+  /** Totals across every account for the last 7 days (posts published in that time). */
+  totals7d: { followers: number; followersChange: number | null; reach: number; engagement: number; impressions: number };
+  /** Best 3 posts of the last 7 days by engagement, with their links. */
+  topPosts: Array<{
+    id: string; title: string; kind: BrandPostKind; publishedAt: string | null; thumbUrl: string | null;
+    reach: number; engagement: number; links: Array<{ platform: BrandPlatform; permalink: string }>;
+  }>;
+  /** Comments in the inbox not yet marked done. */
+  inboxUnread: number;
 }
+
+/* ───────────────────────── published posts and results ───────────────────────── */
+
+export type MetricKey = 'reach' | 'impressions' | 'likes' | 'comments' | 'shares' | 'saves' | 'plays' | 'clicks' | 'engagement';
+export const METRIC_KEYS: readonly MetricKey[] = ['reach', 'impressions', 'likes', 'comments', 'shares', 'saves', 'plays', 'clicks', 'engagement'];
+
+/** What Nafaa can do with a published post on one platform. `reason` says why an action is off. */
+export interface PlatformActions {
+  /** Fields that can be changed: message (Facebook), title / description (YouTube), title / description / link (Pinterest). */
+  edit: { ok: boolean; fields: Array<'message' | 'title' | 'description' | 'link'>; reason: string | null };
+  delete: { ok: boolean; reason: string | null };
+  /** Instagram: turn comments on or off. */
+  toggleComments: { ok: boolean; reason: string | null };
+  /** The comments inbox reads this platform. */
+  comments: { ok: boolean; reason: string | null };
+}
+
+/** One platform of a published post. */
+export interface PublishedPlatformView {
+  platform: BrandPlatform;
+  status: PlatformPublishStatus;
+  postId: string | null;
+  permalink: string | null;
+  /** When it went live (or was marked posted). */
+  at: string | null;
+  manual: boolean;
+  /** Removed from the platform through Nafaa. */
+  deletedAt: string | null;
+  /** Instagram: comments turned off from Nafaa. */
+  commentsOff?: boolean;
+  metrics: PostMetricView | null;
+  actions: PlatformActions;
+}
+
+/** GET published?from&to&platform&kind&pillar&search&sort&dir */
+export interface PublishedQuery {
+  from?: string; to?: string; platform?: string; kind?: string; pillar?: string; search?: string;
+  /** A MetricKey or "publishedAt" (default). */
+  sort?: string;
+  dir?: 'asc' | 'desc';
+}
+export interface PublishedRow {
+  id: string; code: string; title: string; kind: BrandPostKind; pillar: string | null; campaign: string | null;
+  status: BrandPostStatus; publishedAt: string | null; thumbUrl: string | null; mediaCount: number; caption: string;
+  /** The text that went out per platform (caption, hashtags, link where it belongs). */
+  texts: Partial<Record<BrandPlatform, string>>;
+  platforms: PublishedPlatformView[];
+  totals: Record<MetricKey, number>;
+  /** Newest metrics fetch across platforms. */
+  fetchedAt: string | null;
+}
+export interface PublishedResponse { posts: PublishedRow[]; total: number; totals: Record<MetricKey, number> }
+
+/** GET posts/:id/results: per-platform numbers, links, actions and a daily trend. */
+export interface PostResultsResponse {
+  postId: string;
+  platforms: PublishedPlatformView[];
+  totals: Record<MetricKey, number>;
+  /** One point per PKT day (sum across platforms), oldest first. */
+  trend: Array<{ day: string; reach: number; impressions: number; engagement: number }>;
+  /** Earliest time "Refresh results" can run again for this post. */
+  refreshAfter: string | null;
+  /** Platforms that refused some metrics in the last refresh, with the reason. */
+  notes: Array<{ platform: BrandPlatform; message: string }>;
+}
+
+/** POST posts/:id/platforms/:platform/edit */
+export interface PlatformEditInput { message?: string; title?: string; description?: string; link?: string | null }
+/** POST posts/:id/platforms/:platform/comments-toggle */
+export interface CommentsToggleInput { enabled: boolean }
+
+/* ───────────────────────── comments inbox ───────────────────────── */
+
+export const INBOX_PLATFORMS: readonly BrandPlatform[] = ['FACEBOOK', 'INSTAGRAM', 'THREADS', 'YOUTUBE', 'X'];
+
+export interface SocialCommentView {
+  id: string;
+  platform: BrandPlatform;
+  post: { id: string; title: string; code: string; permalink: string | null; thumbUrl: string | null };
+  externalId: string;
+  parentId: string | null;
+  author: { name: string; handle: string | null };
+  text: string;
+  permalink: string | null;
+  commentedAt: string;
+  mine: boolean;
+  hidden: boolean;
+  status: 'NEW' | 'DONE';
+  repliedAt: string | null;
+  deletedAt: string | null;
+  /** Replies written by Nafaa's account under this comment. */
+  replies: Array<{ id: string; text: string; commentedAt: string }>;
+  can: { reply: boolean; hide: boolean; delete: boolean; reason: string | null };
+}
+
+/** GET comments?status&platform&postId&search */
+export interface InboxQuery { status?: string; platform?: string; postId?: string; search?: string }
+export interface InboxResponse {
+  comments: SocialCommentView[];
+  unread: number;
+  /** Per platform: when the inbox last read it, and why it could not (plan, permission). */
+  sources: Array<{ platform: BrandPlatform; ok: boolean; message: string | null; checkedAt: string | null }>;
+}
+/** POST comments/:id/reply */
+export interface CommentReplyInput { text: string }
+/** POST comments/:id/hide */
+export interface CommentHideInput { hidden: boolean }
+/** POST comments/:id/done */
+export interface CommentDoneInput { done: boolean }
 
 /* ───────────────────────── ads ───────────────────────── */
 

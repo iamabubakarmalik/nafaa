@@ -7,6 +7,7 @@ import { NotificationsService } from '../../modules/notifications/notifications.
 import { ReferralsService } from '../../modules/customers/referrals/referrals.service';
 import { SubscriptionsService } from '../../modules/billing/subscriptions/subscriptions.service';
 import { apiMessage } from '../../common/i18n/api-message';
+import { notifyAdmins, rs } from '../../admin/notifications/admin-notify';
 
 type StripeClient = InstanceType<typeof StripeLib>;
 type StripeEvent = ReturnType<StripeClient['webhooks']['constructEvent']>;
@@ -126,6 +127,21 @@ export class StripeService {
       }
     }
 
+    if (event.type === 'checkout.session.async_payment_failed' || event.type === 'payment_intent.payment_failed') {
+      const obj = event.data.object as any;
+      const tenantId: string | null = obj.metadata?.tenantId ?? null;
+      const invoiceId: string | null = obj.metadata?.invoiceId ?? null;
+      const amount = ((obj.amount_total ?? obj.amount ?? 0) as number) / 100;
+      const reason: string | null = obj.last_payment_error?.message ?? null;
+      void (tenantId ? this.prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true } }) : Promise.resolve(null)).then((t) => notifyAdmins({
+        category: 'billing', event: 'billing.payment_failed', severity: 'warning', type: 'PAYMENT_REJECTED',
+        title: `Card payment failed${t?.name ? `: ${t.name}` : ''}`,
+        message: `${amount ? `${rs(amount)} ` : ''}card payment did not go through.${reason ? ` ${reason}` : ''}`,
+        link: tenantId ? `/tenants/${tenantId}` : '/billing', tenantId, entityType: invoiceId ? 'invoice' : null, entityId: invoiceId,
+        dedupeKey: `stripe-failed:${invoiceId ?? obj.id}`, windowMinutes: 60,
+      })).catch(() => undefined);
+    }
+
     return { received: true };
   }
 
@@ -185,6 +201,13 @@ export class StripeService {
     });
 
     if (updated) {
+      void this.prisma.tenant.findUnique({ where: { id: args.tenantId }, select: { name: true } }).then((t) => notifyAdmins({
+        category: 'billing', event: 'billing.payment_received', type: args.amount >= 5000 ? 'HIGH_VALUE_PAYMENT' : 'NEW_PAYMENT',
+        title: `Payment received: ${rs(args.amount)}`,
+        message: `${t?.name ?? 'A shop'} paid invoice ${updated.result.invoiceNumber} by card.`,
+        link: `/tenants/${args.tenantId}`, tenantId: args.tenantId, entityType: 'invoice', entityId: args.invoiceId,
+        metadata: { amount: args.amount, provider: 'STRIPE' },
+      })).catch(() => undefined);
       const { activated } = updated;
       if (activated) {
         // announceActivation owns the success notification + email.

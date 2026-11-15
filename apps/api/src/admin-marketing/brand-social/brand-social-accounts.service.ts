@@ -18,6 +18,7 @@ import { BadRequestException, Injectable, Logger, NotFoundException } from '@nes
 import { BrandSocialAccount, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { decrypt, encrypt } from '../../core/lib/crypto';
+import { dateKeyTz } from '../../common/helpers/business-time.helper';
 import { DIALOG_BASE, expiryFrom, signState, tokenHealth, verifyState } from '../../integrations/meta/meta-graph';
 import { BrandSocialGraphService, SocialGraphError, toSocialError } from './brand-social-graph.service';
 import { BrandSocialSettingsService, StoredMetaUser } from './brand-social-settings.service';
@@ -31,8 +32,8 @@ import type {
 
 /** Permissions asked for in the Meta dialog. */
 export const BRAND_META_SCOPES = [
-  'pages_show_list', 'pages_read_engagement', 'pages_manage_posts', 'pages_manage_engagement', 'read_insights',
-  'instagram_basic', 'instagram_content_publish', 'instagram_manage_insights', 'instagram_manage_comments',
+  'pages_show_list', 'pages_read_engagement', 'pages_read_user_content', 'pages_manage_posts', 'pages_manage_engagement', 'read_insights',
+  'instagram_basic', 'instagram_content_publish', 'instagram_manage_insights', 'instagram_manage_comments', 'instagram_manage_contents',
   'business_management', 'ads_read',
 ];
 
@@ -84,7 +85,7 @@ export class BrandSocialAccountsService {
     return tokenHealth(a.tokenExpiresAt);
   }
 
-  view(a: BrandSocialAccount, followers: number | null = null): BrandAccountView {
+  view(a: BrandSocialAccount, followers: number | null = null, followersChange7d: number | null = null): BrandAccountView {
     const meta = (a.meta && typeof a.meta === 'object' ? a.meta : {}) as Record<string, unknown>;
     return {
       id: a.id,
@@ -103,6 +104,7 @@ export class BrandSocialAccountsService {
       tokenExpiresAt: a.tokenExpiresAt?.toISOString() ?? null,
       scopes: a.scopes,
       followers: followers ?? (typeof meta.followers === 'number' ? meta.followers : null),
+      followersChange7d,
       lastError: a.lastError,
       lastCheckedAt: a.lastCheckedAt?.toISOString() ?? null,
       createdAt: a.createdAt.toISOString(),
@@ -115,6 +117,30 @@ export class BrandSocialAccountsService {
     return this.prisma.brandSocialAccount.findMany({ where: { status: { not: 'DISCONNECTED' } }, orderBy: [{ platform: 'asc' }, { createdAt: 'asc' }] });
   }
 
+  /**
+   * Followers now minus followers about 7 days ago, per account: the newest
+   * daily row against the oldest row from 7 to 9 days back. Null when either
+   * side is missing.
+   */
+  async followerChanges(accountIds: string[]): Promise<Map<string, number>> {
+    const out = new Map<string, number>();
+    if (!accountIds.length) return out;
+    const today = new Date(`${dateKeyTz(new Date())}T00:00:00.000Z`);
+    const day = 86_400_000;
+    const rows = await this.prisma.brandSocialAccountDay.findMany({
+      where: { accountId: { in: accountIds }, followers: { not: null }, day: { gte: new Date(today.getTime() - 9 * day) } },
+      orderBy: { day: 'asc' }, select: { accountId: true, day: true, followers: true },
+    });
+    const by = new Map<string, typeof rows>();
+    for (const r of rows) by.set(r.accountId, [...(by.get(r.accountId) ?? []), r]);
+    for (const [id, list] of by) {
+      const old = list.filter((r) => r.day.getTime() <= today.getTime() - 7 * day).pop() ?? list[0];
+      const now = list[list.length - 1];
+      if (old && now && old !== now && today.getTime() - old.day.getTime() >= 6 * day) out.set(id, (now.followers ?? 0) - (old.followers ?? 0));
+    }
+    return out;
+  }
+
   async list(): Promise<AccountsResponse> {
     const rows = await this.prisma.brandSocialAccount.findMany({ orderBy: [{ status: 'asc' }, { platform: 'asc' }, { createdAt: 'asc' }] });
     const days = rows.length
@@ -124,10 +150,11 @@ export class BrandSocialAccountsService {
         })
       : [];
     const followers = new Map(days.map((d) => [d.accountId, d.followers]));
+    const change = await this.followerChanges(rows.map((r) => r.id));
     const user = await this.settings.metaUser();
     const expiresAt = user?.expiresAt ? new Date(user.expiresAt) : null;
     return {
-      accounts: rows.map((r) => this.view(r, followers.get(r.id) ?? null)),
+      accounts: rows.map((r) => this.view(r, followers.get(r.id) ?? null, change.get(r.id) ?? null)),
       meta: {
         configured: this.graph.configured(),
         connected: !!user?.tokenEnc,

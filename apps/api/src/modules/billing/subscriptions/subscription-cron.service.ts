@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '../../../core/system-control/cron.decorator';
 import { ConfigService } from '@nestjs/config';
+import { notifyAdmins, rs } from '../../../admin/notifications/admin-notify';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { EmailService } from '../../email/email.service';
 import { NotificationsService } from '../../notifications/notifications.service';
@@ -88,11 +89,32 @@ export class SubscriptionCronService {
       // ─── 1b. Unpaid invoices past their due date → OVERDUE ───
       //     Nothing used to move invoices out of PENDING, so the "overdue"
       //     counter on the billing page was permanently zero.
+      const goingOverdue = await this.prisma.invoice.findMany({
+        where: { status: 'PENDING', dueDate: { lt: now } },
+        select: { id: true, tenantId: true, invoiceNumber: true, total: true, tenant: { select: { name: true } } },
+        take: 200,
+      });
       const overdueInvoices = await this.prisma.invoice.updateMany({
         where: { status: 'PENDING', dueDate: { lt: now } },
         data: { status: 'OVERDUE' },
       });
       stats.invoicesOverdue = overdueInvoices.count;
+      if (goingOverdue.length) {
+        const one = goingOverdue.length === 1 ? goingOverdue[0] : null;
+        const sum = goingOverdue.reduce((a, i) => a + i.total, 0);
+        const names = [...new Set(goingOverdue.map((i) => i.tenant?.name ?? 'Shop'))];
+        notifyAdmins({
+          category: 'billing', event: 'billing.invoice_overdue', severity: 'warning', type: 'SUBSCRIPTION_EXPIRING',
+          title: one ? `Invoice overdue: ${one.tenant?.name ?? 'Shop'}` : `${overdueInvoices.count} invoices are now overdue`,
+          message: one
+            ? `${one.invoiceNumber} for ${rs(one.total)} passed its due date unpaid.`
+            : `${rs(sum)} unpaid in total. ${names.slice(0, 8).join(', ')}${names.length > 8 ? ` and ${names.length - 8} more` : ''}.`,
+          link: one ? `/tenants/${one.tenantId}` : '/invoices',
+          tenantId: one?.tenantId ?? null, entityType: one ? 'invoice' : null, entityId: one?.id ?? null,
+          metadata: { invoiceIds: goingOverdue.map((i) => i.id) },
+          dedupeKey: `invoices-overdue:${now.toISOString().slice(0, 10)}`, windowMinutes: 12 * 60,
+        });
+      }
 
       // ─── 1c. Subscriptions the owner asked to end → CANCELLED ───
       //     `cancelAtPeriodEnd` was being set but never acted on, so a
@@ -112,6 +134,13 @@ export class SubscriptionCronService {
             where: { id: sub.id },
             data: { status: 'CANCELLED', cancelledAt: now },
           });
+          void this.prisma.tenant.findUnique({ where: { id: sub.tenantId }, select: { name: true } }).then((t) => notifyAdmins({
+            category: 'billing', event: 'billing.subscription_cancelled', severity: 'warning', type: 'SUBSCRIPTION_CANCELLED',
+            title: `Subscription ended: ${t?.name ?? 'Shop'}`,
+            message: 'The plan the owner cancelled has now ended.',
+            link: `/tenants/${sub.tenantId}`, tenantId: sub.tenantId, entityType: 'subscription', entityId: sub.id,
+            dedupeKey: `sub-cancelled:${sub.id}`, once: true,
+          })).catch(() => undefined);
           await this.notifications.create({
             tenantId: sub.tenantId,
             type: 'WARNING',

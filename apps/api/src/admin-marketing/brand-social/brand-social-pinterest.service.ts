@@ -11,8 +11,8 @@ import { Injectable } from '@nestjs/common';
 import { SocialGraphError } from './brand-social-graph.service';
 import { pinterestRoute } from './brand-social-oauth.logic';
 import {
-  AdapterResult, CONTAINER_TIMEOUT_MS, emptyMetrics, httpJson, HttpOptions, mediaHead, mediaRange, MetricValues, n, PlatformApp, platformError,
-  ProfileInfo, PublishContext, sleep, SocialAdapter, TokenSet, videoMime,
+  AdapterResult, CONTAINER_TIMEOUT_MS, emptyMetrics, errorParts, httpJson, HttpOptions, mediaHead, mediaRange, MetricValues, n, PlatformApp, platformError,
+  PostEdit, ProfileInfo, PublishContext, sleep, SocialAdapter, TokenSet, videoMime,
 } from './brand-social-adapter';
 
 const API = 'https://api.pinterest.com/v5';
@@ -137,6 +137,32 @@ export class BrandSocialPinterestService implements SocialAdapter {
     return { waiting: true, containerId: `video:${reg.media_id}` };
   }
 
+  /**
+   * PATCH pins/{id} with title, description and link. Pinterest keeps pin
+   * editing as a restricted feature ("pin_edit") for some apps; that refusal
+   * is turned into a plain sentence.
+   */
+  async editPost(token: string, pinId: string, edit: PostEdit): Promise<void> {
+    const body: Record<string, unknown> = {};
+    if (edit.title != null) body.title = edit.title.slice(0, 100);
+    if (edit.description != null) body.description = edit.description.slice(0, 500);
+    if (edit.link !== undefined) body.link = edit.link || null;
+    await this.call(`pins/${pinId}`, token, {
+      method: 'PATCH', json: body,
+      onError: (status, b) => {
+        const { message } = errorParts(b);
+        if (/pin_edit|restricted feature/i.test(message)) {
+          return new SocialGraphError('plan', 'Pinterest has not opened pin editing (pin_edit) to this app yet. Edit the pin on Pinterest, or ask Pinterest for access.');
+        }
+        return platformError('PINTEREST', status, b);
+      },
+    });
+  }
+
+  async deletePost(token: string, pinId: string): Promise<void> {
+    await this.call(`pins/${pinId}`, token, { method: 'DELETE' });
+  }
+
   async metrics(token: string, _externalId: string, ids: string[]): Promise<Map<string, MetricValues>> {
     const out = new Map<string, MetricValues>();
     const end = new Date();
@@ -145,6 +171,7 @@ export class BrandSocialPinterestService implements SocialAdapter {
       const r = await this.call<Record<string, { summary_metrics?: Record<string, number>; lifetime_metrics?: Record<string, number> }>>(`pins/${id}/analytics`, token, {
         query: { start_date: dayKey(start), end_date: dayKey(end), metric_types: 'IMPRESSION,SAVE,PIN_CLICK,OUTBOUND_CLICK,VIDEO_MRC_VIEW' },
       }).catch(() => null);
+      // Trial access may refuse analytics; such pins are skipped and keep their old numbers.
       const s = r?.all?.lifetime_metrics ?? r?.all?.summary_metrics;
       if (!s) continue;
       out.set(id, {

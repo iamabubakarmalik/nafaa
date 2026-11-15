@@ -240,7 +240,7 @@ export class AdminDeletionRequestsService {
       if (dup) return;
       await this.prisma.adminNotification.create({
         data: {
-          type: 'WARNING', priority: 'HIGH', title: 'Deletion requests are due',
+          type: 'WARNING', priority: 'HIGH', category: 'shops', title: 'Deletion requests are due',
           message: `${counts.due} deletion request(s) are past their grace period and waiting for you to process.`,
           link: '/deletion-requests', entityType: 'DELETION_REQUESTS',
         },

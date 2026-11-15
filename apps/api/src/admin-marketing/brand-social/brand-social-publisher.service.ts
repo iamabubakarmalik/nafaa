@@ -201,7 +201,8 @@ export class BrandSocialPublisherService {
           continue;
         }
         const done: PlatformPublishState = { status: 'PUBLISHED', postId: res.postId, permalink: res.permalink ?? null, attempts: prev.attempts + 1, at: now(), error: null };
-        if (post.firstComment?.trim() && res.postId) {
+        // Stories take no comments.
+        if (post.firstComment?.trim() && res.postId && post.kind !== 'STORY') {
           try {
             const c = await this.graph.call<{ id?: string }>(account, { method: 'POST', path: `${res.postId}/comments`, body: { message: post.firstComment.trim() } });
             done.commentId = c?.id ?? null;
@@ -249,6 +250,7 @@ export class BrandSocialPublisherService {
   }
 
   private async publishOne(post: BrandSocialPost, platform: BrandPlatform, account: BrandSocialAccount, prev: PlatformPublishState, utm: { medium: string; defaultCampaign: string }): Promise<PublishResult> {
+    if (platform === 'FACEBOOK' && post.kind === 'STORY') return this.facebookStory(post, account, prev);
     if (platform === 'FACEBOOK') {
       const ids = await this.graph.runSteps(account, facebookPlan(account.externalId, this.input(post, platform, utm)));
       const postId = ids.post_post_id || ids.post;
@@ -273,6 +275,56 @@ export class BrandSocialPublisherService {
       return { waiting: true, containerId };
     }
     return this.igPublishOrWait(account, igUserId, containerId);
+  }
+
+  /**
+   * Facebook Page story (Page Stories API): a photo is uploaded unpublished and
+   * posted with photo_stories; a video opens a video_stories session, is
+   * fetched by Facebook from its public URL (rupload with a file_url header),
+   * then the session is finished. A video still processing is kept WAITING
+   * (containerId "fbstory:<video id>") and finished on the next run.
+   */
+  private async facebookStory(post: BrandSocialPost, account: BrandSocialAccount, prev: PlatformPublishState): Promise<PublishResult> {
+    const pageId = account.externalId;
+    const media = ((Array.isArray(post.media) ? post.media : []) as unknown as PostMediaItem[]);
+    const m = media.find((x) => x.kind === 'video') ?? media[0];
+    if (!m) throw new SocialGraphError('media', 'A Facebook story needs one image or video.');
+    const done = async (res: { post_id?: string; id?: string } | null): Promise<PublishResult> => {
+      const postId = res?.post_id ?? res?.id;
+      if (!postId) throw new SocialGraphError('unknown', 'Facebook did not return an id for the new story.');
+      const link = await this.graph.call<{ permalink_url?: string }>(account, { path: postId, params: { fields: 'permalink_url' } }).catch(() => null);
+      const permalink = link?.permalink_url ? (link.permalink_url.startsWith('http') ? link.permalink_url : `https://www.facebook.com${link.permalink_url}`) : `https://www.facebook.com/stories/${pageId}`;
+      return { postId, permalink };
+    };
+    if (m.kind === 'image') {
+      const photo = await this.graph.call<{ id?: string }>(account, { method: 'POST', path: `${pageId}/photos`, body: { url: absUrl(m.url), published: false } });
+      if (!photo?.id) throw new SocialGraphError('unknown', 'Facebook did not take the story photo.');
+      return done(await this.graph.call(account, { method: 'POST', path: `${pageId}/photo_stories`, body: { photo_id: photo.id } }));
+    }
+    let videoId = prev.status === 'WAITING' && prev.containerId?.startsWith('fbstory:') ? prev.containerId.slice(8) : null;
+    if (!videoId) {
+      const start = await this.graph.call<{ video_id?: string; upload_url?: string }>(account, { method: 'POST', path: `${pageId}/video_stories`, body: { upload_phase: 'start' } });
+      if (!start?.video_id || !start.upload_url) throw new SocialGraphError('unknown', 'Facebook did not open a story upload.');
+      const up = await fetch(start.upload_url, {
+        method: 'POST',
+        headers: { Authorization: `OAuth ${this.graph.tokenOf(account)}`, file_url: absUrl(m.url) },
+        signal: AbortSignal.timeout(10 * 60_000),
+      }).catch((e) => { throw new SocialGraphError('transient', `Facebook did not take the story video (${(e as Error).message}).`); });
+      if (!up.ok) {
+        const body = await up.text().catch(() => '');
+        throw new SocialGraphError(up.status >= 500 ? 'transient' : 'media', `Facebook could not fetch the story video (HTTP ${up.status}${body ? `: ${body.slice(0, 160)}` : ''}). Use a public MP4, 9:16, 3 to 60 seconds.`);
+      }
+      videoId = start.video_id;
+    }
+    try {
+      return await done(await this.graph.call(account, { method: 'POST', path: `${pageId}/video_stories`, body: { upload_phase: 'finish', video_id: videoId } }));
+    } catch (e) {
+      const err = toSocialError(e);
+      const age = prev.status === 'WAITING' ? Date.now() - new Date(prev.at).getTime() : 0;
+      // Facebook may still be processing the video; look again in a minute (up to an hour).
+      if ((err.kind === 'unknown' || err.kind === 'transient' || /process/i.test(err.text)) && age < CONTAINER_WAIT_MS) return { waiting: true, containerId: `fbstory:${videoId}` };
+      throw err;
+    }
   }
 
   /** Publishes, or keeps the container waiting when Instagram says it is still not ready (code 9007). */

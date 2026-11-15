@@ -515,7 +515,7 @@ export class BrandSocialPlatformsService {
       const refs = new Map<string, string>();
       for (const post of posts) {
         const s = ((post.publishState ?? {}) as PublishStateMap)[p];
-        if (s?.status === 'PUBLISHED' && !s.manual && s.postId) refs.set(s.postId, post.id);
+        if (s?.status === 'PUBLISHED' && !s.manual && s.postId && !s.deletedAt) refs.set(s.postId, post.id);
       }
       if (!refs.size) continue;
       const values = await adapter.metrics(token, a.externalId, [...refs.keys()]).catch((e) => { this.logger.warn(`Insights ${p}: ${toSocialError(e).text}`); return null; });

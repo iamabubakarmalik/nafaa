@@ -25,7 +25,7 @@ describe('authorize URLs', () => {
     expect(u.origin + u.pathname).toBe('https://threads.com/oauth/authorize');
     expect(u.searchParams.get('client_id')).toBe('cid');
     expect(u.searchParams.get('response_type')).toBe('code');
-    expect(u.searchParams.get('scope')).toBe('threads_basic,threads_content_publish,threads_manage_insights,threads_read_replies,threads_manage_replies');
+    expect(u.searchParams.get('scope')).toBe('threads_basic,threads_content_publish,threads_manage_insights,threads_read_replies,threads_manage_replies,threads_delete');
     expect(u.searchParams.get('state')).toBe('st');
   });
   it('YouTube: offline access with forced consent', () => {
@@ -33,7 +33,7 @@ describe('authorize URLs', () => {
     expect(u.hostname).toBe('accounts.google.com');
     expect(u.searchParams.get('access_type')).toBe('offline');
     expect(u.searchParams.get('prompt')).toBe('consent');
-    expect(u.searchParams.get('scope')!.split(' ')).toEqual(['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.readonly']);
+    expect(u.searchParams.get('scope')!.split(' ')).toEqual(['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.readonly', 'https://www.googleapis.com/auth/youtube.force-ssl']);
   });
   it('TikTok: client_key, not client_id', () => {
     const u = new URL(buildAuthorizeUrl('TIKTOK', base));

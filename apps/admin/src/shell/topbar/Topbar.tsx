@@ -12,7 +12,7 @@ import { Check, ChevronRight, LogOut, Menu, Monitor, Moon, Search, ShieldCheck, 
 import { IconButton } from '@/design-system/components';
 import { useAppearanceStore, type ThemeMode } from '@/design-system';
 import { Panel, useDismiss } from '@web-shell/ui';
-import NotificationBell from '@/components/notifications/NotificationBell';
+import NotificationBell from '@/features/notifications/components/NotificationBell';
 import { useAuthStore } from '@/store/auth.store';
 import { cn } from '@/lib/cn';
 import { itemForPath, workspaceForPath } from '../navigation/nav-config';
