@@ -10,6 +10,7 @@ import { Button, Input, Modal } from '@/design-system/components';
 import { formatPKR } from '@core/lib/format';
 import { waLink } from '@core/lib/whatsapp/templates';
 import type { useCatalogCart } from '../hooks/useCatalogCart';
+import { t, Trans } from '@core/i18n';
 
 type Cart = ReturnType<typeof useCatalogCart>;
 
@@ -29,14 +30,14 @@ export function PickList({ cart, title, shop, shopPhone, onClose }: { cart: Cart
   const text = listText(cart, title, shop);
   const toShop = waLink(shopPhone, text);
   return (
-    <Modal open onClose={onClose} size="md" title={title} description={cart.items.length ? `${cart.items.length} cheezein · ${formatPKR(cart.subtotal)}` : 'Abhi khali hai'}
+    <Modal open onClose={onClose} size="md" title={title} description={cart.items.length ? t('{{count}} cheezein · {{subtotal}}', { count: cart.items.length, subtotal: formatPKR(cart.subtotal) }) : t('Abhi khali hai')}
       footer={cart.items.length ? <>
-        <Button variant="ghost" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => { cart.clear(); toast.success('List saaf'); }}>Saaf karein</Button>
-        <Button variant="secondary" leftIcon={<Send className="h-4 w-4" />} onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')}>Kisi ko bhejein</Button>
-        {toShop && <Button leftIcon={<MessageCircle className="h-4 w-4" />} onClick={() => window.open(toShop, '_blank', 'noopener')}>Dukaan ko bhejein</Button>}
+        <Button variant="ghost" leftIcon={<Trash2 className="h-4 w-4" />} onClick={() => { cart.clear(); toast.success(t('List saaf')); }}>{t('Saaf karein')}</Button>
+        <Button variant="secondary" leftIcon={<Send className="h-4 w-4" />} onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')}>{t('Kisi ko bhejein')}</Button>
+        {toShop && <Button leftIcon={<MessageCircle className="h-4 w-4" />} onClick={() => window.open(toShop, '_blank', 'noopener')}>{t('Dukaan ko bhejein')}</Button>}
       </> : undefined}>
       {cart.items.length === 0 ? (
-        <p className="py-8 text-center text-[0.875rem] text-slate-500">Kisi bhi cheez par <b>+</b> dabayein — wo yahan aa jayegi.</p>
+        <p className="py-8 text-center text-[0.875rem] text-slate-500"><Trans text="Kisi bhi cheez par {{plus}} dabayein — wo yahan aa jayegi." values={{ plus: <b>+</b> }} /></p>
       ) : (
         <div className="space-y-4">
           <ul className="divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
@@ -48,22 +49,22 @@ export function PickList({ cart, title, shop, shopPhone, onClose }: { cart: Cart
                   <p className="truncate text-[0.75rem] text-slate-500">{i.variantName ? `${i.variantName} · ` : ''}{formatPKR(i.price)}{i.unit ? ` / ${i.unit}` : ''}</p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button type="button" onClick={() => cart.setQuantity(i.cartId, i.quantity - 1)} aria-label="Kam" className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200"><Minus className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => cart.setQuantity(i.cartId, i.quantity - 1)} aria-label={t('Kam')} className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200"><Minus className="h-3.5 w-3.5" /></button>
                   <span className="w-8 text-center text-[0.875rem] font-bold tabular-nums">{i.quantity}</span>
-                  <button type="button" onClick={() => cart.setQuantity(i.cartId, i.quantity + 1)} aria-label="Zyada" className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200"><Plus className="h-3.5 w-3.5" /></button>
+                  <button type="button" onClick={() => cart.setQuantity(i.cartId, i.quantity + 1)} aria-label={t('Zyada')} className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200"><Plus className="h-3.5 w-3.5" /></button>
                 </div>
                 <span className="w-20 text-right text-[0.875rem] font-bold tabular-nums text-slate-900">{formatPKR(i.price * i.quantity)}</span>
               </li>
             ))}
           </ul>
           <div className="flex items-center justify-between rounded-2xl bg-brand-50 px-4 py-3 ring-1 ring-brand-100">
-            <span className="text-[0.875rem] font-semibold text-brand-900">Kul</span>
+            <span className="text-[0.875rem] font-semibold text-brand-900">{t('Kul')}</span>
             <span className="text-xl font-bold tabular-nums text-brand-900">{formatPKR(cart.subtotal)}</span>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Input placeholder="Aap ka naam (zaroori nahi)" value={cart.customerName} onChange={(e) => cart.setCustomer({ customerName: e.target.value })} />
-            <Input placeholder="Phone (zaroori nahi)" inputMode="tel" value={cart.customerPhone} onChange={(e) => cart.setCustomer({ customerPhone: e.target.value })} />
-            <Input wrapperClassName="sm:col-span-2" placeholder="Koi baat likhni ho (size, rang, waqt…)" value={cart.notes} onChange={(e) => cart.setCustomer({ notes: e.target.value })} />
+            <Input placeholder={t('Aap ka naam (zaroori nahi)')} value={cart.customerName} onChange={(e) => cart.setCustomer({ customerName: e.target.value })} />
+            <Input placeholder={t('Phone (zaroori nahi)')} inputMode="tel" value={cart.customerPhone} onChange={(e) => cart.setCustomer({ customerPhone: e.target.value })} />
+            <Input wrapperClassName="sm:col-span-2" placeholder={t('Koi baat likhni ho (size, rang, waqt…)')} value={cart.notes} onChange={(e) => cart.setCustomer({ notes: e.target.value })} />
           </div>
         </div>
       )}

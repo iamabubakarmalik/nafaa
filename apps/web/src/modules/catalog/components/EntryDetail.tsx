@@ -16,6 +16,7 @@ import { productsApi } from '@modules/inventory/products/api/products.api';
 import { productVariantsApi, type ProductVariant } from '@modules/inventory/products/api/product-variants.api';
 import type { CatalogEntry } from '../types';
 import { Chip, PriceTag, Thumb } from './EntryViews';
+import { t as tr } from '@core/i18n';
 
 /** WhatsApp / clipboard text for one entry; never includes cost. */
 function entryText(e: CatalogEntry, shop: string, variant?: ProductVariant | null) {
@@ -73,9 +74,9 @@ export function EntryDetail({ entry, shop, showStock, onPick, onClose }: {
   return (
     <Modal open onClose={onClose} size="xl" title={entry.name} description={[entry.brand, entry.category?.name].filter(Boolean).join(' · ') || undefined}
       footer={<>
-        <Button variant="ghost" leftIcon={<Copy className="h-4 w-4" />} onClick={() => { void navigator.clipboard?.writeText(text); toast.success('Copy ho gaya'); }}>Copy</Button>
-        <Button variant="secondary" leftIcon={<MessageCircle className="h-4 w-4" />} onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')}>WhatsApp</Button>
-        <Button leftIcon={<Plus className="h-4 w-4" />} disabled={out} onClick={() => onPick(variant)}>List me daalein</Button>
+        <Button variant="ghost" leftIcon={<Copy className="h-4 w-4" />} onClick={() => { void navigator.clipboard?.writeText(text); toast.success(tr('Copy ho gaya')); }}>{tr('Copy')}</Button>
+        <Button variant="secondary" leftIcon={<MessageCircle className="h-4 w-4" />} onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener')}>{tr('WhatsApp')}</Button>
+        <Button leftIcon={<Plus className="h-4 w-4" />} disabled={out} onClick={() => onPick(variant)}>{tr('List me daalein')}</Button>
       </>}>
       <div className="grid gap-5 md:grid-cols-2">
         <div>
@@ -83,18 +84,18 @@ export function EntryDetail({ entry, shop, showStock, onPick, onClose }: {
             {images.length ? (
               <img src={images[index]} alt={entry.name} onClick={() => setZoom(true)} className={cn('h-full w-full cursor-zoom-in object-cover', out && 'grayscale')} />
             ) : <Thumb entry={entry} />}
-            {entry.featured && <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[0.6875rem] font-bold text-amber-950"><Star className="h-3 w-3 fill-current" />Khaas</span>}
+            {entry.featured && <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-amber-400 px-2 py-0.5 text-[0.6875rem] font-bold text-amber-950"><Star className="h-3 w-3 fill-current" />{tr('Khaas')}</span>}
             {images.length > 0 && (
-              <button type="button" onClick={() => setZoom(true)} aria-label="Bara karein" className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow"><Maximize2 className="h-4 w-4" /></button>
+              <button type="button" onClick={() => setZoom(true)} aria-label={tr('Bara karein')} className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow"><Maximize2 className="h-4 w-4" /></button>
             )}
             {images.length > 1 && (
               <>
-                <button type="button" onClick={() => step(-1)} aria-label="Pichli photo" className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow"><ChevronLeft className="h-5 w-5" /></button>
-                <button type="button" onClick={() => step(1)} aria-label="Agli photo" className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow"><ChevronRight className="h-5 w-5" /></button>
+                <button type="button" onClick={() => step(-1)} aria-label={tr('Pichli photo')} className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow"><ChevronLeft className="h-5 w-5" /></button>
+                <button type="button" onClick={() => step(1)} aria-label={tr('Agli photo')} className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow"><ChevronRight className="h-5 w-5" /></button>
                 <span className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-2 py-0.5 text-[0.6875rem] font-semibold tabular-nums text-white">{index + 1} / {images.length}</span>
               </>
             )}
-            {out && <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[0.75rem] font-bold text-white backdrop-blur-sm">Abhi khatam</span>}
+            {out && <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[0.75rem] font-bold text-white backdrop-blur-sm">{tr('Abhi khatam')}</span>}
           </div>
           {images.length > 1 && (
             <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
@@ -128,7 +129,7 @@ export function EntryDetail({ entry, shop, showStock, onPick, onClose }: {
           )}
           {options.length > 0 && (
             <div>
-              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-900">Options ({options.length})</p>
+              <p className="mb-2 text-[0.8125rem] font-semibold text-slate-900">{tr('Options ({{count}})', { count: options.length })}</p>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {options.map((v) => (
                   <button key={v.id} type="button" onClick={() => setVariantId(variantId === v.id ? null : v.id)}
@@ -166,7 +167,7 @@ export function EntryDetail({ entry, shop, showStock, onPick, onClose }: {
       {zoom && images[index] && createPortal(
         <div role="dialog" aria-modal="true" aria-label={entry.name} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4" onClick={() => setZoom(false)}>
           <img src={images[index]} alt={entry.name} className="max-h-full max-w-full object-contain" />
-          <button type="button" onClick={() => setZoom(false)} aria-label="Band karein" className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white"><X className="h-5 w-5" /></button>
+          <button type="button" onClick={() => setZoom(false)} aria-label={tr('Band karein')} className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white"><X className="h-5 w-5" /></button>
         </div>,
         document.body,
       )}

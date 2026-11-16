@@ -34,7 +34,7 @@ const labelCls = 'mb-1.5 block text-[0.8125rem] font-medium text-slate-700';
 const hintCls = 'mt-1 text-[0.6875rem] text-slate-500';
 
 /** Keys every expense change refreshes: this page, the cash shift, money and dashboards. */
-export const AFFECTED_KEYS = [EXPENSES_KEY, 'cash-register', 'money', 'dashboard-overview'];
+export const AFFECTED_KEYS = [EXPENSES_KEY, 'cash-register', 'money', 'dashboard-overview', 'dashboard-day-report', 'day-book'];
 
 export function ExpenseForm({ draft, categories, register, onClose, onManageCategories }: {
   draft: ExpenseDraft;

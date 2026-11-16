@@ -19,6 +19,7 @@ import { agriProductsApi, type AgriProductProfile } from '@industries/agri/api/p
 import { AGRI_KIND_EMOJI, deriveAgriKind, isFeedKind, isFertKind, isSeedKind, isSprayKind, isToolKind, needsGovtReg, prettyAgriKind, type AgriKind } from '@industries/agri/lib/agriCategory';
 import { agriUnitLabel, certStatus, isMeasured, SEASONS } from '@industries/agri/lib/agriUnits';
 import type { CatalogEntry, CatalogSource, EntryBadge } from '../types';
+import { t as tr } from '@core/i18n';
 
 /** Drops empty spec rows. */
 export const specs = (rows: Array<[string, string | number | null | undefined | false]>): Array<[string, string]> =>
@@ -89,10 +90,10 @@ export const mobileSource: CatalogSource = {
       return {
         ...e,
         inStock: stock > 0,
-        stockNote: stock <= 0 ? undefined : stock <= 2 ? `Sirf ${stock} baqi` : `${stock} mojood`,
+        stockNote: stock <= 0 ? undefined : stock <= 2 ? tr('Sirf {{stock}} baqi', { stock }) : tr('{{stock}} mojood', { stock }),
         chips: [
           ...pta.slice(0, 2).map(([s]) => ({ label: PTA_STATUS_LABELS[s], tone: PTA_TONE[s] })),
-          ...(ph?.warranty ? [{ label: `${ph.warranty} mahine warranty`, tone: 'blue' as const }] : []),
+          ...(ph?.warranty ? [{ label: tr('{{warranty}} mahine warranty', { warranty: ph.warranty }), tone: 'blue' as const }] : []),
         ],
         specs: specs([
           ['PTA', pta.map(([s, n]) => `${PTA_STATUS_LABELS[s]} (${n})`).join(', ')],
@@ -120,24 +121,24 @@ export const electronicsSource: CatalogSource = {
       return {
         id: p.id, productId: p.id, name: p.name, price: Number(p.price) || 0, per: p.unit,
         oldPrice: p.mrp && p.mrp > p.price ? p.mrp : null,
-        priceNote: p.price > 0 ? undefined : 'Rate poochein',
+        priceNote: p.price > 0 ? undefined : tr('Rate poochein'),
         image: p.imageUrl, emoji: meta?.emoji ?? '📦',
         category: p.categoryId ? { id: p.categoryId, name: p.categoryName ?? 'Category' } : null,
         brand: p.brandName, featured: p.isFeatured, inStock: avail > 0,
         stockNote: avail > 0 ? `${avail} mojood` : undefined,
         badges: [
-          ...(p.isNewArrival ? [{ label: 'Naya', tone: 'blue' as const }] : []),
-          ...(p.isBestSeller ? [{ label: 'Hit', tone: 'pink' as const }] : []),
+          ...(p.isNewArrival ? [{ label: tr('Naya'), tone: 'blue' as const }] : []),
+          ...(p.isBestSeller ? [{ label: tr('Hit'), tone: 'pink' as const }] : []),
         ],
         chips: [
           ...(cond && p.conditionType !== 'BRAND_NEW' ? [{ label: cond.label, tone: 'amber' as const }] : []),
-          { label: p.warrantyMonths > 0 ? `${p.warrantyMonths} mahine warranty` : 'Warranty nahi', tone: p.warrantyMonths > 0 ? 'blue' : 'slate' },
+          { label: p.warrantyMonths > 0 ? tr('{{warrantyMonths}} mahine warranty', { warrantyMonths: p.warrantyMonths }) : tr('Warranty nahi'), tone: p.warrantyMonths > 0 ? 'blue' : 'slate' },
         ],
         specs: specs([
           ['Type', meta ? `${meta.emoji} ${meta.label}` : null],
           ['Model', p.modelNumber],
           ['Halat', cond ? `${cond.label} — ${cond.hint}` : null],
-          ['Warranty', p.warrantyMonths > 0 ? `${p.warrantyMonths} mahine${p.warrantyType ? ` (${pretty(p.warrantyType)})` : ''}` : null],
+          ['Warranty', p.warrantyMonths > 0 ? tr('{{warrantyMonths}} mahine{{value}}', { warrantyMonths: p.warrantyMonths, value: p.warrantyType ? ` (${pretty(p.warrantyType)})` : '' }) : null],
           ['Screen', p.screenSize],
           ['Connectivity', p.connectivity?.join(', ')],
           ['Rang', p.colorName],
@@ -158,7 +159,7 @@ export const electronicsDealsSource: CatalogSource = {
       id: b.id, name: b.name, price: b.bundlePrice, oldPrice: b.originalPrice > b.bundlePrice ? b.originalPrice : null,
       image: b.imageUrl ?? null, emoji: '🎁', description: b.description ?? null, featured: b.isFeatured, inStock: null,
       badges: b.savingsPct > 0 ? [{ label: `-${Math.round(b.savingsPct)}%`, tone: 'red' }] : [],
-      chips: b.savings > 0 ? [{ label: `${formatPKR(b.savings)} ki bachat`, tone: 'green' }] : [],
+      chips: b.savings > 0 ? [{ label: tr('{{savings}} ki bachat', { savings: formatPKR(b.savings) }), tone: 'green' }] : [],
       includes: b.items.map((i) => `${i.quantity} × ${i.name ?? 'Cheez'}`),
       specs: specs([['Kab tak', b.validUntil ? new Date(b.validUntil).toLocaleDateString('en-PK', { dateStyle: 'medium' }) : null]]),
     }));
@@ -167,7 +168,7 @@ export const electronicsDealsSource: CatalogSource = {
 
 /* Jewelry: karat, weight and making from the jewelry profile; today's metal rate. */
 
-const purityLabel = (p: string) => (p.startsWith('KARAT_') ? `${p.slice(6)}K` : pretty(p));
+const purityLabel = (p: string) => (p.startsWith('KARAT_') ? tr('{{value}}K', { value: p.slice(6) }) : pretty(p));
 
 function making(j: JewelryProductProfile) {
   if (j.makingChargePerGram > 0) return `${formatPKR(j.makingChargePerGram)} / gram`;
@@ -199,13 +200,13 @@ export const jewelrySource: CatalogSource = {
         description: j.descriptionLong || e.description,
         featured: e.featured || j.isFeatured,
         badges: [
-          ...(j.isBestSeller ? [{ label: 'Best', tone: 'pink' as const }] : []),
-          ...(bridal ? [{ label: 'Bridal', tone: 'red' as const }] : []),
+          ...(j.isBestSeller ? [{ label: tr('Best'), tone: 'pink' as const }] : []),
+          ...(bridal ? [{ label: tr('Bridal'), tone: 'red' as const }] : []),
         ],
         chips: [
           { label: purityLabel(j.purity), tone: 'amber' },
-          ...(j.netWeight > 0 ? [{ label: `${j.netWeight} g`, tone: 'slate' as const }] : []),
-          ...(j.hasDiamond ? [{ label: 'Diamond', tone: 'blue' as const }] : []),
+          ...(j.netWeight > 0 ? [{ label: tr('{{netWeight}} g', { netWeight: j.netWeight }), tone: 'slate' as const }] : []),
+          ...(j.hasDiamond ? [{ label: tr('Diamond'), tone: 'blue' as const }] : []),
         ],
         specs: specs([
           ['Dhaat', pretty(j.metalType)],
@@ -220,7 +221,7 @@ export const jewelrySource: CatalogSource = {
           ['Design #', j.designNumber],
           ['Hallmark', j.hallmarkNumber || j.purityHallmark],
           ['Certificate', j.isCertified ? j.certificateAuthority || 'Haan' : null],
-          ['Return', j.isReturnable ? `${j.returnDays} din me` : null],
+          ['Return', j.isReturnable ? tr('{{returnDays}} din me', { returnDays: j.returnDays }) : null],
           ['Buy-back', j.isBuyBackEligible ? `${j.buyBackPct}%` : null],
         ]),
         includes: (j.gemstones ?? []).filter((g) => g.type !== 'NONE').map((g) => `${g.count} × ${pretty(g.type)}${g.caret ? ` (${g.caret} ct)` : ''}`),
@@ -251,7 +252,7 @@ export const carpetRollsSource: CatalogSource = {
         image: base?.image ?? null, images: base?.images, emoji: '🧶', description: base?.description,
         category: base?.category, brand: base?.brand, featured: base?.featured ?? false,
         inStock: r.remainingSqft > 0, stockNote: `${Math.round(r.remainingSqft)} sqft baqi`,
-        chips: [{ label: `Roll ${r.rollNumber}`, tone: 'slate' }, ...(r.variant?.name ? [{ label: r.variant.name, tone: 'violet' as const }] : [])],
+        chips: [{ label: tr('Roll {{rollNumber}}', { rollNumber: r.rollNumber }), tone: 'slate' }, ...(r.variant?.name ? [{ label: r.variant.name, tone: 'violet' as const }] : [])],
         specs: specs([
           ['Roll #', r.rollNumber], ['Design', r.designCode], ['Rang', r.variant?.color || r.variant?.name],
           ['Chorai', inches(r.widthFt, r.widthInch)], ['Baqi lambai', inches(r.remainingLengthFt, r.remainingLengthInch)],
@@ -276,7 +277,7 @@ export const carpetPiecesSource: CatalogSource = {
         id: c.id, productId: c.productId, name: `${c.product?.name ?? base?.name ?? 'Carpet'} · ${c.pieceCode}`, price: c.salePrice, per: 'piece',
         image: base?.image ?? null, images: base?.images, emoji: '🟫', category: base?.category, brand: base?.brand,
         featured: false, inStock: true, createdAt: c.createdAt,
-        chips: [{ label: size, tone: 'slate' }, { label: `${c.totalSqft.toFixed(1)} sqft`, tone: 'blue' }],
+        chips: [{ label: size, tone: 'slate' }, { label: tr('{{value}} sqft', { value: c.totalSqft.toFixed(1) }), tone: 'blue' }],
         specs: specs([
           ['Piece #', c.pieceCode], ['Size', size], ['Raqba', `${c.totalSqft.toFixed(2)} sqft`],
           ['Rate', c.pricePerSqft ? `${formatPKR(c.pricePerSqft)} / sqft` : null], ['Rang', c.variant?.color || c.variant?.name], ['Halat', c.condition],
@@ -317,14 +318,14 @@ export const agriSource: CatalogSource = {
         brand: a?.brand || e.brand,
         featured: e.featured || !!a?.isFeatured,
         badges: [
-          ...(a?.isBestSeller ? [{ label: 'Best', tone: 'pink' as const }] : []),
-          ...(a?.isOrganic ? [{ label: 'Organic', tone: 'green' as const }] : []),
+          ...(a?.isBestSeller ? [{ label: tr('Best'), tone: 'pink' as const }] : []),
+          ...(a?.isOrganic ? [{ label: tr('Organic'), tone: 'green' as const }] : []),
         ],
         chips: [
           ...(pack ? [{ label: `1 ${unit} = ${pack} ${a?.packUnit || 'kg'}`, tone: 'slate' as const }] : []),
           ...(season ? [{ label: `${season.e} ${season.l}`, tone: 'amber' as const }] : []),
-          ...(a?.isRestricted || a?.requiresLicense ? [{ label: 'License chahiye', tone: 'red' as const }] : []),
-          ...(a?.bulkDiscountPct && a.bulkDiscountThreshold ? [{ label: `${a.bulkDiscountThreshold}+ par ${a.bulkDiscountPct}% discount`, tone: 'green' as const }] : []),
+          ...(a?.isRestricted || a?.requiresLicense ? [{ label: tr('License chahiye'), tone: 'red' as const }] : []),
+          ...(a?.bulkDiscountPct && a.bulkDiscountThreshold ? [{ label: tr('{{bulkDiscountThreshold}}+ par {{bulkDiscountPct}}% discount', { bulkDiscountThreshold: a.bulkDiscountThreshold, bulkDiscountPct: a.bulkDiscountPct }), tone: 'green' as const }] : []),
         ],
         specs: specs([
           ['Type', prettyAgriKind(kind)],
@@ -338,8 +339,8 @@ export const agriSource: CatalogSource = {
           ['Kaise dalein', a?.applicationMethod],
           ['Pack', pack ? `${pack} ${a?.packUnit || 'kg'} — ${formatPKR(e.price / pack)} / ${a?.packUnit || 'kg'}` : null],
           ['Ehtiyat', a?.toxicityLevel],
-          ['Khet me dobara', a?.reEntryPeriod ? `${a.reEntryPeriod} din baad` : null],
-          ['Katai se pehle', a?.ppePeriod ? `${a.ppePeriod} din chhor dein` : null],
+          ['Khet me dobara', a?.reEntryPeriod ? tr('{{reEntryPeriod}} din baad', { reEntryPeriod: a.reEntryPeriod }) : null],
+          ['Katai se pehle', a?.ppePeriod ? tr('{{ppePeriod}} din chhor dein', { ppePeriod: a.ppePeriod }) : null],
           ['Rakhne ka tareeqa', a?.storageInstructions],
           ['Mulk', a?.countryOfOrigin],
         ]),

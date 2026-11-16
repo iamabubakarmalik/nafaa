@@ -58,7 +58,7 @@ import { useDistributionPricing } from './useDistributionPricing';
 import { t as tr } from '@core/i18n';
 
 /** Customers refresh after a sale (balances change). */
-const SALE_REFRESH = [POS_BATCHES_KEY, 'customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'retail-money-map', 'dashboard-list'];
+const SALE_REFRESH = [POS_BATCHES_KEY, 'customers-for-pos', 'sales-list', 'sales-history', 'dashboard-overview', 'dashboard-day-report', 'day-book', 'retail-money-map', 'dashboard-list'];
 
 /** Common Urdu/Roman words for everyday goods, for voice search. */
 const BASE_VOICE_ALIASES: Record<string, string> = {

@@ -26,7 +26,7 @@ const SAMPLE: ReceiptDoc = {
   lines: [
     { name: "Olper's Doodh 1L", qty: 2, unit: 'pcs', price: 290, total: 580 },
     { name: 'Dawn Bread Bari', qty: 1, unit: 'pcs', price: 180, total: 160, discount: 20 },
-    { name: 'Samsung Galaxy A15', qty: 1, unit: 'pcs', price: 42000, total: 42000, details: ['IMEI 356789104523117', 'Warranty 12 mahine'] },
+    { name: 'Samsung Galaxy A15', qty: 1, unit: 'pcs', price: 42000, total: 42000, details: ['IMEI 356789104523117', 'Warranty 12 months'] },
   ],
   subtotal: 42760, discount: 20, total: 42740, paid: 40000, paymentLabel: t('Paid (Cash)'), previousDue: 1500,
 };

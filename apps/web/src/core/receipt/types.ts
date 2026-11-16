@@ -91,6 +91,8 @@ export interface ReceiptShop {
   taxNumber?: string | null;
   taxLabel?: string | null;
   logoUrl?: string | null;
+  /** Bill language from Settings → Language & time ('en' | 'ur' | 'roman_ur'). */
+  language?: string | null;
 }
 
 export interface ReceiptSetup {
