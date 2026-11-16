@@ -9,6 +9,18 @@ export const RETAIL_UNITS = [
   { value: 'carton', label: msg('Carton') }, { value: 'bag', label: msg('Bori') }, { value: 'meter', label: msg('Meter') },
 ];
 
+/**
+ * Common units every industry can fall back to; the editor shows an
+ * industry's own units first and adds the ones it lacks (see `unitChoices`
+ * in @nafaa/core/inventory). Labels are raw text, translated at render.
+ */
+export const COMMON_UNITS = [
+  { value: 'pcs', label: msg('Adad (pcs)') }, { value: 'kg', label: msg('Kilo') }, { value: 'gram', label: msg('Gram') },
+  { value: 'liter', label: msg('Litre') }, { value: 'ml', label: msg('ML') }, { value: 'packet', label: msg('Packet') },
+  { value: 'bottle', label: msg('Botal') }, { value: 'dozen', label: msg('Darjan') }, { value: 'box', label: msg('Dabba') },
+  { value: 'carton', label: msg('Carton') },
+];
+
 export const VARIANT_PRESETS = [
   { group: msg('Size'), values: [msg('Chhota'), msg('Darmiyana'), msg('Bara'), 'XL'] },
   { group: msg('Rang'), values: [msg('Kaala'), msg('Safed'), msg('Laal'), msg('Neela'), msg('Hara')] },

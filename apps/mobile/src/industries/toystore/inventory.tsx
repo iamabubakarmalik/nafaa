@@ -144,7 +144,7 @@ const ERROR_TEXT = {
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Piece') }, { value: 'set', label: msg('Set') }, { value: 'pack', label: msg('Pack') }, { value: 'box', label: msg('Box') }],
-  skuPrefix: 'TOY',
+  skuPrefix: 'TOY', commonUnits: 'count',
   packs: true,
   variants: { presets: [
     { group: msg('Rang'), values: ['Red', 'Blue', 'Pink', 'Yellow', 'Green', 'Black', 'White'] },

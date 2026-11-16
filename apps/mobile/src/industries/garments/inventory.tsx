@@ -113,7 +113,7 @@ function SizeGridMaker({ ctx }: { ctx: StepContext<GarmentExtra> }) {
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Piece') }, { value: 'suit', label: msg('Suit') }, { value: 'set', label: msg('Set') }, { value: 'pair', label: msg('Jora') }, { value: 'meter', label: msg('Meter') }, { value: 'yard', label: msg('Yard') }],
-  skuPrefix: 'GR', packs: true, variants: { presets: [{ group: msg('Size'), values: ['S', 'M', 'L', 'XL'] }] }, markups: [30, 40, 50, 60, 80, 100],
+  skuPrefix: 'GR', commonUnits: 'count', packs: true, variants: { presets: [{ group: msg('Size'), values: ['S', 'M', 'L', 'XL'] }] }, markups: [30, 40, 50, 60, 80, 100],
 };
 
 const flags: StepDef<GarmentExtra> = {

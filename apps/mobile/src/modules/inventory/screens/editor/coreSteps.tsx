@@ -11,7 +11,7 @@ import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import {
   autoPackPrices, autoPackValue, autoSku, belowCost, DEFAULT_MARKUPS, duplicateCodes, expiryState, inStoreEan13, marginPct, openingStock, PACK_PRESETS,
-  packSummary, pieceFromPack, priceForMarkup, type PackKind, type PackPriceField,
+  packSummary, pieceFromPack, priceForMarkup, unitChoices, type PackKind, type PackPriceField,
 } from '@nafaa/core/inventory';
 import { formatPKR, formatDate } from '@/core/format';
 import { msg, t } from '@/core/i18n';
@@ -24,10 +24,11 @@ import { BrandSelect, CategorySelect, TagsSelect } from '../../components/Picker
 import { MarginCard, NumberInput, Tiles } from '../../components/fields';
 import { PhotoField } from '../../components/PhotoField';
 import type { CoreOptions, StepContext, StepDef } from '../../industry/types';
+import { COMMON_UNITS } from '../../industry/presets';
 import { qty, useCostMask } from '../../lib/shared';
 import { withBaseFromProduct } from './draft';
 import { SuppliersEditor } from './SuppliersEditor';
-import type { BatchDraft, Errors, UnitDraft, VariantDraft } from './types';
+import type { BatchDraft, EditorDraft, Errors, UnitDraft, VariantDraft } from './types';
 
 type Slot<X> = (ctx: StepContext<X>) => ReactNode;
 
@@ -68,7 +69,30 @@ function CodeFields<X>({ ctx, prefix }: { ctx: StepContext<X>; prefix: string })
   );
 }
 
-export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?: Slot<X>; namePlaceholder?: string } = {}): StepDef<X> {
+/**
+ * "Sold by" tiles: the industry's own units and pieces first, the common units
+ * it lacks behind "More units". A saved unit is always visible.
+ */
+function UnitPicker({ core, value, onChange }: { core: CoreOptions; value: string; onChange: (unit: string) => void }) {
+  const th = useTheme();
+  const { main, more } = unitChoices(core.units, COMMON_UNITS, core.commonUnits ?? 'all', value);
+  const [open, setOpen] = useState(false);
+  const shown = open ? [...main, ...more] : main;
+  return (
+    <View style={{ gap: th.space(2) }}>
+      <Tiles value={value} onChange={onChange} options={shown.map((u) => ({ value: u.value, label: t(u.label) }))} />
+      {more.length > 0 && (
+        <Button variant="ghost" size="sm" onPress={() => setOpen((o) => !o)}>{open ? t('Kam units') : t('Aur units ({{count}})', { count: more.length })}</Button>
+      )}
+    </View>
+  );
+}
+
+export function basicStep<X>(core: CoreOptions, opts: {
+  extra?: Slot<X>; after?: Slot<X>; namePlaceholder?: string;
+  /** One-tap category names (raw text, saved as typed); a function can change them with the draft. */
+  categorySuggestions?: string[] | ((draft: EditorDraft<X>) => string[]);
+} = {}): StepDef<X> {
   return {
     id: 'basic', title: msg('Pehchaan'), icon: Tag,
     validate: (d) => {
@@ -85,12 +109,13 @@ export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?:
             <Input label={t('Naam')} value={c.name} onChangeText={(name) => ctx.setCore({ name })} error={ctx.errors.name} size="lg"
               placeholder={opts.namePlaceholder ? t(opts.namePlaceholder) : t('Jaise: Tapal Danedar 95g')} autoFocus={!ctx.isEdit} />
             {opts.extra?.(ctx)}
-            <CategorySelect value={c.categoryId} onChange={(categoryId) => ctx.setCore({ categoryId })} hint={t('POS ke filter aur reports isi se bante hain')} />
+            <CategorySelect value={c.categoryId} onChange={(categoryId) => ctx.setCore({ categoryId })} hint={t('POS ke filter aur reports isi se bante hain')}
+              suggestions={typeof opts.categorySuggestions === 'function' ? opts.categorySuggestions(ctx.draft) : opts.categorySuggestions} />
             <BrandSelect value={c.brandId} onChange={(brandId) => ctx.setCore({ brandId })} />
             <CodeFields ctx={ctx} prefix={core.skuPrefix} />
           </Section>
           <Section title={t('Kis hisaab se bikti hai')} hint={t('Stock aur rate isi unit mein ginay jayenge')}>
-            <Tiles value={c.unit} onChange={(unit) => ctx.setCore({ unit })} options={core.units.map((u) => ({ value: u.value, label: t(u.label) }))} />
+            <UnitPicker core={core} value={c.unit} onChange={(unit) => ctx.setCore({ unit })} />
             {ctx.errors.unit && <Text size="xs" tone="danger">{ctx.errors.unit}</Text>}
           </Section>
           <PhotoField value={c.images} onChange={(images) => ctx.setCore({ images })} />

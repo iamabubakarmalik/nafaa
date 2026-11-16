@@ -112,7 +112,7 @@ function Delivery({ ctx }: { ctx: StepContext<FurnitureExtra> }) {
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Adad (pcs)') }, { value: 'set', label: msg('Set') }, { value: 'sqft', label: msg('Sq. ft') }],
-  skuPrefix: 'FR',
+  skuPrefix: 'FR', commonUnits: 'count',
   packs: false,
   variants: { presets: [{ group: msg('Rang'), values: ['Walnut', 'Dark brown', 'White', 'Black', 'Natural'] }, { group: msg('Kapra'), values: ['Velvet', 'Jute', 'Leather', 'Rexine'] }, { group: msg('Size'), values: ['Single', 'Double', 'King', 'Queen'] }] },
   batches: false,

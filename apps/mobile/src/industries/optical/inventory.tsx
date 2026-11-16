@@ -157,7 +157,7 @@ function validateSpecs(x: OpticalExtra): Errors {
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Piece') }, { value: 'pair', label: msg('Pair') }, { value: 'box', label: msg('Box') }, { value: 'pack', label: msg('Pack') }, { value: 'bottle', label: msg('Bottle') }],
-  skuPrefix: 'OPT',
+  skuPrefix: 'OPT', commonUnits: 'count',
   packs: true,
   variants: { presets: [{ group: msg('Rang'), values: COLOURS }, { group: msg('Contact lens power'), values: ['-1.00', '-1.50', '-2.00', '-2.50', '-3.00', '-4.00'] }] },
   batches: true,

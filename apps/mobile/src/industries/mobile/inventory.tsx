@@ -130,7 +130,7 @@ function imeiError(d: EditorDraft<MobileExtra>): string | null {
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Adad (pcs)') }, { value: 'set', label: msg('Set') }, { value: 'pair', label: msg('Joda') }, { value: 'box', label: msg('Dabba') }],
-  skuPrefix: 'MOB',
+  skuPrefix: 'MOB', commonUnits: 'count',
   variants: { presets: [{ group: msg('Storage'), values: ['64GB', '128GB', '256GB', '512GB', '1TB'] }, { group: msg('RAM'), values: ['4GB', '6GB', '8GB', '12GB'] }, { group: msg('Rang'), values: ['Black', 'White', 'Blue', 'Green', 'Gold', 'Titanium'] }] },
   markups: [3, 5, 8, 10, 15, 20],
 };

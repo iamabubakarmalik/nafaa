@@ -154,7 +154,7 @@ function Serials({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Pieces') }, { value: 'pack', label: msg('Pack') }, { value: 'set', label: msg('Set') }, { value: 'box', label: msg('Box') }],
-  skuPrefix: 'EL', packs: true, variants: { presets: [{ group: msg('Rang'), values: ['Black', 'White', 'Silver', 'Blue'] }, { group: msg('Storage'), values: ['64GB', '128GB', '256GB', '512GB'] }] }, markups: [5, 8, 10, 15, 20, 30],
+  skuPrefix: 'EL', commonUnits: 'count', packs: true, variants: { presets: [{ group: msg('Rang'), values: ['Black', 'White', 'Silver', 'Blue'] }, { group: msg('Storage'), values: ['64GB', '128GB', '256GB', '512GB'] }] }, markups: [5, 8, 10, 15, 20, 30],
 };
 const stock = stockStep<ElectronicsExtra>(core, { extra: (ctx) => <Serials ctx={ctx} />, quick: [1, 5, 10, 25, 50] });
 const stockWithSerials: StepDef<ElectronicsExtra> = {

@@ -6,12 +6,12 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, ChevronDown, FolderTree, MapPin, Plus } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { apiErrorMessage } from '@/core/api/errors';
 import { t } from '@/core/i18n';
 import { useOfflineList } from '@/core/offline';
-import { Button, EmptyState, Field, Icon, Input, ListRow, PressableScale, SearchBar, Select, Sheet, Text, toast, useTheme, type SelectOption } from '@/design';
+import { Button, Chip, EmptyState, Field, Icon, Input, ListRow, PressableScale, SearchBar, Select, Sheet, Text, toast, useTheme, type SelectOption } from '@/design';
 import { categoriesApi, tagsApi, type Category, type Tag } from '../api/taxonomy';
 import { useCategoryKinds } from '../industry/registry';
 import { INV, useOnline } from '../lib/shared';
@@ -200,7 +200,78 @@ function CategoryLevel({ label, hint, parentId, value, nodes, empty, onPick, non
  * "Sub-category" row lists its children (and can add one). The product keeps
  * the deepest category picked. Search matches every level and shows the path.
  */
-export function CategorySelect({ value, onChange, hint }: { value: string | null; onChange: (id: string | null) => void; hint?: string }) {
+/** Comparable category name: case, "&"/"aur" and a plural "s" do not matter. */
+const sameName = (name: string) => name.trim().toLowerCase().replace(/&|\band\b|\baur\b/g, ' ').replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ').trim().replace(/(?<=\w{3})s\b/g, '');
+
+/** Names of a category and its parents, own name first. */
+export function categoryNames(nodes: CategoryNode[], id: string | null | undefined): string[] {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const out: string[] = [];
+  let cur = id ? byId.get(id) : undefined;
+  while (cur && out.length < 8) {
+    out.push(cur.name);
+    cur = cur.parentId ? byId.get(cur.parentId) : undefined;
+  }
+  return out;
+}
+
+/**
+ * Keeps an industry field in step with the picked category's name (pharmacy
+ * "Tablets" gives form Tablet). Runs only when the user picks another
+ * category, so a saved value is never rewritten just by opening the product.
+ */
+export function useCategoryNameSync(categoryId: string | null | undefined, derive: (names: string[]) => string | null, apply: (value: string) => void) {
+  const { nodes } = useCategoryTree();
+  const names = categoryNames(nodes, categoryId);
+  const key = names.join('\u0000');
+  const base = useRef<string | null>(categoryId ?? null);
+  useEffect(() => {
+    const id = categoryId ?? null;
+    if (id === base.current) return;
+    if (id === null) { base.current = null; return; }
+    // A category made a moment ago appears once the list reloads.
+    if (!names.length) return;
+    base.current = id;
+    const v = derive(names);
+    if (v) apply(v);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId, key]);
+  return names;
+}
+
+/** One-tap category names the shop does not have yet; a tap makes and picks it. */
+function CategorySuggestions({ names, nodes, onPick }: { names: string[]; nodes: CategoryNode[]; onPick: (id: string) => void }) {
+  const th = useTheme();
+  const qc = useQueryClient();
+  const online = useOnline();
+  const [all, setAll] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const have = new Set(nodes.map((n) => sameName(n.name)));
+  const missing = names.filter((n) => !have.has(sameName(n)));
+  if (!online || !missing.length) return null;
+  const shown = all ? missing : missing.slice(0, 6);
+  const make = async (name: string) => {
+    setBusy(name);
+    try {
+      const made = await categoriesApi.create({ name });
+      await qc.invalidateQueries({ queryKey: [INV, 'categories'] });
+      onPick(made.id);
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    } finally { setBusy(null); }
+  };
+  return (
+    <View style={{ gap: th.space(1.5) }}>
+      <Text size="xs" tone="muted">{t('Ek tap mein category banayein:')}</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: th.space(1.5) }}>
+        {shown.map((n) => <Chip key={n} label={`+ ${n}`} disabled={!!busy} onPress={() => void make(n)} />)}
+        {missing.length > shown.length && <Chip label={t('+{{count}} aur', { count: missing.length - shown.length })} onPress={() => setAll(true)} />}
+      </View>
+    </View>
+  );
+}
+
+export function CategorySelect({ value, onChange, hint, suggestions }: { value: string | null; onChange: (id: string | null) => void; hint?: string; suggestions?: string[] }) {
   const { nodes, loading } = useCategoryTree();
   const chain = useMemo(() => categoryChain(nodes, value), [nodes, value]);
   const known = value == null || chain.length > 0;
@@ -215,6 +286,7 @@ export function CategorySelect({ value, onChange, hint }: { value: string | null
           onPick={(id) => onChange(id || parentId)}
           onChain={(id) => onChange(id)} />
       ))}
+      {!loading && suggestions?.length ? <CategorySuggestions names={suggestions} nodes={nodes} onPick={(id) => onChange(id)} /> : null}
     </View>
   );
 }

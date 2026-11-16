@@ -136,7 +136,7 @@ function Details({ ctx }: { ctx: StepContext<BookExtra> }) {
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Piece / kitab') }, { value: 'set', label: msg('Set') }, { value: 'pack', label: msg('Pack') }, { value: 'dozen', label: msg('Dozen') }, { value: 'box', label: msg('Box') }, { value: 'ream', label: msg('Ream') }],
-  skuPrefix: 'BK',
+  skuPrefix: 'BK', commonUnits: 'count',
   packs: true,
   variants: { presets: [
     { group: msg('Uniform size'), values: ['20', '22', '24', '26', '28', '30', '32', '34', 'S', 'M', 'L', 'XL'] },
