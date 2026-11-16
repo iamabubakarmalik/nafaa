@@ -133,7 +133,7 @@ function Serials({ ctx }: { ctx: StepContext<ApplianceExtra> }) {
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Adad (pcs)') }, { value: 'set', label: msg('Set') }, { value: 'unit', label: msg('Unit') }, { value: 'meter', label: msg('Meter (pipe, wire)') }],
-  skuPrefix: 'APL', variants: { presets: [{ group: msg('Rang'), values: ['White', 'Silver', 'Black', 'Grey', 'Gold'] }] }, batches: false, markups: [5, 8, 10, 12, 15, 20],
+  skuPrefix: 'APL', commonUnits: 'count', variants: { presets: [{ group: msg('Rang'), values: ['White', 'Silver', 'Black', 'Grey', 'Gold'] }] }, batches: false, markups: [5, 8, 10, 12, 15, 20],
 };
 
 const specsStep: StepDef<ApplianceExtra> = { id: 'specs', title: msg('Model / size'), icon: Ruler, render: (ctx) => <Specs ctx={ctx} />, when: (d) => !!d.extra.categoryType };

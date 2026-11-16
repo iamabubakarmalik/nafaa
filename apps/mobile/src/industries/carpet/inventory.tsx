@@ -36,7 +36,7 @@ const core: CoreOptions = {
     { value: 'sqft', label: msg('Sq ft') }, { value: 'sqyd', label: msg('Sq gaz') }, { value: 'sqm', label: msg('Sq meter') },
     { value: 'ft', label: msg('Running ft') }, { value: 'm', label: msg('Running meter') }, { value: 'pcs', label: msg('Piece (rug)') }, { value: 'service', label: msg('Service (fitting)') },
   ],
-  skuPrefix: 'CPT',
+  skuPrefix: 'CPT', commonUnits: 'count',
   packs: false,
   variants: { presets: [
     { group: msg('Rang'), values: ['Red', 'Maroon', 'Beige', 'Grey', 'Blue', 'Green', 'Brown', 'Cream'] },

@@ -92,8 +92,13 @@ export interface StepDef<X> {
 }
 
 export interface CoreOptions {
-  /** Unit tiles in the basic step (labels are raw text). */
+  /** The industry's own unit tiles in the basic step, shown first (labels are raw text). */
   units: Array<{ value: string; label: string }>;
+  /**
+   * Common units added after the industry's own (default 'all'): 'count' adds
+   * only counted ones (pcs, packet, box ...) for shops that never weigh, false adds none.
+   */
+  commonUnits?: 'all' | 'count' | false;
   skuPrefix: string;
   /** Multi-unit packs (ProductUnit). */
   packs?: boolean;

@@ -465,5 +465,19 @@
   "Zyada": "More",
   "Zyada se zyada": "At most",
   "Zyada se zyada {{maxUnits}}": "Maximum {{maxUnits}}",
-  "Zyada se zyada °C": "Max °C"
+  "Zyada se zyada °C": "Max °C",
+  "Ye kya hai": "What is it",
+  "Aam saman": "General item",
+  "Formula, schedule aur DRAP": "Formula, schedule and DRAP",
+  "Shampoo, diaper, biscuit — sirf naam aur rate": "Shampoo, diapers, biscuits — just name and price",
+  "Save karne par is ki dawai wali details (formula, schedule, DRAP) hat jayengi. Stock aur bills wese hi rahenge.": "Saving removes its medicine details (formula, schedule, DRAP). Stock and bills stay as they are.",
+  "Dawai ki details": "Medicine details",
+  "Card, label aur substitute list par nazar aati hain — sab marzi hai": "Shown on the card, label and substitute list — all optional",
+  "Form": "Form",
+  "Category se khud bhar jati hai — \"Tablets\" chunein to Tablet": "Filled from the category — pick \"Tablets\" and it becomes Tablet",
+  "Chunna nahi": "Not set",
+  "Dawai details": "Medicine details",
+  "Jaise: Panadol 500mg Tablet, Johnson baby shampoo": "e.g. Panadol 500mg Tablet, Johnson baby shampoo",
+  "Aam saman (dawai nahi)": "General item (not a medicine)",
+  "Qisam": "Type"
 }

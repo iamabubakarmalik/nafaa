@@ -180,7 +180,7 @@ const termsStep: StepDef<JewelryExtra> = { id: 'terms', title: msg('Hallmark aur
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Piece') }, { value: 'set', label: msg('Set') }, { value: 'pair', label: msg('Jora') }],
-  skuPrefix: 'JW', packs: false, variants: false,
+  skuPrefix: 'JW', commonUnits: 'count', packs: false, variants: false,
 };
 
 const editor: EditorConfig<JewelryExtra> = {

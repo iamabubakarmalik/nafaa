@@ -135,7 +135,7 @@ const specsStep: StepDef<SportsExtra> = {
 
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: msg('Piece') }, { value: 'pair', label: msg('Jora') }, { value: 'set', label: msg('Set') }, { value: 'box', label: msg('Dabba') }, { value: 'kg', label: msg('Kg') }],
-  skuPrefix: 'SP', packs: true,
+  skuPrefix: 'SP', commonUnits: 'count', packs: true,
   variants: { presets: [{ group: msg('Kit size'), values: APPAREL_SIZES }, { group: msg('Bachon ki kit'), values: KIDS_SIZES }, { group: msg('Bat size'), values: BAT_SIZES }] },
   markups: [20, 30, 40, 50, 80, 100],
 };

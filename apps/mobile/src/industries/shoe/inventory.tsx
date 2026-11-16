@@ -115,7 +115,7 @@ function SizeGridMaker({ ctx }: { ctx: StepContext<ShoeExtra> }) {
 
 const core: CoreOptions = {
   units: [{ value: 'pair', label: msg('Jora') }, { value: 'pcs', label: msg('Piece') }, { value: 'box', label: msg('Dabba') }],
-  skuPrefix: 'SH', packs: true, variants: { presets: [{ group: msg('Size'), values: ['6', '7', '8', '9', '10'] }] }, markups: [30, 40, 50, 60, 80, 100],
+  skuPrefix: 'SH', commonUnits: 'count', packs: true, variants: { presets: [{ group: msg('Size'), values: ['6', '7', '8', '9', '10'] }] }, markups: [30, 40, 50, 60, 80, 100],
 };
 
 const details: StepDef<ShoeExtra> = {

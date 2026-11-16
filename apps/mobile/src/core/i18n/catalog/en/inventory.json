@@ -1707,5 +1707,9 @@
   "Zyada ruki sale pehle": "Most lost sales first",
   "Zyada se zyada kitne bechne hain": "Most to sell",
   "Zyada stock": "Overstock",
-  "Zyada stock pehle": "Most stock first"
+  "Zyada stock pehle": "Most stock first",
+  "Kam units": "Fewer units",
+  "Aur units ({{count}})": "More units ({{count}})",
+  "+{{count}} aur": "+{{count}} more",
+  "Ek tap mein category banayein:": "Add a category in one tap:"
 }

@@ -12,6 +12,8 @@ import { View } from 'react-native';
 import { msg, t } from '@/core/i18n';
 import { Button, Card, Chip, ChipGroup, FormSection, Input, Row, Switch, Text } from '@/design';
 import { NumberInput, Tiles } from '@/modules/inventory/components/fields';
+import { useCategoryNameSync } from '@/modules/inventory/components/Pickers';
+import { partGroupFromCategory } from '@nafaa/core/industries/autoparts';
 import { registerInventoryIndustry } from '@/modules/inventory/industry/registry';
 import type { CoreOptions, EditorConfig, StepContext, StepDef } from '@/modules/inventory/industry/types';
 import { basicStep, priceStep, stockStep } from '@/modules/inventory/screens/editor/coreSteps';
@@ -19,7 +21,7 @@ import type { Errors } from '@/modules/inventory/screens/editor/types';
 import { partProfilesApi, type PartCategory, type PartCondition, type PartFitment, type PartProfile } from './api';
 import { FitmentEditor, yearText } from './components/FitmentEditor';
 import { usePartFacts } from './components/PartFacts';
-import { CATEGORIES, CONDITIONS, PART_FACTS_KEY, categoryOf, conditionOf, km, opt } from './meta';
+import { CONDITIONS, PART_FACTS_KEY, categoryOf, conditionOf, km, opt } from './meta';
 
 export interface PartExtra {
   partNumber: string; oemNumber: string; alternateNumbers: string[]; category: PartCategory; condition: PartCondition;
@@ -30,15 +32,15 @@ const initial: PartExtra = {
   partNumber: '', oemNumber: '', alternateNumbers: [], category: 'OTHER', condition: 'NEW', brand: '', countryOfOrigin: '',
   warrantyMonths: 0, warrantyKm: null, isFastMoving: false, isCritical: false, universal: false, fitments: [],
 };
-const POPULAR: PartCategory[] = ['ENGINE', 'BRAKES', 'FILTERS', 'OILS_FLUIDS', 'SUSPENSION', 'ELECTRICAL', 'LIGHTING', 'BATTERY', 'TIRES_WHEELS', 'BODY', 'IGNITION', 'BELTS_HOSES'];
 const BRANDS = ['Toyota Genuine', 'Honda Genuine', 'Suzuki Genuine', 'Denso', 'Bosch', 'NGK', 'Shell', 'Total', 'Zic', 'Exide', 'AGS', 'Osaka'];
 const ORIGINS = ['Japan', 'China', 'Taiwan', 'Thailand', 'Pakistan', 'Korea'];
 
-/** Basic step addition: numbers and group. */
+/** Basic step addition: part numbers (the group follows the category). */
 function Numbers({ ctx }: { ctx: StepContext<PartExtra> }) {
   const x = ctx.draft.extra;
   const [alt, setAlt] = useState('');
-  const [more, setMore] = useState(POPULAR.includes(x.category) ? false : x.category !== 'OTHER');
+  // The part group follows the shop category ("Brake" gives BRAKES); there is no separate picker.
+  useCategoryNameSync(ctx.draft.core.categoryId, partGroupFromCategory, (category) => ctx.setExtra({ category: category as PartCategory }));
   const addAlt = () => {
     const v = alt.trim();
     if (v && !x.alternateNumbers.includes(v)) ctx.setExtra({ alternateNumbers: [...x.alternateNumbers, v] });
@@ -53,9 +55,6 @@ function Numbers({ ctx }: { ctx: StepContext<PartExtra> }) {
       {x.alternateNumbers.length > 0 && (
         <Row gap={2} wrap>{x.alternateNumbers.map((a) => <Chip key={a} selected label={a} icon={X} onPress={() => ctx.setExtra({ alternateNumbers: x.alternateNumbers.filter((y) => y !== a) })} />)}</Row>
       )}
-      <Text size="sm" weight="medium" tone="secondary">{t('Part ka group')}</Text>
-      <ChipGroup wrap value={x.category} onChange={(c) => ctx.setExtra({ category: x.category === c ? 'OTHER' : (c as PartCategory) })} options={(more ? CATEGORIES : POPULAR).map((c) => ({ value: c, label: categoryOf(c) }))} />
-      {!more && <Button size="sm" variant="link" onPress={() => setMore(true)}>{t('Aur…')}</Button>}
     </FormSection>
   );
 }
@@ -127,7 +126,11 @@ const editor: EditorConfig<PartExtra> = {
     product: (d, payload) => (!String(payload.sku ?? '').trim() && d.extra.partNumber.trim() ? { ...payload, sku: d.extra.partNumber.trim() } : payload),
   },
   steps: [
-    basicStep<PartExtra>(core, { extra: (ctx) => <Numbers ctx={ctx} />, namePlaceholder: msg('Jaise: Brake pad Corolla 2015 (front)') }),
+    basicStep<PartExtra>(core, {
+      extra: (ctx) => <Numbers ctx={ctx} />, namePlaceholder: msg('Jaise: Brake pad Corolla 2015 (front)'),
+      categorySuggestions: ['Engine parts', 'Brake', 'Filter', 'Oil aur lubricants', 'Suspension', 'Bijli ka saman', 'Lights', 'Battery', 'Tyre aur tube', 'Body parts', 'Bike parts',
+        'Plug aur ignition', 'Belt aur pipe', 'Radiator / cooling', 'Gear box aur clutch', 'Steering', 'Bearing', 'Gasket aur seal', 'Sensor', 'AC aur heater', 'Silencer', 'Accessories', 'Auzaar'],
+    }),
     priceStep<PartExtra>(core),
     fitStep,
     qualityStep,

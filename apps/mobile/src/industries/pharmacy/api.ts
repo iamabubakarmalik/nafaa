@@ -36,6 +36,8 @@ export const medicinesApi = {
   upsert: (data: Record<string, unknown>) => post<PharmacyMedicine>('/pharmacy/medicines', data),
   lookup: () => get<MedicineFacts[]>('/pharmacy/medicines/lookup'),
   byProduct: (productId: string) => get<PharmacyMedicine | null>(`/pharmacy/medicines/by-product/${productId}`),
+  /** Removes only the medicine details; the product, its stock and its bills stay. */
+  remove: (id: string) => apiClient.delete<unknown>(`/pharmacy/medicines/${id}`).then((r) => r.data),
 };
 
 /* ───────────── prescriptions ───────────── */
