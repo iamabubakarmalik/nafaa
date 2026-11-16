@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { settingsApi, type TenantSettings } from '@modules/organization/settings/api/settings.api';
 import { toast } from 'sonner';
 import { t } from '@core/i18n';
+import { RECEIPT_SETUP_KEY, fetchReceiptSetup } from '@core/receipt/setup';
 
 export function useSettings(options: { enabled?: boolean; retry?: boolean | number } = {}) {
   return useQuery({
@@ -18,6 +19,8 @@ export function useUpdateSettings() {
     mutationFn: (data: Partial<TenantSettings>) => settingsApi.update(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['settings'] });
+      // Bills read the shop name, contact and bill language from these settings; refresh the copy printing uses.
+      fetchReceiptSetup().then((setup) => qc.setQueryData(RECEIPT_SETUP_KEY, setup)).catch(() => {});
       toast.success(t('Save ho gaya ✅'));
     },
     onError: (e: any) => {
