@@ -1,19 +1,24 @@
 /**
- * Medicine editor on the shared product editor: brand name and form, the
- * formula (salts with strength, which gives the generic name and the
- * substitutes), packing for loose and strip/box sale, schedule and storage,
- * and opening stock by batch with expiry.
+ * Pharmacy product editor on the shared product editor. A medical store sells
+ * medicines and general items (shampoo, diapers, sugar-free biscuits), so the
+ * first choice is "Dawai" or "Aam saman". A medicine gets the medicine steps:
+ * details (form, company, pack, DRAP number) with the formula (salts with
+ * strength, which gives the generic name and the substitutes), and schedule
+ * and storage. A general item skips them. The dosage form follows the category
+ * ("Tablets" gives Tablet) and can be changed in the medicine details.
  */
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Beaker, FileText, Plus, ShieldAlert, Snowflake, Star, Thermometer, Trash2 } from 'lucide-react';
+import { Beaker, FileText, Pill, Plus, ShieldAlert, Snowflake, Star, Thermometer, Trash2 } from 'lucide-react';
 import { cn } from '@core/lib/cn';
 import { ProductEditorPage } from '@modules/inventory/products/editor/ProductEditorPage';
 import { basicStep, priceStep, stockStep } from '@modules/inventory/products/editor/coreSteps';
 import { Chip, NumberField, Section, TextField, Tiles, Toggle, inputClass } from '@modules/inventory/products/editor/fields';
-import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import type { CoreOptions, EditorConfig, EditorDraft, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
+import { useCategoryNameSync } from '@modules/inventory/categories/lib/kinds';
+import { MEDICINE_CATEGORY_SUGGESTIONS, MEDICINE_UNITS, PHARMACY_GENERAL_CATEGORY_SUGGESTIONS, formForCategory } from '@nafaa/core/industries/pharmacy';
 import { medicinesApi, type StorageCondition } from '../api/medicines.api';
 import { saltsApi, type Salt } from '../api/salts.api';
 import { MEDICINE_FACTS_KEY } from '../hooks/useMedicineFacts';
@@ -23,6 +28,10 @@ import { t } from '@core/i18n';
 interface SaltLine { saltId: string; name: string; strength: string; isMainSalt: boolean }
 
 export interface PharmacyExtra {
+  /** Medicine or general item. Editor only: a medicine is a product with medicine details saved. */
+  isMedicine: boolean;
+  /** Saved medicine details of this product; removed when it becomes a general item. */
+  medicineId: string | null;
   dosageForm: string; packSize: string; manufacturer: string; registrationNumber: string; isGeneric: boolean;
   salts: SaltLine[];
   scheduleClass: string; requiresPrescription: boolean; isNarcotic: boolean;
@@ -31,34 +40,79 @@ export interface PharmacyExtra {
 }
 
 const initial: PharmacyExtra = {
-  dosageForm: 'Tablet', packSize: '', manufacturer: '', registrationNumber: '', isGeneric: false, salts: [],
+  isMedicine: true, medicineId: null,
+  dosageForm: '', packSize: '', manufacturer: '', registrationNumber: '', isGeneric: false, salts: [],
   scheduleClass: 'OTC', requiresPrescription: false, isNarcotic: false,
   storageCondition: 'ROOM_TEMPERATURE', requiresColdChain: false, minTemperature: null, maxTemperature: null,
   indication: '', storageInstructions: '',
 };
 
+/** Therapeutic groups some shops file medicines by, offered after the dosage forms. */
+const THERAPY_SUGGESTIONS = ['Bukhar aur dard', 'Antibiotic', 'Khansi aur zukam', 'Pait', 'Sugar', 'BP aur dil', 'Bachon ki dawai'];
+
 const STRENGTHS = ['5mg', '10mg', '20mg', '50mg', '100mg', '250mg', '500mg', '1g', '125mg/5ml', '250mg/5ml'];
 const opt = (v: string) => v.trim() || undefined;
 const isRegister = (x: PharmacyExtra) => x.isNarcotic || REGISTER_CLASSES.includes(x.scheduleClass);
+/** Drafts saved before the choice existed are medicines. */
+const isMed = (x: PharmacyExtra) => x.isMedicine !== false;
 
-/* ── Basic step addition: form, maker, DRAP number ── */
-function Identity({ ctx }: { ctx: StepContext<PharmacyExtra> }) {
+/* ── Basic step addition: medicine or general item; the form follows the category ── */
+function ItemType({ ctx }: { ctx: StepContext<PharmacyExtra> }) {
   const x = ctx.draft.extra;
+  const med = isMed(x);
+  useCategoryNameSync(ctx.draft.core.categoryId, (names) => (isMed(ctx.draft.extra) ? formForCategory(names, ctx.draft.extra.dosageForm) : null), (dosageForm) => ctx.setExtra({ dosageForm }));
+  const pick = (v: 'med' | 'general') => {
+    const isMedicine = v === 'med';
+    if (isMedicine === med) return;
+    ctx.setExtra({ isMedicine });
+    // A new product starts on a fitting unit: pieces for a general item, tablets for a medicine.
+    if (!ctx.isEdit) {
+      const unit = ctx.draft.core.unit;
+      if (!isMedicine && MEDICINE_UNITS.includes(unit)) ctx.setCore({ unit: 'pcs' });
+      if (isMedicine && unit === 'pcs') ctx.setCore({ unit: 'tablet' });
+    }
+  };
   return (
-    <div className="space-y-4">
-      <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Shakal (form)')}</span>
-        <div className="flex flex-wrap gap-1.5">
-          {DOSAGE_FORMS.map((f) => <Chip key={f} on={x.dosageForm === f} onClick={() => ctx.setExtra({ dosageForm: x.dosageForm === f ? '' : f })}>{f}</Chip>)}
-        </div>
-      </div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <TextField label={t('Company')} value={x.manufacturer} onChange={(manufacturer) => ctx.setExtra({ manufacturer })} placeholder={t('GSK, Getz, Searle…')} hint={t('Card aur substitute list par dikhti hai')} />
+    <div>
+      <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Ye kya hai')}</span>
+      <Tiles value={med ? 'med' : 'general'} onChange={pick} columns="grid-cols-2"
+        options={[
+          { value: 'med', label: t('Dawai'), hint: t('Formula, schedule aur DRAP'), icon: '💊' },
+          { value: 'general', label: t('Aam saman'), hint: t('Shampoo, diaper, biscuit — sirf naam aur rate'), icon: '🧴' },
+        ]} />
+      {!med && x.medicineId && (
+        <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[0.8125rem] text-amber-900 ring-1 ring-amber-200">
+          {t('Save karne par is ki dawai wali details (formula, schedule, DRAP) hat jayengi. Stock aur bills wese hi rahenge.')}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/* ── Medicine details: form, company, pack, DRAP number ── */
+function MedicineDetails({ ctx }: { ctx: StepContext<PharmacyExtra> }) {
+  const x = ctx.draft.extra;
+  // A saved form outside the list (e.g. from an older import) stays selectable.
+  const forms = x.dosageForm && !DOSAGE_FORMS.includes(x.dosageForm) ? [x.dosageForm, ...DOSAGE_FORMS] : DOSAGE_FORMS;
+  return (
+    <Section icon={Pill} title={t('Dawai ki details')} hint={t('Card, label aur substitute list par nazar aati hain — sab marzi hai')}>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block">
+          <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Form')}</span>
+          <select value={x.dosageForm} onChange={(e) => ctx.setExtra({ dosageForm: e.target.value })} className={inputClass}>
+            <option value="">{t('Chunna nahi')}</option>
+            {forms.map((f) => <option key={f} value={f}>{f}</option>)}
+          </select>
+          <span className="mt-1.5 block text-xs text-slate-500">{t('Category se khud bhar jati hai — "Tablets" chunein to Tablet')}</span>
+        </label>
+        <TextField label={t('Company')} value={x.manufacturer} onChange={(manufacturer) => ctx.setExtra({ manufacturer })} placeholder={t('GSK, Getz, Searle…')} />
         <TextField label={t('Pack')} value={x.packSize} onChange={(packSize) => ctx.setExtra({ packSize })} placeholder={t('10 x 10 tablets, 60 ml')} hint={t('Dabbe par likha pack')} />
         <TextField label={t('DRAP registration')} value={x.registrationNumber} onChange={(registrationNumber) => ctx.setExtra({ registrationNumber })} placeholder={t('Reg. No. 012345')} />
       </div>
-      <Toggle on={x.isGeneric} onChange={(isGeneric) => ctx.setExtra({ isGeneric })} title={t('Generic dawai')} hint={t('Brand ke bagair, sirf formula ke naam se bikti hai')} />
-    </div>
+      <div className="mt-3">
+        <Toggle on={x.isGeneric} onChange={(isGeneric) => ctx.setExtra({ isGeneric })} title={t('Generic dawai')} hint={t('Brand ke bagair, sirf formula ke naam se bikti hai')} />
+      </div>
+    </Section>
   );
 }
 
@@ -99,6 +153,7 @@ function Formula({ ctx }: { ctx: StepContext<PharmacyExtra> }) {
 
   return (
     <div className="space-y-4">
+      <MedicineDetails ctx={ctx} />
       <Section icon={Beaker} title={t('Formula (salt)')} hint={t('Dawai me kya hai aur kitna — isi se generic naam banta hai aur stock khatam ho to substitute milta hai')}>
         <div className="relative">
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('Salt likhein: Paracetamol, Amoxicillin…')} className={inputClass}
@@ -205,11 +260,13 @@ const core: CoreOptions = {
 };
 
 const formulaStep: StepDef<PharmacyExtra> = {
-  id: 'formula', title: t('Formula'), hint: t('Salt aur strength'), icon: Beaker, render: (ctx) => <Formula ctx={ctx} />,
+  id: 'formula', title: t('Dawai details'), hint: t('Form, company, salt'), icon: Beaker, render: (ctx) => <Formula ctx={ctx} />,
+  when: (d) => isMed(d.extra),
   validate: (d): Errors => (d.extra.salts.some((s) => !s.strength.trim()) ? { salts: t('Har salt ki strength likhein (jaise 500mg)') } : {}),
 };
 const rulesStep: StepDef<PharmacyExtra> = {
   id: 'rules', title: t('Schedule'), hint: t('Rx, narcotic, fridge'), icon: ShieldAlert, render: (ctx) => <Rules ctx={ctx} />,
+  when: (d) => isMed(d.extra),
   validate: (d): Errors => (d.extra.minTemperature != null && d.extra.maxTemperature != null && d.extra.minTemperature > d.extra.maxTemperature
     ? { temperature: t('Kam se kam wala zyada wale se bara hai') } : {}),
 };
@@ -222,10 +279,15 @@ const config: EditorConfig<PharmacyExtra> = {
   extra: {
     initial,
     load: async (productId) => {
-      const m = await medicinesApi.byProduct(productId).catch(() => null);
-      if (!m) return {};
+      // A failed request keeps the defaults (medicine) so nothing is removed on save.
+      const m = await medicinesApi.byProduct(productId).catch(() => undefined);
+      if (m === undefined) return {};
+      // No medicine details saved: a general item (e.g. added from the POS or a grocery import).
+      // An empty answer can arrive as the bare response envelope, so the id decides.
+      if (!m?.id) return { isMedicine: false };
       const ps = ((m.product?.productSalts ?? []) as Array<{ saltId: string; strength: string | null; isMainSalt: boolean; salt?: { name: string } }>);
       return {
+        isMedicine: true, medicineId: m.id,
         dosageForm: m.dosageForm ?? '', packSize: m.packSize ?? '', manufacturer: m.manufacturer ?? '', registrationNumber: m.registrationNumber ?? '',
         isGeneric: m.isGeneric, scheduleClass: m.scheduleClass, requiresPrescription: m.requiresPrescription, isNarcotic: m.isNarcotic,
         storageCondition: m.storageCondition, requiresColdChain: m.requiresColdChain, minTemperature: m.minTemperature ?? null, maxTemperature: m.maxTemperature ?? null,
@@ -235,6 +297,14 @@ const config: EditorConfig<PharmacyExtra> = {
     },
     save: async (productId, d) => {
       const x = d.extra;
+      if (!isMed(x)) {
+        // Turned into a general item: drop its salts and medicine details; stock and bills stay.
+        if (x.medicineId) {
+          await saltsApi.assign(productId, []);
+          await medicinesApi.remove(x.medicineId);
+        }
+        return;
+      }
       await medicinesApi.upsert({
         productId, dosageForm: opt(x.dosageForm), packSize: opt(x.packSize), manufacturer: opt(x.manufacturer), registrationNumber: opt(x.registrationNumber),
         isGeneric: x.isGeneric, scheduleClass: x.scheduleClass, requiresPrescription: x.requiresPrescription || isRegister(x), isNarcotic: x.isNarcotic,
@@ -247,7 +317,11 @@ const config: EditorConfig<PharmacyExtra> = {
     },
   },
   steps: [
-    basicStep<PharmacyExtra>(core, { extra: (ctx) => <Identity ctx={ctx} />, namePlaceholder: t('Jaise: Panadol 500mg Tablet'), categorySuggestions: ['Bukhar aur dard', 'Antibiotic', 'Pait', 'Khansi aur zukam', 'Sugar', 'BP aur dil', 'Vitamin', 'Bachon ki dawai', 'Cream aur lotion', 'Surgical'] }),
+    basicStep<PharmacyExtra>(core, {
+      extra: (ctx) => <ItemType ctx={ctx} />,
+      namePlaceholder: t('Jaise: Panadol 500mg Tablet, Johnson baby shampoo'),
+      categorySuggestions: (d: EditorDraft<PharmacyExtra>) => (isMed(d.extra) ? [...MEDICINE_CATEGORY_SUGGESTIONS, ...THERAPY_SUGGESTIONS] : PHARMACY_GENERAL_CATEGORY_SUGGESTIONS),
+    }),
     formulaStep,
     priceStep<PharmacyExtra>(core),
     rulesStep,
@@ -255,6 +329,7 @@ const config: EditorConfig<PharmacyExtra> = {
   ],
   summary: (d) => {
     const x = d.extra;
+    if (!isMed(x)) return <p className="mt-3 border-t border-slate-100 pt-3 text-[0.8125rem] text-slate-600">{t('Aam saman (dawai nahi)')}</p>;
     const generic = x.salts.map((s) => [s.name, s.strength].filter(Boolean).join(' ')).join(' + ');
     return (
       <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-[0.8125rem]">
@@ -267,6 +342,7 @@ const config: EditorConfig<PharmacyExtra> = {
   },
   refresh: [MEDICINE_FACTS_KEY, 'pharmacy-medicines', 'pharmacy-product-detail', 'pharmacy-salts'],
   guide: [
+    { icon: Pill, color: '#0d9488', title: t('Dawai ya aam saman'), text: t('Shampoo, diaper ya biscuit ke liye "Aam saman" chunein — formula aur schedule ke steps nahi aate. Dawai ki form category se khud lagti hai.') },
     { icon: Beaker, color: '#0891b2', title: t('Formula'), text: t('Salt aur strength likhein — POS par salt se dhoondna aur stock khatam hone par substitute isi se milta hai.') },
     { icon: ShieldAlert, color: '#e11d48', title: t('Schedule'), text: t('Narcotic / controlled dawai ki har sale register me jati hai; POS par doctor aur mareez ka naam poocha jata hai.') },
     { icon: FileText, color: '#d97706', title: t('Strip aur box'), text: t('Base unit tablet rakhein aur Price step me "Strip = 10" aur "Box = 100" packing jorein — khuli goli aur poora patta dono bikte hain.') },

@@ -64,3 +64,18 @@ test('temperature limits and generic name', () => {
   assert.equal(outOfRange(-30, null, -15), false);
   assert.equal(genericName([{ name: 'Paracetamol', strength: '500mg' }, { name: 'Caffeine' }]), 'Paracetamol 500mg + Caffeine');
 });
+
+test('dosage form follows the category name', async () => {
+  const { formsFromCategory, formForCategory } = await import('./index');
+  assert.deepEqual(formsFromCategory('Tablets'), ['Tablet']);
+  assert.deepEqual(formsFromCategory('Tablet'), ['Tablet']);
+  assert.deepEqual(formsFromCategory('Creams & ointments'), ['Cream', 'Ointment']);
+  assert.deepEqual(formsFromCategory('Eye drops'), ['Drops']);
+  assert.deepEqual(formsFromCategory('Baby care'), []);
+  assert.deepEqual(formsFromCategory('Vitamins & supplements'), []);
+  assert.deepEqual(formsFromCategory('Capsules'), ['Capsule']);
+  assert.equal(formForCategory(['Creams & ointments'], 'Ointment'), 'Ointment');
+  assert.equal(formForCategory(['Creams & ointments'], 'Tablet'), 'Cream');
+  assert.equal(formForCategory(['Panadol range', 'Syrups'], ''), 'Syrup');
+  assert.equal(formForCategory(['Pain relief'], 'Tablet'), null);
+});

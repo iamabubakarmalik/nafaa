@@ -3234,5 +3234,8 @@
   "Zyada se zyada kitne bechne hain": "زیادہ سے زیادہ کتنے بیچنے ہیں",
   "Zyada stock": "زیادہ اسٹاک",
   "Zyada stock pehle": "زیادہ اسٹاک پہلے",
-  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "زیادہ تر کالم خود مل جاتے ہیں۔ اسٹاک والا کالم ضرور دیکھیں، اور برانچ چنیں جہاں اسٹاک جائے گا۔"
+  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "زیادہ تر کالم خود مل جاتے ہیں۔ اسٹاک والا کالم ضرور دیکھیں، اور برانچ چنیں جہاں اسٹاک جائے گا۔",
+  "Kam units": "کم یونٹ",
+  "Aur units ({{count}})": "مزید یونٹ ({{count}})",
+  "+{{count}} aur": "+{{count}} اور"
 }

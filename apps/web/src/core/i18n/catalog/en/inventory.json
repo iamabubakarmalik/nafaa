@@ -3282,5 +3282,8 @@
   "Zyada se zyada kitne bechne hain": "Most to sell",
   "Zyada stock": "Overstock",
   "Zyada stock pehle": "Most stock first",
-  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "Most columns are matched automatically. Do check the stock column, and choose the branch where the stock will go."
+  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "Most columns are matched automatically. Do check the stock column, and choose the branch where the stock will go.",
+  "Kam units": "Fewer units",
+  "Aur units ({{count}})": "More units ({{count}})",
+  "+{{count}} aur": "+{{count}} more"
 }

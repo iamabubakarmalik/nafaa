@@ -251,6 +251,8 @@ const core: CoreOptions = {
     { value: 'dozen', label: tr('Dozen') }, { value: 'box', label: tr('Box') }, { value: 'ream', label: tr('Ream') },
   ],
   skuPrefix: 'BK',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: true,
   variants: { presets: [
     { group: tr('Uniform size'), values: ['20', '22', '24', '26', '28', '30', '32', '34', 'S', 'M', 'L', 'XL'] },

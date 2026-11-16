@@ -87,6 +87,8 @@ function TeamRate({ ctx }: { ctx: StepContext<SportsExtra> }) {
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: tr('Piece') }, { value: 'pair', label: tr('Jora') }, { value: 'set', label: tr('Set') }, { value: 'box', label: tr('Dabba') }, { value: 'kg', label: tr('Kg') }],
   skuPrefix: 'SP',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: true,
   variants: { presets: [{ group: tr('Kit size'), values: APPAREL_SIZES }, { group: tr('Bachon ki kit'), values: KIDS_SIZES }, { group: tr('Bat size'), values: BAT_SIZES }] },
   markups: [20, 30, 40, 50, 80, 100],

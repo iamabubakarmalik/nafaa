@@ -142,6 +142,8 @@ function Serials({ ctx }: { ctx: StepContext<ApplianceExtra> }) {
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: tr('Adad (pcs)') }, { value: 'set', label: tr('Set') }, { value: 'unit', label: tr('Unit') }, { value: 'meter', label: tr('Meter (pipe, wire)') }],
   skuPrefix: 'APL',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   variants: { presets: [{ group: tr('Rang'), values: ['White', 'Silver', 'Black', 'Grey', 'Gold'] }] },
   batches: false,
   markups: [5, 8, 10, 12, 15, 20],

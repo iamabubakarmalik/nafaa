@@ -85,6 +85,8 @@ const core: CoreOptions = {
     { value: 'vial', label: t('Vial') }, { value: 'pcs', label: t('Adad (pcs)') },
   ],
   skuPrefix: 'CLN',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: true,
   variants: false,
   batches: true,

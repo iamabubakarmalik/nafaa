@@ -203,3 +203,64 @@ export function openingStock(core: { stock: number; variants: ReadonlyArray<{ st
   if (core.batches.length) return core.batches.reduce((s, b) => s + (Number(b.quantity) || 0), 0);
   return Number(core.stock) || 0;
 }
+
+/* ── Unit choices in the product editor ── */
+
+export interface UnitOption { value: string; label: string }
+
+/** Spellings that mean the same unit; the first value seen in a list wins. */
+const UNIT_ALIASES: Record<string, string> = {
+  piece: 'pcs', pieces: 'pcs', pc: 'pcs', adad: 'pcs',
+  g: 'gram', gm: 'gram', gms: 'gram', grams: 'gram',
+  kilo: 'kg', kilogram: 'kg',
+  l: 'liter', litre: 'liter', ltr: 'liter', liters: 'liter', litres: 'liter',
+  pack: 'packet', packets: 'packet',
+  m: 'meter', metre: 'meter',
+};
+
+/** Comparable key of a unit value ("Litre" and "liter" are the same unit). */
+export const unitKey = (value: string | null | undefined): string => {
+  const v = String(value ?? '').trim().toLowerCase();
+  return UNIT_ALIASES[v] ?? v;
+};
+
+/** Units every shop may need, in the order the editor offers them. */
+export const COMMON_UNIT_VALUES = ['pcs', 'kg', 'gram', 'liter', 'ml', 'packet', 'bottle', 'dozen', 'box', 'carton'] as const;
+/** Counted units only, for shops that never sell by weight or volume. */
+export const COUNT_UNIT_VALUES = ['pcs', 'packet', 'bottle', 'dozen', 'box', 'carton'] as const;
+
+/** Which common units an industry adds to its own: all, counted only, or none. */
+export type CommonUnits = 'all' | 'count' | false;
+
+/**
+ * Unit tiles for the editor. `main` is the industry's own units, then pieces
+ * when the industry lacks them, then the saved unit when no list has it (so an
+ * old product still shows its unit). `more` holds the common units the industry
+ * does not have, offered behind a "More units" toggle. Duplicates are matched by
+ * `unitKey` and the industry's own value and label are kept.
+ */
+export function unitChoices(own: readonly UnitOption[], common: readonly UnitOption[], mode: CommonUnits = 'all', current?: string | null): { main: UnitOption[]; more: UnitOption[] } {
+  const seen = new Set<string>();
+  const main: UnitOption[] = [];
+  const more: UnitOption[] = [];
+  for (const u of own) {
+    const k = unitKey(u.value);
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    main.push(u);
+  }
+  const allowed: readonly string[] = mode === 'count' ? COUNT_UNIT_VALUES : mode === 'all' ? COMMON_UNIT_VALUES : [];
+  for (const u of common) {
+    const k = unitKey(u.value);
+    if (!allowed.includes(k) || seen.has(k)) continue;
+    seen.add(k);
+    (k === 'pcs' ? main : more).push(u);
+  }
+  const cur = String(current ?? '').trim();
+  if (cur) {
+    const hidden = more.findIndex((u) => u.value === cur);
+    if (hidden >= 0) main.push(...more.splice(hidden, 1));
+    else if (!main.some((u) => u.value === cur)) main.push({ value: cur, label: cur });
+  }
+  return { main, more };
+}

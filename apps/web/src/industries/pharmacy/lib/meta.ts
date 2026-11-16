@@ -20,7 +20,8 @@ export const SCHEDULES = Object.keys(SCHEDULE_META);
 /** Classes that always go in the narcotic register. */
 export const REGISTER_CLASSES = ['CONTROLLED', 'NARCOTIC', 'PSYCHOTROPIC', 'SCHEDULE_X'];
 
-export const DOSAGE_FORMS = ['Tablet', 'Capsule', 'Syrup', 'Suspension', 'Injection', 'Drops', 'Cream', 'Ointment', 'Gel', 'Inhaler', 'Sachet', 'Suppository', 'Spray', 'Lotion'];
+/** Dosage forms, one list for web and mobile (also used to read a form from a category name). */
+export { DOSAGE_FORMS } from '@nafaa/core/industries/pharmacy';
 
 export const STORAGE_META: Record<string, string> = {
   ROOM_TEMPERATURE: t('Kamre ka temperature'),

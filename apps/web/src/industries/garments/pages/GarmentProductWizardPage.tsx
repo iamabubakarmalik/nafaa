@@ -188,6 +188,8 @@ function SizeGrid({ ctx }: { ctx: StepContext<GarmentExtra> }) {
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: t('Piece') }, { value: 'suit', label: t('Suit') }, { value: 'set', label: t('Set') }, { value: 'pair', label: t('Jora') }, { value: 'meter', label: t('Meter') }, { value: 'yard', label: t('Gaz') }],
   skuPrefix: 'GR',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: true,
   variants: { presets: [{ group: t('Size'), values: ['S', 'M', 'L', 'XL'] }] },
   markups: [30, 40, 50, 60, 80, 100],

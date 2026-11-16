@@ -334,6 +334,8 @@ function Serials({ ctx }: { ctx: StepContext<ElectronicsExtra> }) {
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: tr('Adad (pcs)') }, { value: 'set', label: tr('Set') }, { value: 'pair', label: tr('Joda') }, { value: 'box', label: tr('Dabba') }, { value: 'meter', label: tr('Meter') }],
   skuPrefix: 'ELEC',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   variants: { presets: [{ group: tr('Storage'), values: ['64GB', '128GB', '256GB', '512GB'] }, { group: tr('RAM'), values: ['4GB', '6GB', '8GB', '12GB'] }, { group: tr('Rang'), values: ['Black', 'White', 'Blue', 'Silver'] }] },
   markups: [10, 15, 20, 25, 30, 40],
 };
