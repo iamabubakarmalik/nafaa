@@ -3,24 +3,25 @@
  * that open the right page, and support by WhatsApp, phone or email with the
  * shop and user already filled into the message.
  *
- * Keys: / search · 1-3 tabs · W WhatsApp · G guide.
+ * Keys: / search · 1-4 tabs · W WhatsApp · G guide.
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, BookOpen, ChevronDown, Globe, GraduationCap, HelpCircle, LayoutGrid, Lightbulb, Mail, MessageCircle, Phone, Search } from 'lucide-react';
+import { ArrowRight, BookOpen, ChevronDown, Globe, GraduationCap, HelpCircle, LayoutGrid, Lightbulb, Mail, MessageCircle, Phone, PlayCircle, Search } from 'lucide-react';
 import {
   Button, EmptyState, FilterBar, FilterChip, FilterMenu, Kbd, KpiCard, KpiRow, PageHero, PageShell, SearchField, ViewTabs,
   heroButton, heroIconButton, heroPrimaryButton,
 } from '@/design-system/components';
 import { PageGuide, usePageGuide } from '@core/components/PageGuide';
+import { TUTORIALS, TutorialPlayer, tutorialThumb, type Tutorial } from '@core/components/TutorialVideos';
 import { useAuthStore } from '@core/stores/auth.store';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { FAQS, GUIDES, TOPICS, type HelpTopic } from '../content';
 import { SUPPORT, supportWhatsapp } from '../support';
 import { t as tr } from '@core/i18n';
 
-type Tab = 'faq' | 'guides' | 'contact';
+type Tab = 'faq' | 'videos' | 'guides' | 'contact';
 
 export default function HelpPage() {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function HelpPage() {
   const [search, setSearch] = useState('');
   const [topic, setTopic] = useState<'all' | HelpTopic>('all');
   const [open, setOpen] = useState<string | null>(null);
+  const [playing, setPlaying] = useState<Tutorial | null>(null);
 
   const waMessage = tr('Assalam-o-Alaikum, mujhe Nafaa me madad chahiye.\nDukaan: {{value}}\nNaam: {{value2}}\nEmail: {{value3}}\n\nMasla: ', { value: tenant?.name ?? '', value2: user?.fullName ?? '', value3: user?.email ?? '' });
   const wa = supportWhatsapp(waMessage);
@@ -51,8 +53,9 @@ export default function HelpPage() {
       if (e.metaKey || e.ctrlKey || e.altKey || isTyping() || isDialogOpen()) return;
       if (e.key === '/') { e.preventDefault(); searchRef.current?.focus(); }
       if (e.key === '1') setTab('faq');
-      if (e.key === '2') setTab('guides');
-      if (e.key === '3') setTab('contact');
+      if (e.key === '2') setTab('videos');
+      if (e.key === '3') setTab('guides');
+      if (e.key === '4') setTab('contact');
       if (e.key === 'w' || e.key === 'W') window.open(wa, '_blank', 'noopener');
     };
     window.addEventListener('keydown', onKey);
@@ -73,7 +76,7 @@ export default function HelpPage() {
             { icon: MessageCircle, color: '#d97706', title: tr('WhatsApp karein'), text: tr('Jawab na mile to WhatsApp dabayein — dukaan aur naam pehle se likha hota hai.') },
           ]}
           tips={[tr('Har bare page par G dabane se us page ki apni guide khulti hai.')]}
-          shortcuts={[['/', tr('dhoondein')], ['1-3', tr('tabs')], ['W', tr('WhatsApp')], ['G', tr('guide')]]} />
+          shortcuts={[['/', tr('dhoondein')], ['1-4', tr('tabs')], ['W', tr('WhatsApp')], ['G', tr('guide')]]} />
       )}
 
       <PageHero
@@ -105,9 +108,10 @@ export default function HelpPage() {
           options={[{ value: 'all' as const, label: tr('Sab mauzoo') }, ...TOPICS.map((t) => ({ value: t.id, label: t.label, icon: t.icon, color: t.color }))]} />
       </FilterBar>
 
-      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>3</Kbd> {' '}{tr('se badlein')}</>}
+      <ViewTabs value={tab} onChange={setTab} hint={<><Kbd>1</Kbd>–<Kbd>4</Kbd> {' '}{tr('se badlein')}</>}
         tabs={[
           { id: 'faq', label: tr('Sawal jawab'), icon: HelpCircle, count: faqs.length },
+          { id: 'videos', label: tr('Videos'), icon: PlayCircle, count: TUTORIALS.length },
           { id: 'guides', label: tr('Guides'), icon: BookOpen, count: guides.length },
           { id: 'contact', label: tr('Rabta'), icon: MessageCircle },
         ]} />
@@ -133,6 +137,29 @@ export default function HelpPage() {
           </ul>
         </section>
       ))}
+
+      {tab === 'videos' && (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {TUTORIALS.map((v, i) => (
+            <button key={v.id} type="button" onClick={() => setPlaying(v)}
+              className="group overflow-hidden rounded-3xl bg-white text-start shadow-sm ring-1 ring-slate-200/80 transition hover:ring-slate-300">
+              <span className="relative block aspect-video bg-slate-100">
+                <img src={tutorialThumb(v)} alt="" loading="lazy" className="h-full w-full object-cover" />
+                <span className="absolute inset-0 flex items-center justify-center bg-slate-900/0 transition group-hover:bg-slate-900/20">
+                  <PlayCircle className="h-12 w-12 text-white drop-shadow-lg" />
+                </span>
+                <span className="absolute bottom-2 end-2 rounded-md bg-slate-900/80 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-white">{v.duration}</span>
+              </span>
+              <span className="block p-4">
+                <span className="block text-[0.75rem] font-semibold text-slate-500">{i === 0 ? tr('Shuru yahan se') : tr('Video {{count}}', { count: i })}</span>
+                <span className="mt-0.5 block text-[0.9375rem] font-semibold text-slate-900">{v.title}</span>
+                <span className="mt-0.5 block text-[0.8125rem] text-slate-600">{v.text}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+      {playing && <TutorialPlayer video={playing} onClose={() => setPlaying(null)} />}
 
       {tab === 'guides' && (guides.length === 0 ? <NoMatch onClear={() => { setSearch(''); setTopic('all'); }} wa={wa} /> : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
