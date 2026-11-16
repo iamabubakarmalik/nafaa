@@ -112,7 +112,7 @@ export default function OnboardingPage() {
       businessType: pick,
       businessSize: p.businessSize || 'SMALL',
       city: p.city || p.detectedCity || '',
-      whatsappNumber: p.whatsappNumber || '',
+      whatsappNumber: p.whatsappNumber || user?.phone || '',
     });
     setBranch({
       shopAddress: p.shopAddress || '',
@@ -188,7 +188,7 @@ export default function OnboardingPage() {
         city: known?.name ?? city,
         province: known?.province || undefined,
       });
-      const result = await onboardingApi.step2(phone ? { whatsappNumber: phone } : {});
+      const result = await onboardingApi.step2({ whatsappNumber: phone });
       updateTenant({ businessType: business.businessType, businessModels: business.businessModels });
       clearSignupIndustry();
       clearSignupModels();

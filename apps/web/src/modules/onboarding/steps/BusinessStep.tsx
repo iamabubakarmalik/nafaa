@@ -35,7 +35,8 @@ export function validateBusiness(f: BusinessForm): BusinessErrors {
   const e: BusinessErrors = {};
   if (!f.businessType) e.businessType = t('Apna kaam chunein.');
   if (!f.businessSize) e.businessSize = t('Dukaan ka size chunein.');
-  if (f.whatsappNumber && !PHONE_RE.test(cleanPhone(f.whatsappNumber))) e.whatsappNumber = t('Number sahi nahi. Misaal: 03001234567');
+  if (!cleanPhone(f.whatsappNumber)) e.whatsappNumber = t('WhatsApp number likhein.');
+  else if (!PHONE_RE.test(cleanPhone(f.whatsappNumber))) e.whatsappNumber = t('Number sahi nahi. Misaal: 03001234567');
   return e;
 }
 
@@ -118,7 +119,7 @@ export function BusinessStep({ value, onChange, errors, options, detectedCity }:
           )}
         </div>
         <Input
-          label={<>{t('WhatsApp number')}{' '} <span className="font-normal text-slate-500">{t('(zaroori nahi)')}</span></>}
+          label={t('WhatsApp number')}
           type="tel"
           inputMode="tel"
           autoComplete="tel"
