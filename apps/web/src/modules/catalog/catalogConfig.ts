@@ -16,6 +16,7 @@ import type { CatalogConfig, CatalogEntry } from './types';
 import { agriSource, carpetPiecesSource, carpetRollsSource, electronicsDealsSource, electronicsSource, jewelrySource, mobileSource, pretty, productsSource } from './sources/products';
 import { bakerySource, DIET_LABELS, restaurantSource, SPICE_LABELS } from './sources/food';
 import { clinicSource, gymClassesSource, gymPlansSource, gymTrainersSource, PLAN_LABELS, servicesBizSource } from './sources/services';
+import { t } from '@core/i18n';
 
 const has = (e: CatalogEntry, key: string, value: string) => {
   const v = e.facets?.[key];
@@ -25,128 +26,128 @@ const labelsOf = (pairs: Array<{ value: string; label: string }>) => Object.from
 const PRODUCT_BANDS: Array<[number, number]> = [[0, 1000], [1000, 5000], [5000, 20000], [20000, 100000], [100000, Infinity]];
 
 const shop: CatalogConfig = {
-  label: 'Dukaan', title: 'Catalog', noun: 'cheezein', listLabel: 'Pasand list',
-  sections: [{ id: 'all', label: 'Sab cheezein', icon: Package, source: productsSource }],
+  label: t('Dukaan'), title: t('Catalog'), noun: t('cheezein'), listLabel: t('Pasand list'),
+  sections: [{ id: 'all', label: t('Sab cheezein'), icon: Package, source: productsSource }],
   modes: ['grid', 'list'], stock: true, priceBands: PRODUCT_BANDS,
-  facets: [{ key: 'tag', label: 'Tag', icon: Tag }],
+  facets: [{ key: 'tag', label: t('Tag'), icon: Tag }],
 };
 
 const CONFIGS: Record<string, CatalogConfig> = {
   restaurant: {
-    label: 'Restaurant', title: 'Menu', noun: 'dishes', listLabel: 'Order list', tagline: 'Garam aur taaza',
-    sections: [{ id: 'menu', label: 'Menu', icon: ChefHat, source: restaurantSource }],
+    label: t('Restaurant'), title: t('Menu'), noun: 'dishes', listLabel: t('Order list'), tagline: 'Garam aur taaza',
+    sections: [{ id: 'menu', label: t('Menu'), icon: ChefHat, source: restaurantSource }],
     modes: ['menu', 'grid', 'list'], stock: false,
     facets: [
-      { key: 'diet', label: 'Khana', icon: Leaf, labels: DIET_LABELS },
-      { key: 'spice', label: 'Teekha', icon: Flame, labels: SPICE_LABELS },
+      { key: 'diet', label: t('Khana'), icon: Leaf, labels: DIET_LABELS },
+      { key: 'spice', label: t('Teekha'), icon: Flame, labels: SPICE_LABELS },
     ],
     quick: [
-      { id: 'veg', label: 'Veg', icon: Leaf, test: (e) => has(e, 'diet', 'VEGETARIAN') || has(e, 'diet', 'VEGAN') },
-      { id: 'spicy', label: 'Teekha', icon: Flame, test: (e) => !!e.facets?.spice },
-      { id: 'chef', label: 'Chef special', icon: ChefHat, test: (e) => !!e.badges?.some((b) => b.label === 'Chef special') },
-      { id: 'best', label: 'Best seller', icon: Star, test: (e) => !!e.badges?.some((b) => b.label === 'Best seller') },
+      { id: 'veg', label: t('Veg'), icon: Leaf, test: (e) => has(e, 'diet', 'VEGETARIAN') || has(e, 'diet', 'VEGAN') },
+      { id: 'spicy', label: t('Teekha'), icon: Flame, test: (e) => !!e.facets?.spice },
+      { id: 'chef', label: t('Chef special'), icon: ChefHat, test: (e) => !!e.badges?.some((b) => b.label === 'Chef special') },
+      { id: 'best', label: t('Best seller'), icon: Star, test: (e) => !!e.badges?.some((b) => b.label === 'Best seller') },
     ],
   },
   bakery: {
-    label: 'Bakery', title: 'Bakery menu', noun: 'cheezein', listLabel: 'Order list', tagline: 'Roz taaza',
-    sections: [{ id: 'all', label: 'Sab cheezein', icon: Croissant, source: bakerySource }],
+    label: t('Bakery'), title: t('Bakery menu'), noun: 'cheezein', listLabel: t('Order list'), tagline: 'Roz taaza',
+    sections: [{ id: 'all', label: t('Sab cheezein'), icon: Croissant, source: bakerySource }],
     modes: ['menu', 'grid', 'list'], stock: true, priceBands: [[0, 200], [200, 1000], [1000, 3000], [3000, Infinity]],
-    facets: [{ key: 'bcat', label: 'Type', icon: Croissant, labels: labelsOf(BAKERY_CATEGORIES) }],
+    facets: [{ key: 'bcat', label: t('Type'), icon: Croissant, labels: labelsOf(BAKERY_CATEGORIES) }],
     quick: [
-      { id: 'fresh', label: 'Aaj bani', icon: Sun, test: (e) => has(e, 'fresh', 'today') },
-      { id: 'eggless', label: 'Eggless', icon: Leaf, test: (e) => has(e, 'diet', 'eggless') },
-      { id: 'vegan', label: 'Vegan', icon: Sprout, test: (e) => has(e, 'diet', 'vegan') },
-      { id: 'sugarfree', label: 'Sugar free', icon: Apple, test: (e) => has(e, 'diet', 'sugarfree') },
-      { id: 'custom', label: 'Order par cake', icon: Gift, test: (e) => has(e, 'custom', 'yes') },
+      { id: 'fresh', label: t('Aaj bani'), icon: Sun, test: (e) => has(e, 'fresh', 'today') },
+      { id: 'eggless', label: t('Eggless'), icon: Leaf, test: (e) => has(e, 'diet', 'eggless') },
+      { id: 'vegan', label: t('Vegan'), icon: Sprout, test: (e) => has(e, 'diet', 'vegan') },
+      { id: 'sugarfree', label: t('Sugar free'), icon: Apple, test: (e) => has(e, 'diet', 'sugarfree') },
+      { id: 'custom', label: t('Order par cake'), icon: Gift, test: (e) => has(e, 'custom', 'yes') },
     ],
   },
   mobile: {
-    label: 'Mobile shop', title: 'Mobile catalog', noun: 'cheezein', listLabel: 'Pasand list',
-    sections: [{ id: 'all', label: 'Sab', icon: Package, source: mobileSource }],
+    label: t('Mobile shop'), title: t('Mobile catalog'), noun: 'cheezein', listLabel: t('Pasand list'),
+    sections: [{ id: 'all', label: t('Sab'), icon: Package, source: mobileSource }],
     modes: ['grid', 'list'], stock: true, priceBands: [[0, 20000], [20000, 50000], [50000, 100000], [100000, 200000], [200000, Infinity]],
     facets: [
-      { key: 'kind', label: 'Type', icon: Layers, labels: { phone: 'Mobile phone', accessory: 'Accessories' } },
-      { key: 'pta', label: 'PTA', icon: ShieldCheck, labels: PTA_STATUS_LABELS },
+      { key: 'kind', label: t('Type'), icon: Layers, labels: { phone: 'Mobile phone', accessory: 'Accessories' } },
+      { key: 'pta', label: t('PTA'), icon: ShieldCheck, labels: PTA_STATUS_LABELS },
     ],
     quick: [
-      { id: 'phones', label: 'Sirf phone', test: (e) => has(e, 'kind', 'phone') },
-      { id: 'pta', label: 'PTA approved', icon: ShieldCheck, test: (e) => has(e, 'pta', 'APPROVED') },
+      { id: 'phones', label: t('Sirf phone'), test: (e) => has(e, 'kind', 'phone') },
+      { id: 'pta', label: t('PTA approved'), icon: ShieldCheck, test: (e) => has(e, 'pta', 'APPROVED') },
     ],
   },
   electronics: {
-    label: 'Electronics', title: 'Catalog', noun: 'cheezein', listLabel: 'Pasand list',
+    label: t('Electronics'), title: t('Catalog'), noun: 'cheezein', listLabel: t('Pasand list'),
     sections: [
-      { id: 'all', label: 'Sab cheezein', icon: Cpu, source: electronicsSource },
-      { id: 'deals', label: 'Deals', icon: Gift, source: electronicsDealsSource },
+      { id: 'all', label: t('Sab cheezein'), icon: Cpu, source: electronicsSource },
+      { id: 'deals', label: t('Deals'), icon: Gift, source: electronicsDealsSource },
     ],
     modes: ['grid', 'list'], stock: true, priceBands: [[0, 2000], [2000, 10000], [10000, 30000], [30000, 100000], [100000, Infinity]],
     facets: [
-      { key: 'group', label: 'Type', icon: Layers },
-      { key: 'condition', label: 'Halat', icon: BadgeCheck, labels: Object.fromEntries(Object.entries(CONDITION_META).map(([k, v]) => [k, v.label])) },
+      { key: 'group', label: t('Type'), icon: Layers },
+      { key: 'condition', label: t('Halat'), icon: BadgeCheck, labels: Object.fromEntries(Object.entries(CONDITION_META).map(([k, v]) => [k, v.label])) },
     ],
-    quick: [{ id: 'warranty', label: 'Warranty wali', icon: ShieldCheck, test: (e) => !!e.chips?.some((c) => c.label.endsWith('warranty')) }],
+    quick: [{ id: 'warranty', label: t('Warranty wali'), icon: ShieldCheck, test: (e) => !!e.chips?.some((c) => c.label.endsWith('warranty')) }],
   },
   jewelry: {
-    label: 'Jewellery', title: 'Jewellery catalog', noun: 'designs', listLabel: 'Pasand list',
-    sections: [{ id: 'all', label: 'Sab designs', icon: Gem, source: jewelrySource }],
+    label: t('Jewellery'), title: t('Jewellery catalog'), noun: 'designs', listLabel: t('Pasand list'),
+    sections: [{ id: 'all', label: t('Sab designs'), icon: Gem, source: jewelrySource }],
     modes: ['grid', 'list'], stock: true, priceBands: [[0, 50000], [50000, 200000], [200000, 500000], [500000, 1500000], [1500000, Infinity]],
     facets: [
-      { key: 'karat', label: 'Karat', icon: Sparkles, labels: { KARAT_24: '24K', KARAT_22: '22K', KARAT_21: '21K', KARAT_18: '18K', KARAT_14: '14K' } },
-      { key: 'metal', label: 'Dhaat', icon: Gem },
-      { key: 'jtype', label: 'Zevar', icon: Layers },
-      { key: 'style', label: 'Style', icon: Star },
+      { key: 'karat', label: t('Karat'), icon: Sparkles, labels: { KARAT_24: '24K', KARAT_22: '22K', KARAT_21: '21K', KARAT_18: '18K', KARAT_14: '14K' } },
+      { key: 'metal', label: t('Dhaat'), icon: Gem },
+      { key: 'jtype', label: t('Zevar'), icon: Layers },
+      { key: 'style', label: t('Style'), icon: Star },
     ],
-    quick: [{ id: 'bridal', label: 'Bridal', icon: Gem, test: (e) => has(e, 'collection', 'bridal') }],
+    quick: [{ id: 'bridal', label: t('Bridal'), icon: Gem, test: (e) => has(e, 'collection', 'bridal') }],
   },
   carpet: {
-    label: 'Carpet', title: 'Carpet catalog', noun: 'designs', listLabel: 'Pasand list',
+    label: t('Carpet'), title: t('Carpet catalog'), noun: 'designs', listLabel: t('Pasand list'),
     sections: [
-      { id: 'designs', label: 'Designs', icon: Layers, source: productsSource },
-      { id: 'rolls', label: 'Rolls', icon: Ruler, source: carpetRollsSource },
-      { id: 'pieces', label: 'Tayyar piece', icon: Scissors, source: carpetPiecesSource },
+      { id: 'designs', label: t('Designs'), icon: Layers, source: productsSource },
+      { id: 'rolls', label: t('Rolls'), icon: Ruler, source: carpetRollsSource },
+      { id: 'pieces', label: t('Tayyar piece'), icon: Scissors, source: carpetPiecesSource },
     ],
     modes: ['grid', 'list'], stock: true,
     facets: [
-      { key: 'width', label: 'Chorai', icon: Ruler },
-      { key: 'size', label: 'Size', icon: Ruler, labels: { small: 'Chhota (20 sqft tak)', medium: 'Darmiyana (20–60)', large: 'Bara (60+ sqft)' } },
+      { key: 'width', label: t('Chorai'), icon: Ruler },
+      { key: 'size', label: t('Size'), icon: Ruler, labels: { small: 'Chhota (20 sqft tak)', medium: 'Darmiyana (20–60)', large: 'Bara (60+ sqft)' } },
     ],
   },
   agri: {
-    label: 'Zarai markaz', title: 'Catalog', noun: 'cheezein', listLabel: 'Meri list',
-    sections: [{ id: 'all', label: 'Sab cheezein', icon: Wheat, source: agriSource }],
+    label: t('Zarai markaz'), title: t('Catalog'), noun: 'cheezein', listLabel: t('Meri list'),
+    sections: [{ id: 'all', label: t('Sab cheezein'), icon: Wheat, source: agriSource }],
     modes: ['grid', 'list'], stock: true,
     facets: [
-      { key: 'kind', label: 'Type', icon: Layers, labels: { seed: 'Beej', fert: 'Khaad', spray: 'Dawa / spray', feed: 'Feed', tool: 'Auzaar', other: 'Baqi' } },
-      { key: 'crop', label: 'Fasal', icon: Wheat },
-      { key: 'season', label: 'Mausam', icon: Sun, labels: Object.fromEntries(SEASONS.map((s) => [s.v, `${s.e} ${s.l}`])) },
+      { key: 'kind', label: t('Type'), icon: Layers, labels: { seed: 'Beej', fert: 'Khaad', spray: 'Dawa / spray', feed: 'Feed', tool: 'Auzaar', other: 'Baqi' } },
+      { key: 'crop', label: t('Fasal'), icon: Wheat },
+      { key: 'season', label: t('Mausam'), icon: Sun, labels: Object.fromEntries(SEASONS.map((s) => [s.v, `${s.e} ${s.l}`])) },
     ],
-    quick: [{ id: 'organic', label: 'Organic', icon: Leaf, test: (e) => !!e.badges?.some((b) => b.label === 'Organic') }],
+    quick: [{ id: 'organic', label: t('Organic'), icon: Leaf, test: (e) => !!e.badges?.some((b) => b.label === 'Organic') }],
   },
   clinic: {
-    label: 'Clinic', title: 'Services aur fees', noun: 'services', listLabel: 'Meri list',
-    sections: [{ id: 'services', label: 'Services', icon: Stethoscope, source: clinicSource }],
+    label: t('Clinic'), title: t('Services aur fees'), noun: 'services', listLabel: t('Meri list'),
+    sections: [{ id: 'services', label: t('Services'), icon: Stethoscope, source: clinicSource }],
     modes: ['grid', 'list'], stock: false,
     quick: [
-      { id: 'popular', label: 'Mashhoor', icon: Star, test: (e) => has(e, 'tag', 'popular') },
-      { id: 'offer', label: 'Discount', icon: Tag, test: (e) => has(e, 'offer', 'yes') },
+      { id: 'popular', label: t('Mashhoor'), icon: Star, test: (e) => has(e, 'tag', 'popular') },
+      { id: 'offer', label: t('Discount'), icon: Tag, test: (e) => has(e, 'offer', 'yes') },
     ],
   },
   gym: {
-    label: 'Gym', title: 'Plans aur classes', noun: 'plans', listLabel: 'Meri list',
+    label: t('Gym'), title: t('Plans aur classes'), noun: 'plans', listLabel: t('Meri list'),
     sections: [
-      { id: 'plans', label: 'Membership', icon: Dumbbell, source: gymPlansSource },
-      { id: 'trainers', label: 'Trainers', icon: Users, source: gymTrainersSource },
-      { id: 'classes', label: 'Classes', icon: CalendarDays, source: gymClassesSource },
+      { id: 'plans', label: t('Membership'), icon: Dumbbell, source: gymPlansSource },
+      { id: 'trainers', label: t('Trainers'), icon: Users, source: gymTrainersSource },
+      { id: 'classes', label: t('Classes'), icon: CalendarDays, source: gymClassesSource },
     ],
     modes: ['grid', 'list'], stock: false,
-    facets: [{ key: 'plan', label: 'Period', icon: CalendarDays, labels: PLAN_LABELS }],
+    facets: [{ key: 'plan', label: t('Period'), icon: CalendarDays, labels: PLAN_LABELS }],
   },
   'services-biz': {
-    label: 'Services', title: 'Services aur rates', noun: 'services', listLabel: 'Meri list',
-    sections: [{ id: 'services', label: 'Services', icon: Wrench, source: servicesBizSource }],
+    label: t('Services'), title: t('Services aur rates'), noun: 'services', listLabel: t('Meri list'),
+    sections: [{ id: 'services', label: t('Services'), icon: Wrench, source: servicesBizSource }],
     modes: ['grid', 'list'], stock: false,
-    facets: [{ key: 'biz', label: 'Kaam', icon: MapPin }],
-    quick: [{ id: 'emergency', label: '24/7 emergency', icon: Zap, test: (e) => has(e, 'emergency', 'yes') }],
+    facets: [{ key: 'biz', label: t('Kaam'), icon: MapPin }],
+    quick: [{ id: 'emergency', label: t('24/7 emergency'), icon: Zap, test: (e) => has(e, 'emergency', 'yes') }],
   },
 };
 

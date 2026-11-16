@@ -121,7 +121,7 @@ export function StockModal({ item, chips, onClose, onSaved, money }: {
           </div>
           <div className="text-end text-[0.75rem] text-slate-500">
             {delta !== 0 && <p className={cn('font-semibold', delta > 0 ? 'text-success-700' : 'text-rose-700')}>{delta > 0 ? '+' : ''}{fmt(delta)}</p>}
-            <p>{t('Bechne ki qeemat {{value}}', { value: money(Math.max(0, next) * item.price) })}</p>
+            {item.price > 0 && <p>{t('Bechne ki qeemat {{value}}', { value: `${money(item.price)} / ${item.unit}` })}</p>}
           </div>
         </div>
         {mode === 'add' && <p className="text-[0.75rem] text-slate-500">{t('Supplier se khareeda maal? Purchase me darj karein, taake Cost aur supplier ka hisaab bane.')}</p>}

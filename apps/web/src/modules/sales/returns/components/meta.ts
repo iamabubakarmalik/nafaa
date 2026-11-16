@@ -25,6 +25,6 @@ export const when = (v: string) =>
 /** Everything a return changes: bills, stock, khata, drawer and reports. */
 export function refreshAfterReturn(qc: QueryClient) {
   [RETURNS_KEY, 'sales-list', 'sales-history', 'sales-summary', 'sale-receipt', 'products', 'product-catalog', 'products-for-pos',
-    'customers', 'customer-directory', 'customers-for-pos', 'dashboard-overview', 'cash-register', 'money', 'carpet-rolls', 'carpet-cut-pieces', 'carpet-product-summary']
+    'customers', 'customer-directory', 'customers-for-pos', 'dashboard-overview', 'dashboard-day-report', 'day-book', 'cash-register', 'money', 'carpet-rolls', 'carpet-cut-pieces', 'carpet-product-summary']
     .forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 }

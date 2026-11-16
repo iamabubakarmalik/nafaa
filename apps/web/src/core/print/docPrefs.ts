@@ -9,6 +9,7 @@
  * core/receipt/setup and the POS counter width (see PrintSettingsPage).
  */
 
+import { msg } from '@core/i18n';
 import type { ReceiptPaper } from '@core/receipt/types';
 
 export interface DocKind {
@@ -29,16 +30,16 @@ export interface DocKind {
 }
 
 export const DOC_KINDS: DocKind[] = [
-  { id: 'return', label: 'Return ki parchi', where: 'Sale → Return', store: 'nafaa-return-slip', copies: 1, title: 'RETURN SLIP' },
-  { id: 'booking', label: 'Booking / order ki raseed', where: 'Bookings', store: 'nafaa-booking-print', paper: '80', copies: 1, title: 'BOOKING' },
-  { id: 'purchase', label: 'Khareed ka bill / order', where: 'Khareed', store: 'nafaa-purchase-print', paper: 'A4', copies: 1, title: 'PURCHASE BILL', seed: { kind: 'bill' } },
-  { id: 'transfer', label: 'Maal bhejne ka challan', where: 'Stock → Transfer', store: 'nafaa-transfer-print', paper: 'A4', copies: 2, title: 'TRANSFER CHALLAN' },
-  { id: 'voucher', label: 'Expenses ka voucher', where: 'Expenses', store: 'nafaa-expense-voucher-print', paper: '80', copies: 1, title: 'EXPENSE VOUCHER' },
-  { id: 'payslip', label: 'Salary slip', where: 'Staff → Tankhwah', store: 'nafaa-payslip-print', paper: 'A4', copies: 1, title: 'PAYSLIP' },
-  { id: 'commission', label: 'Commission ki parchi', where: 'Staff → Commission', store: 'nafaa-commission-slip-print', paper: '80', copies: 1, title: 'COMMISSION' },
-  { id: 'invoice-a4', label: 'Distribution Invoice', where: 'Distribution → Orders', store: 'nafaa-dist-invoice-print', paper: 'A4', copies: 1, title: 'INVOICE', papers: ['A4'] },
-  { id: 'load-sheet', label: 'Load sheet', where: 'Distribution → Load sheets', store: 'nafaa-dist-load-sheet-print', paper: 'A4', copies: 1, title: 'LOAD SHEET', papers: ['A4'] },
-  { id: 'recovery-sheet', label: 'Recovery sheet', where: 'Distribution → Recoveries', store: 'nafaa-dist-recovery-sheet-print', paper: 'A4', copies: 1, title: 'RECOVERY SHEET', papers: ['A4'] },
+  { id: 'return', label: msg('Return ki parchi'), where: msg('Sale → Return'), store: 'nafaa-return-slip', copies: 1, title: 'RETURN SLIP' },
+  { id: 'booking', label: msg('Booking / order ki raseed'), where: msg('Bookings'), store: 'nafaa-booking-print', paper: '80', copies: 1, title: 'BOOKING' },
+  { id: 'purchase', label: msg('Khareed ka bill / order'), where: msg('Khareed'), store: 'nafaa-purchase-print', paper: 'A4', copies: 1, title: 'PURCHASE BILL', seed: { kind: 'bill' } },
+  { id: 'transfer', label: msg('Maal bhejne ka challan'), where: msg('Stock → Transfer'), store: 'nafaa-transfer-print', paper: 'A4', copies: 2, title: 'TRANSFER CHALLAN' },
+  { id: 'voucher', label: msg('Expenses ka voucher'), where: msg('Expenses'), store: 'nafaa-expense-voucher-print', paper: '80', copies: 1, title: 'EXPENSE VOUCHER' },
+  { id: 'payslip', label: msg('Salary slip'), where: msg('Staff → Tankhwah'), store: 'nafaa-payslip-print', paper: 'A4', copies: 1, title: 'PAYSLIP' },
+  { id: 'commission', label: msg('Commission ki parchi'), where: msg('Staff → Commission'), store: 'nafaa-commission-slip-print', paper: '80', copies: 1, title: 'COMMISSION' },
+  { id: 'invoice-a4', label: msg('Distribution Invoice'), where: msg('Distribution → Orders'), store: 'nafaa-dist-invoice-print', paper: 'A4', copies: 1, title: 'INVOICE', papers: ['A4'] },
+  { id: 'load-sheet', label: msg('Load sheet'), where: msg('Distribution → Load sheets'), store: 'nafaa-dist-load-sheet-print', paper: 'A4', copies: 1, title: 'LOAD SHEET', papers: ['A4'] },
+  { id: 'recovery-sheet', label: msg('Recovery sheet'), where: msg('Distribution → Recoveries'), store: 'nafaa-dist-recovery-sheet-print', paper: 'A4', copies: 1, title: 'RECOVERY SHEET', papers: ['A4'] },
 ];
 
 export interface DocPref { paper: ReceiptPaper; copies: number }

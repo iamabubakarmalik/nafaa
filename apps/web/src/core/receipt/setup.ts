@@ -7,6 +7,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@core/api/client';
 import type { ReceiptDesign, ReceiptPaper, ReceiptSetup } from './types';
+import { DEFAULT_THANKS } from './words';
 
 export const NAFAA = {
   name: 'Nafaa POS',
@@ -20,7 +21,7 @@ export const DEFAULT_DESIGN: ReceiptDesign = {
   showLogo: true, showAddress: true, showPhone: true, showTaxNumber: true, showCustomer: true, showCashier: true,
   showItemNumbers: true, showItemDetails: true, showSavings: true, showKhata: true, showBarcode: true,
   showPayQr: true, showReviewQr: true, showAmountInWords: true, showSignature: true,
-  tagline: '', footer: '', terms: '', social: '', thanks: 'Shukriya! Phir tashreef laiye.', copies: 1, autoPrint: false,
+  tagline: '', footer: '', terms: '', social: '', thanks: DEFAULT_THANKS, copies: 1, autoPrint: false,
   payAccounts: [], payWhen: 'due', payNote: '',
   a4Title: 'INVOICE', a4Layout: 'band', showStatus: true, showSku: false, showCustomerDetails: true, dueDays: 0,
   backText: '', backPrint: 'none', thermalPattern: false,

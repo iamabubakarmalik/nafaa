@@ -266,6 +266,7 @@ export class SettingsCoreService {
         taxNumber: s?.enableTax ? s?.taxNumber ?? null : null,
         taxLabel: s?.taxLabel ?? null,
         logoUrl: s?.logoUrl ?? null,
+        language: s?.language ?? null,
       },
     };
   }

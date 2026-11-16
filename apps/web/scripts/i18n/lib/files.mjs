@@ -20,8 +20,9 @@ export const LOCALES = ['en', 'ur', 'roman'];
 export const REQUIRED_LOCALES = ['en', 'ur'];
 
 /** Folders the scripts never touch. */
-const IGNORED_DIRS = new Set(['node_modules', 'dist', 'catalog', '__tests__', '__mocks__']);
-const IGNORED_PATHS = [path.join(SRC, 'marketplace')];
+const IGNORED_DIRS = new Set(['node_modules', 'dist', '__tests__', '__mocks__']);
+/* The translation files themselves (core/i18n/catalog) are data, not source; modules/catalog is a normal module. */
+const IGNORED_PATHS = [path.join(SRC, 'marketplace'), CATALOG_DIR];
 
 /**
  * Areas that differ from the folder rule below. Keep this list short; most

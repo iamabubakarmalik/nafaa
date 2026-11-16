@@ -5,6 +5,7 @@ import { cn } from '@core/lib/cn';
 import { formatPKR } from '@core/lib/format';
 import { ProductThumb } from '@modules/inventory/products/lib/productEmoji';
 import type { CatalogEntry, EntryBadge, Tone } from '../types';
+import { t as tr } from '@core/i18n';
 
 const TONE: Record<Tone, string> = {
   green: 'bg-success-100 text-success-800', red: 'bg-rose-100 text-rose-700', amber: 'bg-amber-100 text-amber-800',
@@ -50,7 +51,7 @@ interface ViewProps {
 
 function PickButton({ picked, onPick, disabled }: { picked: boolean; onPick: () => void; disabled?: boolean }) {
   return (
-    <button type="button" onClick={(e) => { e.stopPropagation(); onPick(); }} disabled={disabled} title={picked ? 'List me hai — ek aur' : 'List me daalein'}
+    <button type="button" onClick={(e) => { e.stopPropagation(); onPick(); }} disabled={disabled} title={picked ? tr('List me hai — ek aur') : tr('List me daalein')}
       className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition disabled:opacity-40',
         picked ? 'bg-brand-600 text-brand-fg' : 'bg-brand-50 text-brand-700 hover:bg-brand-100')}>
       <Plus className="h-4 w-4" />
@@ -66,13 +67,13 @@ export function EntryCard({ entry, showStock, picked, onOpen, onPick }: ViewProp
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         <Thumb entry={entry} className={cn('transition duration-300 group-hover:scale-[1.03]', out && 'grayscale')} />
         <div className="absolute left-2.5 top-2.5 flex items-center gap-1">
-          {entry.featured && <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-400 text-amber-950 shadow-sm" title="Khaas"><Star className="h-3.5 w-3.5 fill-current" /></span>}
+          {entry.featured && <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-400 text-amber-950 shadow-sm" title={tr('Khaas')}><Star className="h-3.5 w-3.5 fill-current" /></span>}
           {(entry.variantCount ?? 0) > 0 && <span className="inline-flex h-6 items-center gap-1 rounded-md bg-white/90 px-1.5 text-[0.6875rem] font-semibold text-slate-700 shadow-sm"><Layers className="h-3 w-3" />{entry.variantCount}</span>}
         </div>
         <div className="absolute right-2.5 top-2.5 flex flex-col items-end gap-1">
           {entry.badges?.map((b) => <span key={b.label} className={cn('rounded-md px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide shadow-sm', SOLID[b.tone])}>{b.label}</span>)}
         </div>
-        {out && <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[0.6875rem] font-bold uppercase tracking-wide text-white backdrop-blur-sm">Abhi khatam</span>}
+        {out && <span className="absolute inset-x-0 bottom-0 bg-black/70 py-1 text-center text-[0.6875rem] font-bold uppercase tracking-wide text-white backdrop-blur-sm">{tr('Abhi khatam')}</span>}
       </div>
       <div className="flex flex-1 flex-col p-3.5">
         <h3 className="line-clamp-2 text-[0.9375rem] font-semibold leading-snug text-slate-900">{entry.name}</h3>
@@ -102,7 +103,7 @@ export function EntryRow({ entry, showStock, picked, onOpen, onPick }: ViewProps
         <p className="truncate text-[0.75rem] text-slate-500">{[entry.brand, entry.category?.name, entry.description].filter(Boolean).join(' · ')}</p>
         <div className="mt-1 flex flex-wrap gap-1">
           {[...(entry.badges ?? []), ...(entry.chips ?? [])].slice(0, 5).map((c) => <Chip key={c.label} chip={c} />)}
-          {out && <Chip chip={{ label: 'Abhi khatam', tone: 'red' }} />}
+          {out && <Chip chip={{ label: tr('Abhi khatam'), tone: 'red' }} />}
         </div>
       </div>
       <div className="shrink-0 text-right">

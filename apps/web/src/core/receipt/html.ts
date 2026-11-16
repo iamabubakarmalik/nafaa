@@ -16,6 +16,7 @@ import { qrSvg } from '@core/payments/qrSvg';
 import { billReviewUrl } from '@integrations/google/google.api';
 import { fiscalFor } from '@integrations/tax-authority/taxAuthority.api';
 import { NAFAA } from './setup';
+import { receiptWords, thanksLine } from './words';
 import type { PayAccount, ReceiptDesign, ReceiptDoc, ReceiptPaper, ReceiptRowDoc, ReceiptSetup } from './types';
 
 export const esc = (s: unknown): string =>
@@ -180,14 +181,15 @@ function totalRows(doc: ReceiptDoc): ReceiptRowDoc[] {
   ];
 }
 
-function paidRows(doc: ReceiptDoc): ReceiptRowDoc[] {
+function paidRows(doc: ReceiptDoc, setup: ReceiptSetup): ReceiptRowDoc[] {
   const due = dueOf(doc);
+  const w = receiptWords(setup);
   const parts = doc.payments?.length ? doc.payments.map((p) => ({ label: p.label, value: money(p.amount) })) : [{ label: doc.paymentLabel, value: money(doc.paid) }];
   return [
     ...parts,
-    ...(doc.paid > doc.total ? [{ label: 'Wapis (change)', value: money(doc.paid - doc.total), bold: true }] : []),
-    ...((doc.riderDelivery ?? 0) > 0 ? [{ label: 'Rider ko dein (delivery)', value: money(doc.riderDelivery!) }, { label: 'Customer dega kul', value: money(doc.total + doc.riderDelivery!), bold: true }] : []),
-    ...(due > 0 ? [{ label: 'Udhaar (baqi)', value: money(due), bold: true }] : []),
+    ...(doc.paid > doc.total ? [{ label: w.change, value: money(doc.paid - doc.total), bold: true }] : []),
+    ...((doc.riderDelivery ?? 0) > 0 ? [{ label: w.payRider, value: money(doc.riderDelivery!) }, { label: w.customerPays, value: money(doc.total + doc.riderDelivery!), bold: true }] : []),
+    ...(due > 0 ? [{ label: w.due, value: money(due), bold: true }] : []),
   ];
 }
 
@@ -195,12 +197,13 @@ function khataBox({ doc, setup }: Ctx) {
   const prev = doc.previousDue ?? 0;
   const due = dueOf(doc);
   if (!setup.design.showKhata || prev <= 0) return '';
+  const w = receiptWords(setup);
   return `
     <section class="box">
-      <div class="boxt">Khata — ${esc(doc.customerName || 'Customer')}</div>
-      <div class="row"><span>Pichla udhaar</span><span>${money(prev)}</span></div>
-      ${due > 0 ? `<div class="row"><span>Is bill ka</span><span>+${money(due)}</span></div>` : ''}
-      <div class="row strong big2"><span>Kul udhaar</span><span>${money(prev + due)}</span></div>
+      <div class="boxt">${w.credit} — ${esc(doc.customerName || 'Customer')}</div>
+      <div class="row"><span>${w.previousCredit}</span><span>${money(prev)}</span></div>
+      ${due > 0 ? `<div class="row"><span>${w.thisBill}</span><span>+${money(due)}</span></div>` : ''}
+      <div class="row strong big2"><span>${w.totalCredit}</span><span>${money(prev + due)}</span></div>
     </section>`;
 }
 
@@ -208,15 +211,15 @@ function tTotals(ctx: Ctx) {
   const { doc, setup } = ctx;
   if (doc.hidePrices) {
     const qty = doc.lines.reduce((s, l) => s + (Number(l.qty) || 0), 0);
-    return `<section class="sum">${rowsHtml([{ label: 'Kul cheezein', value: String(doc.lines.length), bold: true }, { label: 'Kul quantity', value: String(Number(qty.toFixed(2))) }])}</section>`;
+    return `<section class="sum">${rowsHtml([{ label: receiptWords(setup).totalItems, value: String(doc.lines.length), bold: true }, { label: receiptWords(setup).totalQty, value: String(Number(qty.toFixed(2))) }])}</section>`;
   }
   return `
   <section class="sum">
     ${rowsHtml(totalRows(doc))}
     ${doc.deliveryAddress ? `<div class="small">📍 ${esc(doc.deliveryAddress)}</div>` : ''}
     <div class="total"><span>TOTAL</span><span>${money(doc.total)}</span></div>
-    ${rowsHtml(paidRows(doc))}
-    ${setup.design.showSavings && doc.discount > 0 ? `<div class="saved">Aap ne ${money(doc.discount)} bachaye</div>` : ''}
+    ${rowsHtml(paidRows(doc, setup))}
+    ${setup.design.showSavings && doc.discount > 0 ? `<div class="saved">${esc(receiptWords(setup).saved(money(doc.discount)))}</div>` : ''}
   </section>
   ${khataBox(ctx)}`;
 }
@@ -253,7 +256,7 @@ function shopWords({ doc, setup }: Ctx, small: boolean) {
     ${doc.footerNote ? `<div class="msg">${esc(doc.footerNote)}</div>` : ''}
     ${d.footer ? `<div class="msg">${esc(d.footer)}</div>` : ''}
     ${terms.length ? `<ul class="terms">${terms.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
-    ${d.thanks ? `<div class="thanks">${esc(d.thanks)}</div>` : ''}
+    ${d.thanks ? `<div class="thanks">${esc(thanksLine(setup))}</div>` : ''}
     ${d.social ? `<div class="small">${esc(d.social)}</div>` : ''}
     ${review ? `<div class="qr">${qrSvg(review, small ? 72 : 86)}</div><div class="small">Google par review dein ★</div>` : ''}`;
 }
@@ -456,12 +459,12 @@ function a4Body(ctx: Ctx) {
     </div>`;
   const qtyAll = doc.lines.reduce((s, l) => s + (Number(l.qty) || 0), 0);
   const right = doc.hidePrices ? `
-    <div class="right">${rowsHtml([{ label: 'Kul cheezein', value: String(doc.lines.length), bold: true }, { label: 'Kul quantity', value: String(Number(qtyAll.toFixed(2))) }])}</div>` : `
+    <div class="right">${rowsHtml([{ label: receiptWords(setup).totalItems, value: String(doc.lines.length), bold: true }, { label: receiptWords(setup).totalQty, value: String(Number(qtyAll.toFixed(2))) }])}</div>` : `
     <div class="right">
       ${rowsHtml(totalRows(doc))}
       <div class="total"><span>TOTAL</span><span>${money(doc.total)}</span></div>
-      ${rowsHtml(paidRows(doc))}
-      ${d.showSavings && doc.discount > 0 ? `<div class="saved">Aap ne ${money(doc.discount)} bachaye</div>` : ''}
+      ${rowsHtml(paidRows(doc, setup))}
+      ${d.showSavings && doc.discount > 0 ? `<div class="saved">${esc(receiptWords(setup).saved(money(doc.discount)))}</div>` : ''}
       ${khataBox(ctx)}
     </div>`;
 
@@ -475,7 +478,7 @@ function a4Body(ctx: Ctx) {
         ${d.showBarcode ? `<div class="code">${barcodeSvg(doc.saleNumber, true)}<div class="mono sm">${esc(doc.saleNumber)}</div></div>` : ''}
         ${review ? `<div class="code">${qrSvg(review, 76)}<div class="sm">Google review ★</div></div>` : ''}
       </div>
-      ${d.thanks || d.social ? `<div class="thanks">${esc(d.thanks)}${d.social ? `<span class="sm"> · ${esc(d.social)}</span>` : ''}</div>` : ''}
+      ${d.thanks || d.social ? `<div class="thanks">${esc(thanksLine(setup))}${d.social ? `<span class="sm"> · ${esc(d.social)}</span>` : ''}</div>` : ''}
     </div>`;
 
   const foot = a4Foot(setup, phone);

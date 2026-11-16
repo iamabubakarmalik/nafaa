@@ -5,6 +5,7 @@ import { billQr } from '@core/payments/payQr';
 import { billReviewUrl } from '@integrations/google/google.api';
 import { fiscalFor } from '@integrations/tax-authority/taxAuthority.api';
 import { NAFAA, getReceiptSetup } from '@core/receipt/setup';
+import { receiptWords, thanksLine } from '@core/receipt/words';
 import { PAY_KIND_LABEL } from '@core/receipt/html';
 
 /**
@@ -17,7 +18,9 @@ export function receiptBytes(
   width: PrinterWidth,
   o: { barcode?: boolean; drawer?: boolean } = {},
 ): Uint8Array {
-  const { design: d, shop } = getReceiptSetup(p.shopName);
+  const setup = getReceiptSetup(p.shopName);
+  const { design: d, shop } = setup;
+  const w = receiptWords(setup);
   const e = new EscPos(width === '80' ? 48 : 32);
   const due = Math.max(p.total - p.paid, 0);
   const prevDue = p.previousDue ?? 0;
@@ -56,20 +59,20 @@ export function receiptBytes(
   e.rule('=');
   e.bold(true).size(2).row('TOTAL', formatPKR(p.total), e.cols / 2).size(1);
   e.bold(false).row(p.paymentLabel, formatPKR(p.paid));
-  if (p.paid > p.total) e.bold(true).row('Wapis (change)', formatPKR(p.paid - p.total)).bold(false);
+  if (p.paid > p.total) e.bold(true).row(w.change, formatPKR(p.paid - p.total)).bold(false);
   if ((p.riderDelivery ?? 0) > 0) {
-    e.row('Rider ko dein', formatPKR(p.riderDelivery!));
-    e.bold(true).row('Customer dega kul', formatPKR(p.total + p.riderDelivery!)).bold(false);
+    e.row(w.payRider, formatPKR(p.riderDelivery!));
+    e.bold(true).row(w.customerPays, formatPKR(p.total + p.riderDelivery!)).bold(false);
   }
-  if (due > 0) e.bold(true).row('Udhaar (baqi)', formatPKR(due)).bold(false);
-  if (d.showSavings && p.discount > 0) e.align('center').bold(true).line(`Aap ne ${formatPKR(p.discount)} bachaye`).bold(false).align('left');
+  if (due > 0) e.bold(true).row(w.due, formatPKR(due)).bold(false);
+  if (d.showSavings && p.discount > 0) e.align('center').bold(true).line(w.saved(formatPKR(p.discount))).bold(false).align('left');
 
   if (d.showKhata && prevDue > 0) {
     e.rule();
-    e.bold(true).line(`KHATA - ${p.customerName || 'Customer'}`).bold(false);
-    e.row('Pichla udhaar', formatPKR(prevDue));
-    if (due > 0) e.row('Is bill ka', `+${formatPKR(due)}`);
-    e.bold(true).row('KUL UDHAAR', formatPKR(prevDue + due)).bold(false);
+    e.bold(true).line(`${w.credit.toUpperCase()} - ${p.customerName || 'Customer'}`).bold(false);
+    e.row(w.previousCredit, formatPKR(prevDue));
+    if (due > 0) e.row(w.thisBill, `+${formatPKR(due)}`);
+    e.bold(true).row(w.totalCredit.toUpperCase(), formatPKR(prevDue + due)).bold(false);
   }
   if (p.receivedByName) {
     e.rule();
@@ -104,7 +107,7 @@ export function receiptBytes(
   if (p.footerNote) e.wrap(p.footerNote);
   if (d.footer) e.wrap(d.footer);
   for (const t of d.terms.split('\n').map((x) => x.trim()).filter(Boolean)) e.wrap(`* ${t}`);
-  if (d.thanks) e.bold(true).wrap(d.thanks).bold(false);
+  if (d.thanks) e.bold(true).wrap(thanksLine(setup)).bold(false);
   if (d.social) e.wrap(d.social);
   const review = d.showReviewQr ? billReviewUrl() : null;
   if (review) e.qr(review, width === '80' ? 4 : 3).line('Google par review dein *');
