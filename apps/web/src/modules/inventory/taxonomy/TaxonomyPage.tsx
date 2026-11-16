@@ -237,8 +237,8 @@ export function TaxonomyPage({ config }: { config: TaxonomyConfig }) {
           <>
             <KpiCard icon={Package} color="#16a34a" label={t('Products wali')} value={counts.used} hint={t('{{linked}} products jure', { linked })} onClick={() => toggleShow('used')} active={show === 'used'} />
             <KpiCard icon={Inbox} color="#64748b" label={t('Khaali')} value={counts.unused} hint={t('koi product nahi')} onClick={() => toggleShow('unused')} active={show === 'unused'} />
-            <KpiCard icon={AlertTriangle} color="#d97706" label={t('Kam ya khatam stock')} value={counts.low} hint="dabayein" onClick={() => toggleShow('low')} active={show === 'low'} />
-            {config.canSwitchOff && <KpiCard icon={EyeOff} color="#e11d48" label={t('Band')} value={counts.off} hint="dabayein" onClick={() => toggleShow('off')} active={show === 'off'} />}
+            <KpiCard icon={AlertTriangle} color="#d97706" label={t('Kam ya khatam stock')} value={counts.low} hint={t('dabayein')} onClick={() => toggleShow('low')} active={show === 'low'} />
+            {config.canSwitchOff && <KpiCard icon={EyeOff} color="#e11d48" label={t('Band')} value={counts.off} hint={t('dabayein')} onClick={() => toggleShow('off')} active={show === 'off'} />}
           </>
         )}
       </KpiRow>
