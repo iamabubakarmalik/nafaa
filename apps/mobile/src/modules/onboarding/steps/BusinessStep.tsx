@@ -35,7 +35,8 @@ export function validateBusiness(f: BusinessForm): BusinessErrors {
   const e: BusinessErrors = {};
   if (!f.businessType) e.businessType = t('Apna kaam chunein.');
   if (!f.businessSize) e.businessSize = t('Dukaan ka size chunein.');
-  if (f.whatsappNumber && !PHONE_RE.test(cleanPhone(f.whatsappNumber))) e.whatsappNumber = t('Number sahi nahi. Misaal: 03001234567');
+  if (!cleanPhone(f.whatsappNumber)) e.whatsappNumber = t('WhatsApp number likhein.');
+  else if (!PHONE_RE.test(cleanPhone(f.whatsappNumber))) e.whatsappNumber = t('Number sahi nahi. Misaal: 03001234567');
   return e;
 }
 
@@ -77,7 +78,7 @@ export function BusinessStep({ value, onChange, errors, options, detectedCity }:
           <Text size="sm" weight="semibold" tone="brand" onPress={() => onChange({ city: detectedCity })}>{t('Aap ki location se: {{detectedCity}} — yahi rakhein', { detectedCity })}</Text>
         )}
       </View>
-      <Input label={t('WhatsApp number')} labelHint={t('(zaroori nahi)')} placeholder="03001234567" keyboardType="phone-pad" icon={MessageCircle} value={value.whatsappNumber} onChangeText={(whatsappNumber) => onChange({ whatsappNumber })} hint={t('Customers ko bill aur khata isi number se jayega.')} error={errors.whatsappNumber} />
+      <Input label={t('WhatsApp number')} placeholder="03001234567" keyboardType="phone-pad" icon={MessageCircle} value={value.whatsappNumber} onChangeText={(whatsappNumber) => onChange({ whatsappNumber })} hint={t('Customers ko bill aur khata isi number se jayega.')} error={errors.whatsappNumber} />
       <Card tone="muted"><Text size="sm" tone="secondary">{t('Kaam badalna ho to baad me Settings → Business type se badal sakte hain. Wahin features bhi on/off hote hain.')}</Text></Card>
     </View>
   );

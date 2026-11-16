@@ -93,7 +93,7 @@ export function OnboardingScreen() {
     const saved = cleanModels(tenant?.businessModels);
     setBusiness({
       businessModels: cleanModels(picks.models).length ? cleanModels(picks.models) : saved.length ? saved : DEFAULT_MODELS,
-      businessType: pick, businessSize: p.businessSize || 'SMALL', city: p.city || p.detectedCity || '', whatsappNumber: p.whatsappNumber || '',
+      businessType: pick, businessSize: p.businessSize || 'SMALL', city: p.city || p.detectedCity || '', whatsappNumber: p.whatsappNumber || user?.phone || '',
     });
     setBranch({
       shopAddress: p.shopAddress || '', shopArea: p.shopArea || '', shopLandmark: p.shopLandmark || '', openTime: p.openTime || '09:00',
@@ -147,7 +147,7 @@ export function OnboardingScreen() {
     const phone = cleanPhone(business.whatsappNumber);
     void run(async () => {
       await onboardingApi.step(1, { businessModels: business.businessModels, businessType: business.businessType, businessSize: business.businessSize, city: known?.name ?? city, province: known?.province || undefined });
-      const result = await onboardingApi.step(2, phone ? { whatsappNumber: phone } : {});
+      const result = await onboardingApi.step(2, { whatsappNumber: phone });
       updateTenant({ businessType: business.businessType, businessModels: business.businessModels });
       clearSignupPicks();
       void qc.invalidateQueries({ queryKey: ['business-config'] });
