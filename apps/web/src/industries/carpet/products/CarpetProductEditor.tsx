@@ -37,6 +37,8 @@ const core: CoreOptions = {
     { value: 'ft', label: t('Running ft') }, { value: 'm', label: t('Running meter') }, { value: 'pcs', label: t('Piece (rug)') }, { value: 'service', label: t('Service (fitting)') },
   ],
   skuPrefix: 'CPT',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: false,
   variants: { presets: [
     { group: t('Rang'), values: ['Red', 'Maroon', 'Beige', 'Grey', 'Blue', 'Green', 'Brown', 'Cream'] },

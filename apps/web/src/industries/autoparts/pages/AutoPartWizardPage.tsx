@@ -1,7 +1,7 @@
 /**
  * Auto part editor on the shared product editor: name and part number (the
  * part number is the SKU unless one is typed), OEM and other numbers, the
- * part's group, genuine/local/used, brand, warranty, the vehicles it fits,
+ * part's group (read from the shop category), genuine/local/used, brand, warranty, the vehicles it fits,
  * and opening stock.
  */
 
@@ -13,7 +13,9 @@ import { Chip, NumberField, Section, TextField, Tiles, Toggle, inputClass } from
 import type { CoreOptions, EditorConfig, Errors, StepContext, StepDef } from '@modules/inventory/products/editor/types';
 import { partProfilesApi, type PartCategory, type PartCondition, type PartFitment } from '../api/part-profiles.api';
 import { FitmentEditor } from '../components/FitmentEditor';
-import { CATEGORIES, CONDITIONS, categoryOf, conditionOf } from '../components/meta';
+import { CONDITIONS, categoryOf, conditionOf } from '../components/meta';
+import { useCategoryNameSync } from '@modules/inventory/categories/lib/kinds';
+import { partGroupFromCategory } from '@nafaa/core/industries/autoparts';
 import { PART_FACTS_KEY } from '../hooks/usePartFacts';
 import { t } from '@core/i18n';
 
@@ -29,15 +31,15 @@ const initial: PartExtra = {
 };
 
 const opt = (v: string) => v.trim() || undefined;
-const POPULAR: PartCategory[] = ['ENGINE', 'BRAKES', 'FILTERS', 'OILS_FLUIDS', 'SUSPENSION', 'ELECTRICAL', 'LIGHTING', 'BATTERY', 'TIRES_WHEELS', 'BODY', 'IGNITION', 'BELTS_HOSES'];
 const BRANDS = ['Toyota Genuine', 'Honda Genuine', 'Suzuki Genuine', 'Denso', 'Bosch', 'NGK', 'Shell', 'Total', 'Zic', 'Exide', 'AGS', 'Osaka'];
 const ORIGINS = ['Japan', 'China', 'Taiwan', 'Thailand', 'Pakistan', 'Korea'];
 
-/* ── Basic step addition: numbers and group ── */
+/* ── Basic step addition: part numbers (the group follows the category) ── */
 function Numbers({ ctx }: { ctx: StepContext<PartExtra> }) {
   const x = ctx.draft.extra;
   const [alt, setAlt] = useState('');
-  const [more, setMore] = useState(POPULAR.includes(x.category) ? false : x.category !== 'OTHER');
+  // The part group follows the shop category ("Brake" gives BRAKES); there is no separate picker.
+  useCategoryNameSync(ctx.draft.core.categoryId, partGroupFromCategory, (category) => ctx.setExtra({ category: category as PartCategory }));
   const addAlt = () => {
     const v = alt.trim();
     if (!v || x.alternateNumbers.includes(v)) { setAlt(''); return; }
@@ -69,13 +71,6 @@ function Numbers({ ctx }: { ctx: StepContext<PartExtra> }) {
             ))}
           </div>
         )}
-      </div>
-      <div>
-        <span className="mb-1.5 block text-[0.8125rem] font-medium text-slate-700">{t('Part ka group')}</span>
-        <div className="flex flex-wrap gap-1.5">
-          {(more ? CATEGORIES : POPULAR).map((c) => <Chip key={c} on={x.category === c} onClick={() => ctx.setExtra({ category: x.category === c ? 'OTHER' : c })}>{categoryOf(c)}</Chip>)}
-          {!more && <Chip on={false} onClick={() => setMore(true)}>{t('Aur…')}</Chip>}
-        </div>
       </div>
     </div>
   );
@@ -167,7 +162,8 @@ const config: EditorConfig<PartExtra> = {
   steps: [
     basicStep<PartExtra>(core, {
       extra: (ctx) => <Numbers ctx={ctx} />, namePlaceholder: t('Jaise: Brake pad Corolla 2015 (front)'),
-      categorySuggestions: ['Engine parts', 'Brake', 'Filter', 'Oil aur lubricants', 'Suspension', 'Bijli ka saman', 'Lights', 'Battery', 'Tyre aur tube', 'Body parts', 'Bike parts'],
+      categorySuggestions: ['Engine parts', 'Brake', 'Filter', 'Oil aur lubricants', 'Suspension', 'Bijli ka saman', 'Lights', 'Battery', 'Tyre aur tube', 'Body parts', 'Bike parts',
+        'Plug aur ignition', 'Belt aur pipe', 'Radiator / cooling', 'Gear box aur clutch', 'Steering', 'Bearing', 'Gasket aur seal', 'Sensor', 'AC aur heater', 'Silencer', 'Accessories', 'Auzaar'],
     }),
     priceStep<PartExtra>(core),
     fitStep,

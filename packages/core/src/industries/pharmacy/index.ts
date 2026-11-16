@@ -10,7 +10,49 @@ export type ScheduleClass = (typeof SCHEDULE_CLASSES)[number];
 /** Classes that always go in the narcotic register. */
 export const REGISTER_CLASSES: readonly string[] = ['CONTROLLED', 'NARCOTIC', 'PSYCHOTROPIC', 'SCHEDULE_X'];
 
-export const DOSAGE_FORMS = ['Tablet', 'Capsule', 'Syrup', 'Suspension', 'Injection', 'Drops', 'Cream', 'Ointment', 'Gel', 'Inhaler', 'Sachet', 'Suppository', 'Spray', 'Lotion'];
+export const DOSAGE_FORMS = ['Tablet', 'Capsule', 'Syrup', 'Suspension', 'Injection', 'Drops', 'Cream', 'Ointment', 'Gel', 'Inhaler', 'Sachet', 'Suppository', 'Spray', 'Lotion', 'Solution', 'Powder', 'Vaccine'];
+
+/**
+ * Category names a pharmacy is offered in the product editor. Medicine groups
+ * follow the dosage form (the DRAP library also files medicines by form); the
+ * general groups are the retail side of a medical store.
+ */
+export const MEDICINE_CATEGORY_SUGGESTIONS = ['Tablets', 'Capsules', 'Syrups', 'Suspensions', 'Injections', 'Drops', 'Creams & ointments', 'Gels', 'Inhalers', 'Sachets', 'Sprays', 'Lotions', 'Suppositories', 'Vaccines'];
+export const PHARMACY_GENERAL_CATEGORY_SUGGESTIONS = ['Baby care', 'Personal care', 'Vitamins & supplements', 'Medical devices', 'First aid', 'Surgical items', 'Skin care', 'Sugar-free & diet'];
+
+/** Units that only make sense for a medicine (a general item starts on pieces). */
+export const MEDICINE_UNITS: readonly string[] = ['tablet', 'capsule', 'strip', 'vial', 'ampoule', 'sachet', 'tube'];
+
+const FORM_HINTS: ReadonlyArray<[RegExp, string]> = [
+  [/\btab(let)?s?\b|\bgoli/i, 'Tablet'], [/\bcap(sule)?s?\b/i, 'Capsule'], [/syrup|sharbat/i, 'Syrup'], [/suspension/i, 'Suspension'],
+  [/inject|\binj\b|\bteek/i, 'Injection'], [/\bdrops?\b|qatr/i, 'Drops'], [/\bcreams?\b/i, 'Cream'], [/ointment|marham/i, 'Ointment'],
+  [/\bgels?\b/i, 'Gel'], [/inhaler|\bpuff/i, 'Inhaler'], [/sachet/i, 'Sachet'], [/suppositor/i, 'Suppository'], [/spray/i, 'Spray'],
+  [/lotion/i, 'Lotion'], [/solution/i, 'Solution'], [/powder/i, 'Powder'], [/vaccin/i, 'Vaccine'],
+];
+
+/**
+ * Dosage forms a category name points to, in list order: "Tablets" gives
+ * ["Tablet"], "Creams & ointments" gives ["Cream", "Ointment"], "Baby care"
+ * gives []. Used to fill a medicine's form from its category.
+ */
+export function formsFromCategory(name: string | null | undefined): string[] {
+  const n = String(name ?? '');
+  return n ? FORM_HINTS.filter(([re]) => re.test(n)).map(([, form]) => form) : [];
+}
+
+/**
+ * The form a medicine should get from its category chain (own name first,
+ * then the parents). Keeps `current` when the category allows it; null when
+ * the chain names no form.
+ */
+export function formForCategory(names: readonly string[], current?: string | null): string | null {
+  for (const name of names) {
+    const forms = formsFromCategory(name);
+    if (!forms.length) continue;
+    return current && forms.includes(current) ? current : forms[0];
+  }
+  return null;
+}
 export const STRENGTHS = ['5mg', '10mg', '20mg', '50mg', '100mg', '250mg', '500mg', '1g', '125mg/5ml', '250mg/5ml'];
 
 export interface RegisterFacts { isNarcotic?: boolean; scheduleClass?: string | null }

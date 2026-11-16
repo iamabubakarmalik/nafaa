@@ -18,7 +18,7 @@ const UNITS = [
   { value: 'inspection', label: t('Inspection') }, { value: 'contract', label: t('Contract / AMC') },
 ];
 
-const core: CoreOptions = { units: UNITS, skuPrefix: 'PART', packs: true, variants: false, batches: false };
+const core: CoreOptions = { units: UNITS, skuPrefix: 'PART', commonUnits: 'count', packs: true, variants: false, batches: false };
 
 const config: EditorConfig<Record<string, never>> = {
   label: t('Parts aur saman'),

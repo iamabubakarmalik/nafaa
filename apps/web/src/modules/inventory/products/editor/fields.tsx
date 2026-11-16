@@ -159,6 +159,9 @@ const CATEGORY_COLORS = ['#2563eb', '#16a34a', '#d97706', '#db2777', '#7c3aed', 
  * its children and an inline "+ sub-category". The product keeps the deepest
  * pick. Search matches every level and shows the full path.
  */
+/** Comparable category name: case, "&"/"aur" and a plural "s" do not matter. */
+const sameName = (name: string) => name.trim().toLowerCase().replace(/&|\band\b|\baur\b/g, ' ').replace(/[^a-z0-9\u0600-\u06ff]+/g, ' ').trim().replace(/(?<=\w{3})s\b/g, '');
+
 export function CategoryField({ value, onChange, suggestions, error, hint }: {
   value: string | null; onChange: (id: string | null, name?: string) => void; suggestions?: string[]; error?: string; hint?: ReactNode;
 }) {
@@ -173,6 +176,7 @@ export function CategoryField({ value, onChange, suggestions, error, hint }: {
   // Optional kind for a category created here (only industries that use kinds show the select).
   const [newKind, setNewKind] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [showAllSuggestions, setShowAllSuggestions] = useState(false);
   const create = useMutation({
     mutationFn: (v: { name: string; parentId?: string | null }) =>
       categoriesApi.create({ name: v.name, parentId: v.parentId ?? null, color: CATEGORY_COLORS[data.length % CATEGORY_COLORS.length], ...(newKind && { kind: newKind }) }),
@@ -189,7 +193,10 @@ export function CategoryField({ value, onChange, suggestions, error, hint }: {
   const kids = childrenMap(usable);
   const chain = chainOf(data, value);
   const exact = data.some((c) => c.name.toLowerCase() === term);
-  const missing = (suggestions ?? []).filter((s) => !data.some((c) => c.name.toLowerCase() === s.toLowerCase())).slice(0, 6);
+  // A suggestion is offered until the shop has a category of that name ("Tablet" counts as "Tablets").
+  const have = new Set(data.map((c) => sameName(c.name)));
+  const allMissing = (suggestions ?? []).filter((s) => !have.has(sameName(s)));
+  const missing = showAllSuggestions ? allMissing : allMissing.slice(0, 8);
   const hits = term ? usable.filter((c) => c.name.toLowerCase().includes(term)).slice(0, 30) : [];
   // Levels to show: top level, then the children of each picked level.
   const levels: Array<{ parentId: string | null; picked: string | null }> = [{ parentId: null, picked: chain[0] ?? null }];
@@ -280,6 +287,9 @@ export function CategoryField({ value, onChange, suggestions, error, hint }: {
             <div className="flex flex-wrap items-center gap-1.5 text-[0.75rem] text-slate-500">
               <Sparkles className="h-3.5 w-3.5 text-amber-500" />{tr('Ek click mein:')}
               {missing.map((s) => <button key={s} type="button" onClick={() => create.mutate({ name: s })} className="rounded-full bg-amber-50 px-2 py-0.5 font-medium text-amber-800 hover:bg-amber-100">+ {s}</button>)}
+              {allMissing.length > missing.length && (
+                <button type="button" onClick={() => setShowAllSuggestions(true)} className="px-1 font-semibold text-brand-700 hover:underline">{tr('+{{count}} aur', { count: allMissing.length - missing.length })}</button>
+              )}
             </div>
           )}
         </div>

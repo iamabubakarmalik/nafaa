@@ -173,6 +173,8 @@ function imeiErrors(d: EditorDraft<MobileExtra>): string | null {
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: t('Adad (pcs)') }, { value: 'set', label: t('Set') }, { value: 'pair', label: t('Joda') }, { value: 'box', label: t('Dabba') }],
   skuPrefix: 'MOB',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   variants: {
     presets: [
       { group: t('Storage'), values: ['64GB', '128GB', '256GB', '512GB', '1TB'] },

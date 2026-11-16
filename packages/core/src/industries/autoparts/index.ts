@@ -97,3 +97,30 @@ export function waLink(phone: string | null | undefined, text: string): string |
 export function labourLines(rows: Array<{ description: string; amount: number }>) {
   return rows.filter((l) => l.description.trim()).map((l) => ({ description: l.description.trim(), hours: 1, ratePerHour: l.amount }));
 }
+
+/* ── Part group from the shop category ── */
+
+const PART_GROUP_HINTS: ReadonlyArray<[RegExp, string]> = [
+  [/brake|break|\bshoe\b|\bpad/i, 'BRAKES'], [/filter/i, 'FILTERS'], [/\boil|lubric|grease|fluid|coolant|mobil/i, 'OILS_FLUIDS'],
+  [/suspension|shock|\bstrut|\bspring|bush/i, 'SUSPENSION'], [/battery|batter/i, 'BATTERY'], [/light|lamp|bulb|\bled\b/i, 'LIGHTING'],
+  [/tyre|tire|\btube|\brim|wheel/i, 'TIRES_WHEELS'], [/\bplug|ignition|coil/i, 'IGNITION'], [/\bbelt|hose|pipe/i, 'BELTS_HOSES'],
+  [/radiator|cooling|\bfan\b/i, 'COOLING'], [/silencer|exhaust|muffler/i, 'EXHAUST'], [/fuel|injector|carb/i, 'FUEL_SYSTEM'],
+  [/gear|clutch|transmission/i, 'TRANSMISSION'], [/steering|rack/i, 'STEERING'], [/axle|drive\s*shaft|\bcv\b/i, 'DRIVETRAIN'],
+  [/bearing/i, 'BEARINGS'], [/gasket|seal/i, 'GASKETS'], [/sensor/i, 'SENSORS'], [/\bac\b|heater|a\/c/i, 'AC_HEATING'],
+  [/electric|bijli|wiring|wire|switch|alternator|starter|self/i, 'ELECTRICAL'], [/engine|piston|ring|valve/i, 'ENGINE'],
+  [/body|bumper|mirror|door|bonnet|denting/i, 'BODY'], [/interior|seat|mat\b|cover/i, 'INTERIOR'],
+  [/accessor/i, 'ACCESSORIES'], [/tool|auza/i, 'TOOLS'], [/consumable|rozana/i, 'CONSUMABLES'],
+];
+
+/**
+ * Part group a shop category name points to ("Brake" gives BRAKES, "Oil aur
+ * lubricants" gives OILS_FLUIDS), checking the category first and then its
+ * parents. Null when nothing matches, so a saved group is kept.
+ */
+export function partGroupFromCategory(names: readonly string[]): string | null {
+  for (const name of names) {
+    const hit = PART_GROUP_HINTS.find(([re]) => re.test(name));
+    if (hit) return hit[1];
+  }
+  return null;
+}

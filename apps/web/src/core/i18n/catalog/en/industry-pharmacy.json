@@ -716,5 +716,21 @@
   "Zyada se zyada": "At most",
   "Zyada se zyada {{maxUnits}}": "Maximum {{maxUnits}}",
   "Zyada se zyada °C": "Max °C",
-  "Zyada value pehle": "Highest value first"
+  "Zyada value pehle": "Highest value first",
+  "Ye kya hai": "What is it",
+  "Formula, schedule aur DRAP": "Formula, schedule and DRAP",
+  "Aam saman": "General item",
+  "Shampoo, diaper, biscuit — sirf naam aur rate": "Shampoo, diapers, biscuits — just name and price",
+  "Save karne par is ki dawai wali details (formula, schedule, DRAP) hat jayengi. Stock aur bills wese hi rahenge.": "Saving removes its medicine details (formula, schedule, DRAP). Stock and bills stay as they are.",
+  "Dawai ki details": "Medicine details",
+  "Card, label aur substitute list par nazar aati hain — sab marzi hai": "Shown on the card, label and substitute list — all optional",
+  "Form": "Form",
+  "Chunna nahi": "Not set",
+  "Category se khud bhar jati hai — \"Tablets\" chunein to Tablet": "Filled from the category — pick \"Tablets\" and it becomes Tablet",
+  "Dawai details": "Medicine details",
+  "Form, company, salt": "Form, company, salt",
+  "Jaise: Panadol 500mg Tablet, Johnson baby shampoo": "e.g. Panadol 500mg Tablet, Johnson baby shampoo",
+  "Aam saman (dawai nahi)": "General item (not a medicine)",
+  "Dawai ya aam saman": "Medicine or general item",
+  "Shampoo, diaper ya biscuit ke liye \"Aam saman\" chunein — formula aur schedule ke steps nahi aate. Dawai ki form category se khud lagti hai.": "For shampoo, diapers or biscuits pick \"General item\" — the formula and schedule steps are skipped. A medicine's form is set from its category."
 }

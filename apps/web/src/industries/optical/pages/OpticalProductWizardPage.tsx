@@ -155,6 +155,8 @@ function specErrors(x: OpticalExtra): Errors {
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: tr('Piece') }, { value: 'pair', label: tr('Pair') }, { value: 'box', label: tr('Box') }, { value: 'pack', label: tr('Pack') }, { value: 'bottle', label: tr('Bottle') }],
   skuPrefix: 'OPT',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: true,
   variants: { presets: [{ group: tr('Rang'), values: COLOURS }, { group: tr('Contact lens power'), values: ['-1.00', '-1.50', '-2.00', '-2.50', '-3.00', '-4.00'] }] },
   batches: true,

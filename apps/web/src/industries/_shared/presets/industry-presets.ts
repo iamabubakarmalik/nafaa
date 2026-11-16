@@ -325,6 +325,16 @@ export const AUTOPARTS_PRESETS: IndustryPresets = {
 // ═══════════════════════════════════════════════════════════════
 export const PHARMACY_PRESETS: IndustryPresets = {
   categories: [
+    // Medicines by dosage form: the product editor fills the form from these names.
+    { name: 'Tablets', color: '#0891b2' },
+    { name: 'Capsules', color: '#0e7490' },
+    { name: 'Syrups', color: '#f97316' },
+    { name: 'Suspensions', color: '#fb923c' },
+    { name: 'Injections', color: '#dc2626' },
+    { name: 'Drops', color: '#0ea5e9' },
+    { name: 'Creams & ointments', color: '#f59e0b' },
+    { name: 'Inhalers', color: '#6366f1' },
+    { name: 'Sachets', color: '#84cc16' },
     { name: 'Prescription Medicines', color: '#3b82f6' },
     { name: 'OTC (Over-the-Counter)', color: '#22c55e' },
     { name: 'Antibiotics', color: '#ef4444' },

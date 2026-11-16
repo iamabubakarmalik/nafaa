@@ -176,6 +176,8 @@ function SizeGrid({ ctx }: { ctx: StepContext<ShoeExtra> }) {
 const core: CoreOptions = {
   units: [{ value: 'pair', label: tr('Jora') }, { value: 'pcs', label: tr('Piece') }, { value: 'box', label: tr('Dabba') }],
   skuPrefix: 'SH',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: true,
   variants: { presets: [{ group: tr('Size'), values: ['6', '7', '8', '9', '10'] }] },
   markups: [30, 40, 50, 60, 80, 100],

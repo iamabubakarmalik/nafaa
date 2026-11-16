@@ -132,6 +132,8 @@ function Rental({ ctx }: { ctx: StepContext<GamingExtra> }) {
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: t('Adad (pcs)') }, { value: 'set', label: t('Set') }, { value: 'box', label: t('Dabba') }],
   skuPrefix: 'GM',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: false,
   variants: { presets: [{ group: t('Edition'), values: ['PS5', 'PS4', 'Standard', 'Deluxe'] }, { group: t('Rang'), values: ['Black', 'White', 'Blue', 'Red'] }, { group: t('Storage'), values: ['825GB', '1TB', '2TB'] }] },
   batches: false,

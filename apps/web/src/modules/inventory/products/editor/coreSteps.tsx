@@ -16,9 +16,10 @@ import { PERMISSIONS } from '@core/lib/permissions';
 import { BrandField, CategoryField, Chip, CodeFields, ImagesField, MarginCard, NumberField, Section, TagsField, TextField, Tiles, Toggle, inputClass } from './fields';
 import { PriceCalculatorModal } from '@modules/growth/price-calculator/PriceCalculatorModal';
 import { openingStock, syncBaseRow } from './save';
-import { autoPackPrices, autoPackValue, packSummary, pieceFromPack, type PackPriceField } from '@nafaa/core/inventory';
+import { autoPackPrices, autoPackValue, packSummary, pieceFromPack, unitChoices, type PackPriceField } from '@nafaa/core/inventory';
 import { SuppliersField } from './SuppliersField';
-import type { BatchDraft, CoreDraft, CoreOptions, Errors, StepContext, StepDef, UnitDraft, VariantDraft } from './types';
+import { COMMON_UNITS } from './units';
+import type { BatchDraft, CoreDraft, CoreOptions, EditorDraft, Errors, StepContext, StepDef, UnitDraft, VariantDraft } from './types';
 import { t as tr, Trans } from '@core/i18n';
 import { ProductBackorderSection } from '@integrations/online-orders/components/online-products/BackorderSettings';
 
@@ -27,7 +28,30 @@ const fmt = (n: number) => String(Number(Number(n).toFixed(3)));
 
 /* ─────────────────────────── Step 1: basic ─────────────────────────── */
 
-export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?: Slot<X>; categorySuggestions?: string[]; namePlaceholder?: string } = {}): StepDef<X> {
+/**
+ * "Sold by" tiles: the industry's own units and pieces first, the common units
+ * it lacks behind "More units". A saved unit is always visible.
+ */
+function UnitPicker({ core, value, onChange }: { core: CoreOptions; value: string; onChange: (unit: string) => void }) {
+  const { main, more } = unitChoices(core.units, COMMON_UNITS, core.commonUnits ?? 'all', value);
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="space-y-2">
+      <Tiles value={value} onChange={onChange} options={open ? [...main, ...more] : main} columns="grid-cols-3 sm:grid-cols-6" />
+      {more.length > 0 && (
+        <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="text-[0.75rem] font-semibold text-brand-700 hover:underline">
+          {open ? tr('Kam units') : tr('Aur units ({{count}})', { count: more.length })}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function basicStep<X>(core: CoreOptions, opts: {
+  extra?: Slot<X>; after?: Slot<X>; namePlaceholder?: string;
+  /** One-click category names; a function can change them with the draft (e.g. medicine or general item). */
+  categorySuggestions?: string[] | ((draft: EditorDraft<X>) => string[]);
+} = {}): StepDef<X> {
   return {
     id: 'basic', title: tr('Pehchaan'), hint: tr('Naam, category, code'), icon: Tag,
     validate: (d) => {
@@ -45,13 +69,14 @@ export function basicStep<X>(core: CoreOptions, opts: { extra?: Slot<X>; after?:
               <TextField label={tr('Naam')} required big autoFocus value={c.name} onChange={(name) => ctx.setCore({ name })} onBlur={() => ctx.touch('name')}
                 error={ctx.errors.name} placeholder={opts.namePlaceholder ?? tr('Jaise: Tapal Danedar 95g')} hint={tr('POS search, bill aur label par yahi naam aata hai')} />
               {opts.extra?.(ctx)}
-              <CategoryField value={c.categoryId} onChange={(categoryId) => ctx.setCore({ categoryId })} suggestions={opts.categorySuggestions} hint={tr('POS ke filter aur reports isi se bante hain')} />
+              <CategoryField value={c.categoryId} onChange={(categoryId) => ctx.setCore({ categoryId })} hint={tr('POS ke filter aur reports isi se bante hain')}
+                suggestions={typeof opts.categorySuggestions === 'function' ? opts.categorySuggestions(ctx.draft) : opts.categorySuggestions} />
               <BrandField value={c.brandId} onChange={(brandId) => ctx.setCore({ brandId })} hint={tr('Marzi hai — brand se dhoondna aur report aasaan')} />
               <CodeFields name={c.name} sku={c.sku} barcode={c.barcode} prefix={core.skuPrefix} onSku={(sku) => ctx.setCore({ sku })} onBarcode={(barcode) => ctx.setCore({ barcode })} />
             </div>
           </Section>
           <Section icon={Package} title={tr('Kis hisaab se bikti hai')} hint={tr('Stock aur rate isi unit mein ginay jayenge')}>
-            <Tiles value={c.unit} onChange={(unit) => ctx.setCore({ unit })} options={core.units} columns="grid-cols-3 sm:grid-cols-6" />
+            <UnitPicker core={core} value={c.unit} onChange={(unit) => ctx.setCore({ unit })} />
           </Section>
           <Section title={tr('Tasveerein')} hint={tr('POS aur online store par yahi dikhegi')}>
             <ImagesField value={c.images} onChange={(images) => ctx.setCore({ images })} />

@@ -234,6 +234,8 @@ const termsStep: StepDef<JewelryExtra> = {
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: t('Piece') }, { value: 'set', label: t('Set') }, { value: 'pair', label: t('Jora') }],
   skuPrefix: 'JW',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: false,
   variants: false,
 };

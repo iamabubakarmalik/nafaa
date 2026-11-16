@@ -53,3 +53,15 @@ test('year ranges and small helpers', () => {
   assert.equal(waLink('123', 'x'), undefined);
   assert.deepEqual(labourLines([{ description: ' Oil change ', amount: 800 }, { description: '', amount: 5 }]), [{ description: 'Oil change', hours: 1, ratePerHour: 800 }]);
 });
+
+test('part group follows the shop category name', async () => {
+  const { partGroupFromCategory } = await import('./index');
+  assert.equal(partGroupFromCategory(['Brake']), 'BRAKES');
+  assert.equal(partGroupFromCategory(['Oil aur lubricants']), 'OILS_FLUIDS');
+  assert.equal(partGroupFromCategory(['Engine parts']), 'ENGINE');
+  assert.equal(partGroupFromCategory(['Bijli ka saman']), 'ELECTRICAL');
+  assert.equal(partGroupFromCategory(['Tyre aur tube']), 'TIRES_WHEELS');
+  assert.equal(partGroupFromCategory(['Lights']), 'LIGHTING');
+  assert.equal(partGroupFromCategory(['Bike parts']), null);
+  assert.equal(partGroupFromCategory(['Corolla', 'Filter']), 'FILTERS');
+});

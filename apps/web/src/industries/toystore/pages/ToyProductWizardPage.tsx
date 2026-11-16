@@ -137,6 +137,8 @@ function Mrp({ ctx }: { ctx: StepContext<ToyExtra> }) {
 const core: CoreOptions = {
   units: [{ value: 'pcs', label: t('Piece') }, { value: 'set', label: t('Set') }, { value: 'pack', label: t('Pack') }, { value: 'box', label: t('Box') }],
   skuPrefix: 'TOY',
+  // Sold by count; weight and volume units are not offered.
+  commonUnits: 'count',
   packs: true,
   variants: { presets: [
     { group: t('Rang'), values: ['Red', 'Blue', 'Pink', 'Yellow', 'Green', 'Black', 'White'] },

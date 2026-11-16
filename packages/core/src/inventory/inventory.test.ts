@@ -228,3 +228,18 @@ test('product emoji from name, then category, and a stable tint', async () => {
   assert.equal(productTintIndex('Atta', 8), productTintIndex('Atta', 8));
   assert.ok(productTintIndex('Atta', 8) < 8);
 });
+
+test('unit choices: industry units first, pieces always, the rest behind more', async () => {
+  const { unitChoices } = await import('./units');
+  const common = [{ value: 'pcs', label: 'Pcs' }, { value: 'kg', label: 'Kg' }, { value: 'gram', label: 'Gram' }, { value: 'liter', label: 'Litre' }, { value: 'box', label: 'Box' }];
+  const own = [{ value: 'tablet', label: 'Tablet' }, { value: 'g', label: 'Gram (g)' }, { value: 'box', label: 'Dabba' }];
+  const r = unitChoices(own, common, 'all');
+  assert.deepEqual(r.main.map((u) => u.value), ['tablet', 'g', 'box', 'pcs']);
+  assert.deepEqual(r.more.map((u) => u.value), ['kg', 'liter']);
+  assert.equal(r.main.find((u) => u.value === 'box')?.label, 'Dabba');
+  assert.deepEqual(unitChoices(own, common, 'count').more, []);
+  assert.deepEqual(unitChoices(own, common, false).main.map((u) => u.value), ['tablet', 'g', 'box']);
+  // A saved unit stays visible: from "more", or as its own tile when no list has it.
+  assert.ok(unitChoices(own, common, 'all', 'kg').main.some((u) => u.value === 'kg'));
+  assert.ok(unitChoices(own, common, 'all', 'Tola').main.some((u) => u.value === 'Tola'));
+});

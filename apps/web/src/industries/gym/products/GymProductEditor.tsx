@@ -17,7 +17,7 @@ const UNITS = [
   { value: 'session', label: t('Session') }, { value: 'class', label: t('Class') }, { value: 'hour', label: t('Ghanta') },
 ];
 
-const core: CoreOptions = { units: UNITS, skuPrefix: 'GYM', packs: true, variants: { presets: VARIANT_PRESETS }, batches: true };
+const core: CoreOptions = { units: UNITS, skuPrefix: 'GYM', commonUnits: 'count', packs: true, variants: { presets: VARIANT_PRESETS }, batches: true };
 
 const config: EditorConfig<Record<string, never>> = {
   label: t('Gym'),
