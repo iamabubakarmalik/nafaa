@@ -13,6 +13,7 @@ import { ArrowDown, ArrowRight, Lightbulb } from 'lucide-react';
 import { Kbd, Modal } from '@/design-system/components';
 import { isDialogOpen, isTyping } from '@core/lib/shortcuts';
 import { t as tr } from '@core/i18n';
+import { PageVideoLink } from './TutorialVideos';
 
 export interface GuideStep {
   icon: LucideIcon;
@@ -43,6 +44,7 @@ export function PageGuide({ title, description, flow, flowTitle, steps, tips, sh
 }) {
   return (
     <Modal open onClose={onClose} size="lg" title={title} description={description ?? tr('{{count}} cheezein, bas itna yaad rakhein', { count: steps.length })}>
+      <PageVideoLink />
       {!!flow?.length && <GuideFlow nodes={flow} title={flowTitle} />}
       <ol className="grid gap-3 sm:grid-cols-2">
         {steps.map((st, i) => (
