@@ -72,7 +72,7 @@ export function RegisterScreen() {
       shopName: f.shopName.trim(),
       fullName: f.fullName.trim(),
       email: f.email.trim(),
-      phone: f.phone ? cleanPakistanPhone(f.phone) : undefined,
+      phone: cleanPakistanPhone(f.phone),
       password: f.password,
       referralCode: f.referralCode.trim() || undefined,
       language: currentLocale(),
@@ -110,7 +110,8 @@ export function RegisterScreen() {
     if (f.fullName.trim().length < 2) e.fullName = t('Apna naam likhein');
     if (!f.email.trim()) e.email = t('Email likhein');
     else if (!EMAIL_RE.test(f.email.trim())) e.email = t('Email sahi nahi lag raha. Misaal: ahmad@gmail.com');
-    if (f.phone && !isValidPakistanPhone(cleanPakistanPhone(f.phone))) e.phone = t('Mobile number 03 se shuru aur 11 number ka hota hai. Misaal: 03001234567');
+    if (!f.phone.trim()) e.phone = t('Mobile number likhein');
+    else if (!isValidPakistanPhone(cleanPakistanPhone(f.phone))) e.phone = t('Mobile number 03 se shuru aur 11 number ka hota hai. Misaal: 03001234567');
     if (f.password.length < 8) e.password = t('Password kam se kam 8 huroof ka rakhein');
     setErrors(e);
     setFormError(null);
@@ -166,7 +167,7 @@ export function RegisterScreen() {
       {formError && <Card tone="danger"><Text size="sm" tone="danger">{formError}</Text></Card>}
       <Input label={t('Aap ka naam')} placeholder={t('Ahmad Ali')} icon={User} value={f.fullName} onChangeText={(v) => set({ fullName: v })} autoComplete="name" textContentType="name" autoCapitalize="words" error={errors.fullName} />
       <Input label={t('Email')} placeholder="ahmad@gmail.com" icon={Mail} value={f.email} onChangeText={(v) => set({ email: v })} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" textContentType="emailAddress" hint={t('Login aur password reset isi email se hoga.')} error={errors.email} />
-      <Input label={t('Mobile')} labelHint={t('(zaroori nahi)')} placeholder="03001234567" icon={Phone} value={f.phone} onChangeText={(v) => set({ phone: v })} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" error={errors.phone} />
+      <Input label={t('Mobile')} placeholder="03001234567" hint={t('Zaroorat par hum isi number par aap se rabta karenge.')} icon={Phone} value={f.phone} onChangeText={(v) => set({ phone: v })} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" error={errors.phone} />
       <View style={{ gap: th.space(2) }}>
         <PasswordInput label={t('Password')} placeholder={t('Kam se kam 8 huroof')} value={f.password} onChangeText={(v) => set({ password: v })} autoComplete="new-password" textContentType="newPassword" hint={f.password ? undefined : t('Number aur nishaan (@, #) mila kar mazboot banayein.')} error={errors.password} />
         {!!f.password && <PasswordStrength value={f.password} />}

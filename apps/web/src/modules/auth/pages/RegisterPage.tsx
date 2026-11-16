@@ -45,9 +45,9 @@ const schema = z.object({
   phone: z.preprocess(
     stripPhone,
     z.string()
+      .min(1, t('Mobile number likhein'))
       .regex(/^\+?[0-9]{10,15}$/, t('Mobile number sahi nahi. Misaal: 03001234567'))
-      .refine((v) => !v.startsWith('0') || isValidPakistanPhone(v), t('Mobile number 03 se shuru aur 11 number ka hota hai. Misaal: 03001234567'))
-      .optional().or(z.literal('')),
+      .refine((v) => !v.startsWith('0') || isValidPakistanPhone(v), t('Mobile number 03 se shuru aur 11 number ka hota hai. Misaal: 03001234567')),
   ),
   password: z.string().min(8, t('Password kam se kam 8 huroof ka rakhein')).max(64, t('Password 64 huroof se chhota rakhein')),
   referralCode: z.string().trim().max(40, t('Code bohat lamba hai')).optional().or(z.literal('')),
@@ -111,7 +111,7 @@ export default function RegisterPage() {
       shopName: d.shopName,
       fullName: d.fullName,
       email: d.email,
-      phone: d.phone || undefined,
+      phone: d.phone,
       password: d.password,
       referralCode: d.referralCode || undefined,
     });
@@ -213,7 +213,8 @@ export default function RegisterPage() {
               error={form.formState.errors.email?.message}
             />
             <Input
-              label={<>{t('Mobile')}{' '} <span className="font-normal text-slate-500">{t('(zaroori nahi)')}</span></>}
+              label={t('Mobile')}
+              hint={t('Zaroorat par hum isi number par aap se rabta karenge.')}
               type="tel"
               inputMode="tel"
               autoComplete="tel"

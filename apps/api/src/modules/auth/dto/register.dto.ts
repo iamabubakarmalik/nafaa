@@ -30,11 +30,11 @@ export class RegisterDto {
   @IsEmail()
   email!: string;
 
-  @ApiPropertyOptional({ example: '+923001234567' })
-  @IsOptional()
+  @ApiProperty({ example: '03001234567' })
   @IsString()
+  @IsNotEmpty({ message: 'Mobile number is required' })
   @Matches(/^\+?[0-9]{10,15}$/, { message: 'Invalid phone number' })
-  phone?: string;
+  phone!: string;
 
   @ApiProperty({ example: 'StrongPass@123' })
   @IsString()
