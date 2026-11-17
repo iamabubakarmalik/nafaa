@@ -63,9 +63,44 @@ export const TUTORIALS: Tutorial[] = [
     pages: [/^\/sales/, /^\/returns/, /^\/bookings/],
   },
   {
-    id: 'day-report', youtubeId: 'i1Kv5rOHbAg', duration: '2:27',
-    title: tr('Din ka hisaab aur profit'), text: tr('Dashboard, Day report, Expense, print aur PDF'),
-    pages: [/^\/dashboard/, /^\/day-report/, /^\/expenses/],
+    id: 'customers', youtubeId: '5ZCseZor2w0', duration: '6:12',
+    title: tr('Customers aur udhaar'), text: tr('Customer credit, payment lena, WhatsApp reminder, loyalty aur Discount codes'),
+    pages: [/^\/customers/, /^\/khata/, /^\/loyalty/, /^\/discounts/],
+  },
+  {
+    id: 'purchasing', youtubeId: 'YAJXGgepSNE', duration: '7:03',
+    title: tr('Purchasing aur suppliers'), text: tr('Suppliers, purchases, order, maal receive aur supplier payments'),
+    pages: [/^\/suppliers/, /^\/purchases/],
+  },
+  {
+    id: 'money', youtubeId: 'tuvDWtgcpzc', duration: '5:04',
+    title: tr('Expenses aur accounts'), text: tr('Shop accounts, Expense, other income, cash aur bank'),
+    pages: [/^\/money/, /^\/expenses/, /^\/income/],
+  },
+  {
+    id: 'reports-1', youtubeId: 'kInck0bQckg', duration: '7:01',
+    title: tr('Reports 1: Dashboard aur Day report'), text: tr('Aaj ki Sale, Profit, Day report ke tabs aur Reports'),
+    pages: [/^\/dashboard/, /^\/day-report/, /^\/reports\/?$/],
+  },
+  {
+    id: 'reports-2', youtubeId: 'qhSlqqy1e7M', duration: '5:58',
+    title: tr('Reports 2: Profit, stock, staff aur Nafaa AI'), text: tr('Profit-loss, product ka Profit, stock report, audit aur Nafaa AI'),
+    pages: [/^\/profit-loss/, /^\/profit-report/, /^\/stock-report/, /^\/reports\//, /^\/audit/, /^\/activity-log/, /^\/ai/],
+  },
+  {
+    id: 'staff', youtubeId: 'HdjUp6r1F1s', duration: '5:06',
+    title: tr('Staff'), text: tr('Roles, attendance, salary aur commission'),
+    pages: [/^\/staff/],
+  },
+  {
+    id: 'tax', youtubeId: 'BQVyj-Xc4KM', duration: '4:58',
+    title: tr('Tax aur FBR'), text: tr('Bill par tax, tax invoices, monthly report aur FBR/PRA screen'),
+    pages: [/^\/tax/, /^\/fbr/, /^\/settings\/(tax|tax-authority)/],
+  },
+  {
+    id: 'branches', youtubeId: 'L1Vo8qWCAKU', duration: '5:04',
+    title: tr('Multi-branch'), text: tr('All shops, branch analytics aur branches ke darmiyan stock transfer'),
+    pages: [/^\/shops/],
   },
 ];
 
