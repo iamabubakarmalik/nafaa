@@ -23,24 +23,44 @@ export interface Tutorial {
 
 export const TUTORIALS: Tutorial[] = [
   {
-    id: 'overview', youtubeId: 'YTVu8Z9v5XM', duration: '2:37',
-    title: tr('Nafaa ka taaruf'), text: tr('Nafaa kya kya karta hai, 3 minute me'),
-    pages: [],
+    id: 'signup', youtubeId: 'aigvntnOm2c', duration: '5:16',
+    title: tr('Download, signup aur dukaan ka setup'), text: tr('App kahan se lein, account banayein aur dukaan set karein'),
+    pages: [/^\/onboarding/],
   },
   {
-    id: 'signup', youtubeId: '2vhK_APoleI', duration: '4:46',
-    title: tr('Signup aur dukaan ka setup'), text: tr('Account, setup, zabaan aur Appearance'),
-    pages: [/^\/onboarding/, /^\/settings\/(language|appearance)/],
+    id: 'app-tour', youtubeId: '9rhtzZyKmh0', duration: '16:51',
+    title: tr('Poore app ka tour'), text: tr('Har menu aur har screen, ek ek kar ke'),
+    pages: [/^\/help/],
   },
   {
-    id: 'products', youtubeId: 'X-ifawR4C0Q', duration: '3:24',
-    title: tr('Products add karein'), text: tr('Haath se, ready library se, aur stock'),
-    pages: [/\/products(\/|$)/, /^\/catalog/, /^\/categories/, /^\/brands/],
+    id: 'settings-business', youtubeId: 'FwXPhO7QcKc', duration: '6:40',
+    title: tr('Settings 1: business aur staff'), text: tr('Business info, branches, users, roles aur PIN'),
+    pages: [/^\/settings\/?$/, /^\/settings\/(store|business-type|language|security)/, /^\/team/, /^\/profile/],
   },
   {
-    id: 'first-bill', youtubeId: 'GBLlTV3_Tp8', duration: '3:08',
-    title: tr('Pehla bill banayein'), text: tr('Search, Discount, payment, WhatsApp bill aur bill ka design'),
-    pages: [/^\/pos/, /^\/settings\/(receipt|counter)/, /^\/sales/],
+    id: 'settings-counter', youtubeId: 'YI_zF7HYNQA', duration: '7:21',
+    title: tr('Settings 2: counter, bill aur rules'), text: tr('Counter rules, bill ka design, printing aur stock rules'),
+    pages: [/^\/settings\/(counter|receipt|printing|hardware|payment-qr|stock|credit-loyalty|notifications|whatsapp|appearance)/],
+  },
+  {
+    id: 'products', youtubeId: 'bLmZi7ALw0c', duration: '11:19',
+    title: tr('Products poori guide'), text: tr('Haath se, library, Excel, variants, combos aur barcode labels'),
+    pages: [/^\/products(\/|$)/, /^\/catalog/, /^\/categories/, /^\/brands/, /^\/tags/, /^\/combos/, /^\/barcode-labels/],
+  },
+  {
+    id: 'stock', youtubeId: '5Q1OO3SbkJc', duration: '5:53',
+    title: tr('Stock poori guide'), text: tr('Low stock, damage, transfers aur stock count'),
+    pages: [/^\/low-stock/, /^\/inventory\//, /^\/stock-adjustments/, /^\/stock-movements/, /^\/damage/, /^\/transfers/],
+  },
+  {
+    id: 'pos', youtubeId: 'CsHTSUWYt6s', duration: '11:57',
+    title: tr('POS counter poori guide'), text: tr('Quick keys, Discount, hold bill, split payment, udhaar aur shift'),
+    pages: [/^\/pos/, /^\/quick-keys/, /^\/cash-register/],
+  },
+  {
+    id: 'sales', youtubeId: 'h7KyhZdG2fk', duration: '5:04',
+    title: tr('Sales, returns aur bookings'), text: tr('Bill dhoondein, reprint, return, void aur bookings'),
+    pages: [/^\/sales/, /^\/returns/, /^\/bookings/],
   },
   {
     id: 'day-report', youtubeId: 'i1Kv5rOHbAg', duration: '2:27',
