@@ -6,7 +6,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 import { getCachedSettings } from './offlineSettings';
 import { nextOfflineSaleNumber } from './offlineDevice';
 import { fiscalizeSale } from '@integrations/tax-authority/taxAuthority.api';
-import { askManagerPin } from '@core/security/ManagerPin';
+import { askManagerPin, isPinRequired, serverErrorKey } from '@core/security/ManagerPin';
 import { t } from '@core/i18n';
 
 type SaleItemInput = CreateSalePayload['items'][number] & {
@@ -121,8 +121,8 @@ async function createWithPin(payload: CreateSalePayload): Promise<Sale> {
   } catch (e) {
     const res = (e as { response?: { status?: number; data?: { message?: string | string[] } } })?.response;
     const message = Array.isArray(res?.data?.message) ? res?.data?.message.join(', ') : (res?.data?.message ?? '');
-    if (res?.status !== 403 || !/PIN chahiye/.test(message) || payload.managerPin) throw e;
-    const pin = await askManagerPin(message.replace(/ ke liye malik ya manager ka PIN chahiye$/, ''), /udhaar|credit/i.test(message) ? 'credit' : 'discount');
+    if (!isPinRequired(e) || payload.managerPin) throw e;
+    const pin = await askManagerPin(message.replace(/ ke liye malik ya manager ka PIN chahiye$/, ''), /udhaar|credit/i.test(serverErrorKey(e)) ? 'credit' : 'discount');
     if (!pin) throw e;
     return salesApi.create({ ...payload, managerPin: pin });
   }

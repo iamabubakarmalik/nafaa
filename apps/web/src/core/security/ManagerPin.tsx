@@ -107,6 +107,23 @@ export function askManagerPin(reason: string, kind?: PinKind): Promise<string | 
 }
 
 /**
+ * The server's own (untranslated) text of an error: the API client replaces
+ * `message` with the user's language, so the PIN check reads `messageKey`.
+ */
+export function serverErrorKey(err: unknown): string {
+  const data = (err as { response?: { data?: { message?: unknown; messageKey?: unknown } } })?.response?.data;
+  const key = typeof data?.messageKey === 'string' ? data.messageKey : '';
+  const message = Array.isArray(data?.message) ? data.message.join(', ') : typeof data?.message === 'string' ? data.message : '';
+  return `${key} ${message}`;
+}
+
+/** True when the server refused because the owner's or a manager's PIN is needed. */
+export function isPinRequired(err: unknown): boolean {
+  const status = (err as { response?: { status?: number } })?.response?.status;
+  return status === 403 && /PIN chahiye/.test(serverErrorKey(err));
+}
+
+/**
  * Runs a request; when the server answers that the owner's PIN is needed,
  * asks for it once and sends the request again with it.
  */
@@ -114,8 +131,7 @@ export async function withManagerPin<T>(reason: string, run: (pin?: string) => P
   try {
     return await run();
   } catch (e) {
-    const res = (e as { response?: { status?: number; data?: { message?: string } } })?.response;
-    if (res?.status !== 403 || !/PIN chahiye/.test(res.data?.message ?? '')) throw e;
+    if (!isPinRequired(e)) throw e;
     const pin = await askManagerPin(reason, kind);
     if (!pin) throw new Error(t('PIN ke bagair nahi hua'));
     return run(pin);
