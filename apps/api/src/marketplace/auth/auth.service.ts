@@ -98,7 +98,7 @@ export class MarketplaceAuthService {
       success: true,
       message: 'OTP bhej diya gaya hai',
       expiresIn: OTP_TTL_MINUTES * 60,
-      devCode: process.env.NODE_ENV !== 'production' ? code : undefined,
+      devCode: process.env.NODE_ENV === 'development' ? code : undefined, // never outside local development
     };
   }
 
@@ -793,7 +793,7 @@ export class MarketplaceAuthService {
     return {
       success: true,
       message: 'OTP code aap ke email par bhej diya gaya',
-      devCode: process.env.NODE_ENV !== 'production' ? code : undefined,
+      devCode: process.env.NODE_ENV === 'development' ? code : undefined, // never outside local development
     };
   }
 
