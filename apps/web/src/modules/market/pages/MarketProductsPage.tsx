@@ -174,7 +174,8 @@ export default function MarketProductsPage() {
           </THead>
           <TBody>
             {shown.map((r) => {
-              const custom = Number(r.publicPrice) !== Number(r.productPrice);
+              // A Market price of 0 means "use the POS price".
+              const custom = Number(r.publicPrice) > 0 && Number(r.publicPrice) !== Number(r.productPrice);
               return (
                 <Tr key={r.productId} data-nav-row className={cn('transition hover:bg-slate-50/80', picked.has(r.productId) && 'bg-brand-50/50')}>
                   {canEdit && <Td><Checkbox data-nav-select aria-label={t('Chunein')} checked={picked.has(r.productId)} onChange={() => pick(r.productId)} /></Td>}
@@ -191,7 +192,7 @@ export default function MarketProductsPage() {
                   </Td>
                   <Td align="right" className="tabular-nums text-slate-600">{formatPKR(r.productPrice)}</Td>
                   <Td align="right" className="tabular-nums">
-                    <span className={cn('font-semibold', custom ? 'text-brand-700' : 'text-slate-900')}>{formatPKR(r.publicPrice)}</span>
+                    <span className={cn('font-semibold', custom ? 'text-brand-700' : 'text-slate-900')}>{formatPKR(custom ? r.publicPrice : r.productPrice)}</span>
                     {r.compareAtPrice ? <span className="ms-1 text-[0.75rem] text-slate-400 line-through">{formatPKR(r.compareAtPrice)}</span> : null}
                   </Td>
                   <Td align="right" className="tabular-nums">

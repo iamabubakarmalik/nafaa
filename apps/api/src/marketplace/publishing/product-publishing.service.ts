@@ -179,8 +179,9 @@ export class ProductPublishingService {
       where: { id: resolvedShopId, tenantId },
       include: { marketplaceProfile: true },
     });
-    if (!shop?.marketplaceProfile?.isListedOnMarketplace) {
-      throw new BadRequestException('Pehle apni shop marketplace pe publish karein.');
+    // Products may be listed before the shop goes live; customers see them once it is published.
+    if (!shop?.marketplaceProfile) {
+      throw new BadRequestException('Pehle Market profile save karein.');
     }
 
     let count = 0;
@@ -205,7 +206,8 @@ export class ProductPublishingService {
               tenantId,
               publicName: product.name,
               publicDescription: product.description || '',
-              publicPrice: product.price,
+              // 0 = no Market price of its own: the live POS price is used until the owner sets one.
+              publicPrice: 0,
               publicImages: product.images?.map((i) => i.url) || [],
               marketplaceCategory: product.category?.name || 'GROCERY',
               isAvailable: true,
@@ -357,7 +359,7 @@ export class ProductPublishingService {
         tenantId,
         publicName: dto.publicName || product.name,
         publicDescription: dto.publicDescription ?? product.description ?? '',
-        publicPrice: dto.publicPrice ?? product.price,
+        publicPrice: dto.publicPrice ?? 0, // 0 = live POS price
         publicImages: dto.publicImages ?? (product.images?.map((i) => i.url) || []),
         marketplaceCategory: dto.marketplaceCategory ?? product.category?.name ?? 'GROCERY',
         isAvailable: dto.isAvailable ?? true,
@@ -393,7 +395,7 @@ export class ProductPublishingService {
           tenantId,
           publicName: product.name,
           publicDescription: product.description || '',
-          publicPrice: product.price,
+          publicPrice: 0, // live POS price until the owner sets a Market price
           publicImages: product.images?.map((i) => i.url) || [],
           marketplaceCategory: product.category?.name || 'GROCERY',
           isAvailable: true,
@@ -402,8 +404,8 @@ export class ProductPublishingService {
         },
       });
     } else {
-      if (!product.marketplaceProfile.publicName || Number(product.marketplaceProfile.publicPrice) <= 0) {
-        throw new BadRequestException('Public name aur valid price zaroori hain');
+      if (!product.marketplaceProfile.publicName || (Number(product.marketplaceProfile.publicPrice) <= 0 && Number(product.price) <= 0)) {
+        throw new BadRequestException('Naam aur qeemat zaroori hain');
       }
       // Auto-fill images from POS if marketplace has none
       const updateData: any = { isListedOnMarketplace: true, listedAt: new Date() };

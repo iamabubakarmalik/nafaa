@@ -6,7 +6,12 @@
  * the API uses when the column is empty (src/marketplace/_shared/
  * market-config.ts → gateForBusinessType). Saving it lets gate filters run
  * in the database, so listings paginate correctly. Rows that already have a
- * gate are never touched. Safe to run more than once.
+ * gate are never touched.
+ *
+ * It also clears Market prices that were only a copy of the POS price at
+ * publish time (older publishing copied it), so those products follow the
+ * live POS price again. A Market price the owner set differently is kept.
+ * Safe to run more than once.
  *
  *   npx ts-node scripts/backfill-market-gates.ts            report only
  *   npx ts-node scripts/backfill-market-gates.ts --apply    write
@@ -30,6 +35,10 @@ async function main() {
     }
     console.log(`Profiles without a gate: ${rows.length} (${rows.filter((r) => r.isListedOnMarketplace).length} listed)`);
     for (const [gate, count] of [...byGate.entries()].sort()) console.log(`  ${gate.padEnd(10)} ${count}`);
+    const [{ count }] = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT count(*)::bigint AS count FROM product_marketplace_profiles pm JOIN "Product" p ON p.id = pm."productId"
+      WHERE pm."publicPrice" > 0 AND pm."publicPrice" = p.price::numeric(12,2)`;
+    console.log(`Market prices that are only a copy of the POS price: ${count}`);
     if (!apply) {
       console.log('Report only. Run with --apply to save.');
       return;
@@ -41,6 +50,11 @@ async function main() {
       done += res.count;
     }
     console.log(`Saved the gate on ${done} profile(s).`);
+    const copied = await prisma.$executeRaw`
+      UPDATE product_marketplace_profiles pm SET "publicPrice" = 0
+      FROM "Product" p
+      WHERE p.id = pm."productId" AND pm."publicPrice" > 0 AND pm."publicPrice" = p.price::numeric(12,2)`;
+    console.log(`Market prices now following the POS price: ${copied}`);
   } finally {
     await prisma.$disconnect();
   }

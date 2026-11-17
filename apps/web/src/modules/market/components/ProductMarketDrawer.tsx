@@ -35,7 +35,7 @@ export function ProductMarketDrawer({ productId, onClose, canEdit, gate }: {
 
   useEffect(() => {
     if (!p) { setF(null); return; }
-    const custom = Number(p.publicPrice) !== Number(p.productPrice);
+    const custom = Number(p.publicPrice) > 0 && Number(p.publicPrice) !== Number(p.productPrice);
     setF({
       publicName: p.publicName ?? p.productName,
       publicDescription: p.publicDescription ?? '',
@@ -55,7 +55,8 @@ export function ProductMarketDrawer({ productId, onClose, canEdit, gate }: {
       await marketApi.products.update(p.productId, {
         publicName: f.publicName.trim() || p.productName,
         publicDescription: f.publicDescription,
-        publicPrice: f.price.trim() === '' ? p.productPrice : Number(f.price),
+        // Blank = follow the POS price (stored as 0).
+        publicPrice: f.price.trim() === '' ? 0 : Number(f.price),
         compareAtPrice: f.compareAtPrice.trim() === '' ? null : Number(f.compareAtPrice),
         marketplaceCategory: f.marketplaceCategory,
         publicImages: f.publicImages,

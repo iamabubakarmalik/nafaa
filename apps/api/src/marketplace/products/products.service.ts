@@ -45,9 +45,9 @@ export class MarketplaceProductsService {
     if (dto.subCategory) where.marketplaceSubCategory = dto.subCategory;
     if (dto.minRating !== undefined) where.ratingAverage = { gte: dto.minRating };
     if (dto.onDiscount) where.compareAtPrice = { not: null };
-    if (dto.minPrice !== undefined) where.publicPrice = { gte: dto.minPrice };
-    if (dto.maxPrice !== undefined) {
-      where.publicPrice = { ...(where.publicPrice as any), lte: dto.maxPrice };
+    // Price filters and sorting use the POS price; most products have no Market price of their own (0).
+    if (dto.minPrice !== undefined || dto.maxPrice !== undefined) {
+      where.product = { isActive: true, price: { ...(dto.minPrice !== undefined && { gte: dto.minPrice }), ...(dto.maxPrice !== undefined && { lte: dto.maxPrice }) } };
     }
     if (dto.q) {
       where.OR = [
@@ -74,8 +74,8 @@ export class MarketplaceProductsService {
     const orderBy: Prisma.ProductMarketplaceProfileOrderByWithRelationInput[] = (() => {
       switch (dto.sortBy) {
         case 'newest':      return [{ listedAt: 'desc' }];
-        case 'price_asc':   return [{ publicPrice: 'asc' }];
-        case 'price_desc':  return [{ publicPrice: 'desc' }];
+        case 'price_asc':   return [{ product: { price: 'asc' } }];
+        case 'price_desc':  return [{ product: { price: 'desc' } }];
         case 'rating':      return [{ ratingAverage: 'desc' }, { ratingCount: 'desc' }];
         case 'bestsellers': return [{ totalSold: 'desc' }];
         default:            return [{ ratingAverage: 'desc' }, { totalSold: 'desc' }];
