@@ -28,6 +28,7 @@ import { industryChoices, rememberSignupIndustry, setUpNewAccount } from '../lib
 import { DEFAULT_MODELS, readSignupModels, rememberSignupModels, type BusinessModel } from '@core/lib/business-models';
 import { isValidPakistanPhone } from '@core/lib/phone';
 import { t, Trans } from '@core/i18n';
+import { SignupVideoLink } from '@core/components/TutorialVideos';
 
 /** Strips spaces and dashes; a Pakistani mobile in +92 / 92 form becomes 03xx… like most saved numbers. */
 const stripPhone = (v: unknown) => {
@@ -271,6 +272,7 @@ export default function RegisterPage() {
         {t('Pehle se account hai?')}{' '}
         <Link to="/login" className="font-semibold text-brand-700 hover:text-brand-800">{t('Login karein')}</Link>
       </p>
+      <SignupVideoLink className="mt-3" />
     </AuthLayout>
   );
 }

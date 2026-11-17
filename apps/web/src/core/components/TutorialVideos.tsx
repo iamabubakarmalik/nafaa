@@ -77,6 +77,24 @@ export function TutorialPlayer({ video, onClose }: { video: Tutorial; onClose: (
   );
 }
 
+/** Small "how to sign up" link for the register page; plays the signup video in place. */
+export function SignupVideoLink({ className }: { className?: string }) {
+  const [playing, setPlaying] = useState(false);
+  const video = TUTORIALS.find((v) => v.id === 'signup');
+  if (!video) return null;
+  return (
+    <>
+      <button type="button" onClick={() => setPlaying(true)}
+        className={`mx-auto flex items-center gap-1.5 text-sm font-semibold text-slate-600 transition hover:text-slate-900 ${className ?? ''}`}>
+        <PlayCircle className="h-5 w-5 text-red-600" />
+        {tr('Account kaise banayein? Video dekhein')}
+        <span className="font-normal text-slate-400">· {video.duration}</span>
+      </button>
+      {playing && <TutorialPlayer video={video} onClose={() => setPlaying(false)} />}
+    </>
+  );
+}
+
 /** "Watch the video" row for the page guide; renders nothing when the page has no video. */
 export function PageVideoLink() {
   const { pathname } = useLocation();
