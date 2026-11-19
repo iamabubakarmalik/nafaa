@@ -25,6 +25,14 @@ import { t, Trans } from '@core/i18n';
 
 export type ShopifyPath = 'auto' | 'manual';
 
+/**
+ * The public Nafaa app installs only on development stores until Shopify
+ * approves it (paused under requirement 1.1.8). While this is false the
+ * Automatic card shows "Coming soon" and new connects use the merchant's own
+ * app. Channels already linked through the Nafaa app keep working.
+ */
+export const SHOPIFY_APP_LIVE = false;
+
 /* ─── small building blocks ─── */
 
 export function SetupStep({ n, title, done, children }: { n: number; title: ReactNode; done?: boolean; children?: ReactNode }) {
@@ -111,8 +119,10 @@ export function FindAddressHelp() {
 
 /* ─── 2. path chooser ─── */
 
-export function ShopifyPathCards({ value, onChange, autoNote }: { value: ShopifyPath; onChange: (p: ShopifyPath) => void; autoNote?: string | null }) {
-  const cards: { key: ShopifyPath; icon: ReactNode; title: string; badge?: ReactNode; desc: string; points: string[] }[] = [
+export function ShopifyPathCards({ value, onChange, autoNote, autoSoon = !SHOPIFY_APP_LIVE }: {
+  value: ShopifyPath; onChange: (p: ShopifyPath) => void; autoNote?: string | null; autoSoon?: boolean;
+}) {
+  const cards: { key: ShopifyPath; icon: ReactNode; title: string; badge?: ReactNode; desc: string; points: string[]; soon?: boolean }[] = [
     {
       key: 'manual', icon: <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700"><KeyRound className="h-4 w-4" /></span>,
       title: t('Apni Shopify app se'),
@@ -122,18 +132,27 @@ export function ShopifyPathCards({ value, onChange, autoNote }: { value: Shopify
     },
     {
       key: 'auto', icon: <BrandLogo name="shopify" size="md" />, title: t('Automatic (Nafaa app se)'),
-      desc: t('Popup me Shopify khulega, "Install" dabayein. Baaqi sab Nafaa khud karta hai.'),
-      points: [t('Koi key copy nahi'), t('Shopify App Store ki manzoori ke baad sab stores par')],
+      ...(autoSoon ? {
+        soon: true,
+        badge: <Badge variant="info">{t('Jald aa raha hai')}</Badge>,
+        desc: t('Ek click se jorna — Shopify ki manzoori ka intezar hai. Tab tak "Apni Shopify app se" jorein, sab kuch wahi milta hai.'),
+        points: [t('Koi key copy nahi'), t('Shopify App Store ki manzoori ke baad')],
+      } : {
+        desc: t('Popup me Shopify khulega, "Install" dabayein. Baaqi sab Nafaa khud karta hai.'),
+        points: [t('Koi key copy nahi'), t('Shopify App Store ki manzoori ke baad sab stores par')],
+      }),
     },
   ];
   return (
     <div role="radiogroup" aria-label={t('Jorne ka tareeqa')} className="grid gap-3 md:grid-cols-2">
       {cards.map((c) => {
-        const on = value === c.key;
+        const on = value === c.key && !c.soon;
         return (
-          <button key={c.key} type="button" role="radio" aria-checked={on} onClick={() => onChange(c.key)}
+          <button key={c.key} type="button" role="radio" aria-checked={on} aria-disabled={c.soon || undefined}
+            onClick={() => { if (!c.soon) onChange(c.key); }}
             className={cn('relative rounded-xl border-2 p-4 text-start transition',
-              on ? 'border-brand-500 bg-brand-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300')}>
+              c.soon ? 'cursor-not-allowed border-dashed border-slate-200 bg-slate-50/60 opacity-75'
+                : on ? 'border-brand-500 bg-brand-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300')}>
             <div className="flex items-start gap-3">
               {c.icon}
               <div className="min-w-0 flex-1">
@@ -149,9 +168,9 @@ export function ShopifyPathCards({ value, onChange, autoNote }: { value: Shopify
               </span>
             </div>
             <ul className="mt-3 space-y-1 ps-11 text-[0.78125rem] text-slate-500">
-              {c.points.map((p) => <li key={p} className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-success-600" /> {p}</li>)}
+              {c.points.map((p) => <li key={p} className="flex items-center gap-1.5"><CheckCircle2 className={cn('h-3.5 w-3.5', c.soon ? 'text-slate-400' : 'text-success-600')} /> {p}</li>)}
             </ul>
-            {c.key === 'auto' && autoNote && <p className="mt-2 ps-11 text-[0.75rem] font-medium text-amber-700">{autoNote}</p>}
+            {c.key === 'auto' && !c.soon && autoNote && <p className="mt-2 ps-11 text-[0.75rem] font-medium text-amber-700">{autoNote}</p>}
           </button>
         );
       })}

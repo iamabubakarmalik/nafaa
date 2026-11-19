@@ -14,7 +14,7 @@ import { cn } from '@core/lib/cn';
 import { useShopifyAddress } from '../../lib/shopifyAddress';
 import {
   FindAddressHelp, NoTokenNotice, SetupStep, ShopifyAddressField, ShopifyCheckPanel,
-  ShopifyErrorsHelp, ShopifyManualConnected, ShopifyManualStatus, ShopifyPathCards, ShopifyWebhooksStep, type ShopifyPath,
+  ShopifyErrorsHelp, ShopifyManualConnected, ShopifyManualStatus, ShopifyPathCards, ShopifyWebhooksStep, SHOPIFY_APP_LIVE, type ShopifyPath,
 } from './ShopifySetup';
 import { OwnAppSummary, ShopifyOwnAppGuide } from './ShopifyOwnAppGuide';
 import { t as tr, Trans } from '@core/i18n';
@@ -288,7 +288,7 @@ export function ShopifyGuide({ hook, channelId, isShopifyChannel, shopify, siteU
   return (
     <div className="space-y-4">
       {isShopifyChannel && (
-        <ShopifyPathCards value={path} onChange={setPath}
+        <ShopifyPathCards value={path} onChange={setPath} autoSoon={!SHOPIFY_APP_LIVE && shopify?.mode !== 'app'}
           autoNote={!connect.shopifyOAuth ? tr('Server par Nafaa app ki keys nahi lagi — abhi Manual istemal karein.') : null} />
       )}
       {path === 'auto' && isShopifyChannel ? (

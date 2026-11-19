@@ -13,7 +13,7 @@ import { cn } from '@core/lib/cn';
 import { BrandLogo, type BrandName } from '@/assets/brands/BrandLogo';
 import { DarazConnectCard } from '../components/daraz/Daraz';
 import { ShopifyConnectFlow } from '../components/website/ShopifyConnectFlow';
-import type { ShopifyPath } from '../components/website/ShopifySetup';
+import { SHOPIFY_APP_LIVE, type ShopifyPath } from '../components/website/ShopifySetup';
 import { t as tr } from '@core/i18n';
 
 /* ═════════════════════════════════════════════════════════════
@@ -41,7 +41,7 @@ export default function ConnectChannelPage() {
   const [platform, setPlatform] = useState<Platform>(initial && PLATFORMS.some((p) => p.key === initial) ? initial : 'woocommerce');
   const [method, setMethod] = useState<Method>('auto');
   // ?shop without a method = App Store install (Nafaa app); otherwise the merchant's own app is the default.
-  const [shopifyPath, setShopifyPath] = useState<ShopifyPath>(params.get('shop') && params.get('method') !== 'manual' ? 'auto' : 'manual');
+  const [shopifyPath, setShopifyPath] = useState<ShopifyPath>(SHOPIFY_APP_LIVE && params.get('shop') && params.get('method') !== 'manual' ? 'auto' : 'manual');
   const [site, setSite] = useState(params.get('shop')?.replace('.myshopify.com', '') ?? '');
   const [name, setName] = useState('');
   const [shopId, setShopId] = useState('');
