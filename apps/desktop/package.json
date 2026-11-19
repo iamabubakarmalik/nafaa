@@ -20,7 +20,7 @@
     "build:all": "tsc && electron-builder -mwl",
     "pack": "tsc && electron-builder --dir",
     "clean": "rm -rf dist out release",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "node -e \"if (process.env.VERCEL) process.exit(0); require('child_process').execSync('electron-builder install-app-deps', { stdio: 'inherit' })\"",
     "rebuild": "electron-rebuild -f -w usb"
   },
   "dependencies": {
