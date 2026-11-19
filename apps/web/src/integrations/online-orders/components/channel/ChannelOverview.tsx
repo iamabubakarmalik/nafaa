@@ -17,6 +17,7 @@ import { STATUS_LABEL, rs, timeAgo } from '../../lib/labels';
 import { docsUrl } from '../../lib/docs';
 import { DarazChannelCard } from '../daraz/Daraz';
 import { bareUrl, type ChannelFacts, type ChannelTab } from './meta';
+import { SHOPIFY_APP_LIVE } from '../website/ShopifySetup';
 import { t as tr, Trans } from '@core/i18n';
 
 export const panel = 'rounded-3xl bg-white shadow-sm ring-1 ring-slate-200/80';
@@ -174,7 +175,9 @@ function ConnectionSummary({ data, facts, setTab }: { data: WebsiteOverview; fac
   const lines: Array<{ ok: boolean; text: ReactNode }> = [];
   if (facts.kind === 'indolj') lines.push({ ok: true, text: <Trans text="Indolj menu jura — {{count}} item Nafaa products se jure" values={{ count: <b>{stats.productLinks}</b> }} /> });
   if (facts.kind === 'shopify' || facts.kind === 'woocommerce') {
-    lines.push({ ok: facts.automatic, text: facts.automatic ? <>{tr('{{name}} se automatic jura{{value}}', { name: facts.name, value: site ? ` · ${site}` : '' })}</> : <>{tr('{{name}} se automatic jorna baqi', { name: facts.name })}</> });
+    lines.push({ ok: facts.automatic, text: facts.automatic
+      ? <>{facts.ownApp ? tr('{{name}} se jura (apni app){{value}}', { name: facts.name, value: site ? ` · ${site}` : '' }) : tr('{{name}} se automatic jura{{value}}', { name: facts.name, value: site ? ` · ${site}` : '' })}</>
+      : <>{facts.kind === 'shopify' && !SHOPIFY_APP_LIVE ? tr('{{name}} se jorna baqi', { name: facts.name }) : tr('{{name}} se automatic jorna baqi', { name: facts.name })}</> });
   }
   lines.push({ ok: receiving, text: receiving ? <>{tr('Orders aa rahe hain — aakhri {{timeAgo}}{{value}}', { timeAgo: timeAgo(stats.lastOrderAt!), value: stats.lastOrderNumber ? ` (#${stats.lastOrderNumber})` : '' })}</> : <>{tr('Pehle order ka intezar')}</> });
   if (facts.automatic && facts.productChannel) lines.push({ ok: true, text: <>{tr('Stock {{name}} par khud{{value}}', { name: facts.name, value: stats.lastSyncAt ? tr(' — aakhri sync {{lastSyncAt}}', { lastSyncAt: timeAgo(stats.lastSyncAt) }) : '' })}</> });

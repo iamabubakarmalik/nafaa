@@ -8,6 +8,7 @@
 import type { WebsiteOverview } from '../../api/online-orders.api';
 import type { GuideData } from '../guides/Guide';
 import type { ChannelFacts } from './meta';
+import { SHOPIFY_APP_LIVE } from '../website/ShopifySetup';
 import { t, Trans } from '@core/i18n';
 
 type Overview = WebsiteOverview;
@@ -23,7 +24,13 @@ export function channelGuide(f: ChannelFacts, data: Overview): GuideData {
       brand: 'shopify',
       title: t('Shopify store jorna'),
       intro: t('Shopify aur Nafaa khud baat karte hain: orders Nafaa me aate hain, stock Nafaa se Shopify par jata hai, aur "Raste me" par customer ko Shopify ki tracking email.'),
-      steps: [
+      steps: f.ownApp || !SHOPIFY_APP_LIVE ? [
+        { title: t('Shopify me apni app banayein'), path: ['Shopify admin', 'Settings', 'Apps', 'Develop apps'], body: <>{t('Setup tab me har qadam tasveer ke saath hai: app ka naam, App URL aur scopes copy karein, phir Release aur Install.')}</>, done: f.automatic },
+        { title: t('Client ID aur secret Nafaa me daalein'), path: ['Dev Dashboard', 'Settings'], body: <>{t('Install ke baad Nafaa khud khulta hai. Client ID aur secret paste karke "Check" dabayein. Webhooks Nafaa khud lagata hai.')}</>, done: f.automatic },
+        { title: t('Stock location check karein'), path: ['Shopify admin', 'Settings', 'Locations'], body: <>{t('Nafaa stock usi location par likhta hai jo Connection me "stock location" ke saath likhi hai. Kai locations hon to sahi wali pehli rakhein.')}</>, done: f.automatic && !!i.shopify?.locationName },
+        { title: t('Products jorein'), path: ['Nafaa', 'Online products'], body: <>{t('Har Shopify product ko Nafaa product se jorein. SKU same ho to Nafaa khud salah deta hai — ek click me sab jur jate hain.')}</>, done: linked },
+        { title: t('Settings me branch aur qeemat chunein'), path: ['Channel', 'Settings'], body: <>{t('Stock kis branch se jaye, bill me kaun si qeemat, aur order khud accept ho ya nahi.')}</> },
+      ] : [
         { title: t('Store ka naam likh kar "Jorein" dabayein'), path: ['Nafaa', 'Channel', 'Setup'], body: <Trans text={'Sirf naam likhein, jaise {{example}} (".myshopify.com" Nafaa khud lagata hai). Store ka naam Shopify admin ke address me hota hai.'} values={{ example: <b>hiba-e-store</b> }} />, done: f.automatic },
         { title: t('Shopify window me login karke "Install" dabayein'), path: ['Shopify', 'Install app'], body: <Trans text="Chhoti window khulti hai. Wahan permissions dekh kar {{button}}. Window na khule to browser me popups allow karein." values={{ button: <b>Install</b> }} />, done: f.automatic },
         { title: t('Stock location check karein'), path: ['Shopify admin', 'Settings', 'Locations'], body: <>{t('Nafaa stock usi location par likhta hai jo Connection me "stock location" ke saath likhi hai. Kai locations hon to sahi wali pehli rakhein.')}</>, done: f.automatic && !!i.shopify?.locationName },
@@ -36,10 +43,10 @@ export function channelGuide(f: ChannelFacts, data: Overview): GuideData {
         <>{t('Accept → bill bana, stock kam. "Raste me" → Shopify par fulfillment aur tracking.')}</>,
       ],
       errors: [
-        { q: t('"Dobara install chahiye" likha aa raha hai'), a: <Trans text="Shopify ne nayi ijazat maangi hai. Setup → {{button}}. Koi data nahi mitega." values={{ button: <b>{t('Dobara install')}</b> }} /> },
+        ...(f.ownApp || !SHOPIFY_APP_LIVE ? [] : [{ q: t('"Dobara install chahiye" likha aa raha hai'), a: <Trans text="Shopify ne nayi ijazat maangi hai. Setup → {{button}}. Koi data nahi mitega." values={{ button: <b>{t('Dobara install')}</b> }} /> }]),
         { q: t('Shopify par order hua, Nafaa me nahi aaya'), a: <Trans text="Activity tab dekhein. Kuch na ho to Setup → {{button}} dabayein — webhooks dobara lag jate hain. Channel band to nahi?" values={{ button: <b>{t('Check')}</b> }} /> },
         { q: t('Shopify par stock update nahi hota'), a: <>{t('Product jura hua hai? Settings → "Stock kis branch se" sahi hai? Shopify me product par "Track quantity" on ho aur stock usi location par ho jo Nafaa me likhi hai.')}</> },
-        { q: t('Install window khulti hi band ho jati hai'), a: <>{t('Browser popups block kar raha hai. Address bar me popup icon → Allow, phir dobara Jorein.')}</> },
+        ...(f.ownApp || !SHOPIFY_APP_LIVE ? [] : [{ q: t('Install window khulti hi band ho jati hai'), a: <>{t('Browser popups block kar raha hai. Address bar me popup icon → Allow, phir dobara Jorein.')}</> }]),
         { q: t('Accept par "product nahi mila"'), a: <>{t('Online products me us Shopify product ko Nafaa product se jorein, ya Accept par khulne wale safhe par ek dafa chun lein — aage se khud.')}</> },
       ],
     };

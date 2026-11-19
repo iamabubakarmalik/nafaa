@@ -14,7 +14,7 @@ import { timeAgo } from '../lib/labels';
 import { t } from '@core/i18n';
 
 const ADD: Array<{ brand: BrandName; name: string; desc: string; to: string; tag?: string }> = [
-  { brand: 'shopify', name: 'Shopify', desc: t('Install dabayein — orders, stock aur tracking khud'), to: '/online-store/connect?platform=shopify', tag: t('Automatic') },
+  { brand: 'shopify', name: 'Shopify', desc: t('Apni Shopify app se — orders, stock aur tracking khud'), to: '/online-store/connect?platform=shopify', tag: t('Step by step') },
   { brand: 'woocommerce', name: 'WooCommerce', desc: t('WordPress website — Approve dabayein, baaqi Nafaa khud'), to: '/online-store/connect?platform=woocommerce', tag: t('Automatic') },
   { brand: 'daraz', name: 'Daraz', desc: t('Seller account se Allow — orders, stock, label'), to: '/online-store/connect?platform=daraz', tag: t('Automatic') },
   { brand: 'foodpanda', name: 'foodpanda', desc: t('Restaurant orders seedha counter par'), to: '/online-store/foodpanda' },
