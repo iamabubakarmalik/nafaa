@@ -1140,7 +1140,10 @@ export class ShopifyService {
       },
     });
     await this.log(integration, 'SHOPIFY_CUSTOM_CONNECT', true, undefined, { mode, scopes: check.scopes, missing });
-    await this.afterConnect(integration.id, { webhooks: false }).catch((e) => this.logger.warn(`Shopify custom setup: ${e?.message}`));
+    // A Dev Dashboard app (or a token with its API secret) can sign webhooks we can verify, so register them now.
+    // A bare token stays manual: the merchant may already have hand-made webhooks in Notifications.
+    const autoHooks = mode === 'client' || !!apiSecret;
+    await this.afterConnect(integration.id, { webhooks: autoHooks }).catch((e) => this.logger.warn(`Shopify custom setup: ${e?.message}`));
     return { ok: true, channelId: integration.id, shop, mode, missingScopes: missing };
   }
 

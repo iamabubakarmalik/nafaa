@@ -13,9 +13,10 @@ import { CopyField } from './CopyField';
 import { cn } from '@core/lib/cn';
 import { useShopifyAddress } from '../../lib/shopifyAddress';
 import {
-  FindAddressHelp, NoTokenNotice, SetupStep, ShopifyAddressField, ShopifyAppGuide, ShopifyCheckPanel, ShopifyCredentialsStep,
+  FindAddressHelp, NoTokenNotice, SetupStep, ShopifyAddressField, ShopifyCheckPanel,
   ShopifyErrorsHelp, ShopifyManualConnected, ShopifyManualStatus, ShopifyPathCards, ShopifyWebhooksStep, type ShopifyPath,
 } from './ShopifySetup';
+import { OwnAppSummary, ShopifyOwnAppGuide } from './ShopifyOwnAppGuide';
 import { t as tr, Trans } from '@core/i18n';
 
 export type Platform = 'woocommerce' | 'shopify' | 'custom';
@@ -268,8 +269,7 @@ export function ShopifyGuide({ hook, channelId, isShopifyChannel, shopify, siteU
   siteUrl: string | null; name: string; onChange: (d: WebsiteOverview) => void; overview?: WebsiteOverview;
 }) {
   const ownApp = shopify?.connected && (shopify.mode === 'token' || shopify.mode === 'client');
-  const [path, setPath] = useState<ShopifyPath>(ownApp || !isShopifyChannel ? 'manual' : 'auto');
-  const [kind, setKind] = useState<'token' | 'client'>(shopify?.mode === 'client' ? 'client' : 'token');
+  const [path, setPath] = useState<ShopifyPath>(isShopifyChannel && shopify?.mode === 'app' ? 'auto' : 'manual');
   const [store, setStore] = useState(shopify?.shop ?? siteUrl ?? '');
   const address = useShopifyAddress(store);
   const connect = useShopifyConnect(() => { onlineOrdersApi.channel(channelId).then(onChange).catch(() => null); });
@@ -298,19 +298,20 @@ export function ShopifyGuide({ hook, channelId, isShopifyChannel, shopify, siteU
           {isShopifyChannel ? <NoTokenNotice /> : (
             <p className="text-[0.8125rem] text-slate-600">{tr('Ye channel sirf webhook se orders leta hai. Products aur stock ke liye "Sales channels → Channel jorein → Shopify" se Shopify channel banayein.')}</p>
           )}
-          <ol className="space-y-5">
-            {isShopifyChannel && (
+          {isShopifyChannel && <OwnAppSummary />}
+          <ol className="space-y-7">
+            {isShopifyChannel ? (
               <>
                 <SetupStep n={1} title={tr('Store ka address')}>
                   <ShopifyAddressField value={store} onChange={setStore} address={address} />
                   <FindAddressHelp />
                 </SetupStep>
-                <ShopifyAppGuide kind={kind} onKind={setKind} first={2} />
-                <ShopifyCredentialsStep n={4} kind={kind} channelId={channelId} shop={address.shop}
+                <ShopifyOwnAppGuide first={2} channelId={channelId} shop={address.shop}
                   onConnected={() => { onlineOrdersApi.channel(channelId).then(onChange).catch(() => null); }} />
               </>
+            ) : (
+              <ShopifyWebhooksStep n={1} channelId={channelId} hook={hook} canAuto={false} signingKey={overview?.integration?.config.shopifySecret ?? null} />
             )}
-            <ShopifyWebhooksStep n={isShopifyChannel ? 5 : 1} channelId={channelId} hook={hook} canAuto={false} signingKey={overview?.integration?.config.shopifySecret ?? null} />
           </ol>
           {isShopifyChannel && <ShopifyCheckPanel channelId={channelId} />}
           <ShopifyErrorsHelp />

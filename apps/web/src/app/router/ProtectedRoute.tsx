@@ -52,7 +52,10 @@ export const ProtectedRoute = () => {
 
   if (!isAuthenticated) {
     // Install from Shopify → come back to this store after login
-    if (location.pathname === '/shopify') rememberShopifyShop(new URLSearchParams(location.search).get('shop') ?? '');
+    const q = new URLSearchParams(location.search);
+    if (location.pathname === '/shopify') rememberShopifyShop(q.get('shop') ?? '');
+    // Merchant's own app installed in Shopify → back to the manual connect page
+    if (location.pathname === '/online-store/connect' && q.get('method') === 'manual') rememberShopifyShop(q.get('shop') ?? '', 'own');
     return <Navigate to="/login" replace />;
   }
   return <Outlet />;

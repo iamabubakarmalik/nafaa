@@ -25,7 +25,7 @@ import { DesktopStatusBar } from '@modules/desktop/components/DesktopStatusBar';
 import { ErrorBoundary } from '@core/components/ErrorBoundary';
 import { PageLockGate } from '@core/security/PageLockGate';
 import { OnlineOrderAlert } from '@integrations/online-orders/components/OnlineOrderAlert';
-import { clearShopifyShop, pendingShopifyShop } from '@integrations/online-orders/lib/pendingShopify';
+import { clearShopifyShop, pendingShopifyKind, pendingShopifyPath, pendingShopifyShop } from '@integrations/online-orders/lib/pendingShopify';
 import { cn } from '@core/lib/cn';
 import { useAppearance } from '@/design-system';
 import { Kbd } from '@/design-system/components';
@@ -87,8 +87,9 @@ export default function AppShell() {
   useEffect(() => {
     const shop = pendingShopifyShop();
     if (!shop) return;
+    const target = pendingShopifyPath(shop, pendingShopifyKind());
     clearShopifyShop();
-    if (location.pathname !== '/shopify') navigate(`/shopify?shop=${encodeURIComponent(shop)}`, { replace: true });
+    if (`${location.pathname}${location.search}` !== target) navigate(target, { replace: true });
   }, [location.pathname, navigate]);
 
   const handleLogout = async () => {

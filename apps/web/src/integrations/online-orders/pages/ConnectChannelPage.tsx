@@ -40,7 +40,8 @@ export default function ConnectChannelPage() {
   const initial = params.get('platform') as Platform | null;
   const [platform, setPlatform] = useState<Platform>(initial && PLATFORMS.some((p) => p.key === initial) ? initial : 'woocommerce');
   const [method, setMethod] = useState<Method>('auto');
-  const [shopifyPath, setShopifyPath] = useState<ShopifyPath>(params.get('method') === 'manual' ? 'manual' : 'auto');
+  // ?shop without a method = App Store install (Nafaa app); otherwise the merchant's own app is the default.
+  const [shopifyPath, setShopifyPath] = useState<ShopifyPath>(params.get('shop') && params.get('method') !== 'manual' ? 'auto' : 'manual');
   const [site, setSite] = useState(params.get('shop')?.replace('.myshopify.com', '') ?? '');
   const [name, setName] = useState('');
   const [shopId, setShopId] = useState('');
@@ -215,7 +216,7 @@ export default function ConnectChannelPage() {
           <Card title={asideAuto ? tr('Jorne ke baad khud') : tr('Manual me')}>
             <ul className="space-y-2.5 text-[0.8125rem] text-slate-600 dark:text-ink-300">
               {(platform === 'shopify' && !asideAuto
-                ? [tr('Apni app ka Admin API token — encrypt karke'), tr('Shopify products dekhna aur Nafaa se jorna'), tr('Stock aur qeemat Shopify par'), tr('Webhooks ek click me, ya hath se'), tr('"Check karein" har hissa alag batata hai')]
+                ? [tr('Client ID aur secret — encrypt karke'), tr('Webhooks aur stock location khud lagte hain'), tr('Shopify products dekhna aur Nafaa se jorna'), tr('Stock aur qeemat Shopify par'), tr('"Check karein" har hissa alag batata hai')]
                 : asideAuto
                 ? [tr('Webhooks khud lagte hain — har naya order Nafaa me'), tr('Naye order par ghanti aur sidebar me ginti'), tr('Accept → bill, receipt, stock kam'), tr('Status wapas {{shortName}} par{{value}}', { shortName, value: platform === 'shopify' ? tr(' (fulfillment + tracking)') : '' }), tr('Stock har 15 minute, accept/cancel par foran'), tr('Products tab me har variant jorna')]
                 : [tr('Aap ko Key aur Secret milte hain'), platform === 'custom' ? tr('Developer ke liye PHP/Node/Python code') : platform === 'shopify' ? tr('Shopify me webhook URL paste') : tr('Plugin, REST keys ya webhook'), tr('Test order se poora flow check'), tr('Baad me Automatic par badal sakte hain')]

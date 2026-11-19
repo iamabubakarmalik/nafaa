@@ -178,6 +178,7 @@ import ApplianceProductDetail from '@industries/appliances/products/AppliancePro
 
 // ─── Route Guards & Layout ─────────────────────────────────────
 import { ProtectedRoute, PublicOnlyRoute } from '@app/router/ProtectedRoute';
+import { RootLanding } from '@integrations/online-orders/components/RootLanding';
 import { queryClient } from '@core/lib/queryClient';
 import OnboardingGate from '@app/router/OnboardingGate';
 import AppShell from '@app/shell/AppShell';
@@ -659,7 +660,7 @@ export default function App() {
             </Route>
 
             {/* ═══ FALLBACK ═══ */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<RootLanding />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </IndustryProvider>

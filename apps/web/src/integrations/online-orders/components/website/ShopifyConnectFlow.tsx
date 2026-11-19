@@ -11,9 +11,10 @@ import { useChannelConnect } from '../../hooks/useWooConnect';
 import { useShopifyAddress } from '../../lib/shopifyAddress';
 import { HttpsNotice } from './ManualKeysForm';
 import {
-  FindAddressHelp, SetupStep, ShopifyAddressField, ShopifyAppGuide, ShopifyCheckPanel, ShopifyCredentialsStep,
+  FindAddressHelp, SetupStep, ShopifyAddressField, ShopifyCheckPanel,
   ShopifyErrorsHelp, ShopifyManualConnected, ShopifyPathCards, type ShopifyPath,
 } from './ShopifySetup';
+import { OwnAppSummary, ShopifyOwnAppGuide } from './ShopifyOwnAppGuide';
 import { t, Trans } from '@core/i18n';
 
 /**
@@ -22,9 +23,11 @@ import { t, Trans } from '@core/i18n';
  * connects the merchant's own app and creates the channel only after
  * Shopify accepts the credentials.
  *
- * Opened from the Shopify admin or an App Store install (?shop=…): the store
- * is already known, so it is shown fixed and only the Nafaa app path is
- * offered. App Store rules don't allow asking for the store address by hand.
+ * Opened with ?shop=… the store is already known, so it is shown fixed and
+ * the path chooser is hidden: an App Store install keeps the Nafaa app path
+ * (App Store rules don't allow asking for the store address by hand), and the
+ * merchant's own app (?method=manual, sent here by RootLanding after Install
+ * in Shopify) keeps the manual path.
  */
 export function ShopifyConnectFlow({ path, onPath, shopList, initialShop }: {
   path: ShopifyPath; onPath: (p: ShopifyPath) => void; shopList: { id: string; name: string }[]; initialShop?: string;
@@ -32,12 +35,11 @@ export function ShopifyConnectFlow({ path, onPath, shopList, initialShop }: {
   const [store, setStore] = useState(initialShop ?? '');
   const [name, setName] = useState('');
   const [shopId, setShopId] = useState('');
-  const [kind, setKind] = useState<'token' | 'client'>('token');
   const [manualChannel, setManualChannel] = useState<string | null>(null);
   const address = useShopifyAddress(store);
   const conn = useChannelConnect('shopify');
   const fromShopify = !!initialShop;
-  const auto = fromShopify || path === 'auto';
+  const auto = path === 'auto';
 
   const details = (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -127,8 +129,8 @@ export function ShopifyConnectFlow({ path, onPath, shopList, initialShop }: {
           )}
         </Card>
       ) : (
-        <Card title={<StepTitle n={3}>{t('Manual — apni app ka token')}</StepTitle>}
-          description={t('Shopify me apni app banayein, us ka Admin API token yahan daalein. Token ke saath products, stock aur qeemat — sab chalta hai.')}>
+        <Card title={<StepTitle n={fromShopify ? 2 : 3}>{t('Manual: apni Shopify app se jorein')}</StepTitle>}
+          description={t('Shopify me ek dafa apni app banayein aur us ki Client ID aur secret yahan daalein. Har qadam ki tasveer neeche hai.')}>
           {manualChannel ? (
             <div className="space-y-4">
               <ShopifyManualConnected channelId={manualChannel} />
@@ -137,14 +139,11 @@ export function ShopifyConnectFlow({ path, onPath, shopList, initialShop }: {
             </div>
           ) : (
             <div className="space-y-6">
-              <ol className="space-y-5">
+              <OwnAppSummary />
+              <ol className="space-y-7">
                 {addressStep}
-                <ShopifyAppGuide kind={kind} onKind={setKind} first={2} />
-                <ShopifyCredentialsStep n={4} kind={kind} channelId={null} shop={address.shop}
+                <ShopifyOwnAppGuide first={2} channelId={null} shop={address.shop}
                   extra={{ displayName: name.trim() || undefined, shopId: shopId || undefined }} onConnected={setManualChannel} />
-                <SetupStep n={5} title={t('Webhooks aur test order')}>
-                  <p><Trans text="Jurte hi yahan agla step khulega: {{button}} (ek click) ya hath se, phir test order." values={{ button: <b>{t('Webhooks khud lagayein')}</b> }} /></p>
-                </SetupStep>
               </ol>
               <div className="border-t border-slate-100 pt-4"><ShopifyErrorsHelp /></div>
             </div>

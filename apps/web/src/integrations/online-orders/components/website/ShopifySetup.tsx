@@ -6,14 +6,14 @@ import {
   AlertTriangle, CheckCircle2, ChevronRight, CircleDashed, ExternalLink, Eye, EyeOff, KeyRound, Loader2, Package,
   Send, ShieldCheck, Stethoscope, Unplug, Webhook, XCircle,
 } from 'lucide-react';
-import { Alert, Badge, Button, Segmented, confirmDialog, controlClass } from '@/design-system/components';
+import { Alert, Badge, Button, confirmDialog, controlClass } from '@/design-system/components';
 import { BrandLogo } from '@/assets/brands/BrandLogo';
 import { cn } from '@core/lib/cn';
 import {
   apiErrorMessage, onlineOrdersApi, type ShopifyCheckResult, type ShopifyCustomBody, type WebsiteOverview,
 } from '../../api/online-orders.api';
 import { CHANNELS_KEY } from '../../hooks/useSalesChannels';
-import { SHOPIFY_SCOPES, SHOPIFY_WEBHOOK_EVENTS, type ResolvedAddress } from '../../lib/shopifyAddress';
+import { SHOPIFY_WEBHOOK_EVENTS, type ResolvedAddress } from '../../lib/shopifyAddress';
 import { CopyField } from './CopyField';
 import { t, Trans } from '@core/i18n';
 
@@ -114,16 +114,16 @@ export function FindAddressHelp() {
 export function ShopifyPathCards({ value, onChange, autoNote }: { value: ShopifyPath; onChange: (p: ShopifyPath) => void; autoNote?: string | null }) {
   const cards: { key: ShopifyPath; icon: ReactNode; title: string; badge?: ReactNode; desc: string; points: string[] }[] = [
     {
-      key: 'auto', icon: <BrandLogo name="shopify" size="md" />, title: t('Automatic (Nafaa app se)'),
+      key: 'manual', icon: <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700"><KeyRound className="h-4 w-4" /></span>,
+      title: t('Apni Shopify app se'),
       badge: <Badge variant="success">{t('Recommended')}</Badge>,
-      desc: t('Popup me Shopify khulega, "Install" dabayein. Baaqi sab Nafaa khud karta hai.'),
-      points: [t('Koi key ya token copy nahi'), t('Orders, stock, products, tracking — sab')],
+      desc: t('Shopify me ek dafa apni app banayein (10 minute). Har qadam ki tasveer saath hai.'),
+      points: [t('Har Shopify store par chalta hai'), t('Orders, stock, products, tracking — sab')],
     },
     {
-      key: 'manual', icon: <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-700"><KeyRound className="h-4 w-4" /></span>,
-      title: t('Manual (apni app / webhooks)'),
-      desc: t('Shopify me apni app bana kar us ka Admin API token yahan daalein.'),
-      points: [t('Jab Nafaa app install na ho sake'), t('Token ke saath products aur stock bhi')],
+      key: 'auto', icon: <BrandLogo name="shopify" size="md" />, title: t('Automatic (Nafaa app se)'),
+      desc: t('Popup me Shopify khulega, "Install" dabayein. Baaqi sab Nafaa khud karta hai.'),
+      points: [t('Koi key copy nahi'), t('Shopify App Store ki manzoori ke baad sab stores par')],
     },
   ];
   return (
@@ -159,61 +159,9 @@ export function ShopifyPathCards({ value, onChange, autoNote }: { value: Shopify
   );
 }
 
-/* ─── 3. own app: guide + credentials ─── */
+/* ─── 3. own app: credentials ─── */
 
 type CredKind = 'token' | 'client';
-
-/** Step-by-step: make the app in Shopify and copy its credentials. */
-export function ShopifyAppGuide({ kind, onKind, first }: { kind: CredKind; onKind: (k: CredKind) => void; first: number }) {
-  const scopes = SHOPIFY_SCOPES.join(',');
-  return (
-    <>
-      <SetupStep n={first} title={t('Shopify me apni app banayein')}>
-        <Segmented<CredKind> value={kind} onChange={onKind} label={t('App ki qism')} items={[
-          { value: 'token', label: t('Admin API token (shpat_)') },
-          { value: 'client', label: t('Client ID + secret (Dev Dashboard)') },
-        ]} />
-        {kind === 'token' ? (
-          <ol className="list-decimal space-y-1.5 ps-5">
-            <li><Trans text="Shopify admin → {{path}}." values={{ path: <Path items={['Settings', 'Apps and sales channels', 'Develop apps']} /> }} /></li>
-            <li><Trans text="Pehli dafa ho to {{button}} dabayein." values={{ button: <b>Allow custom app development</b> }} /></li>
-            <li><Trans text="{{create}} → naam {{name}} → {{button}}. (App pehle se bani ho to wahi kholein.)" values={{ create: <b>Create an app</b>, name: <b>Nafaa POS</b>, button: <b>Create app</b> }} /></li>
-            <li><Trans text="{{path}} → neeche wale scopes tick karein → {{button}}." values={{ path: <Path items={['Configuration', 'Admin API integration', 'Configure']} />, button: <b>Save</b> }} /></li>
-          </ol>
-        ) : (
-          <ol className="list-decimal space-y-1.5 ps-5">
-            <li><Trans text="Shopify admin → {{path}} → {{button}} (ya {{link}})." values={{ path: <Path items={['Settings', 'Apps and sales channels', 'Develop apps']} />, button: <b>Build apps in Dev Dashboard</b>, link: <a href="https://dev.shopify.com/dashboard/" target="_blank" rel="noreferrer" className="font-semibold text-brand-700 hover:underline">dev.shopify.com <ExternalLink className="inline h-3 w-3" /></a> }} /></li>
-            <li><Trans text="{{button}} → naam {{name}}." values={{ button: <b>Create app</b>, name: <b>Nafaa POS</b> }} /></li>
-            <li><Trans text="{{versions}} me {{scopes}} par neeche wali line paste karein → {{button}}." values={{ versions: <b>Versions</b>, scopes: <b>Access scopes</b>, button: <b>Release</b> }} /></li>
-            <li><Trans text="App ke Home par {{install}} → apna store chunein → {{button}}." values={{ install: <b>Install app</b>, button: <b>Install</b> }} /></li>
-          </ol>
-        )}
-        <CopyField label={t('Scopes (sab tick / paste karein)')} value={scopes}
-          hint={t('read_products, write_products, read_inventory, write_inventory, read_locations, read_orders zaroori. Baaqi order status aur tracking ke liye.')} />
-        {kind === 'token' && (
-          <p className="text-[0.75rem] text-slate-500">
-            {t('"Create an app" nahi dikhta? Shopify ne 1 Jan 2026 se naye custom apps band kar diye hain — purani bani app chalti hai. Warna "Client ID + secret" wala tareeqa, ya Automatic.')}
-          </p>
-        )}
-      </SetupStep>
-      <SetupStep n={first + 1} title={kind === 'token' ? t('App install karein aur token copy karein') : t('Client ID aur secret copy karein')}>
-        {kind === 'token' ? (
-          <ol className="list-decimal space-y-1.5 ps-5">
-            <li><Trans text="{{tab}} tab → {{install}} → {{button}}." values={{ tab: <b>API credentials</b>, install: <b>Install app</b>, button: <b>Install</b> }} /></li>
-            <li><Trans text="{{token}} → {{reveal}} → copy. Ye {{once}} dikhta hai — kahin mehfooz rakhein." values={{ token: <b>Admin API access token</b>, reveal: <b>Reveal token once</b>, once: <b>{t('sirf ek dafa')}</b> }} /></li>
-            <li><Trans text="Isi safhe par {{key}} bhi copy karein (webhooks ki hifazat ke liye, optional)." values={{ key: <b>API secret key</b> }} /></li>
-          </ol>
-        ) : (
-          <ol className="list-decimal space-y-1.5 ps-5">
-            <li><Trans text="Dev Dashboard me app → {{tab}}." values={{ tab: <b>Settings</b> }} /></li>
-            <li><Trans text="{{id}} aur {{secret}} copy karein. Nafaa har 24 ghante khud naya token le leta hai." values={{ id: <b>Client ID</b>, secret: <b>Client secret</b> }} /></li>
-            <li>{t('Shart: store aur app ek hi Shopify organization me hon. Na hon to Shopify token nahi deta — phir Automatic istemal karein.')}</li>
-          </ol>
-        )}
-      </SetupStep>
-    </>
-  );
-}
 
 function SecretInput({ value, onChange, placeholder, label, hint }: { value: string; onChange: (v: string) => void; placeholder: string; label: string; hint?: string }) {
   const [shown, setShown] = useState(false);
@@ -299,8 +247,8 @@ export function ShopifyCredentialsStep({ n, kind, channelId, shop, extra, onConn
 /* ─── 4. webhooks ─── */
 
 /** Webhooks: one click through the Admin API, or by hand in Notifications. */
-export function ShopifyWebhooksStep({ n, channelId, hook, canAuto, signingKey }: {
-  n: number; channelId: string; hook: string; canAuto: boolean; signingKey: string | null;
+export function ShopifyWebhooksStep({ n, channelId, hook, canAuto, signingKey, done }: {
+  n: number; channelId: string; hook: string; canAuto: boolean; signingKey: string | null; done?: boolean;
 }) {
   const qc = useQueryClient();
   const [byHand, setByHand] = useState(!canAuto);
@@ -316,8 +264,9 @@ export function ShopifyWebhooksStep({ n, channelId, hook, canAuto, signingKey }:
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
   return (
-    <SetupStep n={n} title={t('Orders ke webhooks')}>
-      {canAuto && (
+    <SetupStep n={n} title={done ? t('Orders ke webhooks lag gaye') : t('Orders ke webhooks')} done={done}>
+      {done && <p>{t('Shopify ka har naya order, badlav aur cancel khud Nafaa me aayega.')}</p>}
+      {canAuto && !done && (
         <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-3">
           <Webhook className="h-5 w-5 text-brand-600" />
           <div className="min-w-0 flex-1">
@@ -327,7 +276,7 @@ export function ShopifyWebhooksStep({ n, channelId, hook, canAuto, signingKey }:
           <Button size="sm" loading={install.isPending} onClick={() => install.mutate()}>{t('Webhooks khud lagayein')}</Button>
         </div>
       )}
-      {canAuto && (
+      {canAuto && !done && (
         <button type="button" onClick={() => setByHand((v) => !v)} className="inline-flex items-center gap-1 text-[0.78125rem] font-semibold text-slate-600 hover:text-slate-900">
           <ChevronRight className={cn('h-3.5 w-3.5 transition rtl-flip', byHand && 'rotate-90 rtl:-rotate-90')} /> {t('Ya hath se lagayein')}
         </button>
@@ -405,11 +354,12 @@ export function ShopifyCheckPanel({ channelId, compact }: { channelId: string; c
 export function ShopifyErrorsHelp() {
   const items: { q: string; a: ReactNode }[] = [
     { q: t('Ghalat address / "store nahi mila"'), a: <Trans text="Shopify admin → {{path}} me {{suffix}} wala address copy karein. Apna domain (kissanmall.pk) ya admin ka link bhi chalega — hum khud sahi kar lete hain." values={{ path: <Path items={['Settings', 'Domains']} />, suffix: <b>.myshopify.com</b> }} /> },
-    { q: t('"Permissions kam hain" (scope missing)'), a: <Trans text="App → {{config}} → {{scopes}} me jo naam likhe hain wo tick karein → {{save}}. Phir app dobara install karein aur naya token lagayein (Dev Dashboard me naya version {{release}} karke store par approve karein)." values={{ config: <b>Configuration</b>, scopes: <b>Admin API scopes</b>, save: <b>Save</b>, release: <b>Release</b> }} /> },
-    { q: t('Token qabool nahi hua (401)'), a: <Trans text={'Token aadha copy hua, ya app uninstall ho gayi / token band (revoke) hua. App → {{tab}} se naya token lein. "Reveal" dobara na ho to app uninstall karke phir install karein — naya token milega.'} values={{ tab: <b>API credentials</b> }} /> },
+    { q: t('"Permissions kam hain" (scope missing)'), a: <Trans text="Dev Dashboard → app → {{versions}} → {{create}} → {{scopes}} me Nafaa wali poori line dobara paste karein → {{release}}. Phir Shopify store me app ka update approve karein aur yahan dobara jorein." values={{ versions: <b>Versions</b>, create: <b>Create version</b>, scopes: <b>Scopes</b>, release: <b>Release</b> }} /> },
+    { q: t('Client ID ya secret qabool nahi hua'), a: <Trans text="Dev Dashboard → app → {{overview}} → {{creds}} se copy button se dobara copy karein. Secret {{rotate}} kiya ho to naya wala daalein. App store par install honi chahiye." values={{ overview: <b>Overview</b>, creds: <b>Credentials</b>, rotate: <b>Rotate</b> }} /> },
     { q: t('Shopify par order hua, Nafaa me nahi aaya'), a: <Trans text={'"Webhooks khud lagayein" dabayein, ya Notifications → Webhooks me URL dobara copy karein (aakhir tak). Phir neeche {{check}} aur channel ki {{activity}} dekhein. "Signature" ki ghalti ho to signing key / API secret key dobara daalein.'} values={{ check: <b>{t('Check karein')}</b>, activity: <b>{t('Activity')}</b> }} /> },
     { q: t('Stock Shopify par nahi badalta'), a: <Trans text="Shopify → {{path}} me kam az kam ek location active ho. Product par {{option}} on ho. Product Nafaa se jura (Products tab) ya SKU dono taraf ek jaisa ho." values={{ path: <Path items={['Settings', 'Locations']} />, option: <b>Track quantity</b> }} /> },
-    { q: t('"Create an app" ka button nahi'), a: <Trans text="Shopify ne 1 Jan 2026 se naye custom apps band kar diye. Purani app ho to us ka token chalega; warna {{dev}} ya {{auto}} istemal karein." values={{ dev: <b>{t('Client ID + secret (Dev Dashboard)')}</b>, auto: <b>{t('Automatic')}</b> }} /> },
+    { q: t('"Install app" me mera store nahi dikhta'), a: <Trans text="App apne store ke admin se banayein: {{path}} → {{button}}. Tab app aur store ek hi Shopify account me hote hain aur store list me aata hai." values={{ path: <Path items={['Settings', 'Apps', 'Develop apps']} />, button: <b>Build apps in Dev Dashboard</b> }} /> },
+    { q: t('Purani app ka "shpat_" token'), a: <Trans text={'2026 se pehle bani legacy app ho to us ka Admin API token bhi chalta hai: guide ke aakhir me {{link}} dabayein. Nayi app ke liye Client ID aur secret wala tareeqa hi istemal karein.'} values={{ link: <b>{t('Purani app ka "shpat_" token hai? Yahan dabayein')}</b> }} /> },
   ];
   return (
     <div>
@@ -448,7 +398,7 @@ export function ShopifyManualConnected({ channelId, overview, first = 1 }: { cha
       <SetupStep n={first} done title={<Trans text="Shopify jur gaya {{shop}}" values={{ shop: <span className="font-normal text-slate-500">— {s?.shop}</span> }} />}>
         <p>{t('Products, stock aur qeemat ab Nafaa se.')}{' '}{s?.locationName ? <Trans text="Stock location: {{name}}." values={{ name: <b>{s.locationName}</b> }} /> : null}</p>
       </SetupStep>
-      <ShopifyWebhooksStep n={first + 1} channelId={channelId} hook={data.urls.hook ?? ''} canAuto={!!s?.connected} signingKey={i.config.shopifySecret} />
+      <ShopifyWebhooksStep n={first + 1} channelId={channelId} hook={data.urls.hook ?? ''} canAuto={!!s?.connected} signingKey={i.config.shopifySecret} done={i.webhookVerified} />
       <SetupStep n={first + 2} title={t('Products jorein')}>
         <p>{t('Shopify ke har product / variant ko Nafaa product se jorein — order aate hi sahi item aur stock.')}</p>
         <div className="flex flex-wrap gap-2">
