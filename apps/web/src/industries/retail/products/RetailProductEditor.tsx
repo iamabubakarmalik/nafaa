@@ -16,7 +16,7 @@ const config: EditorConfig<Record<string, never>> = {
   core,
   extra: { initial: {} },
   steps: [
-    basicStep(core, { categorySuggestions: ['Grocery', 'Doodh / Dairy', 'Mashroobat', 'Snacks', 'Ghar ki safai', 'Personal care'] }),
+    basicStep(core, { categorySuggestions: ['Grocery', 'Dairy', 'Drinks', 'Snacks', 'Household cleaning', 'Personal care'] }),
     priceStep(core),
     stockStep(core),
   ],

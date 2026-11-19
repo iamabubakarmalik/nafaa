@@ -494,6 +494,7 @@
   "+ nayi": "+ new",
   "+ Stock": "+ Stock",
   "+{{count}}": "+{{count}}",
+  "+{{count}} aur": "+{{count}} more",
   "+{{count}} price": "+{{count}} prices",
   "+{{pending}} baqi": "+{{pending}} pending",
   "<!doctype html><html><head><meta charset=\"utf-8\"><title>Barcode labels</title><style>{{css}}</style></head><body>{{value}}</body></html>": "<!doctype html><html><head><meta charset=\"utf-8\"><title>Barcode labels</title><style>{{css}}</style></head><body>{{value}}</body></html>",
@@ -715,6 +716,7 @@
   "Aur chunein": "Pick more",
   "Aur details": "More details",
   "Aur dikhayein ({{count}} / {{count2}})": "Show more ({{count}} / {{count2}})",
+  "Aur units ({{count}})": "More units ({{count}})",
   "ausat {{avgHours}} ghante me": "in {{avgHours}} hours on average",
   "ausat {{cost}} / {{unit}}": "avg {{cost}} / {{unit}}",
   "Ausat bachat": "Average saving",
@@ -1681,6 +1683,7 @@
   "Kam stock ki had": "Low stock limit",
   "Kam stock ki had {{lowStockAlert}} {{unit}}{{value}}": "Low stock limit {{lowStockAlert}} {{unit}}{{value}}",
   "Kam stock pehle": "Lowest stock first",
+  "Kam units": "Fewer units",
   "Kam ya khatam stock": "Low or out of stock",
   "Kam, khatam, expiry": "Low, out, expiry",
   "Kam, zyada, kharab, gum aur ginti — sab ka hisaab": "Short, extra, damaged, lost and counts — all in one place",
@@ -1999,6 +2002,7 @@
   "Mangwane ka maal": "Stock to order",
   "Mangwane ke liye koi quantity nahi": "No quantity to order",
   "Mangwayein": "Order",
+  "manzoor": "approved",
   "Margin": "Margin",
   "Margin {{margin}}%": "Margin {{margin}}%",
   "Margin {{margin}}% · profit {{formatPKR}}": "Margin {{margin}}% · profit {{formatPKR}}",
@@ -3282,8 +3286,5 @@
   "Zyada se zyada kitne bechne hain": "Most to sell",
   "Zyada stock": "Overstock",
   "Zyada stock pehle": "Most stock first",
-  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "Most columns are matched automatically. Do check the stock column, and choose the branch where the stock will go.",
-  "Kam units": "Fewer units",
-  "Aur units ({{count}})": "More units ({{count}})",
-  "+{{count}} aur": "+{{count}} more"
+  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "Most columns are matched automatically. Do check the stock column, and choose the branch where the stock will go."
 }

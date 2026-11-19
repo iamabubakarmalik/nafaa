@@ -2,19 +2,21 @@
  * Colours, emoji sets and helpers shared by the quick keys page and editor.
  */
 
+import { t } from '@core/i18n';
 import type { QuickKey } from '../api/quick-keys.api';
 
 export const KEY_COLORS = [
   '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#f59e0b', '#ef4444', '#14b8a6', '#06b6d4', '#84cc16', '#64748b',
 ];
 
-export const EMOJI_SETS: Array<{ name: string; emojis: string[] }> = [
-  { name: 'Aam', emojis: ['⚡', '⭐', '🔥', '💎', '🎯', '💰', '📦', '🛒'] },
-  { name: 'Kiryana', emojis: ['🥛', '🍞', '🥚', '🧂', '🍚', '🌾', '🫖', '☕'] },
-  { name: 'Snacks', emojis: ['🍫', '🍪', '🥤', '🍬', '🥨', '🍿', '🧃', '🍩'] },
-  { name: 'Phal sabzi', emojis: ['🍎', '🍌', '🍊', '🥭', '🍇', '🍉', '🥕', '🧅'] },
-  { name: 'Ghar', emojis: ['🧴', '🧻', '🧼', '🧹', '🕯️', '🔋', '💊', '🪥'] },
-  { name: 'Khana', emojis: ['🍔', '🍕', '🌯', '🍗', '🍰', '🎂', '🥐', '🍵'] },
+/** Emoji groups for the key editor; a function so the names follow the current language. */
+export const emojiSets = (): Array<{ name: string; emojis: string[] }> => [
+  { name: t('Aam'), emojis: ['⚡', '⭐', '🔥', '💎', '🎯', '💰', '📦', '🛒'] },
+  { name: t('Kiryana'), emojis: ['🥛', '🍞', '🥚', '🧂', '🍚', '🌾', '🫖', '☕'] },
+  { name: t('Snacks'), emojis: ['🍫', '🍪', '🥤', '🍬', '🥨', '🍿', '🧃', '🍩'] },
+  { name: t('Phal sabzi'), emojis: ['🍎', '🍌', '🍊', '🥭', '🍇', '🍉', '🥕', '🧅'] },
+  { name: t('Ghar'), emojis: ['🧴', '🧻', '🧼', '🧹', '🕯️', '🔋', '💊', '🪥'] },
+  { name: t('Khana'), emojis: ['🍔', '🍕', '🌯', '🍗', '🍰', '🎂', '🥐', '🍵'] },
 ];
 
 /** Heading used on the POS when a key has no group. */

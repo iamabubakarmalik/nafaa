@@ -112,7 +112,7 @@ export default function DamagePage() {
           <button type="button" onClick={() => setForm(true)} title={tr('Naya report (N)')} className={heroPrimaryButton}><Plus className="h-4 w-4" /> {' '}{tr('Report karein')}</button>
         </>}
         stats={pt ? [
-          { label: tr('Is period ka nuqsan'), value: money(pt.lost), hint: 'manzoor' },
+          { label: tr('Is period ka nuqsan'), value: money(pt.lost), hint: tr('manzoor') },
           { label: tr('Approval baqi'), value: queue?.pending ?? '—', hint: queue?.pending ? money(queue.pendingValue) : undefined },
           { label: tr('Reports'), value: pt.reported + pt.approved + pt.rejected },
           { label: tr('Rad hui'), value: pt.rejected },

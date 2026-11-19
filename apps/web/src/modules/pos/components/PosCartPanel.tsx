@@ -516,12 +516,12 @@ export function PosCartRow(props: {
   const stepper = (always: boolean) => (
     <span className={cn('inline-flex items-center overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200', touch ? 'h-8' : 'h-6',
       !always && !active && 'invisible group-hover:visible')}>
-      <button type="button" tabIndex={-1} aria-label={tr('Kam')} disabled={l.lockQty} onClick={() => onChangeQty(-1)}
+      <button type="button" tabIndex={-1} aria-label={tr('Ek kam karein')} disabled={l.lockQty} onClick={() => onChangeQty(-1)}
         className={cn('flex items-center justify-center text-slate-600 hover:bg-slate-200 disabled:opacity-30', touch ? 'h-8 w-8' : 'h-6 w-6')}><Minus className="h-3 w-3" /></button>
       {always && (qtyField ?? (
         <button type="button" tabIndex={-1} onClick={onStartQtyEdit} disabled={l.lockQty} className="min-w-8 px-1 text-center text-[0.8125rem] font-bold tabular-nums text-slate-900">{qtyText(l.quantity)}</button>
       ))}
-      <button type="button" tabIndex={-1} aria-label={tr('Zyada')} disabled={l.lockQty} onClick={() => onChangeQty(1)}
+      <button type="button" tabIndex={-1} aria-label={tr('Ek zyada karein')} disabled={l.lockQty} onClick={() => onChangeQty(1)}
         className={cn('flex items-center justify-center bg-brand-600 text-brand-fg hover:bg-brand-700 disabled:opacity-30', touch ? 'h-8 w-8' : 'h-6 w-6')}><Plus className="h-3 w-3" /></button>
     </span>
   );

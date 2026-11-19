@@ -9,7 +9,7 @@ import { t as tr } from '@core/i18n';
 
 const ago = (t: number) => {
   const m = Math.round((Date.now() - t) / 60_000);
-  return m < 1 ? 'abhi' : m < 60 ? tr('{{m}} min pehle', { m }) : tr('{{value}} ghante pehle', { value: Math.round(m / 60) });
+  return m < 1 ? tr('abhi') : m < 60 ? tr('{{m}} min pehle', { m }) : tr('{{value}} ghante pehle', { value: Math.round(m / 60) });
 };
 
 export function PosHoldCartsModal({ heldCarts, onResume, onDelete, onClose }: {

@@ -446,6 +446,7 @@
   "+ nayi": "+ نئی",
   "+ Stock": "+ اسٹاک",
   "+{{count}}": "+{{count}}",
+  "+{{count}} aur": "+{{count}} اور",
   "+{{count}} price": "+{{count}} قیمت",
   "+{{pending}} baqi": "+{{pending}} باقی",
   "<!doctype html><html><head><meta charset=\"utf-8\"><title>Barcode labels</title><style>{{css}}</style></head><body>{{value}}</body></html>": "<!doctype html><html><head><meta charset=\"utf-8\"><title>Barcode labels</title><style>{{css}}</style></head><body>{{value}}</body></html>",
@@ -667,6 +668,7 @@
   "Aur chunein": "اور چنیں",
   "Aur details": "اور تفصیل",
   "Aur dikhayein ({{count}} / {{count2}})": "اور دکھائیں ({{count}} / {{count2}})",
+  "Aur units ({{count}})": "مزید یونٹ ({{count}})",
   "ausat {{avgHours}} ghante me": "اوسط {{avgHours}} گھنٹے میں",
   "ausat {{cost}} / {{unit}}": "اوسط {{cost}} / {{unit}}",
   "Ausat bachat": "اوسط بچت",
@@ -1633,6 +1635,7 @@
   "Kam stock ki had": "کم اسٹاک کی حد",
   "Kam stock ki had {{lowStockAlert}} {{unit}}{{value}}": "کم اسٹاک کی حد {{lowStockAlert}} {{unit}}{{value}}",
   "Kam stock pehle": "کم اسٹاک پہلے",
+  "Kam units": "کم یونٹ",
   "Kam ya khatam stock": "کم یا ختم اسٹاک",
   "Kam, khatam, expiry": "کم، ختم، ایکسپائری",
   "Kam, zyada, kharab, gum aur ginti — sab ka hisaab": "کم، زیادہ، خراب، گم اور گنتی — سب کا حساب",
@@ -1951,6 +1954,7 @@
   "Mangwane ka maal": "منگوانے کا مال",
   "Mangwane ke liye koi quantity nahi": "منگوانے کے لیے کوئی کوانٹیٹی نہیں",
   "Mangwayein": "منگوائیں",
+  "manzoor": "منظور شدہ",
   "Margin": "مارجن",
   "Margin {{margin}}%": "مارجن {{margin}}%",
   "Margin {{margin}}% · profit {{formatPKR}}": "مارجن {{margin}}% · پرافٹ {{formatPKR}}",
@@ -3234,8 +3238,5 @@
   "Zyada se zyada kitne bechne hain": "زیادہ سے زیادہ کتنے بیچنے ہیں",
   "Zyada stock": "زیادہ اسٹاک",
   "Zyada stock pehle": "زیادہ اسٹاک پہلے",
-  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "زیادہ تر کالم خود مل جاتے ہیں۔ اسٹاک والا کالم ضرور دیکھیں، اور برانچ چنیں جہاں اسٹاک جائے گا۔",
-  "Kam units": "کم یونٹ",
-  "Aur units ({{count}})": "مزید یونٹ ({{count}})",
-  "+{{count}} aur": "+{{count}} اور"
+  "Zyada tar column khud mil jate hain. Stock wala column zaroor dekhein, aur branch chunein jahan stock jayega.": "زیادہ تر کالم خود مل جاتے ہیں۔ اسٹاک والا کالم ضرور دیکھیں، اور برانچ چنیں جہاں اسٹاک جائے گا۔"
 }

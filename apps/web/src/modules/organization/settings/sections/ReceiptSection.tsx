@@ -20,21 +20,33 @@ import { ChoiceGroup, Field, NumberInput, SectionCard, Toggle } from '../compone
 import { HeaderActions } from '../components/SettingsFrame';
 import { SaveStatusBar } from './_SaveStatus';
 import { t } from '@core/i18n';
+import { useCurrentIndustry } from '@industries/_shared/registry/useCurrentIndustry';
 
-const SAMPLE: ReceiptDoc = {
-  saleNumber: 'NF-10234', date: new Date(), customerName: 'Ahmed Raza', customerPhone: '0300-1234567', customerAddress: 'House 4, Street 9, Model Town', cashierName: 'Bilal',
-  lines: [
-    { name: "Olper's Doodh 1L", qty: 2, unit: 'pcs', price: 290, total: 580 },
-    { name: 'Dawn Bread Bari', qty: 1, unit: 'pcs', price: 180, total: 160, discount: 20 },
-    { name: 'Samsung Galaxy A15', qty: 1, unit: 'pcs', price: 42000, total: 42000, details: ['IMEI 356789104523117', 'Warranty 12 months'] },
-  ],
-  subtotal: 42760, discount: 20, total: 42740, paid: 40000, paymentLabel: t('Paid (Cash)'), previousDue: 1500,
+const BASE_LINES: ReceiptDoc['lines'] = [
+  { name: "Olper's Doodh 1L", qty: 2, unit: 'pcs', price: 290, total: 580 },
+  { name: 'Dawn Bread Bari', qty: 1, unit: 'pcs', price: 180, total: 160, discount: 20 },
+];
+
+/** Sample bill; the phone line only appears for mobile and electronics shops. Totals are derived from the lines. */
+const makeSample = (withPhone: boolean): ReceiptDoc => {
+  const extra: ReceiptDoc['lines'][number] = withPhone
+    ? { name: 'Samsung Galaxy A15', qty: 1, unit: 'pcs', price: 42000, total: 42000, details: ['IMEI 356789104523117', 'Warranty 12 months'] }
+    : { name: 'Basmati Rice 5kg', qty: 1, unit: 'pcs', price: 1650, total: 1650 };
+  const lines = [...BASE_LINES, extra];
+  const discount = lines.reduce((s, l) => s + (l.discount ?? 0), 0);
+  const total = lines.reduce((s, l) => s + l.total, 0);
+  return {
+    saleNumber: 'NF-10234', date: new Date(), customerName: 'Ahmed Raza', customerPhone: '0300-1234567', customerAddress: 'House 4, Street 9, Model Town', cashierName: 'Bilal',
+    lines, subtotal: total + discount, discount, total, paid: withPhone ? 40000 : 2000, paymentLabel: t('Paid (Cash)'), previousDue: 1500,
+  };
 };
 
 const ACCENTS = ['#0f766e', '#15803d', '#1d4ed8', '#7c3aed', '#be123c', '#c2410c', '#b45309', '#0f172a'];
 
 export function ReceiptSection() {
   const qc = useQueryClient();
+  const industry = useCurrentIndustry()?.id;
+  const SAMPLE = useMemo(() => makeSample(industry === 'mobile' || industry === 'electronics'), [industry]);
   const setupQ = useReceiptSetup();
   const base = setupQ.data ?? getReceiptSetup();
   const [draft, setDraft] = useState<ReceiptDesign>(base.design);

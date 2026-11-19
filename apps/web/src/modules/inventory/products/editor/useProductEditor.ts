@@ -12,6 +12,7 @@ import { useShopParam } from '@core/stores/auth.store';
 import { CATALOG_KEY } from '../list/useCatalog';
 import { freshDraft, loadCore } from './draft';
 import { saveProduct } from './save';
+import { settingsApi } from '@modules/organization/settings/api/settings.api';
 import type { CoreDraft, EditorConfig, EditorDraft, Errors } from './types';
 import { t as tr } from '@core/i18n';
 
@@ -53,6 +54,16 @@ export function useProductEditor<X>(config: EditorConfig<X>) {
     setDraft({ core: existing.data.core, extra: { ...structuredClone(config.extra.initial), ...existing.data.extra } as X });
     setReady(true);
   }, [existing.data, ready, config.extra.initial]);
+
+  // A new product starts with the shop's own low-stock line (Settings > Stock), while the form is still untouched.
+  const shopSettings = useQuery({ queryKey: ['settings'], queryFn: () => settingsApi.get(), staleTime: 5 * 60_000, enabled: !isEdit });
+  const shopLowStock = shopSettings.data?.settings?.defaultLowStockAlert;
+  useEffect(() => {
+    if (isEdit || shopLowStock == null) return;
+    const line = Number(shopLowStock);
+    if (!Number.isFinite(line) || line < 0) return;
+    setDraft((d) => (d.core.lowStockAlert === 5 && !d.core.name.trim() ? { ...d, core: { ...d.core, lowStockAlert: line } } : d));
+  }, [isEdit, shopLowStock]);
 
   // Only a new product keeps a draft; editing never overwrites it.
   useEffect(() => {

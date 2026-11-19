@@ -873,7 +873,7 @@ export function usePosEngine(config: PosIndustryConfig) {
    * Which rule needs the owner's PIN for this bill: a string to ask for it,
    * null when nothing does, false when the bill cannot go through.
    */
-  const pinReason = (credit: number): string | null | false => {
+  const pinReason = (credit: number): { text: string; kind: 'credit' | 'discount' } | null | false => {
     // Hand discount only; codes and points follow their own rules.
     const manual = discountAmount;
     // A price lowered by hand counts toward the same limit (the server checks it too).
@@ -885,15 +885,15 @@ export function usePosEngine(config: PosIndustryConfig) {
       const pct = base > 0 ? ((manual + priceCut) / base) * 100 : 100;
       if (pct > rules.maxDiscountPercent + 0.01) {
         if (!rules.hasPin) { toast.error(tr('Discount {{maxDiscountPercent}}% se zyada nahi ho sakti (Settings)', { maxDiscountPercent: rules.maxDiscountPercent })); return false; }
-        return `${rules.maxDiscountPercent}% se zyada discount`;
+        return { text: tr('{{max}}% se zyada Discount', { max: rules.maxDiscountPercent }), kind: 'discount' };
       }
-      if (rules.pinForDiscount && rules.hasPin) return 'Discount';
+      if (rules.pinForDiscount && rules.hasPin) return { text: tr('Discount'), kind: 'discount' };
     }
     if (credit > 0 && selectedCustomer) {
       const limit = Number(selectedCustomer.creditLimit) || 0;
       if (limit > 0 && (Number(selectedCustomer.balance) || 0) + credit > limit + 0.01) {
         if (!rules.hasPin) { toast.error(tr('{{name}} ki credit limit {{limit}} hai', { name: selectedCustomer.name, limit: formatPKR(limit) })); return false; }
-        return `Credit limit (${formatPKR(limit)}) se zyada udhaar`;
+        return { text: tr('Credit limit ({{limit}}) se zyada udhaar', { limit: formatPKR(limit) }), kind: 'credit' };
       }
     }
     return null;
@@ -916,7 +916,7 @@ export function usePosEngine(config: PosIndustryConfig) {
       if (why === false) throw new Error(tr('Cancelled'));
       let managerPin: string | undefined;
       if (why) {
-        const pin = await askManagerPin(why, /udhaar/i.test(why) ? 'credit' : 'discount');
+        const pin = await askManagerPin(why.text, why.kind);
         if (!pin) throw new Error(tr('Cancelled'));
         managerPin = pin;
       }

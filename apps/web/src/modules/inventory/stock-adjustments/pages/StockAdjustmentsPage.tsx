@@ -112,7 +112,7 @@ export default function StockAdjustmentsPage() {
         {!t ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : TYPE_ORDER.map((k) => (
           <KpiCard key={k} icon={TYPES[k].icon} color={TYPES[k].color} label={TYPES[k].label}
             value={money(k === 'OPENING_BALANCE' ? t.openingValue ?? 0 : k === 'ADJUSTMENT_IN' ? t.inValue : k === 'ADJUSTMENT_OUT' ? t.outValue : k === 'DAMAGE' ? t.damageValue : t.lossValue)}
-            hint={type === k ? tr('Filter laga · dobara dabayein') : 'dabayein'} onClick={() => toggleType(k)} active={type === k} />
+            hint={type === k ? tr('Filter laga · dobara dabayein') : tr('dabayein')} onClick={() => toggleType(k)} active={type === k} />
         ))}
       </KpiRow>
 

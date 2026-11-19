@@ -274,7 +274,7 @@ export function VoiceSaleButton({ onCommand, className = '' }: {
 
   return (
     <>
-      <button type="button" onClick={() => { setOpen(true); setTimeout(() => start(), 150); }} title={tr('Awaaz se bill (F6)')} aria-label={tr('Awaaz se bill')}
+      <button type="button" onClick={() => { setOpen(true); setTimeout(() => start(), 150); }} title={tr('Awaaz se bill')} aria-label={tr('Awaaz se bill')}
         className={className || 'flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-brand-fg shadow-sm transition hover:bg-brand-700'}>
         <Mic className="h-5 w-5" />
       </button>

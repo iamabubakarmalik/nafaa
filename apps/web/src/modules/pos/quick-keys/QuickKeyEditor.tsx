@@ -16,7 +16,7 @@ import type { Source, UnitChoice } from '@modules/purchasing/purchases/editor/so
 import type { ProductCombo } from '@modules/inventory/combos/api/combos.api';
 import { PosQuickKeyTile } from '../components';
 import { quickKeysApi, type QuickKey, type QuickKeyPayload } from '../api/quick-keys.api';
-import { EMOJI_SETS, KEY_COLORS, POS_QK_KEY, QK_KEY } from './meta';
+import { emojiSets, KEY_COLORS, POS_QK_KEY, QK_KEY } from './meta';
 import { t } from '@core/i18n';
 
 const labelCls = 'mb-1.5 block text-[0.8125rem] font-medium text-slate-700';
@@ -86,10 +86,10 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
   const filteredCombos = combos.filter((c) => !comboQuery.trim() || c.name.toLowerCase().includes(comboQuery.trim().toLowerCase())).slice(0, 30);
 
   const problems: string[] = [];
-  if (kind === 'product' && !source) problems.push('Product chunein');
-  if (kind === 'combo' && !comboId) problems.push('Combo chunein');
-  if (!label.trim()) problems.push('Naam likhein');
-  if (branchOnly && !shop && !editing?.shopId) problems.push('"Sirf is branch" ke liye upar se branch chunein');
+  if (kind === 'product' && !source) problems.push(t('Product chunein'));
+  if (kind === 'combo' && !comboId) problems.push(t('Combo chunein'));
+  if (!label.trim()) problems.push(t('Naam likhein'));
+  if (branchOnly && !shop && !editing?.shopId) problems.push(t('"Sirf is branch" ke liye upar se branch chunein'));
 
   const save = useMutation({
     mutationFn: () => {
@@ -242,7 +242,7 @@ export function QuickKeyEditor({ editing, sources, byCode, sourcesLoading, combo
           <div>
             <p className={labelCls}>{t('Emoji')}</p>
             <div className="space-y-1.5">
-              {EMOJI_SETS.map((set) => (
+              {emojiSets().map((set) => (
                 <div key={set.name} className="flex flex-wrap items-center gap-1">
                   <span className="w-20 shrink-0 text-[0.6875rem] text-slate-400">{set.name}</span>
                   {set.emojis.map((e) => (

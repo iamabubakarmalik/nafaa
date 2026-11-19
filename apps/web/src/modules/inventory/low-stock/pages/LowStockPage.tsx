@@ -235,7 +235,7 @@ export default function LowStockPage() {
       <KpiRow>
         {!counts || !totals ? Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-[5.25rem] rounded-2xl" />) : (
           <>
-            {kpi('out', totals.lostPerDay > 0 ? tr('roz {{lostPerDay}} ki sale ruki', { lostPerDay: money(totals.lostPerDay) }) : 'dabayein')}
+            {kpi('out', totals.lostPerDay > 0 ? tr('roz {{lostPerDay}} ki sale ruki', { lostPerDay: money(totals.lostPerDay) }) : tr('dabayein'))}
             {kpi('low', tr('alert level se neeche'))}
             {kpi('soon', tr('{{soonDays}} din ya kam ka maal', { soonDays: settings.soonDays }))}
             {kpi('expiry', tr('{{expiryDays}} din me expiry', { expiryDays: settings.expiryDays }))}
