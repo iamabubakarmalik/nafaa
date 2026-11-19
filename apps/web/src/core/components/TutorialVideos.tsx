@@ -102,6 +102,36 @@ export const TUTORIALS: Tutorial[] = [
     title: tr('Multi-branch'), text: tr('All shops, branch analytics aur branches ke darmiyan stock transfer'),
     pages: [/^\/shops/],
   },
+  {
+    id: 'online-website', youtubeId: 'iFVVcXQzfms', duration: '9:24',
+    title: tr('Online store 1: apni website'), text: tr('Website 7 steps me, design, products, delivery charges aur payment'),
+    pages: [/^\/online-store\/?$/, /^\/online-store\/(site|website|setup|products|payments)/],
+  },
+  {
+    id: 'online-orders', youtubeId: 'CtknnC8iUhk', duration: '8:02',
+    title: tr('Online store 2: orders aur couriers'), text: tr('Orders, packing scan, couriers, returns aur COD ka hisaab'),
+    pages: [/^\/online-orders(?!\/(customers|abandoned|profit|radar|reports|conversion))/, /^\/online-store\/couriers/],
+  },
+  {
+    id: 'online-growth', youtubeId: '98JtNqS2SdM', duration: '5:40',
+    title: tr('Online store 3: growth aur asal Profit'), text: tr('Customers, reviews, WhatsApp campaigns, loyalty, Selling costs aur Profit'),
+    pages: [/^\/online-orders\/(customers|abandoned|profit|radar|reports|conversion)/, /^\/online-store\/(campaigns|reviews|loyalty|blocklist|whatsapp|costs|price-calculator|channels|automation|inbox|marketing|connect|affiliates|ads|settings)/],
+  },
+  {
+    id: 'distribution', youtubeId: 'DLsnetvmoZM', duration: '5:05',
+    title: tr('Distribution'), text: tr('Orders, order bookers, load sheets, routes aur recoveries'),
+    pages: [/^\/distribution/],
+  },
+  {
+    id: 'mobile-app', youtubeId: 'WHPbBOZguRA', duration: '6:20',
+    title: tr('Mobile app'), text: tr('Phone par login, bill, products, udhaar aur reports'),
+    pages: [],
+  },
+  {
+    id: 'data-plan', youtubeId: '1idsmdGo1HQ', duration: '4:16',
+    title: tr('Data, plan aur backup'), text: tr('Sync, backup, data download, plan aur Danger zone'),
+    pages: [/^\/backup/, /^\/exports/, /^\/sync/, /^\/billing/, /^\/plans/, /^\/plan-usage/, /^\/apps/, /^\/referrals/, /^\/delete-account/, /^\/settings\/(danger|data-export)/],
+  },
 ];
 
 export function tutorialForPath(path: string): Tutorial | undefined {
