@@ -67,7 +67,7 @@ export const rs = (n: number) => `Rs ${Math.round(Number(n) || 0).toLocaleString
 export function timeAgo(iso?: string | null): string {
   if (!iso) return '—';
   const s = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
-  if (s < 45) return 'abhi';
+  if (s < 45) return t('abhi');
   const m = Math.floor(s / 60);
   if (m < 60) return t('{{m}} min pehle', { m });
   const h = Math.floor(m / 60);
